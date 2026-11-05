@@ -8,10 +8,12 @@ from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef
 from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
 from .frame_graph import FrameGraph
+from .kinematics import JointPlacement, solve_tree_forward_kinematics
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
-    "RigidTransform", "FrameGraph",
+    "RigidTransform", "FrameGraph", "JointPlacement",
+    "solve_tree_forward_kinematics",
 ]
