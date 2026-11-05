@@ -21,7 +21,7 @@ Prefer local-first, portable, documented, replaceable, free or open tools when t
 | TECH-007 | Supported operating systems and minimum hardware | OPEN |
 | TECH-008 | Local runtime and isolation strategy | OPEN |
 | TECH-009 | Authoritative standards and material data sources | OPEN |
-| TECH-010 | Existing Driver Generation adapter | BLOCKED: canonical source location unknown |
+| TECH-010 | Existing Driver Generation adapter | PARTIAL: `research_os_efi_platform` contains EFI/OpenCore Kext selection and candidate generation; generic Driver Generation remains UNKNOWN |
 
 ## Evaluation record template
 
@@ -30,3 +30,9 @@ For every candidate, record name and version, official source, license and depen
 ## Approval gate
 
 No candidate becomes a platform dependency until its license and security have been reviewed, the relevant reference cases have been executed, limitations are documented, and the owner has approved the decision. All selected tools must remain behind replaceable adapters where practical.
+
+## External source audit — `research_os_efi_platform`
+
+Targeted source inspection found an Apache-2.0 licensed repository with read-only Windows/Linux/macOS hardware discovery, normalized hardware snapshots, deterministic identity hashes, OS-specific observation adapters, and an EFI/OpenCore candidate pipeline. The EFI pipeline's `resolve_kexts(profile)` selects a small set of macOS kext names based on evidence flags; it does not demonstrate compiling, packaging, signing, installing, or generating arbitrary drivers for other operating systems/devices. The config generator itself describes its output as a schema-safe starting point, not proof of bootability.
+
+**Decision:** classify as `REUSE-CANDIDATE` for hardware discovery, identity/normalization and EFI-specific research. Keep the universal Driver Generation capability `UNKNOWN` until its intended scope and canonical source are confirmed. No dependency adoption or code copying is approved by this record. Before adapter implementation, pin repository HEAD, enumerate the full tree, execute tests, inspect dependency/license/security posture, and define versioned input/output contracts.
