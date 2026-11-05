@@ -7,9 +7,11 @@ from .quantity import Quantity, DIMENSIONLESS, LENGTH, MASS, TIME, CURRENT, TEMP
 from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef
 from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
+from .frame_graph import FrameGraph
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
-    "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision", "RigidTransform",
+    "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
+    "RigidTransform", "FrameGraph",
 ]
