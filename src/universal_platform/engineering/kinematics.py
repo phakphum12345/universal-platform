@@ -17,10 +17,10 @@ from .transforms import Matrix3, RigidTransform
 
 @dataclass(frozen=True, slots=True)
 class JointPlacement:
-    """Static parent-to-joint and joint-to-child placement transforms.
+    """Static parent-to-joint and joint-to-child coordinate transforms.
 
-    The two transforms share a joint-local frame. Joint.axis is declared in
-    the parent occurrence frame and is rotated into the joint frame here.
+    The transforms share a joint-local frame. Joint.axis is expressed in the
+    parent occurrence frame and is rotated into the joint frame for motion.
     """
 
     joint_id: str
@@ -47,11 +47,11 @@ def solve_tree_forward_kinematics(
     placements: Mapping[str, JointPlacement],
     joint_coordinates: Mapping[str, float] | None = None,
 ) -> dict[str, RigidTransform]:
-    """Return root-to-occurrence poses for a connected rooted joint tree.
+    """Return occurrence-to-root poses for a connected rooted joint tree.
 
     Revolute coordinates are radians; prismatic coordinates use the model
-    length unit. The returned transform maps root-occurrence coordinates
-    into each occurrence frame.
+    length unit. Each returned transform maps occurrence coordinates into
+    the root occurrence frame.
     """
     errors = assembly.validate()
     if errors:
@@ -95,6 +95,8 @@ def solve_tree_forward_kinematics(
             placement = placements[joint.joint_id]
             parent_to_joint = placement.parent_to_joint
             joint_to_child = placement.joint_to_child
+            if placement.joint_id != joint.joint_id:
+                raise InvalidModelError(f"Placement key mismatch for joint {joint.joint_id}")
             if parent_to_joint.from_frame != joint.parent_occurrence:
                 raise InvalidModelError(
                     f"Joint {joint.joint_id} parent placement frame mismatch"
@@ -148,8 +150,10 @@ def solve_tree_forward_kinematics(
                     f"Joint type {joint.joint_type.value} is not supported by tree kinematics"
                 )
 
-            parent_to_child = parent_to_joint.then(motion).then(joint_to_child)
-            poses[joint.child_occurrence] = parent_pose.then(parent_to_child)
+            child_to_parent = joint_to_child.inverse().then(motion).then(
+                parent_to_joint.inverse()
+            )
+            poses[joint.child_occurrence] = child_to_parent.then(parent_pose)
             pending.append(joint.child_occurrence)
 
     if set(poses) != occurrence_ids:
