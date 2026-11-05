@@ -1,10 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Baseline branch:** `docs/phase-0-complete-requirements`  
-**Merged baseline SHA:** `647956be574ffc0055d2613be5a7a4781d660542`  
-**Scope:** First executable, dependency-light engineering-core slice.
+**Merged baseline SHA:** `66f53f9d53a38fa42617692585da7dab7d4c8034` (PR #3; includes PR #1 engineering foundation)  
+**Current work:** `feat/3d-coordinate-frame-transforms` — pending review/merge  
+**Scope:** Dependency-light engineering-core and 3D coordinate mathematics.
 
-## Implemented in this slice
+## Implemented in the merged foundation
 - Typed SI-backed quantities and dimension checks for a deliberately limited unit registry.
 - Evidence/provenance records with FACT / ASSUMPTION / SIMULATION / UNKNOWN distinctions and PASS / FAIL / SKIPPED / UNKNOWN statuses.
 - Fail-closed safety gate that rejects physical execution actions.
@@ -16,11 +17,19 @@
 - Versioned module request/response envelopes.
 - Unit-aware mechanics, DC Ohm's law/power, linear thermal expansion and traceable material property records (initial equations only).
 
+## New coordinate-transform slice (PR #4 candidate)
+- A dependency-free rigid transform maps points and vectors between explicitly named frames.
+- Rotation matrices must be finite, orthonormal and right-handed (determinant +1); scale, shear and reflection are rejected.
+- Transform inversion and ordered composition require matching frame identifiers.
+- Axis-aligned bounding boxes are transformed by evaluating all eight corners.
+- Unit conversion remains separate; both frames must use the same length unit.
+- No coordinate-frame graph, CAD kernel, mesh/STEP/STL/3MF support, assembly solver or collision analysis is implied.
+
 ## Verification evidence
-- Pre-merge PR check: [Run #18 — pull_request](https://github.com/phakphum12345/universal-platform/actions/runs/42086496425), tested head SHA `ea1f9440aee0b273a58849e2290ccf9784cd188a`.
-- Result: PASS — `workflow-sanity` and `python-tests` completed successfully; test step ran (not skipped).
-- Post-merge branch verification: [Run #19 — push](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425), merge SHA `647956be574ffc0055d2613be5a7a4781d660542`.
-- Result: PASS — both jobs completed successfully; `Run engineering core tests` completed successfully. Documentation-only marker was SKIPPED because the Python project was present.
+- PR #1 pre-merge check: [Run #18 — pull_request](https://github.com/phakphum12345/universal-platform/actions/runs/42086496425), tested head SHA `ea1f9440aee0b273a58849e2290ccf9784cd188a`.
+- PR #1 post-merge branch verification: [Run #19 — push](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425), merge SHA `647956be574ffc0055d2613be5a7a4781d660542`.
+- PR #3 checks passed on its exact PR head SHA `ca86031d43f41d138ac380d462722ffe7ae15951`: `workflow-sanity` and `python-tests`; engineering core test step executed successfully. Documentation-only marker was SKIPPED because the Python project was present.
+- New transform slice: local isolated test run PASS, 11 tests. GitHub CI result is pending until a workflow run completes on the exact PR head SHA.
 - Earlier historical run #8 failed on unsupported `kg/m3`; later unit coverage was corrected. Historical failure remains part of the audit trail.
 
 ## Explicitly not implemented or not verified
@@ -34,4 +43,4 @@
 - Qualified engineering certification, regulatory compliance, fabrication or physical operation.
 
 ## Scope interpretation
-The passing tests validate only the code and contracts present at the exact tested SHA. They do not validate the broader proposed UEIC, CAD, CAE, hardware or manufacturing capabilities. Each later change requires fresh tests and evidence.
+Passing tests validate only the code and contracts present at the exact tested SHA. They do not validate the broader proposed UEIC, CAD, CAE, hardware or manufacturing capabilities. Each later change requires fresh tests and evidence.
