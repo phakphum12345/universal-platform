@@ -6,9 +6,10 @@ not communicate with or control physical devices.
 from .quantity import Quantity, DIMENSIONLESS, LENGTH, MASS, TIME, CURRENT, TEMPERATURE
 from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef
 from .safety import RiskTier, SafetyGate, SafetyDecision
+from .transforms import RigidTransform
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
-    "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
+    "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision", "RigidTransform",
 ]
