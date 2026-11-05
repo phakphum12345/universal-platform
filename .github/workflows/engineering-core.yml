@@ -24,15 +24,30 @@ jobs:
         run: test -s .github/workflows/engineering-core.yml
 
   python-tests:
-    if: ${{ hashFiles('pyproject.toml') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Detect Python project
+        id: project
+        shell: bash
+        run: |
+          if [ -f pyproject.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Python
+        if: steps.project.outputs.present == 'true'
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
       - name: Install package and test dependencies
+        if: steps.project.outputs.present == 'true'
         run: python -m pip install -e ".[dev]"
       - name: Run engineering core tests
+        if: steps.project.outputs.present == 'true'
         run: python -m pytest -q
+      - name: Mark code tests as not applicable on documentation-only branch
+        if: steps.project.outputs.present != 'true'
+        run: echo "SKIPPED — pyproject.toml is not present on this documentation-only branch."
