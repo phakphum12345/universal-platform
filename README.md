@@ -30,6 +30,8 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 - [Contributing](CONTRIBUTING.md)
 - [Domain Catalogue](docs/DOMAIN_CATALOGUE.md)
 - [Engineering and 3D Project Plan](docs/roadmap/ENGINEERING_AND_3D_PHASE_PLAN.md)
+- [Engineering Master File Plan](docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md)
+- [Repository Capability Inventory](docs/audit/REPOSITORY_CAPABILITY_INVENTORY.md)
 
 ### Requirements and decisions
 - [Universal Requirements](docs/requirements/UNIVERSAL_REQUIREMENTS.md)
