@@ -14,11 +14,13 @@
 - Assembly occurrence/joint data contracts and nominal joint DOF bookkeeping.
 - Linear algebra simulation adapter that labels its limitations and emits evidence.
 - Versioned module request/response envelopes.
-- Unit tests authored for the implemented contracts.
+- Unit-aware mechanics, DC Ohm's law/power, linear thermal expansion and traceable material property records (initial equations only).
+- Unit tests authored for the implemented contracts and physics modules.
 
 ## Explicitly not implemented
 
 - General symbolic mathematics, nonlinear/multiphysics solvers, FEA, CFD, FEM meshing or convergence studies.
+- Full thermodynamics, fluid dynamics, electromagnetics, materials constitutive libraries, fatigue, buckling, vibration or code-based structural/electrical design checks.
 - B-rep/parametric CAD kernel, STEP/STL export, Boolean operations, sketch constraints or manufacturing drawings.
 - Full assembly constraint solving, collision detection, tolerance stack-up or dynamic mechanism simulation.
 - Universal hardware driver generation; existing EFI/Kext repository is not a generic driver compiler.
