@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Baseline branch:** `docs/phase-0-complete-requirements`  
-**Merged baseline SHA:** `5c815396739f08f7895010d8f4ecfe0ccd869462` (PR #4; includes PR #3 docs and PR #1 engineering foundation)  
-**Scope:** Dependency-light engineering-core and 3D coordinate mathematics.
+**Merged baseline SHA:** `84b8d761c5f5854e585c2d3e7d38bd5e06780d0e` (PR #6; includes PR #4 coordinate transforms)  
+**Scope:** Dependency-light engineering-core, coordinate transforms and validated assembly/joint contracts.
 
 ## Implemented in the merged foundation
 - Typed SI-backed quantities and dimension checks for a deliberately limited unit registry.
@@ -11,19 +11,27 @@
 - Small dense linear-system solver with partial pivoting and residual calculation.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
-- Assembly occurrence/joint data contracts and nominal joint DOF bookkeeping; not a general kinematics solver.
+- Assembly occurrence/joint data contracts, duplicate/identity/reference checks, required normalized axes, finite/ordered limits and nominal joint DOF bookkeeping; not a general kinematics solver.
+- Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Unit-aware mechanics, DC Ohm's law/power, linear thermal expansion and traceable material property records (initial equations only).
-- Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
+
+## PR #6 — Assembly and joint contract validation
+- Merged to `docs/phase-0-complete-requirements` at `84b8d761c5f5854e585c2d3e7d38bd5e06780d0e`.
+- PR head tested: `1b6246a5fade25833537da9041980658a51c0fbf`.
+- [GitHub Actions run #44](https://github.com/phakphum12345/universal-platform/actions/runs/42090605011): `workflow-sanity` PASS; `python-tests` PASS; `Run engineering core tests` executed successfully.
+- Documentation-only marker was SKIPPED because `pyproject.toml` exists; it is not counted as PASS.
+- Local isolated assembly validation suite: 12 passed.
+- Post-merge combined commit status returned no status entries through the available check interface; post-merge push workflow evidence is UNKNOWN here, not PASS.
 
 ## PR #4 — Coordinate frames and rigid transforms
 - Merged to `docs/phase-0-complete-requirements` at `5c815396739f08f7895010d8f4ecfe0ccd869462`.
 - PR head tested: `cd9db270e7264533daf1621f56c5bd283533cf4b`.
 - [GitHub Actions run #34](https://github.com/phakphum12345/universal-platform/actions/runs/42090211506): `workflow-sanity` PASS; `python-tests` PASS; `Run engineering core tests` executed successfully.
-- Documentation-only marker was SKIPPED because `pyproject.toml` exists; it is not counted as PASS.
+- Documentation-only marker was SKIPPED; it is not counted as PASS.
 - Local isolated transform tests: 11 passed.
-- Post-merge combined commit status returned no status entries through the available check interface; post-merge push workflow evidence is therefore UNKNOWN here, not PASS.
+- Post-merge combined commit status returned no status entries through the available check interface; post-merge push workflow evidence is UNKNOWN here, not PASS.
 
 ## Earlier verification evidence
 - PR #1 pre-merge check: [Run #18 — pull_request](https://github.com/phakphum12345/universal-platform/actions/runs/42086496425), tested head SHA `ea1f9440aee0b273a58849e2290ccf9784cd188a`.
@@ -36,7 +44,7 @@
 - Full thermodynamics, fluid dynamics, electromagnetics, material constitutive libraries, fatigue, buckling, vibration or code-based design checks.
 - B-rep/parametric CAD kernel, STEP/STL/3MF export, Boolean operations, sketch constraints or manufacturing drawings.
 - Coordinate-frame graph/path resolution, transform uncertainty propagation and unit conversion within transforms.
-- Full assembly constraint solving, collision detection, tolerance stack-up or dynamic mechanism simulation.
+- Full assembly constraint solving, loop closure, motion simulation, collision detection, tolerance stack-up or dynamic mechanism simulation.
 - Universal hardware driver generation; EFI/Kext candidate code is not a generic driver compiler.
 - Datasheet ingestion, schematic/PCB parsing, circuit simulation or hardware runtime.
 - Production UI, API server, database, agent orchestration, plugin runtime or packaging.
