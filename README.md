@@ -11,6 +11,30 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 - Driver generation: Existing capability to be inventoried and reused; no duplicate generator is planned
 - Engineering design: Owner-approved scope; specifications remain proposed and unimplemented
 
+## Initial implementation (active development)
+
+The `feat/ueic-engineering-core-foundation` branch now contains the first executable Python engineering-core slice under `src/universal_platform/engineering`.
+
+Current modules include:
+- SI-backed quantities with dimensional checks (limited initial unit registry).
+- Evidence and provenance records with explicit evidence kinds and statuses.
+- A fail-closed safety gate for offline engineering workflows.
+- A small dense linear solver with partial pivoting and residual checks.
+- Scalar constraint evaluation with explicit UNKNOWN handling.
+- Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
+- Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
+- A transparent linear-system simulation example with limitations and evidence.
+- Versioned module request/response envelopes.
+
+Install and run the initial tests:
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pytest -q
+```
+
+This is an initial foundation, not a completed universal engineering system. General CAD/B-rep, mesh/STEP/STL export, FEA/CFD, nonlinear and multiphysics solving, full kinematics/collision analysis, hardware schematic intelligence and generic driver generation remain unimplemented or require separate audited adapters. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md).
+
 ## Core goals
 - Learn from authorized documentation, source code, APIs, datasheets, and datasets.
 - Understand applications, software, systems, dependencies, and architecture.
