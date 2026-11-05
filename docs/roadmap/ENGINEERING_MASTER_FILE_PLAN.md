@@ -199,3 +199,70 @@ Technology decisions: OPEN.
 Vertical slice: OPEN.  
 Implementation: NOT STARTED / NOT VERIFIED.  
 No code diff, merge or deployment is authorized by this file plan.
+
+
+## 11. Candidate source repository audit — research_os_efi_platform
+
+**Audited repository:** https://github.com/phakphum12345/research_os_efi_platform  
+**Audited ref:** `main`  
+**Pinned commit:** `ffd01b7ce5cbabbda51c367ca3409e1b72279884`  
+**Tree:** `bea1f0bcc09ec97dab9815b4a6c4ede261fee85c`  
+**Tree inventory:** 216 entries, 181 blobs, recursive Git tree response `truncated=false`.  
+**Audit status:** TREE INVENTORY PASS; targeted source review PARTIAL; runtime tests NOT RUN in this audit.
+
+This repository is a fork of `phakphoum38-stack/research_os_efi_platform`. Its Apache-2.0 repository metadata is not sufficient by itself to clear every dependency's license obligations; dependency and artifact provenance must be reviewed separately.
+
+### 11.1 File-level reuse map
+
+| Candidate source path | Observed capability | UEIC disposition | Boundary / remaining gate |
+|---|---|---|---|
+| `backend/platform/universal/discovery/windows.py` | Read-only Windows hardware discovery | REUSE via adapter | Review permissions, fixture coverage and OS behavior |
+| `backend/platform/universal/discovery/linux.py` | Read-only Linux sysfs/procfs and device discovery | REUSE via adapter | Validate command availability and evidence provenance |
+| `backend/platform/universal/discovery/macos.py` | Read-only macOS system_profiler discovery | REUSE via adapter | Validate platform-specific coverage |
+| `backend/platform/universal/models.py` | Product/hardware snapshot model | ADAPTER / EXTEND | Map to canonical UEIC entities without taking a dependency on the whole app |
+| `backend/platform/universal/normalize.py` | PCI/USB identity normalization | REUSE via adapter | Add malformed/unknown-ID reference fixtures |
+| `backend/platform/universal/identity.py` | Deterministic hardware/discovery identity | REUSE via adapter | Confirm canonicalization and collision assumptions |
+| `backend/platform/universal/runtime/*` | Platform-specific runtime adapter registry | ADAPTER / DEFER | Inspect exact side effects before any invocation; discovery-only mode must remain default |
+| `backend/platform/candidate.py` | EFI candidate orchestration | EXTERNAL-ADAPTER / DEFER | EFI-specific workflow; not a general engineering generator |
+| `backend/builder/efi_builder.py` | OpenCore EFI folder/config build | EXTERNAL-ADAPTER / DEFER | Not a generic driver compiler or arbitrary OS driver generator |
+| `backend/builder/kext_resolver.py` | macOS Kext selection | REUSE only for EFI-specific research | Not generic driver generation |
+| `backend/builder/compatibility.py` | Device/profile compatibility checks | ADAPTER / EXTEND | Keep platform-specific rules isolated |
+| `backend/builder/config_gen.py` | OpenCore-shaped configuration generation | EXTERNAL-ADAPTER / DEFER | Generated config is not proof of bootability |
+| `backend/platform/validator.py` | EFI output structure/config validation | ADAPTER / EXTEND | Does not establish hardware compatibility or successful boot |
+| `backend/platform/research_bridge.py` | Research/evidence bridge patterns | REFERENCE ONLY | Separate repository/runtime; no shared runtime or data dependency established |
+| `tests/test_*discovery*`, `tests/test_universal_*` | Discovery, identity, runtime contract test candidates | REUSE AS TEST REFERENCES | Must execute in target environment before PASS |
+| `requirements.txt`, `Dockerfile`, `docker-compose.yml` | Runtime/dependency and container setup | REVIEW ONLY | Pin versions, inspect transitive licenses, security and offline footprint |
+| `.github/workflows/*.yml` | CI and deployment workflows | REVIEW ONLY | Do not import deployment or privileged workflows into UEIC without security review |
+
+### 11.2 Important distinction
+
+The inspected candidate provides a meaningful **hardware discovery and identity foundation** plus **EFI/OpenCore-specific Kext/config generation**. It does **not** establish a universal driver-generation system capable of authoring, compiling, signing, packaging and validating drivers across arbitrary hardware and operating systems.
+
+Therefore:
+- Do not create a second hardware discovery/identity implementation before adapter conformance tests.
+- Do not label EFI/Kext resolution as generic Driver Generation.
+- Keep driver build/sign/install/flash and all physical device operations outside the initial UEIC execution boundary.
+- Treat this repository as an optional external source, not a dependency or subtree to copy wholesale.
+- Continue searching the owner's canonical Driver Generation source if a different repository or component exists.
+
+### 11.3 Evidence and open gates
+
+- Repository metadata and exact main commit were retrieved.
+- Recursive source tree was enumerated without truncation.
+- Targeted source files and tests were inspected in the preceding audit; this is not a line-by-line review of all 181 blobs.
+- Latest visible workflow run for the pinned commit: `Platform Hardware Knowledge`, run `40164016523`, conclusion `success`. This is one workflow result only; it does not prove every workflow or test suite passed.
+- No local tests were executed by this audit. Runtime correctness remains UNKNOWN.
+- Dependency lockfile, transitive license inventory, security review and full side-effect audit remain OPEN.
+
+## 12. Updated completion state
+
+Documentation specifications: substantial baseline exists.  
+Universal Platform recursive tree inventory: PASS at branch commit `985912ebe17d8946bcdd67dea70979b81bc553b3`; 52 file blobs across root/docs, no source/build/test implementation files observed in that tree.  
+Candidate repository recursive tree inventory: PASS at `ffd01b7ce5cbabbda51c367ca3409e1b72279884`; 181 blobs, not fully content-audited.  
+Hardware discovery reuse candidate: IDENTIFIED; adapter conformance NOT TESTED.  
+EFI/Kext builder: IDENTIFIED; generic Driver Generation NOT CONFIRMED.  
+Canonical generic Driver Generation source: UNKNOWN.  
+CAD kernel / solver / schema / database: OPEN.  
+Vertical slice selection: OPEN.  
+Implementation: NOT STARTED / NOT VERIFIED.  
+No code diff, merge or deployment is authorized by this file plan.
