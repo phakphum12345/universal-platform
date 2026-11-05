@@ -18,7 +18,7 @@
 | R-012 | No automatic integration of existing projects | PROJECT_INTEGRATION | Explicit |
 | R-013 | Shared multidisciplinary engineering core | UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE | Specification added |
 | R-014 | 3D design, tools, machines, mechanisms, structures and products | 3D_DESIGN_INTELLIGENCE; 3D_TOOL_GENERATION_ENGINE | Specification added |
-| R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | Inventory required |
+| R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | Candidate source partially located; universal scope UNKNOWN |
 
 ## Engineering and 3D sub-requirements
 
@@ -50,7 +50,7 @@ See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILIT
 - [ ] Owner selects first end-to-end use case
 - [ ] Confirm OS/platform priority and minimum hardware
 - [ ] Approve final architecture, technology choices and vertical-slice criteria
-- [ ] Inventory existing Driver Generation and verify reuse boundary
+- [ ] Complete full-tree/test/license/security audit of candidate source and verify final reuse boundary
 
 ## Status semantics
 Documented means the requirement is represented in the specification. It does not mean implemented, tested, or accepted. Use PASS / FAIL / SKIPPED / UNKNOWN for executed evidence. Do not mark Phase 0 fully complete until every open item is resolved or explicitly accepted as open/deferred by the owner.
