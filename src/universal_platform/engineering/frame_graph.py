@@ -28,7 +28,6 @@ class FrameGraph:
     @property
     def roots(self) -> frozenset[str]:
         children = set(self._parent_to_child)
-        parents = {transform.from_frame for transform in self._parent_to_child.values()}
         return frozenset(self._frames - children)
 
     def add_frame(self, frame_id: str) -> None:
@@ -46,8 +45,6 @@ class FrameGraph:
             raise InvalidModelError("A frame cannot be its own parent")
         if child in self._parent_to_child:
             raise InvalidModelError(f"Frame already has a parent: {child}")
-        if child in self._frames and parent not in self._frames:
-            raise InvalidModelError("Cannot re-parent an existing frame to a new root")
         if parent not in self._frames:
             self.add_frame(parent)
         if child not in self._frames:
