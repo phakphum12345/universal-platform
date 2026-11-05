@@ -1,0 +1,40 @@
+# 3D Interchange and Geometry Contract
+
+**Status:** PROPOSED; format/kernel decisions remain OPEN.
+
+## Purpose
+Define minimum invariants for geometry, coordinate frames and neutral CAD exchange. File extension alone does not establish semantic fidelity or manufacturability.
+
+## Canonical geometry metadata
+Every model records model ID/revision, source project and hash, units, coordinate convention, origin, handedness, component/assembly identity, material references, tolerance assumptions, authoring tool/kernel and version, export adapter/version, and provenance.
+
+## Coordinate frames
+A frame declares stable ID, parent frame, origin, axis orientation, handedness, unit and transform convention. Transformations identify source and destination frames and use a documented matrix convention. Reject ambiguous or non-rigid transforms where rigid transforms are required.
+
+## Geometry classes
+Distinguish analytic primitives, boundary representation (B-rep), parametric feature history, polygon meshes, point clouds and 2D drawings. Do not claim a mesh preserves parametric design intent. Unsupported entities must be listed in an export report.
+
+## Candidate formats
+- STEP: candidate for solid/assembly interchange; exact application protocol and metadata mapping remain to be selected.
+- STL: tessellated surface; generally does not preserve units, materials or feature history reliably.
+- 3MF: additive manufacturing package candidate; validate units, materials and build metadata.
+- OBJ: mesh interchange candidate; assembly/material semantics vary by implementation.
+- DXF/SVG: 2D geometry/document exchange; not a substitute for a 3D solid model.
+
+No format is selected by this document. Evaluate tool support, license, version, round-trip fidelity, assembly semantics, units, metadata, security and offline behavior.
+
+## Export/import validation
+1. Pin source model revision and tool versions.
+2. Record export options and supported/unsupported entities.
+3. Export to a separate artifact; never overwrite the source.
+4. Reopen using an independent supported reader where possible.
+5. Compare units, scale, orientation, component count, topology/mesh metrics and bounding dimensions.
+6. Record deviations and tolerance; fail on unexplained scale or orientation changes.
+7. Hash source and exported artifacts and attach the validation report.
+
+## Acceptance
+- Units and coordinate frames are explicit.
+- Unsupported geometry is reported, not silently discarded.
+- Export/import tests use fixtures and documented tolerances.
+- Source models remain immutable.
+- A valid file is not described as structurally safe or manufacturing-ready without separate checks.

@@ -59,6 +59,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Engineering Vertical Slice Specification](docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md)
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md)
 - [Repository Capability Inventory](docs/audit/REPOSITORY_CAPABILITY_INVENTORY.md)
+- [Post-PR-1 Baseline Audit](docs/audit/POST_PR1_BASELINE_AUDIT.md)
 
 ### Requirements and decisions
 - [Universal Requirements](docs/requirements/UNIVERSAL_REQUIREMENTS.md)
