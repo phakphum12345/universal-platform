@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-**Status:** Phase 0 baseline; mappings are documentation coverage, not implementation evidence.
+**Status:** Documentation baseline updated 2026-11-06; mappings are documentation coverage, not implementation evidence. Source inventory is PARTIAL / BLOCKED.
 
 | ID | Requirement | Primary document | State |
 |---|---|---|---|
@@ -23,6 +23,16 @@
 ## Engineering and 3D sub-requirements
 
 See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with proposed acceptance evidence.
+
+## Audit and planning artifacts
+
+- [x] Repository capability inventory created: [REPOSITORY_CAPABILITY_INVENTORY.md](../audit/REPOSITORY_CAPABILITY_INVENTORY.md)
+- [x] Engineering master file plan created: [ENGINEERING_MASTER_FILE_PLAN.md](../roadmap/ENGINEERING_MASTER_FILE_PLAN.md)
+- [x] Phase plan updated with audit findings and implementation gates
+- [ ] Complete repository tree/source inventory
+- [ ] Locate canonical existing Driver Generation source and verify reuse contract
+- [ ] Complete technology comparison and select first CAD/solver stack
+- [ ] Owner approves first vertical slice and acceptance tolerances
 
 ## Coverage checklist
 - [x] Platform vision and broad scope
