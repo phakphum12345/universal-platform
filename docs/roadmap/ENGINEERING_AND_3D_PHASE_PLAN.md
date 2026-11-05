@@ -35,7 +35,10 @@ Gate: owner review; all requirements classified and mapped. No code diff.
 
 ### Phase 1 — Repository and capability inventory
 Inspect existing code/docs, especially Driver Generation, calculation engine, device intelligence, simulation, CAD-related work and adapters. Record exact paths, SHA, tests and actual maturity. No implementation change.
-Gate: inventory reviewed; reuse/extension/duplicate risks resolved.
+
+**Current audit result (2026-11-06): PARTIAL / BLOCKED.** The working branch is documentation-focused (39 commits ahead of main, 0 behind). Targeted source/build entry points returned 404. Guessed directory listing requests were inconclusive. Existing Driver Generation is user-reported but its canonical source location remains UNKNOWN. See [Repository Capability Inventory](../audit/REPOSITORY_CAPABILITY_INVENTORY.md).
+
+Gate: complete tree and source inventory; Driver Generation source located; reuse/extension/duplicate risks resolved.
 
 ### Phase 2 — Architecture and technology decision
 Compare candidate CAD kernels, file formats, solvers, simulation tools and data stores using license, cost, offline support, platform support, interoperability and validation evidence.
@@ -67,7 +70,9 @@ Only after owner authorization, security review, evidence completeness, document
 ## 5. Required deliverables before code
 
 - Approved scope and requirements baseline.
-- Repository capability inventory and reuse map.
+- [Repository capability inventory](../audit/REPOSITORY_CAPABILITY_INVENTORY.md) and reuse map.
+- [Engineering master file plan](ENGINEERING_MASTER_FILE_PLAN.md).
+- Proposed vertical-slice specification and technology decision record (owner review required).
 - UEIC master architecture and module contracts.
 - Discipline and model catalogue.
 - CAD/3D and simulation architecture.
@@ -83,4 +88,12 @@ Documentation phase is ready for review only when every new requirement maps to 
 
 ## 7. Project status
 
-All new capabilities in this plan are specifications or proposals. Existing driver capability is not yet re-audited in this phase. Exact implementation status must be established from repository source and tests in Phase 1.
+All new capabilities in this plan are specifications or proposals. Existing Driver Generation is user-reported as already created, but its canonical source, revision and tests are not yet identified. The audited Universal Platform branch has a documentation baseline; source implementation inventory is PARTIAL / BLOCKED. Do not claim code implementation, tests or runtime capability from these documents.
+
+## 8. Current documentation baseline
+
+- [Repository Capability Inventory](../audit/REPOSITORY_CAPABILITY_INVENTORY.md)
+- [Engineering Master File Plan](ENGINEERING_MASTER_FILE_PLAN.md)
+- Requirements and engineering traceability remain the authoritative mapping.
+
+No source-code diff has been made in this phase. The next implementation gate requires a complete source tree, Driver Generation location, approved technology decisions and an owner-approved vertical slice.
