@@ -1,0 +1,38 @@
+name: Engineering Core Tests
+
+on:
+  push:
+    branches:
+      - main
+      - "docs/**"
+      - "feat/**"
+  pull_request:
+    branches:
+      - main
+      - "docs/phase-0-complete-requirements"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate workflow bootstrap
+        run: test -s .github/workflows/engineering-core.yml
+
+  python-tests:
+    if: ${{ hashFiles('pyproject.toml') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run engineering core tests
+        run: python -m pytest -q
