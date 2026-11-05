@@ -1,6 +1,6 @@
 # 3D Interchange and Geometry Contract
 
-**Status:** PROPOSED; format/kernel decisions remain OPEN.
+**Status:** Partially implemented software geometry contract; CAD format/kernel decisions remain OPEN.
 
 ## Purpose
 Define minimum invariants for geometry, coordinate frames and neutral CAD exchange. File extension alone does not establish semantic fidelity or manufacturability.
@@ -9,7 +9,11 @@ Define minimum invariants for geometry, coordinate frames and neutral CAD exchan
 Every model records model ID/revision, source project and hash, units, coordinate convention, origin, handedness, component/assembly identity, material references, tolerance assumptions, authoring tool/kernel and version, export adapter/version, and provenance.
 
 ## Coordinate frames
-A frame declares stable ID, parent frame, origin, axis orientation, handedness, unit and transform convention. Transformations identify source and destination frames and use a documented matrix convention. Reject ambiguous or non-rigid transforms where rigid transforms are required.
+A frame declares stable ID, parent frame, origin, axis orientation, handedness, unit and transform convention. The dependency-free `RigidTransform` contract is implemented in [Coordinate Frames and Rigid Transforms](COORDINATE_FRAMES_AND_RIGID_TRANSFORMS.md). It uses:
+
+`p_to = R_to_from p_from + t_to_from`
+
+The implementation validates right-handed orthonormal rotations, frame-compatible composition, inverse transforms, point/vector semantics and transformed axis-aligned bounds. Both frames are required to use the same length unit. A frame graph, automatic path resolution, unit conversion, and uncertainty propagation are not implemented.
 
 ## Geometry classes
 Distinguish analytic primitives, boundary representation (B-rep), parametric feature history, polygon meshes, point clouds and 2D drawings. Do not claim a mesh preserves parametric design intent. Unsupported entities must be listed in an export report.
