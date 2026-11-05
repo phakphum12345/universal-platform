@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Latest merged baseline:** `d59a215e5c21b3744ffeb0c8c3d11b1d2073ec00` (PR #9)  
+**Latest merged baseline:** `8db7010872d69635963a982f4f09ec3cda0913a8` (PR #10)  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest and limited rooted-tree forward kinematics.
 
 ## Implemented in the merged baseline
@@ -18,6 +18,13 @@
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+
+## PR #10 — Implementation status evidence reconciliation
+- Merged to `docs/phase-0-complete-requirements` at `8db7010872d69635963a982f4f09ec3cda0913a8`.
+- PR head tested: `dae2db5d069ef72ce155d97b7531f7beb1b2ca7a`.
+- [GitHub Actions run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218): `workflow-sanity` PASS; `python-tests` PASS; engineering core tests executed successfully.
+- Documentation-only marker was SKIPPED because `pyproject.toml` exists; it is not counted as PASS.
+- Post-merge combined status and push-triggered workflow evidence were not returned; post-merge CI remains UNKNOWN, not PASS.
 
 ## PR #9 — Tree forward kinematics
 - Merged to `docs/phase-0-complete-requirements` at `d59a215e5c21b3744ffeb0c8c3d11b1d2073ec00`.
