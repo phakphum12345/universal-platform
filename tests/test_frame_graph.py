@@ -90,3 +90,12 @@ def test_roots_and_frames_are_reported_as_immutable_views():
     graph.add_frame("independent")
     assert graph.roots == frozenset({"world", "independent"})
     assert graph.frames == frozenset({"world", "base", "independent"})
+
+
+def test_existing_root_can_be_attached_under_another_frame():
+    graph = FrameGraph()
+    graph.add_frame("world")
+    graph.add_frame("sensor")
+    graph.add_transform(tx("world", "sensor", 0.0, 0.0, 2.0))
+    assert graph.roots == frozenset({"world"})
+    assert graph.transform_between("world", "sensor").translation == Vec3(0.0, 0.0, 2.0)
