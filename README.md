@@ -24,6 +24,7 @@ Current modules include:
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
 - Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
 - A transparent linear-system simulation example with limitations and evidence.
+- Starter mechanics (axial stress/strain and factor of safety), DC electrical calculations, linear thermal expansion and validated material-property records.
 - Versioned module request/response envelopes.
 
 Install and run the initial tests:
