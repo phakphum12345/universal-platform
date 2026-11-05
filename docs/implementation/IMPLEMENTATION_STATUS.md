@@ -28,6 +28,13 @@
 - Production UI, API server, database, agent orchestration, plugin runtime or packaging.
 - Qualified engineering certification, regulatory compliance, fabrication or physical operation.
 
-## Evidence semantics
+## Verification evidence
 
-Tests are authored but have not yet been executed by CI or a local runner in this workflow. Therefore test result is **UNKNOWN**, not PASS. This code is a foundation, not a completed engineering platform.
+- GitHub Actions workflow: `Engineering Core Tests`.
+- Verified head commit: `b4badd651c190637cbd98deaca92b3d5c08afa2b`.
+- Workflow run: [run #11](https://github.com/phakphum12345/universal-platform/actions/runs/42081470284).
+- Result: **PASS** — `16 passed in 0.06s` on Python 3.12.
+- An earlier run (#8) failed because the unit registry did not support `kg/m3`; subsequent commits corrected the unit coverage and runs #9–#11 succeeded.
+- These results validate only the tests present in this initial slice. They do not establish CAD, FEA/CFD, hardware schematic, manufacturing, or physical-system capability.
+
+The platform remains an initial foundation, not a completed engineering platform. CI evidence applies to the exact commit above; later commits require fresh verification.
