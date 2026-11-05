@@ -192,13 +192,14 @@ Do not duplicate Driver Generation. Do not choose a CAD kernel or solver before 
 
 ## 10. Current completion state
 
-Documentation specifications: substantial baseline exists.  
-Repository source inventory: PARTIAL / BLOCKED.  
-Driver Generation location: UNKNOWN.  
-Technology decisions: OPEN.  
-Vertical slice: OPEN.  
-Implementation: NOT STARTED / NOT VERIFIED.  
-No code diff, merge or deployment is authorized by this file plan.
+Documentation specifications: substantial baseline exists; the P1/P2 add-on artifacts listed in Section 4 are now present on the documentation-completion branch.  
+Universal Platform initial engineering-core implementation: MERGED and CI-verified at `647956be574ffc0055d2613be5a7a4781d660542`; see `docs/implementation/IMPLEMENTATION_STATUS.md`.  
+Repository source inventory: PARTIAL; current merged tree enumerated, but external candidate source/runtime/license/security review remains open.  
+Driver Generation location: UNKNOWN for the owner's generic capability; do not duplicate.  
+Technology decisions: OPEN (CAD, solver, schema, storage and target platform).  
+Vertical slice: candidate specification exists; owner selection and acceptance inputs remain OPEN.  
+Broader UEIC/CAD/CAE implementation: NOT IMPLEMENTED / NOT VERIFIED.  
+This file plan does not authorize physical execution, deployment, fabrication or production release.
 
 
 ## 11. Candidate source repository audit — research_os_efi_platform
@@ -256,13 +257,14 @@ Therefore:
 
 ## 12. Updated completion state
 
-Documentation specifications: substantial baseline exists.  
-Universal Platform recursive tree inventory: PASS at branch commit `985912ebe17d8946bcdd67dea70979b81bc553b3`; 52 file blobs across root/docs, no source/build/test implementation files observed in that tree.  
+Documentation specifications: baseline plus P1/P2 reference, failure, geometry, motion, hazard, testing, resource and release documents present on the documentation-completion branch.  
+Universal Platform initial engineering-core implementation: MERGED at `647956be574ffc0055d2613be5a7a4781d660542`; PR #1 pull_request checks and post-merge push checks passed.  
+Universal Platform tree at that merge baseline: 66 blobs, recursive response not truncated.  
 Candidate repository recursive tree inventory: PASS at `ffd01b7ce5cbabbda51c367ca3409e1b72279884`; 181 blobs, not fully content-audited.  
 Hardware discovery reuse candidate: IDENTIFIED; adapter conformance NOT TESTED.  
 EFI/Kext builder: IDENTIFIED; generic Driver Generation NOT CONFIRMED.  
 Canonical generic Driver Generation source: UNKNOWN.  
 CAD kernel / solver / schema / database: OPEN.  
 Vertical slice selection: OPEN.  
-Implementation: NOT STARTED / NOT VERIFIED.  
-No code diff, merge or deployment is authorized by this file plan.
+Broader UEIC/CAD/CAE implementation: NOT IMPLEMENTED / NOT VERIFIED.  
+No physical execution, deployment, fabrication or production release is authorized by this file plan.
