@@ -6,6 +6,10 @@
 
 Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed leases are not implemented.
 
+## Resource quota allocation and leases
+
+ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. Leases can be released explicitly or reclaimed when a later operation observes their expiry. The implementation is process-local; it does not discover host capacity, enforce OS-level CPU/memory limits, coordinate multiple processes/machines or persist leases across restarts.
+
 ## Log-driven diagnosis
 
 The log analyzer accepts bounded caller-supplied text or structured JSON lines, extracts error/critical/fatal/exception evidence, correlates explicit component/resource IDs, and redacts common credential patterns. FileLogSource reads UTF-8 files only beneath an operator-configured root, rejects traversal/out-of-root paths and enforces a byte ceiling. Log content is evidence only; it is never executed or interpreted as instructions.
@@ -43,6 +47,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 ## Implemented verification
 
 - Resource registry, metrics/snapshots and lifecycle transitions have focused tests.
+- ResourceAllocator tests cover quota enforcement, unit matching, expiry, release and concurrent reservations without overcommit.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
