@@ -6,11 +6,11 @@ import json
 import re
 
 _SECRET_PATTERNS = (
- re.compile(r"(?i)(authorization\\s*[:=]\\s*bearer\\s+)\\S+"),
- re.compile(r"(?i)((?:password|passwd|token|secret|api[_-]?key)\\s*[:=]\\s*)[^\\s,;]+"),
+ re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)\S+"),
+ re.compile(r"(?i)((?:password|passwd|token|secret|api[_-]?key)\s*[:=]\s*)[^\s,;]+"),
 )
-_ERROR = re.compile(r"(?i)\\b(error|critical|fatal|exception|traceback|timed?\\s*out|timeout)\\b")
-_COMPONENT = re.compile(r"(?i)\\b(?:component|resource|module)[_-]?id\\s*[:=]\\s*([a-z0-9_.:/-]+)")
+_ERROR = re.compile(r"(?i)\b(error|critical|fatal|exception|traceback|timed?\s*out|timeout)\b")
+_COMPONENT = re.compile(r"(?i)\b(?:component|resource|module)[_-]?id\s*[:=]\s*([a-z0-9_.:/-]+)")
 
 @dataclass(frozen=True, slots=True)
 class LogEvent:
@@ -22,7 +22,7 @@ class LogEvent:
 
 def _redact(value: str) -> str:
     for pattern in _SECRET_PATTERNS:
-        value = pattern.sub(r"\\1[REDACTED]", value)
+        value = pattern.sub(r"\1[REDACTED]", value)
     return value
 
 def analyze_logs(log_text: str, *, source: str = "application", max_lines: int = 10_000) -> tuple[LogEvent, ...]:
