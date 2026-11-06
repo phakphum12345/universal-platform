@@ -1,6 +1,6 @@
 # Planar Four-Bar Loop-Closure and Mobility Contract
 
-**Status:** Analytic planar 4R geometry utility is implemented; a stable-ID, unit-aware model snapshot adapter is implemented and merged in PR #25 at `6198529d0e816898ad84e20efa153d54c6e0c61d`; exact PR-head CI passed (run #188, 155 tests). Post-merge CI lookup is UNKNOWN.
+**Status:** Analytic planar 4R geometry utility is implemented; a stable-ID, unit-aware model snapshot adapter is implemented and merged in PR #25 at `6198529d0e816898ad84e20efa153d54c6e0c61d`; exact PR-head CI passed (run #188, 155 tests). Post-merge CI lookup for PR #25 is UNKNOWN. PR #26 completes stable-ID residual mapping for ground, input crank, coupler and output rocker; exact PR-head CI passed (156 tests), while post-merge CI remains UNKNOWN.
 
 ## Scope
 
