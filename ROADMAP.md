@@ -229,3 +229,13 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 
 
 
+
+
+## Repository audit baseline — 2026-11-06
+
+- Integration branch exact SHA: `502d49baf58e43938d2746859e10817badd43f6e`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f` and is 229 commits behind the integration branch.
+- PR #78 is merged as a design contract only. Its exact PR-head workflow passed; post-merge CI for the integration SHA is UNKNOWN.
+- First implementation gate: PR #79, triangle-mesh self-intersection analysis. Keep the result additive and preserve MeshTopologyAnalysis v1.0 semantics.
+- Subsequent gated work: general planar topology/Boolean operations; B-rep and neutral CAD import/export; parametric sketch and feature history; EDA interchange and electrical/circuit validation; domain-validated physics adapters; secure module runtime; then end-to-end API/CLI/UI integration.
+- This is a proposed dependency sequence, not evidence that these features already exist. Each item remains PLANNED until source, tests and exact-SHA evidence are inspected.
+- See [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) for scope, evidence and limitations.

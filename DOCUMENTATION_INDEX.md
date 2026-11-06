@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `20e34933087a7276d0acc08e0d17b872c3973949` (PR #77 merge); post-merge run `42230654227` passed workflow-sanity and python-tests, 533 tests in 1.98s. PRs #49, #52, #54, #56, #59–#77 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files; tree response was not truncated. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `502d49baf58e43938d2746859e10817badd43f6e` (PR #78 merge); exact PR-head workflow #42231152061 passed workflow-sanity and python-tests (533 tests reported); post-merge CI for this integration SHA is UNKNOWN. PRs #49, #52, #54, #56, #59–#77 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files; tree response was not truncated. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 
@@ -128,3 +128,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 3. Mark proposals as PLANNED; do not upgrade maturity based on document presence.
 4. Keep historical audits labelled historical and link to the current status ledger.
 5. Check relative links after documentation changes; report any link not verifiable from the pinned tree as UNKNOWN.
+
+
+- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — current PR #78 baseline, implemented capability evidence, unverified gaps and next gated work.
