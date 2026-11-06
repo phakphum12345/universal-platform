@@ -5,6 +5,12 @@ not communicate with or control physical devices.
 """
 from .quantity import Quantity, DIMENSIONLESS, LENGTH, MASS, TIME, CURRENT, TEMPERATURE
 from .module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
+from .physics import (
+    AxialStressSolver, LinearThermalExpansionSolver, OhmsLawSolver,
+    PhysicsDomain, PhysicsInput, PhysicsMethod, PhysicsOutput, PhysicsProblem,
+    PhysicsResult, PhysicsSolverDescriptor, PhysicsSolverRegistry,
+    PhysicsSolverResponse, register_builtin_physics_solvers,
+)
 from .contracts import ModuleRequest, ModuleResponse
 from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef, EvidenceGateResult, evaluate_evidence_gate
 from .safety import RiskTier, SafetyGate, SafetyDecision
@@ -130,6 +136,10 @@ from .nonlinear_solver import (
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
+    "PhysicsDomain", "PhysicsMethod", "PhysicsInput", "PhysicsProblem",
+    "PhysicsOutput", "PhysicsResult", "PhysicsSolverDescriptor",
+    "PhysicsSolverResponse", "PhysicsSolverRegistry", "AxialStressSolver",
+    "OhmsLawSolver", "LinearThermalExpansionSolver", "register_builtin_physics_solvers",
     "ModuleManifest", "ModuleOperation", "ModuleRegistry", "ModuleRequest", "ModuleResponse",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
