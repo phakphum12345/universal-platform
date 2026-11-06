@@ -1,6 +1,6 @@
 # Normalized Mechanism Model Contract
 
-**Status:** Implemented schema and structural validator; general solver integration remains out of scope.
+**Status:** Implemented schema v1.1 and structural validator; automatic geometric constraint generation remains out of scope.
 
 ## Purpose
 
@@ -16,9 +16,9 @@ Provide a common, versioned data vocabulary for mechanism links, joints, coordin
 
 Joint kinds in schema v1.0: FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL. Nominal relative DOF is metadata only. Rotational scalar coordinates use radians and translational scalar coordinates use metres. Coupled/mixed-coordinate conventions are not inferred.
 
-## Validation guarantees
+## Placement extension (schema v1.1)\n\nSee [JOINT_AND_GEOMETRY_PLACEMENT_CONTRACT.md](JOINT_AND_GEOMETRY_PLACEMENT_CONTRACT.md) for explicit rigid placements, frame endpoint rules, metre translation units and placement coverage. Schema v1.0 remains readable; placement records require v1.1.\n\n## Validation guarantees
 
-The validator checks non-empty and unique stable IDs, dangling link/frame/geometry references, self-joints, frame-parent cycles, axis finiteness and normalization, finite/ordered limits, supported schema version and selected coordinate-unit consistency.
+The validator checks non-empty and unique stable IDs, dangling link/frame/geometry/placement references, self-joints, frame-parent cycles, axis finiteness and normalization, finite/ordered limits, supported schema versions and selected coordinate-unit consistency. It reports joints and geometry references whose placements are not supplied; missing placement data is not assumed to be identity.
 
 ## Explicit non-guarantees
 
@@ -29,4 +29,4 @@ The validator checks non-empty and unique stable IDs, dangling link/frame/geomet
 
 ## Compatibility
 
-Existing `Assembly`, `Joint`, frame graph and planar 4R adapter APIs remain unchanged. The normalized model is additive and versioned at schema `1.0`.
+Existing `Assembly`, `Joint`, frame graph and planar 4R adapter APIs remain unchanged. The normalized model is additive and versioned at schema `1.1`; legacy schema `1.0` topology-only records remain accepted.

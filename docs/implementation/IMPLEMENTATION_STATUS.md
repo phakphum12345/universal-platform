@@ -1,237 +1,28 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 0b1370460dd37afc685d5b7f2ec64cdeb77659b8 (PR #28; deterministic general loop topology and explicit residual-to-solver bridge)  
-**Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
-**Scope:** Dependency-light engineering core, normalized stable-ID mechanism schema, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
+**Latest merged baseline before PR #31:** b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb (PR #30; integrated mechanism position, mobility, velocity and acceleration pipeline)  
+**Scope:** Dependency-light offline engineering core; normalized stable-ID mechanism schema v1.1; rigid transforms and frame graph; explicit joint/geometry placements; narrow planar kinematics and caller-supplied loop/Jacobian contracts.
 
-## Implemented in the merged baseline
+## PR #31 — Joint and geometry placement contracts
 
-- Typed SI-backed quantities and dimensional checks for a deliberately limited unit registry.
-- Evidence/provenance records with FACT / ASSUMPTION / SIMULATION / UNKNOWN distinctions and PASS / FAIL / SKIPPED / UNKNOWN statuses.
-- Fail-closed safety gate that rejects physical execution actions.
-- Small dense linear solver with partial pivoting and residual calculation.
-- Bounded Levenberg–Marquardt solver for scalar nonlinear equality residuals, with forward finite differences as the default, opt-in central differences and validated analytic Jacobian callbacks; residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
-- Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
-- Threshold-dependent numerical Jacobian rank diagnostics using modified Gram–Schmidt with column pivoting; reports rank, maximum rank, threshold, matrix shape and FULL_RANK / RANK_DEFICIENT / INDETERMINATE. This is an estimate, not a proof.
-- Optional variable scaling in normalized LM coordinates, recorded in results; residual acceptance remains in original units. A column-norm ratio flags scale disparity but is not a matrix condition number.
-- Versioned JSON-compatible solver result snapshots via `NonlinearSolveResult.to_dict()`; not-computed rank/scale diagnostics are represented as null.
-- Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
-- Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
-- Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
-- Versioned normalized mechanism schema v1.0: stable-ID links, eight joint kinds, frame and geometry references, topology/reference validation, frame-cycle checks, axis/limit/unit validation. Joint schema capability is explicitly SCHEMA_ONLY; no general solver support is implied.
-- Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
-- Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
-- Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
-- Narrow analytic planar two-link (2R) inverse kinematics for elbow-up and elbow-down branches, with workspace, joint-limit, finite-input and forward-reconstruction residual checks.
-- Narrow planar four-link/four-revolute (4R) loop closure by circle intersection, left/right branches, reachability checks and closure residual validation.
-- Planar Kutzbach/Gruebler mobility estimate; a nominal count, not a proof of actual mobility.
-- Linear algebra simulation adapter with declared limitations and evidence.
-- Versioned module request/response envelopes.
-- Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+- Adds schema v1.1 records `JointFramePlacement` and `GeometryPlacement`.
+- Joint placements explicitly map parent link body frame → joint frame → child link body frame. Geometry placements map a geometry-local frame into its declared reference frame.
+- Reuses `RigidTransform`; transform endpoint frame IDs are validated exactly. Placement translations are declared in metres; no implicit unit conversion occurs.
+- Legacy schema v1.0 topology-only models remain valid. Placement records require schema v1.1.
+- Validation reports missing placement IDs as coverage gaps rather than assuming identity transforms.
+- Adds deterministic placement snapshots and regression tests for valid placements, missing coverage, schema compatibility, duplicate/dangling IDs, endpoint mismatch, frame ownership and unit mismatch.
+- **Not implemented by PR #31:** CAD placement inference, automatic joint residual equations, automatic Jacobian generation, velocity/acceleration bias generation, general spatial solving, dynamics or physical validation.
+- PR #31 branch: `feat/joint-geometry-placement-contract`; base SHA: `213b07e1ea362bf3fe6b460d5495bd505b2232e4`. CI evidence pending until exact final PR head is tested.
 
-## PR #27 — Joint/Link normalization (implementation)
+## Existing integrated mechanism capabilities
 
-- PR: https://github.com/phakphum12345/universal-platform/pull/27
-- Adds `mechanism_model.py` with versioned `MechanismModel`, `LinkModel`, `JointModel`, `FrameReference`, `GeometryReference` and structural validation.
-- Schema joint kinds: FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL. Stable IDs, dangling references, frame-parent cycles, axis normalization, scalar limits and selected radian/metre conventions are validated.
-- Joint nominal DOF is bookkeeping only. All normalized joint records report `SCHEMA_ONLY`; the existing planar 4R adapter remains unchanged and is not generalized by this PR.
-- Exact tested PR head: `320962c80551d5e68d2e392166a7bd6b46b3326c`.
-- GitHub Actions run #210 (run ID `42149832552`): `workflow-sanity` PASS; `python-tests` PASS, **172 passed in 0.37s**. The documentation-only marker was SKIPPED, not PASS.
-- Squash merge commit: `2d99717da12974434d71c686dc18dff48271d617`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- PR #27: normalized stable-ID model topology and structural validation; joint kinds remain schema-only.
+- PR #28: deterministic fundamental-cycle topology and explicit caller-supplied loop residual bridge.
+- PR #29: nominal/local mobility and Jacobian rank diagnostics; Jacobian is caller-supplied.
+- PR #30: position/mobility/velocity/acceleration orchestration; loop residuals, Jacobian and derivative biases remain caller-supplied.
+- PR #31 supplies the missing explicit rigid placements but does not yet generate the residual/Jacobian functions from those placements.
 
-## PR #24 — Mechanism constraint adapter contract (design only)
+## Evidence policy
 
-- PR: https://github.com/phakphum12345/universal-platform/pull/24
-- Base: `docs/phase-0-complete-requirements` at `8084ccf9375245b7e7eaa1812628703292746c67`.
-- Tested PR head: `ef4330d1e7aa424df8cd58f4ff46ba572beaf975`.
-- GitHub Actions run #170 (run ID `42146444943`): `workflow-sanity` PASS; `python-tests` PASS, **141 passed in 0.32s**. The documentation-only marker was SKIPPED, not PASS.
-- Merge commit: `7aead53ac5af9dd3a82999c823a413db0e2f4ead`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- Adds a proposed mechanism-to-solver contract covering immutable snapshots, deterministic IDs/order, units/frames/topology/ground validation, residual mapping, branch/gauge/redundancy handling and acceptance tests.
-- **No general mechanism adapter implementation is claimed.** Existing assembly contracts, tree kinematics and planar four-bar utility remain narrow capabilities.
-
-## PR #23 — Versioned nonlinear solver result schema
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/23
-- Base: `docs/phase-0-complete-requirements` at `b561247ff933ea3d5d9fa6c32d4224341e5f2be1`.
-- Tested PR head: `207d38d9959764756c703625e13d4122b82e0151`.
-- GitHub Actions run #159 (run ID `42146051451`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **141 passed in 0.23s**. The documentation-only marker was SKIPPED, not PASS.
-- Merge commit: `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- Adds `NonlinearSolveResult.to_dict()` with schema version 1.0, ordered variables/residuals, status, iteration and objective data, derivative/evaluation diagnostics, rank/scale metadata, limitations and explicit nulls for diagnostics not computed.
-- This is a Python result snapshot, not a full evidence ledger, signed record or cross-language API.
-
-## PR #22 — Nonlinear solver reliability regression matrix
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/22
-- Base: `docs/phase-0-complete-requirements` at `4ed0fcd094606f21fdc704ed5e19fc1cda594e1e`.
-- Initial tested head `9a4e6520553dc1ab0bfe54c780340a1c428ee0d3`: run #146 failed (138 passed, 1 failed). The failure showed the test's step tolerance was too loose for the requested original-unit residual tolerance.
-- Corrected tested head: `265a7420edbb21da977dd357affaec61fa63f701`.
-- GitHub Actions run #147 (run ID `42145747842`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **139 passed in 0.18s**. The documentation-only marker was SKIPPED, not PASS.
-- Merge commit: `1a3f05b5f99fa330cf0fd79e64f7ff3934211265`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- Adds a dedicated deterministic reliability suite for consistent/inconsistent overdetermined systems, active lower/upper bounds, finite-difference step sensitivity, analytic/central agreement and original-unit residual acceptance.
-
-## PR #21 — Variable scaling and Jacobian scale-disparity indicator
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/21
-- Base: `docs/phase-0-complete-requirements` at `4f4865474adb76f59a78c6cf85725b3081d48f16`.
-- Tested PR head: `8f5c1ad54e42dd40f585c7860e37a6ac37b9dc78`.
-- GitHub Actions run #142 (run ID `42145350391`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **130 passed in 0.21s**. The documentation-only marker was SKIPPED, not PASS.
-- Merge commit: `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- Adds optional positive finite variable scales, normalized LM coordinates, scale metadata, and a column-norm ratio indicator. The indicator is not a formal condition number and does not identify every near-dependent system.
-- Residual acceptance and per-constraint PASS/FAIL remain evaluated in original residual units.
-
-## PR #20 — Jacobian rank and system-shape diagnostics
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/20
-- Base: `docs/phase-0-complete-requirements` at `0e2f45f6a2f151c55b0e05e882467def9659095e`.
-- Tested PR head: `43dbe1cb76eff112b6c4ea4bd348cd72f596da69`.
-- GitHub Actions run #131 (run ID `42144874541`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **127 passed in 0.28s**. The documentation-only marker was SKIPPED, not PASS.
-- Merge commit: `6651b5985391679daba15abb6bdf2f78b9ff894b`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- The rank estimator is threshold-dependent modified Gram–Schmidt with column pivoting over the scaled Jacobian. It reports system shape separately from estimated rank and does not prove exact mathematical rank, uniqueness, identifiability or physical feasibility.
-
-## PR #19 — Jacobian strategies and evaluation diagnostics
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/19
-- Base: `docs/phase-0-complete-requirements` at `23ca284ca95be223d4a426c344a48bc21afc1953`.
-- Tested PR head: `db18dc115a55a2ba2aa648e7665e2d111a52e572`.
-- GitHub Actions run #118 (run ID `42144312008`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **120 passed in 0.31s**. The documentation-only marker was SKIPPED, not PASS.
-- The PR job checked out synthetic merge candidate `5e246963da9a4722c121e5224b8a179aef48dfe2` for its test run.
-- Merge commit: `9676bdb00f3ffb1c8a2b0929fd27481b47368d43`; integration branch comparison reports identical at this SHA.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-- Added forward (default), central and analytic Jacobian strategies, analytic shape/finiteness/error validation, residual-scale normalization, and evaluation counters.
-- No rank/conditioning proof, global convergence, uniqueness or physical-feasibility guarantee is provided.
-
-## PR #16 — Bounded nonlinear equality-constraint solver
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/16
-- Base: docs/phase-0-complete-requirements at 4a5bf5b2a63c0192dbb5f2ab60b4e3f62df74a44.
-- Tested PR head: 26730dba8ea3199e9576fa071a7207ed6c59c38d.
-- Merge commit: 77dd2de9b49773fe24324cb9732b7db5e2623ecf.
-- [PR Actions run #98](https://github.com/phakphum12345/universal-platform/actions/runs/42140506796): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- [Push run #97](https://github.com/phakphum12345/universal-platform/actions/runs/42140488356) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- Post-merge [push run #99](https://github.com/phakphum12345/universal-platform/actions/runs/42140562726) on merge SHA 77dd2de9b49773fe24324cb9732b7db5e2623ecf: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- Tests cover scalar and coupled nonlinear systems, an overdetermined consistent system, bounds, unsatisfied stationary points, zero-iteration convergence, malformed inputs and callback errors.
-- Limitations: local small dense equality least squares only; no global guarantee, exact/sparse Jacobian, robust rank/conditioning analysis, inequalities/contact, complementarity, continuation, branch enumeration, gauge fixing or automatic dimensional analysis.
-
-## PR #14 — Planar four-bar loop closure
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/14
-- Base: docs/phase-0-complete-requirements at c384492b058ec9dee3599feb60bb7475de298181.
-- Tested PR head: 31e104bf476aaccb751dac2329ab6d16455650b0.
-- Merge commit: c33ef005896b71aa2ff0721efb87245781526ca7.
-- [PR Actions run #90](https://github.com/phakphum12345/universal-platform/actions/runs/42137524286): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- [Push run #89](https://github.com/phakphum12345/universal-platform/actions/runs/42137510261) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- Post-merge [push run #91](https://github.com/phakphum12345/universal-platform/actions/runs/42137584363) on merge SHA c33ef005896b71aa2ff0721efb87245781526ca7: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-
-## PR #12 — Planar two-link inverse kinematics
-
-- PR #12 merged at 0379c8613c7668a56b681a91d01882c66f1c812c; tested PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
-- [PR run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495) and [push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146): workflow-sanity and python-tests PASS.
-- [Post-merge run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390): workflow-sanity and python-tests PASS.
-- Documentation-only markers were SKIPPED, not PASS. Initial run #80 failure (83 passed, 1 faulty limit-test expectation) is retained in PR #13 evidence reconciliation.
-
-## PR #13 — Evidence reconciliation
-
-- PR #13 merged at c384492b058ec9dee3599feb60bb7475de298181.
-- Tested PR head 757d036e190a426cb3b9a6615b13d73dd0e6f31c.
-- [PR run #86](https://github.com/phakphum12345/universal-platform/actions/runs/42137072600) and [push run #85](https://github.com/phakphum12345/universal-platform/actions/runs/42137057985): workflow-sanity and python-tests PASS.
-- Post-merge [push run #87](https://github.com/phakphum12345/universal-platform/actions/runs/42137139200): workflow-sanity and python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-
-## Historical evidence
-
-- PR #10 merged at 8db7010872d69635963a982f4f09ec3cda0913a8; [run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218) passed workflow-sanity and python-tests.
-- PR #11 merged at 06334b68e7ce084e99df70a7651face34d3a3ec0.
-- Post-merge push evidence for PR #8–#11 was not returned by the earlier status interface; those historical post-merge statuses remain UNKNOWN, not PASS.
-- PR #1 post-merge [run #19](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425) passed on merge SHA 647956be574ffc0055d2613be5a7a4781d660542.
-- PR #4 [run #34](https://github.com/phakphum12345/universal-platform/actions/runs/42090211506), PR #6 [run #44](https://github.com/phakphum12345/universal-platform/actions/runs/42090605011), PR #8 [run #57](https://github.com/phakphum12345/universal-platform/actions/runs/42091837580), and PR #9 [run #68](https://github.com/phakphum12345/universal-platform/actions/runs/42092666100) passed on their exact PR heads.
-
-## Explicitly not implemented or not verified
-
-- General inverse kinematics for arbitrary chains, 3D robots or redundant mechanisms.
-- General mechanism-level closed-loop solving, multi-loop coupling, inequality/contact/complementarity, robust rank/conditioning analysis, continuation, branch enumeration, automatic gauge fixing, full mobility/over-constraint analysis and singularity classification. PR #16 supplies a local equality least-squares numerical core, not a general mechanism solver.
-- Dynamics, acceleration, torque, friction, backlash, compliance, collision, contact, tolerance stack-up and singularity conditioning analysis.
-- General symbolic mathematics, nonlinear/multiphysics solvers, FEA, CFD, FEM meshing or convergence studies.
-- B-rep/parametric CAD kernel, STEP/STL/3MF import/export, Boolean operations, sketch constraints or manufacturing drawings.
-- Coordinate-frame unit conversion, uncertainty propagation, frame inference or dynamic localization.
-- Universal hardware driver generation; EFI/Kext candidate code is not a generic driver compiler.
-- Datasheet ingestion, schematic/PCB parsing, circuit simulation or hardware runtime.
-- Production UI, API server, database, agent orchestration, plugin runtime or packaging.
-- Qualified engineering certification, regulatory compliance, fabrication or physical operation.
-
-## Scope interpretation
-
-Passing tests validate only the code and contracts present at the exact tested SHA. They do not validate the broader proposed UEIC, CAD, CAE, hardware or manufacturing capabilities. Each later change requires fresh tests and evidence.
-
-
-## PR #25 — Stable-ID planar four-bar model adapter (implementation)
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/25
-- Base: `docs/phase-0-complete-requirements` at `68b4d0dc12e36b7cfdea4c24666d77b067164bc8`.
-- Corrected tested PR head: `f3f4b2031ccad797fad3a803f77c43e5f14d95e8`.
-- GitHub Actions run #188 (run ID `42148672902`) on exact PR head `7bf230bb73040565a1a143dd2846349d8220e4f4`: `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **155 passed in 0.26s**. The documentation-only marker was SKIPPED, not PASS.
-- Earlier run #181 failed due an escaped-newline syntax error in package exports; run #183 then exposed a test fixture using unsupported `dm`. Both were corrected; only run #185 is the current exact-head passing evidence.
-- Adds `PlanarFourBarModelSnapshot`, `PlanarFourBarAdapterResult` and `solve_planar_four_bar_model`. Length quantities are dimension-checked and normalized to SI metres; branch and stable model/link/joint IDs are explicit; result mapping and JSON snapshot are deterministic.
-- **Scope remains one planar four-link/four-revolute loop.** This is not a general mechanism-to-solver adapter, arbitrary assembly graph solver, multi-loop/3D solver or physical feasibility certification.
-- - Merge commit: `6198529d0e816898ad84e20efa153d54c6e0c61d`. Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-
-
-## PR #26 — Complete stable-ID planar four-bar residual mapping
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/26
-- Base: `docs/phase-0-complete-requirements` at `5e989e0ab96ada23aec0bce85f0075fbb43d591c`.
-- Tested PR head: `839691467dfe9fc2bc9b55baab1a9580ee8f9201`.
-- GitHub Actions run #193 (run ID `42148977388`): `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **156 passed in 0.35s**. Documentation-only marker SKIPPED, not PASS.
-- Adds explicit ground, input-crank, coupler and output-rocker length residuals mapped to stable link IDs; checks the mapped residual set against the declared SI tolerance; rejects boolean input angles.
-- Merge commit: `129a5f7867147b32d5582695b68d365db2b0c497`.
-- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
-
-
-## PR #28 — General mechanism loop topology and explicit closure residual bridge
-
-- PR: https://github.com/phakphum12345/universal-platform/pull/28
-- Base integration branch: `docs/phase-0-complete-requirements` at `6e57ff1ae1c33560f0bc9d1a2fec46ef4fd3404f`.
-- Adds deterministic spanning-forest and fundamental-cycle analysis over normalized stable-ID links and joints. Reports connected components, tree edges, loop-closing edges and ordered cycle paths; handles disconnected components, isolated links and parallel joints.
-- Adds caller-supplied scalar residual records associated with every loop-closing edge and bridges them to the existing nonlinear equality solver. Each closing edge must be covered; residual IDs, tolerance and scale flow into the existing solver.
-- Status semantics: CONVERGED only when supplied residuals pass; UNDERCONSTRAINED only when the solver diagnostics explicitly show an underdetermined Jacobian with estimated rank below variable count; otherwise UNKNOWN. SINGULAR and UNREACHABLE are not inferred from local solver failure.
-- Corrected tested code head: `5318f93d1964e81e3dfc11c7a11fd0061e0d47b2`; PR run #218 (run ID `42150595977`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.41s**.
-- Final tested PR head including evidence documentation: `ebd545ef4a47770b13878d5261966c50a5807939`; PR run #220 (run ID `42150727013`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.35s**. Documentation-only markers were SKIPPED, not PASS.
-- Initial push run #216 (run ID `42150470866`) failed at the first test head `a4e41c9ce33586bb15e74d5a5dc664169706ac9e` (179 passed, 2 failed). Both were test-fixture expectation defects; corrected on the exact tested head above. The earlier failure is retained as evidence, not overwritten.
-- Squash merge commit: `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`.
-- Post-merge push run #221 (run ID `42150851188`) on exact merge SHA `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`: `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.40s**. Documentation-only marker SKIPPED, not PASS.
-- Explicit limits: normalized JointModel does not contain enough complete placement/coordinate/geometry information to generate general joint equations. This PR provides topology and an explicit residual bridge, not automatic arbitrary-mechanism or spatial geometry solving.
-
-
-## PR #29 — Nominal and local mechanism mobility diagnostics
-
-- Adds explicit PLANAR and SPATIAL nominal mobility formulations over normalized stable-ID mechanism models. The caller must identify the grounded link; nominal counts use free rigid-body coordinates minus ideal lower-pair constraint counts derived from each joint's declared nominal relative DOF.
-- Adds a caller-supplied constraint Jacobian contract with named constraints, the complete free-body generalized-coordinate set for the selected ground link, a configuration ID and a source/provenance label. Local mobility is estimated as coordinate count minus the numerical Jacobian rank at that configuration.
-- Reports redundant Jacobian rows separately from negative nominal DOF. These are distinct diagnostics; redundant rows alone do not prove physical overconstraint.
-- Singularity status remains UNKNOWN unless the caller supplies a regular-configuration reference rank. A lower rank is reported only as POSSIBLE_SINGULARITY, not a proof.
-- Rank uses the existing threshold-dependent modified Gram–Schmidt estimator; results retain rank method and threshold. Caller is responsible for consistent units/scaling and geometric Jacobian derivation.
-- The normalized JointModel schema still does not provide complete placements/parameterizations to generate geometric joint equations automatically. Higher pairs, automatic Jacobian construction, dynamics, contact, physical feasibility and certification remain out of scope.
-- PR #29 final tested PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (run ID `42152768589`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.45s**. Documentation-only marker SKIPPED, not PASS. Earlier code head `ce2f1dd7e46279f58a6d6572efebe0c62e1c98ba` passed run #231 (196 tests in 0.23s); preceding revisions and their test counts are retained in the PR body.
-- Squash merge commit: `a20e83314abb735448c6ebebf755b8b50cf7635e`. Post-merge push run #234 (run ID `42152843277`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.32s**. Documentation-only marker SKIPPED, not PASS.
-
-
-## PR #30 — Integrated mechanism kinematics pipeline
-
-- Adds one versioned orchestration result that runs normalized-model loop topology/position closure, PR #29 local mobility diagnostics, then velocity and acceleration equality solves.
-- Position uses the existing explicit loop-closing residual callback contract. Mobility uses a caller-supplied configuration-specific constraint Jacobian whose stable constraint/coordinate ordering is checked against the position input.
-- Velocity solves J*qdot + b_v = 0; acceleration solves J*qddot + b_a = 0. The time-derivative bias vectors and their provenance labels are caller-supplied; the pipeline does not synthesize derivatives from missing joint placements.
-- Derivative outputs report UNIQUE / NON_UNIQUE / NOT_ESTABLISHED from the Jacobian rank and solve status; rank-deficient results are not presented as unique.
-- Configuration IDs, branch IDs, prior configuration, continuation status, model revision, Jacobian source and bias sources are preserved in the versioned result snapshot. Same-branch continuation seeds from the prior solved coordinates; branch changes use the new caller-supplied seed and are explicit.
-- Regression fixtures cover one planar 4R loop, two independent loops, branch continuity/switch, invalid cross-revision continuation and deterministic result/provenance serialization.
-- Explicit limits: no automatic geometric joint equation/Jacobian generation, branch discovery, symbolic differentiation, dynamics, forces, collision/contact, physical feasibility or certification.
-- PR #30 validation evidence pending exact final head CI.
-
-
-- PR #30 initial push run #237 (run ID `42153434281`) on head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e`: `workflow-sanity` PASS; `python-tests` FAIL (202 passed, 1 failed). The log identifies a test-fixture defect: the test accessed `MechanismKinematicsInput.__dict__`, but the dataclass uses slots. Production code was not implicated by this failure; the fixture is corrected with `dataclasses.replace` in the next head.
-
-- PR #30 final tested PR head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (run ID `42153688904`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.42s**. Initial run #237 on `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` failed only in a slotted-dataclass test fixture (202 passed, 1 failed); corrected with `dataclasses.replace`.
-- Squash merge commit: `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`. Post-merge push run #243 (run ID `42153753500`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.51s**. Documentation-only marker SKIPPED, not PASS.
+A feature is implemented only to the extent source exists. PASS requires executed tests tied to an exact SHA. SKIPPED and UNKNOWN are never PASS. These offline checks do not imply physical feasibility, safety certification, actuation or manufacturing readiness.

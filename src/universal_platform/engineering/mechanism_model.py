@@ -10,8 +10,11 @@ from dataclasses import dataclass
 from enum import Enum
 from math import isfinite, sqrt
 
+from .transforms import RigidTransform
 
-SCHEMA_VERSION = "1.0"
+
+SCHEMA_VERSION = "1.1"
+SUPPORTED_SCHEMA_VERSIONS = ("1.0", "1.1")
 
 
 class JointKind(str, Enum):
@@ -55,6 +58,62 @@ class GeometryReference:
     frame_id: str
     geometry_kind: GeometryKind
     external_ref: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class GeometryPlacement:
+    """Rigid placement from a geometry-local frame into its reference frame.
+
+    Translation components use metres. The transform's source frame is the
+    geometry-local frame and its destination is GeometryReference.frame_id.
+    """
+
+    geometry_id: str
+    geometry_to_frame: RigidTransform
+    length_unit: str = "m"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "geometry_id": self.geometry_id,
+            "geometry_to_frame": _transform_to_dict(self.geometry_to_frame),
+            "length_unit": self.length_unit,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class JointFramePlacement:
+    """Static parent-link→joint and joint→child-link frame placements.
+
+    Both transforms map source-frame coordinates into destination-frame
+    coordinates. Translation components use metres. The joint frame is the
+    exact JointModel.frame_id; motion is not applied by this record.
+    """
+
+    joint_id: str
+    parent_to_joint: RigidTransform
+    joint_to_child: RigidTransform
+    length_unit: str = "m"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "joint_id": self.joint_id,
+            "parent_to_joint": _transform_to_dict(self.parent_to_joint),
+            "joint_to_child": _transform_to_dict(self.joint_to_child),
+            "length_unit": self.length_unit,
+        }
+
+
+def _transform_to_dict(transform: RigidTransform) -> dict[str, object]:
+    return {
+        "from_frame": transform.from_frame,
+        "to_frame": transform.to_frame,
+        "rotation": [list(row) for row in transform.rotation],
+        "translation_m": [
+            transform.translation.x,
+            transform.translation.y,
+            transform.translation.z,
+        ],
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,6 +177,8 @@ class MechanismModel:
     frames: tuple[FrameReference, ...]
     geometry: tuple[GeometryReference, ...] = ()
     schema_version: str = SCHEMA_VERSION
+    joint_placements: tuple[JointFramePlacement, ...] = ()
+    geometry_placements: tuple[GeometryPlacement, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,6 +189,10 @@ class ModelValidationResult:
     joint_count: int
     frame_count: int
     geometry_count: int
+    joint_placement_count: int = 0
+    geometry_placement_count: int = 0
+    joints_without_placement: tuple[str, ...] = ()
+    geometry_without_placement: tuple[str, ...] = ()
 
 
 def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
@@ -143,8 +208,12 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
     required(model.model_id, "model_id")
     required(model.revision, "revision")
     required(model.schema_version, "schema_version")
-    if model.schema_version != SCHEMA_VERSION:
+    if model.schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         errors.append(f"Unsupported mechanism schema_version: {model.schema_version!r}")
+    if model.schema_version == "1.0" and (
+        model.joint_placements or model.geometry_placements
+    ):
+        errors.append("Placement records require mechanism schema_version '1.1'")
 
     def unique_ids(items: tuple, attribute: str, label: str) -> set[str]:
         values = [getattr(item, attribute) for item in items]
@@ -158,6 +227,12 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
     joint_ids = unique_ids(model.joints, "joint_id", "joint")
     frame_ids = unique_ids(model.frames, "frame_id", "frame")
     geometry_ids = unique_ids(model.geometry, "geometry_id", "geometry")
+    joint_placement_ids = unique_ids(
+        model.joint_placements, "joint_id", "joint placement"
+    )
+    geometry_placement_ids = unique_ids(
+        model.geometry_placements, "geometry_id", "geometry placement"
+    )
     geometry_by_id = {item.geometry_id: item for item in model.geometry}
     frame_by_id = {item.frame_id: item for item in model.frames}
 
@@ -203,6 +278,43 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
         if geometry.geometry_kind in (GeometryKind.CAD_REFERENCE, GeometryKind.EXTERNAL):
             required(geometry.external_ref or "", f"Geometry {geometry.geometry_id!r} external_ref")
 
+    joint_by_id = {item.joint_id: item for item in model.joints}
+    link_by_id = {item.link_id: item for item in model.links}
+
+    for placement in model.geometry_placements:
+        geometry = geometry_by_id.get(placement.geometry_id)
+        if geometry is None:
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} references unknown geometry"
+            )
+            continue
+        transform = placement.geometry_to_frame
+        if not isinstance(transform, RigidTransform):
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} requires a RigidTransform"
+            )
+            continue
+        if transform.from_frame not in frame_ids:
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} references unknown local frame"
+            )
+        if transform.to_frame != geometry.frame_id:
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} destination frame must match "
+                f"geometry reference frame {geometry.frame_id!r}"
+            )
+        local_frame = frame_by_id.get(transform.from_frame)
+        if local_frame is not None and local_frame.owner_link_id not in (
+            None, geometry.owner_link_id
+        ):
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} local frame is owned by another link"
+            )
+        if placement.length_unit != "m":
+            errors.append(
+                f"Geometry placement {placement.geometry_id!r} length_unit must be 'm'"
+            )
+
     for joint in model.joints:
         if not isinstance(joint.joint_kind, JointKind):
             errors.append(f"Joint {joint.joint_id!r} has unsupported joint kind")
@@ -242,6 +354,56 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
         if joint.joint_kind is JointKind.PRISMATIC and joint.coordinate_unit not in (None, "m"):
             errors.append(f"Joint {joint.joint_id!r} translational coordinate must use metres")
 
+    for placement in model.joint_placements:
+        joint = joint_by_id.get(placement.joint_id)
+        if joint is None:
+            errors.append(
+                f"Joint placement {placement.joint_id!r} references unknown joint"
+            )
+            continue
+        parent = link_by_id.get(joint.parent_link_id)
+        child = link_by_id.get(joint.child_link_id)
+        if parent is None or child is None:
+            continue
+        parent_transform = placement.parent_to_joint
+        child_transform = placement.joint_to_child
+        if not isinstance(parent_transform, RigidTransform):
+            errors.append(
+                f"Joint placement {placement.joint_id!r} parent_to_joint must be a RigidTransform"
+            )
+        else:
+            if parent_transform.from_frame != parent.frame_id:
+                errors.append(
+                    f"Joint placement {placement.joint_id!r} parent source frame must match "
+                    f"link frame {parent.frame_id!r}"
+                )
+            if parent_transform.to_frame != joint.frame_id:
+                errors.append(
+                    f"Joint placement {placement.joint_id!r} parent destination frame must match "
+                    f"joint frame {joint.frame_id!r}"
+                )
+        if not isinstance(child_transform, RigidTransform):
+            errors.append(
+                f"Joint placement {placement.joint_id!r} joint_to_child must be a RigidTransform"
+            )
+        else:
+            if child_transform.from_frame != joint.frame_id:
+                errors.append(
+                    f"Joint placement {placement.joint_id!r} child source frame must match "
+                    f"joint frame {joint.frame_id!r}"
+                )
+            if child_transform.to_frame != child.frame_id:
+                errors.append(
+                    f"Joint placement {placement.joint_id!r} child destination frame must match "
+                    f"link frame {child.frame_id!r}"
+                )
+        if placement.length_unit != "m":
+            errors.append(
+                f"Joint placement {placement.joint_id!r} length_unit must be 'm'"
+            )
+
+    placed_joint_ids = {item.joint_id for item in model.joint_placements}
+    placed_geometry_ids = {item.geometry_id for item in model.geometry_placements}
     return ModelValidationResult(
         valid=not errors,
         errors=tuple(errors),
@@ -249,4 +411,13 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
         joint_count=len(model.joints),
         frame_count=len(model.frames),
         geometry_count=len(model.geometry),
+        joint_placement_count=len(model.joint_placements),
+        geometry_placement_count=len(model.geometry_placements),
+        joints_without_placement=tuple(
+            item.joint_id for item in model.joints if item.joint_id not in placed_joint_ids
+        ),
+        geometry_without_placement=tuple(
+            item.geometry_id for item in model.geometry
+            if item.geometry_id not in placed_geometry_ids
+        ),
     )

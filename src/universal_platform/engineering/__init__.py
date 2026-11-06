@@ -26,7 +26,10 @@ from .planar_mechanisms import (
 )
 from .mechanism_model import (
     SCHEMA_VERSION as MECHANISM_SCHEMA_VERSION,
+    SUPPORTED_SCHEMA_VERSIONS as SUPPORTED_MECHANISM_SCHEMA_VERSIONS,
     FrameReference,
+    GeometryPlacement,
+    JointFramePlacement,
     GeometryKind,
     GeometryReference,
     JointKind,
@@ -87,7 +90,8 @@ __all__ = [
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
     "PlanarFourBarModelSnapshot", "PlanarFourBarAdapterResult",
     "solve_planar_four_bar_model", "estimate_planar_mobility",
-    "MECHANISM_SCHEMA_VERSION", "FrameReference", "GeometryKind",
+    "MECHANISM_SCHEMA_VERSION", "SUPPORTED_MECHANISM_SCHEMA_VERSIONS",
+    "FrameReference", "GeometryPlacement", "JointFramePlacement", "GeometryKind",
     "GeometryReference", "JointKind", "JointModel", "LinkModel",
     "MechanismModel", "ModelValidationResult", "SolverCapability",
     "validate_mechanism_model", "LoopClosureConstraint", "LoopClosureResult",
