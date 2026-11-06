@@ -1,7 +1,7 @@
-"""Thread-safe registry with guarded lifecycle transitions."""
+"""Thread-safe registry with guarded lifecycle and resource snapshots."""
 from __future__ import annotations
 from threading import RLock
-from .models import ResourceRecord, ResourceState
+from .models import ResourceRecord, ResourceSnapshot, ResourceState
 
 _ALLOWED = {
  ResourceState.ACTIVE: {ResourceState.SUSPECT, ResourceState.QUIESCING},
@@ -19,6 +19,7 @@ class ResourceRegistry:
     """Central typed registry; updates are atomic within this process."""
     def __init__(self) -> None:
         self._records: dict[str, ResourceRecord] = {}
+        self._snapshots: dict[str, ResourceSnapshot] = {}
         self._lock = RLock()
 
     def register(self, record: ResourceRecord) -> None:
@@ -37,6 +38,24 @@ class ResourceRegistry:
     def snapshot(self) -> tuple[ResourceRecord, ...]:
         with self._lock:
             return tuple(self._records[key] for key in sorted(self._records))
+
+    def record_snapshot(self, snapshot: ResourceSnapshot) -> None:
+        with self._lock:
+            if snapshot.resource_id not in self._records:
+                raise KeyError(f"unknown resource: {snapshot.resource_id}")
+            previous = self._snapshots.get(snapshot.resource_id)
+            if previous is not None and snapshot.sequence <= previous.sequence:
+                raise ValueError("resource snapshot sequence must increase monotonically")
+            self._snapshots[snapshot.resource_id] = snapshot
+
+    def latest_resource_snapshot(self, resource_id: str) -> ResourceSnapshot:
+        with self._lock:
+            if resource_id not in self._records:
+                raise KeyError(f"unknown resource: {resource_id}")
+            try:
+                return self._snapshots[resource_id]
+            except KeyError as exc:
+                raise KeyError(f"no resource snapshot recorded: {resource_id}") from exc
 
     def transition(self, resource_id: str, target: ResourceState, *, expected: ResourceState | None = None) -> ResourceRecord:
         with self._lock:
