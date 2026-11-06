@@ -26,7 +26,7 @@ Current modules include:
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
 - An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).
-- A planar four-bar (4R) loop-closure adapter based on circle intersections, plus a Kutzbach planar mobility estimate (not a general closed-loop constraint solver).
+- A planar four-bar (4R) loop-closure utility based on circle intersections, plus a stable-ID, unit-aware model snapshot adapter and Kutzbach planar mobility estimate (not a general closed-loop constraint solver).
 - A new general-purpose nonlinear equality-constraint solver is introduced as a bounded, local Levenberg–Marquardt numerical core; see [Nonlinear Constraint Solver Contract](docs/engineering/NONLINEAR_CONSTRAINT_SOLVER_CONTRACT.md) for exact scope and limitations.
 - A transparent linear-system simulation example with limitations and evidence.
 - Starter mechanics (axial stress/strain and factor of safety), DC electrical calculations, linear thermal expansion and validated material-property records.
