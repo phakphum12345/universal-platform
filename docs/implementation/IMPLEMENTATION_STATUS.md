@@ -27,6 +27,17 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## PR #21 — Variable scaling and Jacobian scale-disparity indicator (under review)
+
+- Candidate branch: `feat/phase-2-variable-scaling`.
+- Adds optional positive finite variable scales; omitted variables use 1.0.
+- LM steps are solved in normalized coordinates and mapped back to original variable values.
+- Rank estimation now uses the residual- and variable-scaled Jacobian.
+- Adds a column-norm ratio indicator with BALANCED / SCALE_DISPARITY / INDETERMINATE; it is not a condition number.
+- Result records effective variable scales and scale diagnostics.
+- Tests cover mixed-magnitude variables, balancing, unscaled disparity, unknown variable names and invalid scales.
+- **Evidence status:** candidate only; CI and merge verification pending. Residual acceptance remains in original units.
+
 ## PR #20 — Jacobian rank and system-shape diagnostics
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/20
