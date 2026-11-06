@@ -375,7 +375,6 @@ def _validate_planar_plane_frame(
                 f"Body frame for link {link_id!r} must keep local +Z aligned with the plane normal"
             )
 
-    links = {item.link_id: item for item in model.links}
     placements = {item.joint_id: item for item in model.joint_placements}
     coordinates = {item.coordinate_id: item for item in model.generalized_coordinates}
     parameterizations = {
