@@ -79,7 +79,7 @@ class NonlinearSolveResult:
     analytic_jacobian_evaluations: int = 0
     limitations: tuple[str, ...] = (
         "Local solver; no global convergence or uniqueness guarantee",
-        "Finite-difference Jacobian; scaling and smoothness affect accuracy",
+        "Derivative accuracy depends on the selected strategy; finite differences are step-sensitive",
         "No automatic inequality/contact/complementarity or symbolic constraints",
         "Does not establish physical feasibility or engineering certification",
     )
@@ -361,14 +361,14 @@ def solve_nonlinear_constraints(
 
     for iteration in range(1, settings.max_iterations + 1):
         iterations = iteration
-        jacobian = _jacobian(
+        jacobian_matrix = _jacobian(
             equations, names, current, residuals,
             settings.finite_difference_step,
             settings.jacobian_method, jacobian, stats,
         )
         row_count, column_count = len(equations), len(names)
         gradient = [
-            sum(jacobian[row][col] * residuals[row] for row in range(row_count))
+            sum(jacobian_matrix[row][col] * residuals[row] for row in range(row_count))
             for col in range(column_count)
         ]
         if max(abs(value) for value in gradient) <= settings.step_tolerance:
@@ -379,7 +379,7 @@ def solve_nonlinear_constraints(
         for i in range(column_count):
             for j in range(column_count):
                 normal[i][j] = sum(
-                    jacobian[row][i] * jacobian[row][j]
+                    jacobian_matrix[row][i] * jacobian_matrix[row][j]
                     for row in range(row_count)
                 )
             normal[i][i] += damping * max(normal[i][i], 1.0)
