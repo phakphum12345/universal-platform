@@ -1,11 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration base HEAD:** `22bbf1714224095cfd652d6887130d26facef087` (PR #54 squash merge).  
-**Exact post-merge CI:** run #405 / ID `42193654653` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **452 passed in 1.33s**.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 205 commits ahead and 0 behind. This work has not been merged to `main`.  
+**Integration base HEAD:** `263a53c0862276a33e735c616d33d24d89b09f74` (PR #55 documentation reconciliation merge).  
+**Exact post-merge CI:** run #422 / ID `42194422246` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **452 passed in 0.97s**.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 206 commits ahead and 0 behind. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
-**Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. The separate 2D PLANAR mobility formulation remains intentionally unsupported without a plane-frame contract.  
+**Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. The separate 2D PLANAR mobility formulation remains a candidate PR #56 scope; it is not integrated until exact-head and post-merge evidence pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -323,7 +323,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Builds on PR #33 generated joint pose-consistency residuals and PR #34 finite-difference Jacobians.
 - Selects six body-pose tangent variables per non-ground link plus every independent generalized joint coordinate; ground pose variables are excluded.
 - Computes local mobility as combined variable count minus estimated Jacobian rank and retains the nominal joint-count estimate separately.
-- The generated adapter is SPATIAL-only. PLANAR is rejected until an explicit plane-frame contract and coplanarity validation are implemented.
+- The merged generated adapter is SPATIAL-only. Candidate PR #56 adds an explicit plane-frame contract, coplanarity validation and a projected 3-variable-per-link planar Jacobian; exact-head CI pending.
 - Singularity status remains UNKNOWN unless a regular-configuration reference rank is supplied; rank is numerical and tolerance-dependent.
 - Base integration SHA: `775ee8bbd9169b9d2def3c1abdc6d01e52487013`.
 - Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3`: push run #293 (`42163424217`) and PR run #294 (`42163431321`) passed `workflow-sanity` and `python-tests`; **265 passed** on both (0.56s / 0.41s). Documentation-only marker SKIPPED.
@@ -521,3 +521,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Final head: `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`; run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
 - Merge: `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
 - Restores `DOCUMENTATION_INDEX.md`, reconciles PR #49/#52 evidence and documents the integration-vs-main branch boundary.
+
+
+## PR #56 — Explicit planar plane-frame mobility (candidate)
+
+- Base integration SHA: `263a53c0862276a33e735c616d33d24d89b09f74` (PR #55 docs-only merge; post-merge run #422 / `42194422246`: 452 tests PASS).
+- Candidate branch: `feat/planar-plane-frame-mobility`.
+- Adds an explicit plane-to-world RigidTransform, body/joint coplanarity and axis validation, and projects the generated spatial Jacobian to two in-plane translations plus one plane-normal rotation per non-ground link.
+- Supports FIXED, REVOLUTE, PRISMATIC and PLANAR joint kinds in the 2D formulation; unsupported joint families fail closed.
+- Adds canonical and rotated-plane reference cases plus off-plane body/joint/axis rejection tests. Exact PR-head CI pending.
