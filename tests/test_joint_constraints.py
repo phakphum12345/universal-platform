@@ -31,7 +31,7 @@ def make_case(kind, coordinates=(), parameterization=None, *, joint_axis=None):
     parent_frame, child_frame, joint_frame = "frame/parent", "frame/child", "frame/joint"
     axis = joint_axis
     if axis is None and kind in (JointKind.REVOLUTE, JointKind.PRISMATIC, JointKind.CYLINDRICAL, JointKind.HELICAL):
-        axis = (0.0, 0.0, 1.0)
+        axis = (1.0, 0.0, 0.0) if kind is JointKind.PRISMATIC else (0.0, 0.0, 1.0)
     joint = JointModel("joint/main", kind, "link/parent", "link/child", joint_frame, axis)
     model = MechanismModel(
         "model/joint-constraints", "r1",
