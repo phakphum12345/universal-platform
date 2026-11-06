@@ -25,7 +25,7 @@ Current modules include:
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
 - Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
-- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged; no renderer/ERC/simulation).
+- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged), deterministic offline SVG layout renderer (PR #59), and conservative static ERC v1.0 candidate (PR #60); no circuit simulation or physical verification.
 - Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
 - Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
 - Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 merged at `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; final head `38a800d033ebbba19e1120c8cd3a47ade4088526`, run #356 / `42178039043` PASS, 416 tests; post-merge run #381 / `42186896757` PASS, 416 tests).
@@ -128,6 +128,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Driver Refactoring Engine](docs/hardware/DRIVER_REFACTORING_ENGINE.md)
 - [Schematic/Driver Traceability](docs/hardware/SCHEMATIC_DRIVER_TRACEABILITY.md)
 - [Hardware Schematic Netlist Contract](docs/hardware/HARDWARE_SCHEMATIC_NETLIST_CONTRACT.md)
+- [Electrical Rule Checking Contract](docs/hardware/ELECTRICAL_RULE_CHECKING_CONTRACT.md)
 - [Hardware Design Verification](docs/hardware/HARDWARE_DESIGN_VERIFICATION.md)
 - [Virtual Lab and Simulation](docs/laboratories/VIRTUAL_LAB_AND_SIMULATION.md)
 - [Engineering Safety and Approval](docs/governance/ENGINEERING_SAFETY_AND_APPROVAL.md)
