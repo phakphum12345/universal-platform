@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `ff486f8ae4569ca8122f0294f55d18d18b21b32d10c` (PR #76 mesh geometric topology analysis contract squash merge).
+**Integration HEAD:** `ff486f8ae4569ca8122f0294f55d18b21b32d10c` (PR #76 mesh geometric topology analysis contract squash merge).
 **Exact post-merge CI:** PR #76 post-merge run #42229207672 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **524 passed in 1.60s**. Exact PR workflow #42229095708 passed both jobs with 524 tests in 2.25s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
@@ -676,14 +676,6 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR workflow #42228344477 passed both jobs with 524 tests in 2.09s; exact post-merge run #42228462537 passed both jobs with **524 tests in 2.20s**.
 - Adds independent facet-record bounding-box and signed-volume comparison, coordinate-error-derived tolerance and non-finite/normal corruption tests.
 - This is test-only; production STL API/schema is unchanged.
-
-## PR #76 — Mesh geometric topology analysis contract (DESIGN ONLY)
-
-- Branch: `docs/mesh-topology-validation-contract`; base SHA: `a8a7e6b28650a90665a465e7373d8ad6582f7832`.
-- Adds a versioned contract for edge-connected components, vertex-link manifoldness, unused vertices, exact duplicate coordinates and optional caller-supplied near-coincident tolerance.
-- Explicitly preserves the existing `validate_triangle_mesh` contract and leaves geometric self-intersection status UNKNOWN.
-- No implementation is claimed; exact-head CI evidence pending.
-
 
 ## PR #76 — Mesh geometric topology analysis contract (MERGED)
 
