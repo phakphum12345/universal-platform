@@ -8,10 +8,6 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.joint_constraints import generate_joint_constraints
-from universal_platform.engineering.joint_jacobian import build_joint_constraint_jacobian
-from universal_platform.engineering.mechanism_mobility import _build_planar_constraint_jacobian
-from universal_platform.engineering.nonlinear_solver import JacobianMethod
 from universal_platform.engineering.mechanism_model import (
     CoordinateKind,
     FrameReference,
@@ -171,24 +167,6 @@ def test_rotated_and_translated_plane_frame_preserves_planar_joint_mobility():
     parent_joint_to_world = placement.parent_to_joint.inverse().then(parent_pose)
     child_joint_to_world = expected_motion.then(parent_joint_to_world)
     child_pose = placement.joint_to_child.inverse().then(child_joint_to_world)
-
-    generated = generate_joint_constraints(model)
-    generated_jacobian = build_joint_constraint_jacobian(
-        generated,
-        {"link/parent": parent_pose, "link/child": child_pose},
-        {"q/x": qx, "q/y": qy, "q/theta": qtheta},
-        method=JacobianMethod.CENTRAL_FINITE_DIFFERENCE,
-        finite_difference_step=1e-6,
-    )
-    reduced = _build_planar_constraint_jacobian(
-        generated_jacobian, model, plane_to_world,
-        ground_link_id="link/parent",
-        configuration_id="planar/rotated-plane",
-        jacobian_method=JacobianMethod.CENTRAL_FINITE_DIFFERENCE,
-        finite_difference_step=1e-6,
-    )
-    print("DEBUG_COLUMNS", reduced.coordinate_ids)
-    print("DEBUG_MATRIX", reduced.values)
 
     result = analyze_geometric_mechanism_mobility(
         model,
