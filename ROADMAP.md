@@ -175,13 +175,21 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds a regression for a curved polygonal hole: watertight edge incidence, consistent winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict round trip.
 - This closes the missing hole-arc reference in the PR #70 implementation; it does not broaden support to non-circular curves or general mesh repair.
 
-## PR #73 — Binary STL interchange contract (DESIGN ONLY)
+## PR #73 — Binary STL interchange contract (MERGED)
 
-- Adds `STL_INTERCHANGE_CONTRACT.md` for deterministic binary STL export with a mandatory metadata sidecar.
-- Defines explicit frame/unit/provenance/tolerance fields, SHA-256 binding, IEEE-754 binary32 quantization, resource limits, strict byte layout and fail-closed behavior.
-- First implementation increment is export-only with an independent test-only binary reader; arbitrary external STL import and external CAD application reopen remain separate gates.
-- No STL implementation, STEP/3MF support, third-party runtime dependency or CAD toolchain selection is claimed.
-- Implementation gate: add versioned manifest schema, deterministic exporter, quantization/error checks, independent parser references and exact-SHA CI; retain TECH-002 as OPEN until external interoperability is evaluated.
+- PR #73 merged at `24f0b7083d95fb5582e26f4614a227250e0a2de0`; exact PR head `39f3325260baa084d8e817554a9c9fd1702922c0`; base `6cdfffc8d9fffadb7162977c77efd54445bb9471`.
+- Exact PR workflow #42226759918 and push workflow #42226749519 passed both required checks with **516 tests**; PR test log: 516 passed in 2.11s.
+- Exact post-merge run #42226889599 passed `workflow-sanity` and `python-tests` on the merge SHA; **516 passed in 1.11s**.
+- Defines deterministic binary STL export with a mandatory metadata sidecar, explicit frame/unit/provenance/tolerance, SHA-256 binding, binary32 quantization, resource limits and independent test-reader requirements.
+- Design only; no STL exporter/importer, STEP/3MF support, third-party runtime dependency or external CAD toolchain selection is claimed.
+
+## PR #74 — Deterministic binary STL export (IMPLEMENTATION CANDIDATE)
+
+- Implements binary STL v1.0 export for validated TriangleMesh inputs with strict manifest snapshots and caller-verified frame/unit context.
+- Exposes immutable byte artifact and manifest API; writes deterministic 80-byte header, little-endian facet count, source-order 50-byte records, recomputed normals and zero attributes.
+- Rejects invalid source meshes, facet-limit excess, float32 overflow, collapsed vertices, quantized degenerate facets and malformed/tampered metadata.
+- Adds an independent test-only binary reader and Box/Cylinder/straight-hole/curved-hole references. External CAD application reopen and arbitrary STL import remain separate gates.
+- Exact PR-head and post-merge CI evidence pending; implementation must not be called complete until both required workflows pass on exact SHAs.
 
 ## Next repository increments
 
