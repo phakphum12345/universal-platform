@@ -83,3 +83,8 @@ Canonical generic Driver Generation source: UNKNOWN.
 CAD kernel / solver / schema / database decisions: OPEN.  
 Vertical slice selection: OPEN.  
 Full UEIC/3D implementation: NOT IMPLEMENTED / NOT VERIFIED.
+
+
+## PR #32 — Generalized coordinate foundation
+
+Implemented as a schema v1.2 extension: independent coordinate records, ordered joint mappings, explicit units/axes/bounds/scales, family-specific validation and legacy schema compatibility. This is a structural parameterization layer only; automatic joint constraint equations and Jacobian generation remain subsequent dependency steps.

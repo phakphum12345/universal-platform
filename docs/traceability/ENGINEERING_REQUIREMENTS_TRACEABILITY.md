@@ -12,7 +12,7 @@
 | UEIC-006 | Cross-domain constraints | CROSS_DOMAIN_CONSTRAINT_SOLVING; NONLINEAR_CONSTRAINT_SOLVER_CONTRACT | Scalar equality least-squares core implemented; dimension-aware residual adapters, inequality/contact and conflict analysis remain open |
 | CAD-001 | Parametric 3D design | 3D_DESIGN_INTELLIGENCE | Rebuild and export tests |
 | CAD-002 | Generate tools and fixtures | 3D_TOOL_GENERATION_ENGINE | Requirement-to-model acceptance cases |
-| CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS; NORMALIZED_MECHANISM_MODEL_CONTRACT; GENERAL_LOOP_CLOSURE_CONTRACT | Normalized stable-ID schema and validation (PR #27; exact head `320962c80551d5e68d2e392166a7bd6b46b3326c`, run #210: 172 tests PASS; merge `2d99717da12974434d71c686dc18dff48271d617`; post-merge CI UNKNOWN); deterministic multi-loop graph topology and explicit residual-to-solver bridge (PR #28; final PR head `ebd545ef4a47770b13878d5261966c50a5807939`, run #220: 181 tests PASS; merged at `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`; post-merge run #221: 181 tests PASS). Automatic geometric joint equations, mobility/singularity and integrated kinematics remain follow-on work |
+| CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS; NORMALIZED_MECHANISM_MODEL_CONTRACT; GENERAL_LOOP_CLOSURE_CONTRACT | Normalized stable-ID topology (PR #27); multi-loop topology and explicit residual bridge (PR #28); nominal/local mobility (PR #29); caller-driven position/velocity/acceleration orchestration (PR #30); explicit joint/geometry placements (PR #31). PR #32 adds v1.2 generalized-coordinate and joint-parameterization schema. Automatic geometric joint equations/Jacobians remain follow-on work |
 | CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both branches, workspace boundaries, limits, residual tests and exact-SHA CI; PR #12 merged |
 | CAD-003B | Planar four-bar loop closure and mobility estimate | PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT | Analytic left/right branches, reachability, closure residuals, tangent case and Kutzbach count (PR #14); stable-ID, dimension-checked model snapshot mapping and deterministic result serialization (PR #25 merged); complete four-link residual mapping and strict angle validation (PR #26 merged at `129a5f7867147b32d5582695b68d365db2b0c497`; exact PR-head CI: 156 tests passed; post-merge CI UNKNOWN). General multi-loop/3D adapter remains open |
 | CAD-004 | Engineering simulation | 3D_ENGINEERING_SIMULATION | Benchmarks and convergence evidence |
@@ -22,6 +22,8 @@
 | API-001 | Versioned module interface | ENGINEERING_MODULE_API_CONTRACT | Schema compatibility tests |
 | DATA-001 | Traceable engineering data model | ENGINEERING_DATA_MODEL | Lineage and revision tests |
 | SAFE-001 | Human-controlled high-impact release | ENGINEERING_SAFETY_AND_APPROVAL | Permission and approval tests |
+
+| CAD-003D | Generalized coordinates and joint parameterization | GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT; NORMALIZED_MECHANISM_MODEL_CONTRACT | Schema v1.2 stable coordinate IDs, explicit units/axes/limits/scales, deterministic joint mappings, family-specific validation and legacy v1.0/v1.1 compatibility (PR #32) |
 
 ## Status
 
@@ -80,3 +82,11 @@ PR #30 final tested head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`
 ## PR #31 exact merge evidence
 
 PR #31 tested head `1807a623c11655c2d80662cb0a75ca093a3e39f7`; push run #247 (`42155058023`) and pull_request run #248 (`42155131491`) both passed workflow-sanity and python-tests (212 passed). Squash merge commit `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge push run #249 (`42155225252`) on that exact merge SHA passed workflow-sanity and python-tests (212 passed in 0.50s). Documentation-only marker SKIPPED, not PASS.
+
+
+## PR #32 — Generalized coordinates and joint parameterization
+
+Schema v1.2 introduces stable-ID independent generalized coordinates and ordered per-joint parameterizations for all eight declared joint kinds. Validation checks dimensional units, normalized axes, limits, scales, ownership and family-specific metadata. Legacy topology/placement models remain valid without automatic coordinate migration. The schema remains separate from solver capability: automatic joint equations, Jacobians and derivative generation are not included.
+
+
+PR #32 initial tested head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed run #255 (`42157210760`): workflow-sanity PASS; python-tests PASS, 225 passed in 0.54s. Documentation-only marker SKIPPED. Final docs-head CI and post-merge evidence remain pending.

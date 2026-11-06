@@ -13,8 +13,8 @@ from math import isfinite, sqrt
 from .transforms import RigidTransform
 
 
-SCHEMA_VERSION = "1.1"
-SUPPORTED_SCHEMA_VERSIONS = ("1.0", "1.1")
+SCHEMA_VERSION = "1.2"
+SUPPORTED_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
 
 
 class JointKind(str, Enum):
@@ -33,6 +33,11 @@ class GeometryKind(str, Enum):
     MESH = "MESH"
     CAD_REFERENCE = "CAD_REFERENCE"
     EXTERNAL = "EXTERNAL"
+
+
+class CoordinateKind(str, Enum):
+    ROTATIONAL = "ROTATIONAL"
+    TRANSLATIONAL = "TRANSLATIONAL"
 
 
 class SolverCapability(str, Enum):
@@ -166,6 +171,49 @@ class JointModel:
         return SolverCapability.SCHEMA_ONLY
 
 
+
+@dataclass(frozen=True, slots=True)
+class GeneralizedCoordinate:
+    """One independent generalized coordinate expressed in its joint frame."""
+
+    coordinate_id: str
+    coordinate_kind: CoordinateKind
+    unit: str
+    axis: tuple[float, float, float]
+    lower_limit: float | None = None
+    upper_limit: float | None = None
+    scale: float = 1.0
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "coordinate_id": self.coordinate_id,
+            "coordinate_kind": self.coordinate_kind.value,
+            "unit": self.unit,
+            "axis": list(self.axis),
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
+            "scale": self.scale,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class JointCoordinateParameterization:
+    """Ordered coordinate mapping and explicit joint-family metadata."""
+
+    joint_id: str
+    coordinate_ids: tuple[str, ...]
+    pitch_m_per_rad: float | None = None
+    coordinate_convention: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "joint_id": self.joint_id,
+            "coordinate_ids": list(self.coordinate_ids),
+            "pitch_m_per_rad": self.pitch_m_per_rad,
+            "coordinate_convention": self.coordinate_convention,
+        }
+
+
 @dataclass(frozen=True, slots=True)
 class MechanismModel:
     """Versioned mechanism topology with stable link, joint and frame IDs."""
@@ -179,6 +227,8 @@ class MechanismModel:
     schema_version: str = SCHEMA_VERSION
     joint_placements: tuple[JointFramePlacement, ...] = ()
     geometry_placements: tuple[GeometryPlacement, ...] = ()
+    generalized_coordinates: tuple[GeneralizedCoordinate, ...] = ()
+    joint_parameterizations: tuple[JointCoordinateParameterization, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -193,6 +243,8 @@ class ModelValidationResult:
     geometry_placement_count: int = 0
     joints_without_placement: tuple[str, ...] = ()
     geometry_without_placement: tuple[str, ...] = ()
+    joint_parameterization_count: int = 0
+    joints_without_parameterization: tuple[str, ...] = ()
 
 
 def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
@@ -210,10 +262,14 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
     required(model.schema_version, "schema_version")
     if model.schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         errors.append(f"Unsupported mechanism schema_version: {model.schema_version!r}")
+    if model.schema_version in ("1.0", "1.1") and (
+        model.generalized_coordinates or model.joint_parameterizations
+    ):
+        errors.append("Generalized coordinates and joint parameterizations require mechanism schema_version '1.2'")
     if model.schema_version == "1.0" and (
         model.joint_placements or model.geometry_placements
     ):
-        errors.append("Placement records require mechanism schema_version '1.1'")
+        errors.append("Placement records require mechanism schema_version '1.1' or later")
 
     def unique_ids(items: tuple, attribute: str, label: str) -> set[str]:
         values = [getattr(item, attribute) for item in items]
@@ -232,6 +288,12 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
     )
     geometry_placement_ids = unique_ids(
         model.geometry_placements, "geometry_id", "geometry placement"
+    )
+    coordinate_ids = unique_ids(
+        model.generalized_coordinates, "coordinate_id", "generalized coordinate"
+    )
+    parameterized_joint_ids = unique_ids(
+        model.joint_parameterizations, "joint_id", "joint parameterization"
     )
     geometry_by_id = {item.geometry_id: item for item in model.geometry}
     frame_by_id = {item.frame_id: item for item in model.frames}
@@ -402,6 +464,136 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
                 f"Joint placement {placement.joint_id!r} length_unit must be 'm'"
             )
 
+
+    coordinate_by_id = {item.coordinate_id: item for item in model.generalized_coordinates}
+    for coordinate in model.generalized_coordinates:
+        if not isinstance(coordinate.coordinate_kind, CoordinateKind):
+            errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} has unsupported kind")
+            continue
+        expected_unit = "rad" if coordinate.coordinate_kind is CoordinateKind.ROTATIONAL else "m"
+        if coordinate.unit != expected_unit:
+            errors.append(
+                f"Generalized coordinate {coordinate.coordinate_id!r} "
+                f"{coordinate.coordinate_kind.value.lower()} unit must be {expected_unit!r}"
+            )
+        if (not isinstance(coordinate.axis, tuple) or len(coordinate.axis) != 3
+                or any(not isinstance(v, (int, float)) or isinstance(v, bool)
+                       or not isfinite(v) for v in coordinate.axis)):
+            errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} axis must contain three finite numbers")
+        else:
+            magnitude = sqrt(sum(float(v) ** 2 for v in coordinate.axis))
+            if magnitude <= 1e-12 or abs(magnitude - 1.0) > 1e-9:
+                errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} axis must be normalized")
+        for label, value in (("lower", coordinate.lower_limit), ("upper", coordinate.upper_limit)):
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value)
+            ):
+                errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} {label} limit must be finite")
+        if (coordinate.lower_limit is not None and coordinate.upper_limit is not None
+                and isinstance(coordinate.lower_limit, (int, float))
+                and isinstance(coordinate.upper_limit, (int, float))
+                and not isinstance(coordinate.lower_limit, bool)
+                and not isinstance(coordinate.upper_limit, bool)
+                and coordinate.lower_limit > coordinate.upper_limit):
+            errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} has inverted limits")
+        if (isinstance(coordinate.scale, bool) or not isinstance(coordinate.scale, (int, float))
+                or not isfinite(coordinate.scale) or coordinate.scale <= 0):
+            errors.append(f"Generalized coordinate {coordinate.coordinate_id!r} scale must be finite and positive")
+
+    expected_kinds = {
+        JointKind.FIXED: (),
+        JointKind.REVOLUTE: (CoordinateKind.ROTATIONAL,),
+        JointKind.PRISMATIC: (CoordinateKind.TRANSLATIONAL,),
+        JointKind.CYLINDRICAL: (CoordinateKind.ROTATIONAL, CoordinateKind.TRANSLATIONAL),
+        JointKind.HELICAL: (CoordinateKind.ROTATIONAL,),
+        JointKind.SPHERICAL: (CoordinateKind.ROTATIONAL, CoordinateKind.ROTATIONAL, CoordinateKind.ROTATIONAL),
+        JointKind.PLANAR: (CoordinateKind.TRANSLATIONAL, CoordinateKind.TRANSLATIONAL, CoordinateKind.ROTATIONAL),
+        JointKind.UNIVERSAL: (CoordinateKind.ROTATIONAL, CoordinateKind.ROTATIONAL),
+    }
+    coordinate_owners: dict[str, str] = {}
+    for parameterization in model.joint_parameterizations:
+        joint = joint_by_id.get(parameterization.joint_id)
+        if joint is None:
+            errors.append(f"Joint parameterization {parameterization.joint_id!r} references unknown joint")
+            continue
+        if joint.joint_kind is JointKind.FIXED:
+            errors.append(f"Fixed joint {joint.joint_id!r} must not declare generalized coordinates")
+        expected = expected_kinds[joint.joint_kind]
+        if len(parameterization.coordinate_ids) != len(expected):
+            errors.append(
+                f"Joint parameterization {joint.joint_id!r} requires {len(expected)} "
+                f"coordinates for {joint.joint_kind.value}"
+            )
+        if len(parameterization.coordinate_ids) != len(set(parameterization.coordinate_ids)):
+            errors.append(f"Joint parameterization {joint.joint_id!r} contains duplicate coordinate IDs")
+        mapped = []
+        for index, coordinate_id in enumerate(parameterization.coordinate_ids):
+            coordinate = coordinate_by_id.get(coordinate_id)
+            if coordinate is None:
+                errors.append(f"Joint parameterization {joint.joint_id!r} references unknown coordinate {coordinate_id!r}")
+                continue
+            mapped.append(coordinate)
+            previous_owner = coordinate_owners.get(coordinate_id)
+            if previous_owner is not None and previous_owner != joint.joint_id:
+                errors.append(f"Generalized coordinate {coordinate_id!r} is assigned to multiple joints")
+            coordinate_owners[coordinate_id] = joint.joint_id
+            if index < len(expected) and coordinate.coordinate_kind is not expected[index]:
+                errors.append(
+                    f"Joint parameterization {joint.joint_id!r} coordinate {coordinate_id!r} "
+                    f"must be {expected[index].value}"
+                )
+        if joint.joint_kind in (
+            JointKind.REVOLUTE, JointKind.PRISMATIC, JointKind.CYLINDRICAL, JointKind.HELICAL
+        ) and joint.axis is not None:
+            for coordinate in mapped:
+                if (isinstance(coordinate.axis, tuple) and len(coordinate.axis) == 3
+                        and all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                                and isfinite(v) for v in coordinate.axis)):
+                    alignment = sum(float(a) * float(b) for a, b in zip(coordinate.axis, joint.axis))
+                    if alignment < 1.0 - 1e-9:
+                        errors.append(f"Joint parameterization {joint.joint_id!r} coordinate axes must align with the declared joint axis")
+        if joint.joint_kind is JointKind.UNIVERSAL and len(mapped) == 2:
+            if all(isinstance(item.axis, tuple) and len(item.axis) == 3
+                   and all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                           and isfinite(v) for v in item.axis) for item in mapped):
+                dot = sum(float(a) * float(b) for a, b in zip(mapped[0].axis, mapped[1].axis))
+                if abs(dot) >= 1.0 - 1e-9:
+                    errors.append(f"Universal joint {joint.joint_id!r} coordinate axes must not be parallel")
+        if joint.joint_kind is JointKind.PLANAR and len(mapped) == 3:
+            if all(isinstance(item.axis, tuple) and len(item.axis) == 3
+                   and all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                           and isfinite(v) for v in item.axis) for item in mapped):
+                x_axis, y_axis, z_axis = (item.axis for item in mapped)
+                dot_xy = sum(float(a) * float(b) for a, b in zip(x_axis, y_axis))
+                cross = (
+                    x_axis[1] * y_axis[2] - x_axis[2] * y_axis[1],
+                    x_axis[2] * y_axis[0] - x_axis[0] * y_axis[2],
+                    x_axis[0] * y_axis[1] - x_axis[1] * y_axis[0],
+                )
+                if abs(dot_xy) > 1e-9 or any(
+                    abs(float(a) - float(b)) > 1e-9 for a, b in zip(cross, z_axis)
+                ):
+                    errors.append(f"Planar joint {joint.joint_id!r} axes must form a right-handed orthonormal basis")
+        if joint.joint_kind is JointKind.HELICAL:
+            pitch = parameterization.pitch_m_per_rad
+            if (isinstance(pitch, bool) or not isinstance(pitch, (int, float))
+                    or not isfinite(pitch) or pitch == 0):
+                errors.append(f"Helical joint {joint.joint_id!r} requires finite non-zero pitch_m_per_rad")
+        elif parameterization.pitch_m_per_rad is not None:
+            errors.append(f"Joint parameterization {joint.joint_id!r} pitch is only valid for helical joints")
+        if joint.joint_kind is JointKind.SPHERICAL:
+            if parameterization.coordinate_convention not in (
+                "EULER_INTRINSIC_XYZ", "EULER_INTRINSIC_ZYX",
+                "EULER_EXTRINSIC_XYZ", "EULER_EXTRINSIC_ZYX",
+            ):
+                errors.append(f"Spherical joint {joint.joint_id!r} requires an explicit supported Euler coordinate_convention")
+        elif parameterization.coordinate_convention is not None:
+            errors.append(f"Joint parameterization {joint.joint_id!r} coordinate_convention is only valid for spherical joints")
+
+    for coordinate_id in coordinate_ids:
+        if coordinate_id not in coordinate_owners:
+            errors.append(f"Generalized coordinate {coordinate_id!r} is not assigned to a joint")
+
     placed_joint_ids = {item.joint_id for item in model.joint_placements}
     placed_geometry_ids = {item.geometry_id for item in model.geometry_placements}
     return ModelValidationResult(
@@ -419,5 +611,11 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
         geometry_without_placement=tuple(
             item.geometry_id for item in model.geometry
             if item.geometry_id not in placed_geometry_ids
+        ),
+        joint_parameterization_count=len(model.joint_parameterizations),
+        joints_without_parameterization=tuple(
+            item.joint_id for item in model.joints
+            if item.joint_kind is not JointKind.FIXED
+            and item.joint_id not in parameterized_joint_ids
         ),
     )

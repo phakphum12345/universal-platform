@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 26c8d15dcf0e97e1dca1f13cc5da702e758b96d9 (PR #31; explicit joint and geometry placements, schema v1.1)  
-**Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema, rigid transforms and frame graph, rooted-tree forward kinematics, narrow planar 2R/4R solvers, general loop topology, caller-driven mobility/kinematics integration; explicit joint/geometry placement contracts are implemented in PR #31.
+**Latest verified integration baseline before PR #32:** 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5 (PR #31 and follow-up documentation corrections; schema v1.1).  
+**Latest merged feature:** PR #31 added explicit joint and geometry placements at 26c8d15dcf0e97e1dca1f13cc5da702e758b96d9; post-merge run #249 passed 212 tests. Integration documentation follow-up 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5 passed run #251 (workflow-sanity and python-tests; 212 tests).  
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema, explicit placements, generalized coordinates and joint parameterization, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -19,7 +19,7 @@
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
-- Versioned normalized mechanism schema v1.0: stable-ID links, eight joint kinds, frame and geometry references, topology/reference validation, frame-cycle checks, axis/limit/unit validation. Joint schema capability is explicitly SCHEMA_ONLY; no general solver support is implied.
+- Versioned normalized mechanism schema v1.2: stable-ID links, eight joint kinds, frame/geometry references, explicit placements and generalized-coordinate/joint parameterization records. Joint schema capability remains SCHEMA_ONLY; no general solver support is implied.
 - Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
 - Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
 - Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
@@ -260,3 +260,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Regression tests cover valid placement chains, missing coverage, legacy compatibility, schema rejection, duplicate/dangling IDs, frame endpoint/ownership mismatch, units and deterministic snapshots.
 - Branch `feat/joint-geometry-placement-contract`; base SHA `213b07e1ea362bf3fe6b460d5495bd505b2232e4`; tested PR head `1807a623c11655c2d80662cb0a75ca093a3e39f7`. Push run #247 (`42155058023`) and PR run #248 (`42155131491`) on that exact head: workflow-sanity PASS; python-tests PASS, 212 passed (0.40s / 0.43s). Squash merge `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge run #249 (`42155225252`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 212 passed in 0.50s. Documentation-only marker SKIPPED, not PASS.
 - Explicit non-goals: CAD inference, automatic joint residual equations, automatic Jacobians, time-derivative bias generation, general spatial solving, dynamics or physical validation.
+
+
+## PR #32 — Generalized coordinates and joint parameterization
+
+- Adds schema v1.2 GeneralizedCoordinate and JointCoordinateParameterization records with stable IDs, ordered mappings, explicit rotational/rad units and translational/m units, joint-frame axes, finite coordinate limits and positive numerical scales.
+- Validates coordinate ownership, duplicate/dangling/orphan references, family-specific coordinate count and kind, axis alignment, universal-axis non-parallelism, planar basis handedness, helical pitch and explicit spherical Euler convention.
+- Existing schema v1.0/v1.1 topology and placement records remain readable. New coordinate records require v1.2; legacy scalar fields are not silently migrated.
+- Missing parameterization coverage is reported for non-fixed joints. No automatic solver-variable generation, geometric residual/Jacobian generation or physical feasibility is claimed.
+- PR branch: feat/generalized-coordinate-joint-parameterization; base SHA: 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5.
+- Initial exact PR head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed pull_request run #255 (ID `42157210760`): `workflow-sanity` PASS; `python-tests` PASS; **225 passed in 0.54s**. The documentation-only marker was SKIPPED. The PR head is mergeable, with no review submissions or unresolved review threads at this inspection. Final documentation-head validation and post-merge evidence remain pending.
