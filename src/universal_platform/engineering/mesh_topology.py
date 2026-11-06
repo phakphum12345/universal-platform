@@ -152,6 +152,13 @@ class MeshTopologyAnalysis:
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": self.SCHEMA_VERSION,
+            "solid_id": self.solid_id,
+            "frame_id": self.frame_id,
+            "length_unit": self.length_unit,
+            "source_geometry_sha256": self.source_geometry_sha256,
+            "mesh_snapshot_sha256": self.mesh_snapshot_sha256,
+            "vertex_count": self.vertex_count,
+            "triangle_count": self.triangle_count,
             "face_component_count": self.face_component_count,
             "face_components": [list(group) for group in self.face_components],
             "exact_duplicate_vertex_groups": [list(group) for group in self.exact_duplicate_vertex_groups],
@@ -171,12 +178,21 @@ class MeshTopologyAnalysis:
         if value["schema_version"] != cls.SCHEMA_VERSION:
             raise InvalidModelError("Unsupported MeshTopologyAnalysis schema_version")
         components = _groups(value["face_components"], "face_components", minimum_group_length=1)
-        if value["face_component_count"] != len(components):
+        if (isinstance(value["face_component_count"], bool)
+                or not isinstance(value["face_component_count"], int)
+                or value["face_component_count"] != len(components)):
             raise InvalidModelError("face_component_count does not match face_components")
         issues = value["issues"]
         if not isinstance(issues, (list, tuple)):
             raise InvalidModelError("issues must be an array")
         return cls(
+            solid_id=value["solid_id"],
+            frame_id=value["frame_id"],
+            length_unit=value["length_unit"],
+            source_geometry_sha256=value["source_geometry_sha256"],
+            mesh_snapshot_sha256=value["mesh_snapshot_sha256"],
+            vertex_count=value["vertex_count"],
+            triangle_count=value["triangle_count"],
             face_components=components,
             exact_duplicate_vertex_groups=_groups(
                 value["exact_duplicate_vertex_groups"], "exact_duplicate_vertex_groups", minimum_group_length=2
