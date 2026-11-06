@@ -75,7 +75,7 @@ PR #48 adds reference-value tests for Box/Cylinder SI volume and surface area, l
 PR #49 adds simple polygon validation (duplicate vertices, self-intersections and degenerate area), SI volume/surface area references, concave profile coverage, strict JSON round-trip and transformed extrusion bounds.
 
 
-## Through-hole profile geometry regression (PR #52)
+## Through-hole profile geometry regression (PR #52 — merged; exact head and post-merge CI PASS, 425 tests each)
 
 - Reference values cover a rectangular plate with one through-hole and a profile with multiple disjoint holes.
 - Verify net area, total boundary perimeter, SI volume and surface area including inner hole walls.
@@ -83,3 +83,6 @@ PR #49 adds simple polygon validation (duplicate vertices, self-intersections an
 - Verify optional-field compatibility: snapshots without `holes` remain valid and empty-hole serialization omits the field.
 - Verify `Vec2` and `ExtrudedProfileSolid` are importable from the public engineering package, not only their implementation module.
 - Preserve the existing Box/Cylinder, transformed-bound and mechanism regression suite.
+
+
+Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #357 (`42191597715`) passed both jobs with 425 tests in 0.78s; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`, post-merge run #358 (`42191666816`) passed both jobs with 425 tests in 0.87s.
