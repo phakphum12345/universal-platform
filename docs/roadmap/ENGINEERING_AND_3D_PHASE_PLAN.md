@@ -255,3 +255,12 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. Other families fail closed.
 - Default geometric-mobility finite-difference step is 1e-5 to reduce round-off amplification in composed frames; explicit caller overrides remain supported. Rank tolerance was not relaxed.
 - Tests cover canonical and rotated/translated plane references, ground reversal and invalid out-of-plane conditions.
+
+
+## PR #62 — General planar region topology contract (merged; design only)
+
+- Base SHA: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; exact head SHA: `d03928bbe3472fae4f5890f6a9f481c0049b7f35`.
+- Merge commit: `213b1b52ef78ae3297a88892b4cc0c6539159160`.
+- Exact PR and push runs #42217964997 / #42217937596 passed both jobs with 496 tests; post-merge run #42218707816 on the exact merge SHA passed both jobs with 496 tests in 1.08s.
+- Contract covers general planar region identity, outer/hole boundary invariants, explicit frames/units, point/edge contacts, deterministic result/evidence expectations, numerical robustness tiers and replaceable-kernel decision gate.
+- No general polygon Boolean engine, precision policy, CAD kernel, or third-party runtime dependency is implemented or selected.
