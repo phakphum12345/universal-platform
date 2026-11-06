@@ -25,7 +25,7 @@ The implementation partitions each axis at all exact input boundary coordinates,
 - Output mesh must pass valid, watertight and consistently oriented mesh validation.
 - Output B-rep must pass closed two-face edge incidence, opposite edge-use directions, connected shell, Euler/genus and positive signed-volume checks.
 - Output component and result digests are deterministic; commutative operations canonicalize input ID/digest pairs.
-- Point-only and edge-only contacts are kept as separate face-connected components rather than being silently welded.
+- Point-only and edge-only contacts are kept as separate face-connected components rather than being silently welded. Face-only contacts merge into one face-connected component; multi-box face-connected branches must still produce a valid closed manifold shell.
 - Empty intersection/difference results are represented by an empty component tuple.
 
 Schema: `schemas/geometry/brep-boolean-result.schema.json`.
@@ -41,3 +41,12 @@ This is not a general 3D Boolean kernel. It does not accept arbitrary faceted so
 3. Add exact triangle/plane splitting and 3D arrangement classification for arbitrary faceted solids.
 4. Add independent reference corpus for coplanar overlap, tangency, edge/vertex contact, thin features and near-degenerate cases.
 5. Add general B-rep surfaces/curves and STEP/AP242 interoperability only with explicit tolerances and provenance.
+
+
+## 6.1 Contact-topology regression corpus
+
+- Vertex-only contact: two boxes sharing one vertex remain two separate closed components.
+- Edge-only contact: two boxes sharing one edge remain two separate closed components.
+- Face-only contact: adjacent boxes sharing one full face merge into one closed component.
+- Multi-box branch: three face-attached arms around a central box produce one valid genus-zero shell with deterministic output digest under input permutation.
+- Every emitted component must pass B-rep closure, manifoldness, orientation, connectedness and positive-volume validation.
