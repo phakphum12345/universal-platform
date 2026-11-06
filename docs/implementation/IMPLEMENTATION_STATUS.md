@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 129a5f7867147b32d5582695b68d365db2b0c497 (PR #26; complete stable-ID planar four-bar residual mapping)  
+**Latest merged baseline:** 2d99717da12974434d71c686dc18dff48271d617 (PR #27; normalized stable-ID mechanism model schema and validator)  
 **Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
-**Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
+**Scope:** Dependency-light engineering core, normalized stable-ID mechanism schema, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
 
@@ -36,7 +36,10 @@
 - Adds `mechanism_model.py` with versioned `MechanismModel`, `LinkModel`, `JointModel`, `FrameReference`, `GeometryReference` and structural validation.
 - Schema joint kinds: FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL. Stable IDs, dangling references, frame-parent cycles, axis normalization, scalar limits and selected radian/metre conventions are validated.
 - Joint nominal DOF is bookkeeping only. All normalized joint records report `SCHEMA_ONLY`; the existing planar 4R adapter remains unchanged and is not generalized by this PR.
-- Acceptance tests: `tests/test_mechanism_model.py`; exact PR-head CI evidence is recorded after workflow completion. Post-merge CI must be checked separately.
+- Exact tested PR head: `320962c80551d5e68d2e392166a7bd6b46b3326c`.
+- GitHub Actions run #210 (run ID `42149832552`): `workflow-sanity` PASS; `python-tests` PASS, **172 passed in 0.37s**. The documentation-only marker was SKIPPED, not PASS.
+- Squash merge commit: `2d99717da12974434d71c686dc18dff48271d617`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
 
 ## PR #24 — Mechanism constraint adapter contract (design only)
 
