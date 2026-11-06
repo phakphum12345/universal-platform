@@ -51,8 +51,8 @@ def make_case(kind, coordinates=(), parameterization=None, *, joint_axis=None):
     return model
 
 
-def q(name, kind, axis):
-    return GeneralizedCoordinate(name, kind, "rad" if kind is CoordinateKind.ROTATIONAL else "m", axis)
+def q(name, kind, axis, **kwargs):
+    return GeneralizedCoordinate(name, kind, "rad" if kind is CoordinateKind.ROTATIONAL else "m", axis, **kwargs)
 
 
 def params(*ids, **kwargs):
@@ -142,3 +142,43 @@ def test_body_pose_frame_mismatch_and_nonpositive_tolerance_fail():
         generated.evaluate(poses, {})
     with pytest.raises(InvalidModelError, match="translation_tolerance_m"):
         generate_joint_constraints(model, translation_tolerance_m=0.0)
+
+
+
+def test_evaluation_rejects_values_outside_declared_coordinate_limits():
+    model = make_case(
+        JointKind.REVOLUTE,
+        (q("q/theta", CoordinateKind.ROTATIONAL, (0,0,1), lower_limit=-0.1, upper_limit=0.1),),
+        params("q/theta"),
+    )
+    generated = generate_joint_constraints(model)
+    with pytest.raises(InvalidModelError, match="above its upper limit"):
+        generated.evaluate(body_poses(), {"q/theta": 0.2})
+
+
+def test_spherical_extrinsic_euler_sequence_is_deterministic():
+    coordinates = (
+        q("q/x", CoordinateKind.ROTATIONAL, (1,0,0)),
+        q("q/y", CoordinateKind.ROTATIONAL, (0,1,0)),
+        q("q/z", CoordinateKind.ROTATIONAL, (0,0,1)),
+    )
+    mapping = params("q/x", "q/y", "q/z", coordinate_convention="EULER_EXTRINSIC_XYZ")
+    model = make_case(JointKind.SPHERICAL, coordinates, mapping)
+    expected = matmul(
+        rotation((0,0,1),0.3),
+        matmul(rotation((0,1,0),0.2), rotation((1,0,0),0.1)),
+    )
+    result = generate_joint_constraints(model).evaluate(
+        body_poses(expected), {"q/x":0.1,"q/y":0.2,"q/z":0.3}
+    )
+    assert result.all_satisfied, result.to_dict()
+
+
+def test_rotation_log_handles_pi_angle_without_nonfinite_residuals():
+    model = make_case(JointKind.FIXED)
+    half_turn = ((-1.0,0.0,0.0),(0.0,-1.0,0.0),(0.0,0.0,1.0))
+    result = generate_joint_constraints(model).evaluate(body_poses(half_turn), {})
+    assert not result.all_satisfied
+    rotation_residuals = result.residuals[3:]
+    assert all(math.isfinite(item.value) for item in rotation_residuals)
+    assert max(abs(item.value) for item in rotation_residuals) == pytest.approx(math.pi)

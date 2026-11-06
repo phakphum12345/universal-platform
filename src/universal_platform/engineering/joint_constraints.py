@@ -267,11 +267,23 @@ class GeneratedJointConstraintSet:
                 f"coordinate_values must cover exactly the model coordinates; "
                 f"missing={missing}, extra={extra}"
             )
+        coordinate_by_id = {
+            item.coordinate_id: item for item in self.model.generalized_coordinates
+        }
         for coordinate_id, value in coordinate_values.items():
             if (isinstance(value, bool) or not isinstance(value, (int, float))
                     or not isfinite(value)):
                 raise InvalidModelError(
                     f"Coordinate {coordinate_id!r} value must be finite numeric"
+                )
+            coordinate = coordinate_by_id[coordinate_id]
+            if coordinate.lower_limit is not None and value < coordinate.lower_limit:
+                raise InvalidModelError(
+                    f"Coordinate {coordinate_id!r} value is below its lower limit"
+                )
+            if coordinate.upper_limit is not None and value > coordinate.upper_limit:
+                raise InvalidModelError(
+                    f"Coordinate {coordinate_id!r} value is above its upper limit"
                 )
 
         placements = {item.joint_id: item for item in self.model.joint_placements}
