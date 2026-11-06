@@ -84,7 +84,7 @@ class STLInterchangeManifest:
             raise InvalidModelError("Unsupported STL normal policy")
         if not isinstance(self.solid_id, str) or not self.solid_id.strip():
             raise InvalidModelError("STL manifest solid_id is required")
-        if self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE"}:
+        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE"}:
             raise InvalidModelError("STL manifest source_kind is unsupported")
         if self.source_mesh_schema_version != TriangleMesh.SCHEMA_VERSION:
             raise InvalidModelError("Unsupported source TriangleMesh schema version")
