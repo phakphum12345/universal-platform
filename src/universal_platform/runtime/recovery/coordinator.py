@@ -125,8 +125,8 @@ class RecoveryCoordinator:
         try:
             adapter.quiesce(resource_id)
             self._registry.transition(resource_id, ResourceState.SLEEP)
-            self._registry.transition(resource_id, ResourceState.DIAGNOSING)
             if not repair_executor.sandboxed:
+                self._registry.transition(resource_id, ResourceState.DIAGNOSING)
                 return self._quarantine(resource_id, events, initial_state, "repair executor is not sandboxed")
             try:
                 adapter_healthy = adapter.health_check(resource_id)
@@ -152,6 +152,7 @@ class RecoveryCoordinator:
                         resource_id, events, initial_state,
                         f"fallback adapter replacement failed: {type(exc).__name__}", adapter,
                     )
+            self._registry.transition(resource_id, ResourceState.DIAGNOSING)
             self._registry.transition(resource_id, ResourceState.REPAIRING)
             if not repair_executor.repair(resource_id, events):
                 return self._rollback_and_quarantine(resource_id, events, initial_state, "repair executor reported failure", adapter)
