@@ -86,3 +86,14 @@ def test_supervisor_rejects_invalid_limits(tmp_path):
         PythonProcessSupervisor(working_root=tmp_path, allowed_executables=(sys.executable,), max_output_bytes=0)
     with pytest.raises(ValueError, match="timeout_seconds"):
         WorkerSpec("invalid", sys.executable, timeout_seconds=0)
+
+
+def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
+    with pytest.raises(ValueError, match="finite and positive"):
+        WorkerSpec("nan-timeout", sys.executable, timeout_seconds=float("nan"))
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        WorkerSpec("infinite-grace", sys.executable, terminate_grace_seconds=float("inf"))
+    with pytest.raises(ValueError, match="NUL-free"):
+        WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad\\x00value"})
+    with pytest.raises(ValueError, match="string values"):
+        WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
