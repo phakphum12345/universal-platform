@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `a8a7e6b28650a90665a465e7373d8ad6582f7832` (PR #75 independent STL geometry reference squash merge).  
-**Exact post-merge CI:** PR #75 post-merge run #42228462537 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **524 passed in 2.20s**. Exact PR-head run #42228344477 passed both required jobs with 524 tests in 2.09s.  
+**Integration HEAD:** `ff486f8ae4569ca8122f0294f55d18d18b21b32d10c` (PR #76 mesh geometric topology analysis contract squash merge).
+**Exact post-merge CI:** PR #76 post-merge run #42229207672 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **524 passed in 1.60s**. Exact PR workflow #42229095708 passed both jobs with 524 tests in 2.25s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -683,3 +683,17 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds a versioned contract for edge-connected components, vertex-link manifoldness, unused vertices, exact duplicate coordinates and optional caller-supplied near-coincident tolerance.
 - Explicitly preserves the existing `validate_triangle_mesh` contract and leaves geometric self-intersection status UNKNOWN.
 - No implementation is claimed; exact-head CI evidence pending.
+
+
+## PR #76 — Mesh geometric topology analysis contract (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/76
+- Exact PR head: `526a2cb0632154e52596e3322a107ee8dddc4d4d`; merge commit / integration HEAD: `ff486f8ae4569ca8122f0294f55d18b21b32d10c`.
+- Exact PR run #42229095708 passed both required jobs with 524 tests in 2.25s; exact post-merge run #42229207672 passed both jobs with **524 tests in 1.60s**.
+- Design contract only; no topology-analysis implementation was introduced by #76.
+
+## PR #77 — Mesh geometric topology analysis implementation (IMPLEMENTATION CANDIDATE)
+
+- Branch: `feat/mesh-topology-analysis`; base SHA: `ff486f8ae4569ca8122f0294f55d18b21b32d10c`.
+- Adds `MeshTopologyAnalysis` v1.0 and `analyze_mesh_topology`; source mesh identity/frame/unit/digests, edge-connected face components, vertex-link manifoldness, duplicate/near-coincident groups, unused vertices and strict schema.
+- Self-intersection remains UNKNOWN. Exact-head and post-merge CI evidence pending.
