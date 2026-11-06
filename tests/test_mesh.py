@@ -253,7 +253,7 @@ def test_profile_tessellation_supports_multiple_disjoint_holes():
     assert result.surface_area == pytest.approx(242.0)
 
 
-def test_profile_tessellation_rejects_curved_edges():
+def test_profile_arc_tessellation_requires_tolerance_and_respects_chord_error():
     curved = ExtrudedProfileSolid(
         "profile.curved", "world",
         (Vec2(0, 0), Vec2(2, 0), Vec2(0, 2)), 1.0, "m",
@@ -262,6 +262,19 @@ def test_profile_tessellation_rejects_curved_edges():
     )
     with pytest.raises(InvalidModelError):
         tessellate_extruded_profile(curved)
+    mesh = tessellate_extruded_profile(curved, chordal_tolerance=0.01)
+    result = validate_triangle_mesh(mesh)
+
+    assert result.valid
+    assert result.watertight
+    assert result.consistently_oriented
+    assert result.signed_volume > 0
+    assert mesh.chordal_tolerance == 0.01
+    assert len(mesh.vertices) > 6
+    with pytest.raises(InvalidModelError):
+        tessellate_extruded_profile(curved, chordal_tolerance=0.0)
+    with pytest.raises(InvalidModelError):
+        tessellate_extruded_profile(curved, chordal_tolerance=1e-20)
 
 
 def test_profile_mesh_snapshot_round_trip_preserves_provenance():
