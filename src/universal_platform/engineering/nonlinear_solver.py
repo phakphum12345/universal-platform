@@ -10,17 +10,24 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
-from typing import Callable, Mapping
+from typing import Callable, Mapping, Sequence
 
 from .errors import SolverError
 from .linear_solver import solve_linear
 
 ResidualFunction = Callable[[Mapping[str, float]], float]
+JacobianFunction = Callable[[Mapping[str, float]], Sequence[Sequence[float]]]
 
 
 class NonlinearSolveStatus(str, Enum):
     CONVERGED = "CONVERGED"
     NOT_CONVERGED = "NOT_CONVERGED"
+
+
+class JacobianMethod(str, Enum):
+    FORWARD_FINITE_DIFFERENCE = "forward_finite_difference"
+    CENTRAL_FINITE_DIFFERENCE = "central_finite_difference"
+    ANALYTIC = "analytic"
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +53,7 @@ class NonlinearSolverOptions:
     step_tolerance: float = 1e-10
     initial_damping: float = 1e-3
     maximum_damping: float = 1e12
+    jacobian_method: JacobianMethod = JacobianMethod.FORWARD_FINITE_DIFFERENCE
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +73,10 @@ class NonlinearSolveResult:
     objective: float
     termination_reason: str
     method: str = "finite-difference-levenberg-marquardt"
+    jacobian_method: str = "forward_finite_difference"
+    residual_evaluations: int = 0
+    jacobian_evaluations: int = 0
+    analytic_jacobian_evaluations: int = 0
     limitations: tuple[str, ...] = (
         "Local solver; no global convergence or uniqueness guarantee",
         "Finite-difference Jacobian; scaling and smoothness affect accuracy",
@@ -84,14 +96,23 @@ class NonlinearSolveResult:
         )
 
 
+@dataclass(slots=True)
+class _EvaluationStats:
+    residual_evaluations: int = 0
+    jacobian_evaluations: int = 0
+    analytic_jacobian_evaluations: int = 0
+
+
 def _evaluate(
     constraints: tuple[NonlinearConstraint, ...],
     variable_names: tuple[str, ...],
     values: tuple[float, ...],
+    stats: _EvaluationStats,
 ) -> tuple[float, ...]:
     state = dict(zip(variable_names, values))
     residuals: list[float] = []
     for item in constraints:
+        stats.residual_evaluations += 1
         try:
             value = float(item.residual(state))
         except Exception as exc:
@@ -129,21 +150,60 @@ def _jacobian(
     values: tuple[float, ...],
     base_residuals: tuple[float, ...],
     step_size: float,
+    method: JacobianMethod,
+    analytic_jacobian: JacobianFunction | None,
+    stats: _EvaluationStats,
 ) -> list[list[float]]:
     row_count = len(constraints)
     column_count = len(variable_names)
+    stats.jacobian_evaluations += 1
     matrix = [[0.0] * column_count for _ in range(row_count)]
+
+    if method is JacobianMethod.ANALYTIC:
+        if analytic_jacobian is None:
+            raise SolverError("Analytic Jacobian method requires a jacobian callback")
+        stats.analytic_jacobian_evaluations += 1
+        try:
+            raw = analytic_jacobian(dict(zip(variable_names, values)))
+        except Exception as exc:
+            raise SolverError(f"Analytic Jacobian evaluation failed: {exc}") from exc
+        try:
+            if len(raw) != row_count or any(len(row) != column_count for row in raw):
+                raise SolverError(
+                    f"Analytic Jacobian must have shape ({row_count}, {column_count})"
+                )
+            for row, constraint in enumerate(constraints):
+                for column in range(column_count):
+                    value = float(raw[row][column])
+                    if not isfinite(value):
+                        raise SolverError("Analytic Jacobian contains a non-finite value")
+                    matrix[row][column] = value / constraint.scale
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise SolverError(f"Analytic Jacobian must be a finite numeric matrix: {exc}") from exc
+        return matrix
+
     for column in range(column_count):
         step = step_size * max(1.0, abs(values[column]))
-        shifted = list(values)
-        shifted[column] += step
-        shifted_residuals = _evaluate(
-            constraints, variable_names, tuple(shifted)
+        plus = list(values)
+        plus[column] += step
+        plus_residuals = _evaluate(
+            constraints, variable_names, tuple(plus), stats
         )
-        for row in range(row_count):
-            matrix[row][column] = (
-                shifted_residuals[row] - base_residuals[row]
-            ) / step
+        if method is JacobianMethod.FORWARD_FINITE_DIFFERENCE:
+            for row in range(row_count):
+                matrix[row][column] = (
+                    plus_residuals[row] - base_residuals[row]
+                ) / step
+        else:
+            minus = list(values)
+            minus[column] -= step
+            minus_residuals = _evaluate(
+                constraints, variable_names, tuple(minus), stats
+            )
+            for row in range(row_count):
+                matrix[row][column] = (
+                    plus_residuals[row] - minus_residuals[row]
+                ) / (2.0 * step)
     return matrix
 
 
@@ -174,6 +234,8 @@ def _build_result(
     scaled_residuals: tuple[float, ...],
     iterations: int,
     reason: str,
+    stats: _EvaluationStats,
+    jacobian_method: JacobianMethod,
 ) -> NonlinearSolveResult:
     residual_items = tuple(
         NonlinearConstraintResidual(
@@ -197,6 +259,10 @@ def _build_result(
         iterations=iterations,
         objective=_objective(scaled_residuals),
         termination_reason=reason,
+        jacobian_method=jacobian_method.value,
+        residual_evaluations=stats.residual_evaluations,
+        jacobian_evaluations=stats.jacobian_evaluations,
+        analytic_jacobian_evaluations=stats.analytic_jacobian_evaluations,
     )
 
 
@@ -207,6 +273,7 @@ def solve_nonlinear_constraints(
     *,
     bounds: Mapping[str, VariableBound] | None = None,
     options: NonlinearSolverOptions | None = None,
+    jacobian: JacobianFunction | None = None,
 ) -> NonlinearSolveResult:
     """Solve scalar equality residuals with bounded damped least squares.
 
@@ -268,13 +335,24 @@ def solve_nonlinear_constraints(
         raise SolverError("Initial variable values must be numeric") from exc
     if not all(isfinite(value) for value in initial):
         raise SolverError("Initial variable values must be finite")
+    if not isinstance(settings.jacobian_method, JacobianMethod):
+        raise SolverError("jacobian_method must be a JacobianMethod")
+    if settings.jacobian_method is JacobianMethod.ANALYTIC and jacobian is None:
+        raise SolverError("Analytic Jacobian method requires a jacobian callback")
+    if settings.jacobian_method is not JacobianMethod.ANALYTIC and jacobian is not None:
+        raise SolverError("A jacobian callback requires jacobian_method=ANALYTIC")
+    if jacobian is not None and not callable(jacobian):
+        raise SolverError("jacobian must be callable")
+
+    stats = _EvaluationStats()
     current = _project_bounds(initial, names, bound_map)
-    residuals = _evaluate(equations, names, current)
+    residuals = _evaluate(equations, names, current, stats)
     objective = _objective(residuals)
     if _all_pass(residuals, equations):
         return _build_result(
             NonlinearSolveStatus.CONVERGED, names, current, equations,
-            residuals, 0, "initial_point_satisfies_all_constraints"
+            residuals, 0, "initial_point_satisfies_all_constraints",
+            stats, settings.jacobian_method,
         )
 
     damping = settings.initial_damping
@@ -286,6 +364,7 @@ def solve_nonlinear_constraints(
         jacobian = _jacobian(
             equations, names, current, residuals,
             settings.finite_difference_step,
+            settings.jacobian_method, jacobian, stats,
         )
         row_count, column_count = len(equations), len(names)
         gradient = [
@@ -326,7 +405,7 @@ def solve_nonlinear_constraints(
             reason = "step_tolerance_reached_without_constraint_convergence"
             break
 
-        candidate_residuals = _evaluate(equations, names, candidate)
+        candidate_residuals = _evaluate(equations, names, candidate, stats)
         candidate_objective = _objective(candidate_residuals)
         if candidate_objective < objective:
             current = candidate
@@ -337,7 +416,8 @@ def solve_nonlinear_constraints(
                 return _build_result(
                     NonlinearSolveStatus.CONVERGED, names, current, equations,
                     residuals, iterations,
-                    "all_constraint_residuals_within_tolerance"
+                    "all_constraint_residuals_within_tolerance",
+                    stats, settings.jacobian_method,
                 )
         else:
             damping *= 10.0
@@ -347,5 +427,5 @@ def solve_nonlinear_constraints(
 
     return _build_result(
         NonlinearSolveStatus.NOT_CONVERGED, names, current, equations,
-        residuals, iterations, reason
+        residuals, iterations, reason, stats, settings.jacobian_method
     )
