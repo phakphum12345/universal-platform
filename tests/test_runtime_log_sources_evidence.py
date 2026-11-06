@@ -78,9 +78,9 @@ class RecoveryAdapter:
     adapter_id = "python-worker-v1"
     resource_kind = "python-worker"
     capabilities = ("execute-python",)
-    def __init__(self): self.calls = []
+    def __init__(self, healthy=True): self.calls = []; self.healthy = healthy
     def quiesce(self, resource_id): self.calls.append("quiesce")
-    def health_check(self, resource_id): self.calls.append("health"); return True
+    def health_check(self, resource_id): self.calls.append("health"); return self.healthy
     def canary_check(self, resource_id): self.calls.append("canary"); return True
     def resume(self, resource_id): self.calls.append("resume")
     def rollback(self, resource_id): self.calls.append("rollback")
@@ -105,7 +105,7 @@ def test_recovery_coordinator_reads_file_log_and_persists_before_and_after_resum
     result = coordinator.recover_from_source("worker-9", "worker.log", log_source=source, adapter=adapter, repair_executor=SandboxedRepair())
     records = [json.loads(line) for line in store.path.read_text(encoding="utf-8").splitlines()]
     assert result.state is ResourceState.ACTIVE and result.evidence_recorded
-    assert adapter.calls == ["quiesce", "health", "canary", "resume"]
+    assert adapter.calls == ["quiesce", "health", "health", "canary", "resume"]
     assert len(records) == 2
     assert records[0]["final_state"] == "CANARY" and records[0]["resumed"] is False
     assert records[1]["final_state"] == "ACTIVE" and records[1]["resumed"] is True

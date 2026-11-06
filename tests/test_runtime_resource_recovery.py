@@ -49,7 +49,7 @@ def test_recovery_sleeps_repairs_validates_canary_and_resumes():
     registry, adapter, repair = make_registry(), FakeAdapter(), FakeRepair()
     result = RecoveryCoordinator(registry).recover("worker-1", "ERROR component_id=worker-1 worker crashed", adapter=adapter, repair_executor=repair)
     assert result.state is ResourceState.ACTIVE and result.repaired and result.resumed
-    assert adapter.calls == ["quiesce", "health", "canary", "resume"]
+    assert adapter.calls == ["quiesce", "health", "health", "canary", "resume"]
     assert registry.get("worker-1").generation == 7
 
 def test_unsandboxed_repair_quarantines_without_running_repair():
