@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PlanarRegion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","region_id","frame_id","length_unit","precision_policy","outer_boundary","holes"],
+  "properties": {
+    "schema_version":{"const":"1.0"},
+    "region_id":{"type":"string","pattern":"^[a-z0-9]+([._/-][a-z0-9]+)*$"},
+    "frame_id":{"type":"string","minLength":1},
+    "length_unit":{"type":"string","minLength":1},
+    "precision_policy":{"const":"binary64-exact-rational-v1"},
+    "outer_boundary":{"$ref":"#/$defs/boundary"},
+    "holes":{"type":"array","items":{"$ref":"#/$defs/boundary"}},
+  },
+  "$defs":{
+    "point":{"type":"object","additionalProperties":false,"required":["x","y"],"properties":{"x":{"type":"number"},"y":{"type":"number"}}},
+    "boundary":{"type":"array","minItems":3,"items":{"$ref":"#/$defs/point"}}
+  }
+}
