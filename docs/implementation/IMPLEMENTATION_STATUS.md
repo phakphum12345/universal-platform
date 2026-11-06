@@ -1,5 +1,17 @@
 # Implementation Status — UEIC Foundation
 
+## Repository status vocabulary
+
+Use these maturity labels consistently across implementation records:
+
+- **IMPLEMENTED** — the stated behavior exists in source code; scope must remain narrow and named.
+- **PARTIAL** — some required behavior exists, but acceptance coverage or capability scope is incomplete.
+- **PLANNED** — specified or proposed; implementation is not established.
+- **BLOCKED** — a required prerequisite, dependency, or owner decision prevents valid progress.
+- **UNKNOWN** — evidence is insufficient to classify the implementation.
+
+Keep maturity separate from execution evidence: PASS, FAIL, SKIPPED and UNKNOWN describe checks. A PR being open, mergeable, or documented does not make it merged or tested.
+
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest integration branch head:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48; CAD-neutral analytic primitive geometry). **Latest merged feature baseline:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48).
 **Latest merged feature:** PR #48 squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; exact PR-head run #349 (`42172938440`) passed workflow-sanity and python-tests; **412 tests passed in 1.07s**. Post-merge run #350 (`42173099340`) on the exact merge SHA passed both jobs; **412 tests passed in 0.62s**. PR #39–#48 evidence remains recorded below. PRs #49 and #50 are open, stacked CAD review candidates; neither is part of the merged baseline.
