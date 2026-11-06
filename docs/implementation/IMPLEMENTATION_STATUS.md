@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 6198529d0e816898ad84e20efa153d54c6e0c61d (PR #25; stable-ID planar four-bar model adapter)  
+**Latest merged baseline:** 129a5f7867147b32d5582695b68d365db2b0c497 (PR #26; complete stable-ID planar four-bar residual mapping)  
 **Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added a narrow stable-ID planar 4R model adapter, merged at `6198529d0e816898ad84e20efa153d54c6e0c61d`. Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
@@ -167,3 +167,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds `PlanarFourBarModelSnapshot`, `PlanarFourBarAdapterResult` and `solve_planar_four_bar_model`. Length quantities are dimension-checked and normalized to SI metres; branch and stable model/link/joint IDs are explicit; result mapping and JSON snapshot are deterministic.
 - **Scope remains one planar four-link/four-revolute loop.** This is not a general mechanism-to-solver adapter, arbitrary assembly graph solver, multi-loop/3D solver or physical feasibility certification.
 - - Merge commit: `6198529d0e816898ad84e20efa153d54c6e0c61d`. Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+
+
+## PR #26 — Complete stable-ID planar four-bar residual mapping
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/26
+- Base: `docs/phase-0-complete-requirements` at `5e989e0ab96ada23aec0bce85f0075fbb43d591c`.
+- Tested PR head: `839691467dfe9fc2bc9b55baab1a9580ee8f9201`.
+- GitHub Actions run #193 (run ID `42148977388`): `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **156 passed in 0.35s**. Documentation-only marker SKIPPED, not PASS.
+- Adds explicit ground, input-crank, coupler and output-rocker length residuals mapped to stable link IDs; checks the mapped residual set against the declared SI tolerance; rejects boolean input angles.
+- Merge commit: `129a5f7867147b32d5582695b68d365db2b0c497`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
