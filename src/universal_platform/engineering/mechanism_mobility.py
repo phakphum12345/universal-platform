@@ -314,16 +314,180 @@ def analyze_mechanism_mobility(
         reference_constraint_rank=reference_constraint_rank,
         joint_coordinate_count=len(jacobian.joint_coordinate_ids),
         limitations=(
-            "Nominal DOF assumes ideal lower pairs and independent joint constraints; higher pairs are not modeled.",
-            "Local mobility is an estimate from a Jacobian at one configuration; rank depends on scaling and tolerance.",
-            "When declared, local variables combine free-body pose tangent coordinates and independent joint generalized coordinates.",
-            "Automatically generated geometric Jacobians use finite differences, not symbolic or exact derivatives.",
-            "Redundant Jacobian rows are reported separately and do not alone prove physical overconstraint.",
-            "A possible singularity requires an explicit regular-configuration reference rank; absence of a flag is not a proof of regularity.",
-            "No collision/contact, dynamics, physical feasibility, safety certification or fabrication validation is performed.",
+            (
+                "Nominal DOF assumes ideal lower pairs and independent joint constraints; higher pairs are not modeled.",
+                "Local mobility is an estimate from a Jacobian at one configuration; rank depends on scaling and tolerance.",
+                "When declared, local variables combine free-body pose tangent coordinates and independent joint generalized coordinates.",
+                "Automatically generated geometric Jacobians use finite differences, not symbolic or exact derivatives.",
+                "Redundant Jacobian rows are reported separately and do not alone prove physical overconstraint.",
+                "A possible singularity requires an explicit regular-configuration reference rank; absence of a flag is not a proof of regularity.",
+                "No collision/contact, dynamics, physical feasibility, safety certification or fabrication validation is performed.",
+            )
+            + (
+                (
+                    "PLANAR analysis assumes every body and joint anchor lies in the supplied plane frame.",
+                    "PLANAR body variables are projected to two in-plane translations and one plane-normal rotation; out-of-plane body motion is rejected.",
+                )
+                if formulation is MobilityFormulation.PLANAR else ()
+            )
         ),
     )
 
+
+
+def _validate_planar_plane_frame(
+    model: MechanismModel,
+    body_poses: Mapping[str, RigidTransform],
+    plane_frame: RigidTransform,
+    *,
+    plane_tolerance_m: float,
+    angular_tolerance_rad: float,
+) -> None:
+    if not isinstance(plane_frame, RigidTransform):
+        raise InvalidModelError("PLANAR mobility requires an explicit plane_frame RigidTransform")
+    for name, value in (
+        ("plane_tolerance_m", plane_tolerance_m),
+        ("angular_tolerance_rad", angular_tolerance_rad),
+    ):
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not isfinite(value) or value <= 0.0):
+            raise InvalidModelError(f"{name} must be finite and positive")
+
+    world_frames = {pose.to_frame for pose in body_poses.values()}
+    if len(world_frames) != 1 or plane_frame.to_frame not in world_frames:
+        raise InvalidModelError(
+            "plane_frame must map into the same shared world frame as every body pose"
+        )
+    plane_to_world_inverse = plane_frame.inverse()
+    for link_id, pose in body_poses.items():
+        body_to_plane = pose.then(plane_to_world_inverse)
+        if abs(body_to_plane.translation.z) > plane_tolerance_m:
+            raise InvalidModelError(
+                f"Body origin for link {link_id!r} is outside the declared plane"
+            )
+        local_z_in_plane = tuple(body_to_plane.rotation[row][2] for row in range(3))
+        if (
+            abs(local_z_in_plane[0]) > angular_tolerance_rad
+            or abs(local_z_in_plane[1]) > angular_tolerance_rad
+            or abs(local_z_in_plane[2] - 1.0) > angular_tolerance_rad
+        ):
+            raise InvalidModelError(
+                f"Body frame for link {link_id!r} must keep local +Z aligned with the plane normal"
+            )
+
+    links = {item.link_id: item for item in model.links}
+    placements = {item.joint_id: item for item in model.joint_placements}
+    coordinates = {item.coordinate_id: item for item in model.generalized_coordinates}
+    parameterizations = {
+        item.joint_id: item for item in model.joint_parameterizations
+    }
+    for joint in model.joints:
+        placement = placements[joint.joint_id]
+        parent_pose = body_poses[joint.parent_link_id]
+        joint_to_world = placement.parent_to_joint.inverse().then(parent_pose)
+        joint_to_plane = joint_to_world.then(plane_to_world_inverse)
+        if abs(joint_to_plane.translation.z) > plane_tolerance_m:
+            raise InvalidModelError(
+                f"Joint frame origin for {joint.joint_id!r} is outside the declared plane"
+            )
+        parameterization = parameterizations.get(joint.joint_id)
+        if parameterization is None:
+            continue
+        for coordinate_id in parameterization.coordinate_ids:
+            coordinate = coordinates[coordinate_id]
+            axis = tuple(
+                sum(joint_to_plane.rotation[row][column] * coordinate.axis[column]
+                    for column in range(3))
+                for row in range(3)
+            )
+            if coordinate.coordinate_kind.value == "ROTATIONAL":
+                if (
+                    abs(axis[0]) > angular_tolerance_rad
+                    or abs(axis[1]) > angular_tolerance_rad
+                    or abs(abs(axis[2]) - 1.0) > angular_tolerance_rad
+                ):
+                    raise InvalidModelError(
+                        f"Rotational coordinate axis {coordinate_id!r} must be parallel to the plane normal"
+                    )
+            elif abs(axis[2]) > angular_tolerance_rad:
+                raise InvalidModelError(
+                    f"Translational coordinate axis {coordinate_id!r} must lie in the plane"
+                )
+
+
+def _build_planar_constraint_jacobian(
+    generated_jacobian,
+    model: MechanismModel,
+    plane_frame: RigidTransform,
+    *,
+    ground_link_id: str,
+    configuration_id: str,
+    jacobian_method: JacobianMethod,
+    finite_difference_step: float,
+) -> ConstraintJacobian:
+    columns = generated_jacobian.columns
+    coordinate_indices = [
+        index for index, column in enumerate(columns)
+        if column.variable.variable_kind == "GENERALIZED_COORDINATE"
+    ]
+    coordinate_ids = [columns[index].variable.variable_id for index in coordinate_indices]
+    reduced_ids = list(coordinate_ids)
+    reduced_values = [
+        [row[index] for index in coordinate_indices]
+        for row in generated_jacobian.values
+    ]
+
+    plane_x = tuple(plane_frame.rotation[row][0] for row in range(3))
+    plane_y = tuple(plane_frame.rotation[row][1] for row in range(3))
+    plane_normal = tuple(plane_frame.rotation[row][2] for row in range(3))
+    index_by_variable = {
+        column.variable.variable_id: index
+        for index, column in enumerate(columns)
+    }
+    for link in sorted(model.links, key=lambda item: item.link_id):
+        if link.link_id == ground_link_id:
+            continue
+        pose_columns = {
+            component: index_by_variable[f"link/{link.link_id}/pose/{component}"]
+            for component in (
+                "translation_x", "translation_y", "translation_z",
+                "rotation_x", "rotation_y", "rotation_z",
+            )
+        }
+        projected = (
+            ("translation_x", plane_x, ("translation_x", "translation_y", "translation_z")),
+            ("translation_y", plane_y, ("translation_x", "translation_y", "translation_z")),
+            ("rotation_normal", plane_normal, ("rotation_x", "rotation_y", "rotation_z")),
+        )
+        for name, basis, components in projected:
+            reduced_ids.append(
+                f"link/{link.link_id}/plane/{plane_frame.from_frame}/{name}"
+            )
+            source_indices = [pose_columns[component] for component in components]
+            for row_index, row in enumerate(generated_jacobian.values):
+                reduced_values[row_index].append(
+                    sum(row[source_indices[axis]] * basis[axis] for axis in range(3))
+                )
+
+    expected_columns = 3 * (len(model.links) - 1) + len(model.generalized_coordinates)
+    if len(reduced_ids) != expected_columns:
+        raise InvalidModelError(
+            "Projected planar Jacobian does not cover the expected plane and joint variables"
+        )
+    return ConstraintJacobian(
+        generated_jacobian.row_ids,
+        tuple(reduced_ids),
+        tuple(tuple(row) for row in reduced_values),
+        configuration_id,
+        (
+            "generated-planar-joint-pose-residuals:"
+            + plane_frame.from_frame
+            + ":"
+            + jacobian_method.value
+            + f":step={finite_difference_step:g}"
+        ),
+        tuple(coordinate_ids),
+    )
 
 
 def analyze_geometric_mechanism_mobility(
@@ -338,22 +502,65 @@ def analyze_geometric_mechanism_mobility(
     rank_tolerance: float = 1e-10,
     jacobian_method: JacobianMethod = JacobianMethod.CENTRAL_FINITE_DIFFERENCE,
     finite_difference_step: float = 1e-6,
+    plane_frame: RigidTransform | None = None,
+    plane_tolerance_m: float = 1e-8,
+    angular_tolerance_rad: float = 1e-8,
 ) -> MobilityAnalysisResult:
-    """Estimate spatial local mobility from generated joint residual derivatives.
+    """Estimate local geometric mobility from generated joint residual derivatives.
 
-    The selected local variable set contains six pose-tangent coordinates for
-    every non-ground link plus every independent generalized joint coordinate.
-    The ground pose is excluded. PLANAR is intentionally not inferred from a
-    3D pose snapshot; it requires an explicit plane-frame contract.
+    SPATIAL uses six pose-tangent coordinates for each non-ground link.
+    PLANAR requires an explicit plane-to-world RigidTransform and projects each
+    non-ground link to two in-plane translations plus one plane-normal rotation.
     """
-    if formulation is not MobilityFormulation.SPATIAL:
-        raise InvalidModelError(
-            "Automatic geometric mobility currently supports SPATIAL formulation only; "
-            "PLANAR requires an explicit plane-frame contract"
-        )
+    if not isinstance(formulation, MobilityFormulation):
+        raise InvalidModelError("formulation must be a MobilityFormulation")
     if not isinstance(configuration_id, str) or not configuration_id.strip():
         raise InvalidModelError("configuration_id must be a non-empty stable identifier")
 
+    if formulation is MobilityFormulation.PLANAR:
+        if plane_frame is None:
+            raise InvalidModelError(
+                "PLANAR mobility requires an explicit plane_frame RigidTransform contract"
+            )
+        nominal = estimate_nominal_mobility(
+            model, formulation, ground_link_id=ground_link_id
+        )
+        generated = generate_joint_constraints(model)
+        generated.evaluate(body_poses, coordinate_values)
+        _validate_planar_plane_frame(
+            model,
+            body_poses,
+            plane_frame,
+            plane_tolerance_m=plane_tolerance_m,
+            angular_tolerance_rad=angular_tolerance_rad,
+        )
+        generated_jacobian = build_joint_constraint_jacobian(
+            generated,
+            body_poses,
+            coordinate_values,
+            method=jacobian_method,
+            finite_difference_step=finite_difference_step,
+        )
+        reduced = _build_planar_constraint_jacobian(
+            generated_jacobian,
+            model,
+            plane_frame,
+            ground_link_id=ground_link_id,
+            configuration_id=configuration_id,
+            jacobian_method=jacobian_method,
+            finite_difference_step=finite_difference_step,
+        )
+        return analyze_mechanism_mobility(
+            model,
+            formulation,
+            reduced,
+            ground_link_id=ground_link_id,
+            reference_constraint_rank=reference_constraint_rank,
+            rank_tolerance=rank_tolerance,
+        )
+
+    if plane_frame is not None:
+        raise InvalidModelError("plane_frame is only valid for PLANAR mobility analysis")
     nominal = estimate_nominal_mobility(
         model, formulation, ground_link_id=ground_link_id
     )
