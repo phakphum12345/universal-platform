@@ -1,10 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Historical implementation snapshot HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model). The currently observed integration branch tip is `afcb151e29ff9a8cb5a8e871400910a0fe950c57`; default `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
-**Exact post-merge CI:** PR #82 merge SHA `114bf8dd84831d7d4080922ed7069cadda380ba3`; workflow #42240292055: workflow-sanity PASS and python-tests PASS; **563 passed in 2.47s**. Documentation-only marker step SKIPPED.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
-**Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
+**Current integration HEAD:** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (post-PR #113).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 253 ahead / 0 behind).  
+**Latest post-merge CI:** workflow #42279521637 — workflow-sanity PASS; python-tests PASS; **732 passed in 3.79s**.  
+**Current tree:** 268 files, 102 Markdown, 143 Python, 19 JSON schemas, 71 test files; recursive response not truncated.  
+**Open PRs:** 0 at audit time. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -803,31 +804,37 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Contract: [3MF Core Mesh Interchange](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Runtime Resource and Recovery Workstream — OPEN PRs #100–#106
+## Current Runtime, Physics and CAD integration status — 2026-11-07
 
-**Branch relationship:** PR #100 targets `docs/phase-0-complete-requirements`; PRs #101–#106 are stacked in dependency order. None of these PRs is merged as of this status update. Their feature branches are not part of the integration baseline or `main`.
+### Runtime — PARTIAL (PR #107 and #113 merged)
+- Resource registry/lifecycle, unit-bearing snapshots, bounded log parsing/redaction and configured-root file ingestion.
+- Recovery coordinator with fail-closed quarantine and evidence-before-resume when an evidence sink is configured.
+- Trusted-worker allow-listed process supervisor; this is not an OS/container security sandbox.
+- Policy-gated adapter discovery and in-process runtime route replacement while asleep.
+- In-memory logical quotas/expiring leases; local resource metrics; threshold health monitor with HEALTHY/SUSPECT/UNKNOWN.
+- Recovery JSONL evidence has local cross-process file locking, bounded store size and an unkeyed SHA-256 chain. It is not signed, remote or tamper-proof against full-file rewrite.
+- Remaining: OS/container sandbox, OS-enforced quotas, Windows Job Object containment, checkpoint/restore/heartbeat/restart, durable/distributed leases, signed remote evidence, approval/permission integration and production hardening.
 
-| PR | Scope | Exact tested head | CI result | Maturity |
-|---|---|---|---|---|
-| #100 | Resource registry, metrics, log analysis, recovery lifecycle | `b672c7bf0f509990be3a172ec6085ccb2be1e9c8` | PASS — 662 tests | PARTIAL; in-memory contracts, no process supervisor |
-| #101 | Bounded file-log ingestion and JSONL evidence | `177567feb2cc5a855a9cdf10ba5d9286399375e3` | PASS — 667 tests | PARTIAL; process-local evidence lock |
-| #102 | Recovery coordinator integration with logs/evidence | `25f82f272b653f5be2164cd9e41d6e3eca1ab526` | PASS — 669 tests | PARTIAL; sandbox and durable evidence remain open |
-| #103 | Allow-listed trusted-worker process supervision | `ff4e96452364355855403d2fcbe9aca57eb50cfb` | PASS — 677 tests | PARTIAL; not a security sandbox |
-| #104 | Adapter discovery and policy-gated replacement | `dff96a6a3a8c1ead4be3dae64f6457b68edce9c1` | PASS — 685 tests | PARTIAL; runtime routing remains caller-owned |
-| #105 | Resource quotas and expiring leases | `c74c6d4ddda060e08a3aaf04453a0e4d4741caa7` | PASS — 691 tests | PARTIAL; in-memory, process-local |
-| #106 | Resource snapshot collector and local metrics | `2a56c5ee9a068a48efa38da769f8c8b6a45950d2` | PASS — 697 tests | PARTIAL; provider/platform dependent |
+### Physics — PARTIAL (PR #110 merged)
+- Central typed/versioned solver registry with license/dependency gates and provenance.
+- Built-ins: axial stress, ideal lumped DC Ohm's law/power and linear thermal expansion.
+- Remaining: fluids, electromagnetics, general thermodynamics/dynamics, nonlinear materials, FEA/CFD, numerical/simulation adapters, cross-solver reference validation, convergence and uncertainty.
 
-All listed CI counts are from the Python test job on the stated exact head; workflow-sanity also passed. Documentation-only conditional steps that were skipped are not counted as passes.
+### CAD / 3D — PARTIAL
+- STEP AP214 faceted-BREP single connected triangle-shell interchange (PR #99); not a general B-rep kernel.
+- ParametricSketch v1.0: eight initial point/line constraint families; no arcs/splines or uniqueness/global convergence guarantee.
+- FeatureHistory v1.0: deterministic allow-listed DAG for sketch profile, planar Boolean, extrusion and mesh; no persistent documents or incremental recompute.
+- Remaining: ambiguous branching Boolean topology, broader sketch solver, persistent/incremental feature history, general B-rep/3D Boolean, full STEP/AP242 and 3MF assemblies, CAD generator UI/API/persistence.
 
-### Runtime gates still OPEN
+### Hardware / EDA — PARTIAL
+- Schematic connectivity, deterministic SVG rendering, static ERC and metadata-only driver interface/pin binding exist.
+- Remaining: native EDA interchange, datasheet-backed constraints, BOM/footprint reconciliation and circuit simulation.
 
-- OS/container sandbox for untrusted worker and repair code; process isolation alone is not sufficient.
-- OS-level CPU, memory, disk and network quotas; GPU telemetry and CPU utilization providers.
-- Durable resource leases and multi-process/distributed allocation coordination.
-- Durable, multi-process and tamper-evident recovery evidence.
-- Process checkpoints, restore, heartbeat, restart policy and full integration with ResourceRegistry/RecoveryCoordinator.
-- Runtime adapter routing/switchover, canary traffic management and rollback of a live adapter.
-- Permission, approval, module-registry and audit-governance integration.
-- Stream log ingestion, rotation, cursors, retention and cross-source correlation.
+### Recent exact evidence
+- PR #99 exact-head/post-merge: 664 tests.
+- PR #107 exact-head: 697; post-merge: 717.
+- PR #110 exact integration-based head: 672; later post-merge suite includes it.
+- PR #113 exact-head/post-merge: 732 tests.
+- All listed required jobs passed; skipped documentation-only steps are not counted as passes.
 
-See [Runtime Resource Adapter and Recovery](../architecture/RESOURCE_ADAPTER_RECOVERY.md) for the implementation boundary and tests.
+See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
