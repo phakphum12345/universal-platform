@@ -1,6 +1,6 @@
 # Automatic Geometric Mobility Analysis Contract
 
-**Status:** SPATIAL geometric mobility implemented in PR #37. Explicit PLANAR plane-frame projection is a PR #56 candidate; it is not part of the integration baseline until exact-head and post-merge CI pass.
+**Status:** SPATIAL geometric mobility implemented in PR #37; explicit PLANAR plane-frame projection implemented in PR #56. Exact-head and post-merge CI both pass.
 
 ## Purpose
 
@@ -34,7 +34,7 @@ Build local mobility diagnostics from geometric joint residuals and the finite-d
 
 ## Formulation boundary
 
-SPATIAL uses six pose-tangent variables per non-ground link. The PR #56 PLANAR candidate requires an explicit plane-to-world RigidTransform, verifies body origins and local +Z axes, validates joint anchors and coordinate axes, then projects the full world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link. It does not silently project an arbitrary 3D snapshot.
+SPATIAL uses six pose-tangent variables per non-ground link. PLANAR requires an explicit plane-to-world RigidTransform, verifies body origins and local +Z axes, validates joint anchors and coordinate axes, then projects the full world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link. It does not silently project an arbitrary 3D snapshot. PR #56 sets the geometric-mobility default finite-difference step to 1e-5 to reduce round-off amplification from composed frames; explicit caller overrides remain supported.
 
 ## Limitations
 
@@ -49,4 +49,4 @@ SPATIAL uses six pose-tangent variables per non-ground link. The PR #56 PLANAR c
 - Ground-link reversal preserves local mobility and removes the selected ground pose columns.
 - Combined body-pose and joint-coordinate variables are declared explicitly.
 - Legacy caller-supplied ConstraintJacobian usage remains compatible.
-- PLANAR requests fail closed without an explicit plane_frame and coplanarity validation. The candidate PR #56 adds that explicit contract; exact-head CI is pending.
+- PLANAR requests fail closed without an explicit plane_frame and coplanarity validation. PR #56 implements this contract and passes exact-head and post-merge CI.
