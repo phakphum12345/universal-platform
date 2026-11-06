@@ -203,17 +203,23 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Exact PR workflow #42229095708 and push workflow #42229046675 passed both required jobs with **524 tests in 2.25s**; exact post-merge run #42229207672 passed both jobs with **524 tests in 1.60s**.
 - Defines additive diagnostics for edge-connected components, vertex-link manifoldness, unused vertices, exact/near-coincident coordinates and explicit UNKNOWN self-intersection status.
 
-## PR #77 — Mesh geometric topology analysis implementation (IMPLEMENTATION CANDIDATE)
+## PR #77 — Mesh geometric topology analysis implementation (MERGED)
 
-- Adds `MeshTopologyAnalysis` v1.0 and `analyze_mesh_topology` without changing `validate_triangle_mesh`.
-- Records solid/frame/unit identity, source and canonical mesh SHA-256, counts, connected face components, exact/near-coincident groups, non-manifold vertex fans, unused vertices and stable issue codes.
+- PR #77 merged at `20e34933087a7276d0acc08e0d17b872c3973949`; exact PR head `66593ebb6658f0e0fc43d17f90b6c8360e5969d2`; base `ff486f8ae4569ca8122f0294f55d18b21b32d10c`.
+- Exact PR workflow #42230501005 and push workflow #42230490785 passed both required jobs with **533 tests in 2.08s**; exact post-merge run #42230654227 passed both jobs with **533 tests in 1.98s**.
+- Adds MeshTopologyAnalysis v1.0 and analyze_mesh_topology without changing validate_triangle_mesh. Reports source/frame/unit/digests, edge-connected face components, vertex-link manifoldness, exact/near-coincident groups, unused vertices and stable issue codes.
 - Near-coincident grouping uses explicit source-unit tolerance, deterministic 3D buckets and a 5,000,000 neighbor-comparison ceiling; no welding/snap/repair.
-- `self_intersection_status` remains UNKNOWN; geometric triangle-triangle testing is a separate future gate.
-- Exact-head and post-merge CI evidence pending.
+- Self-intersection status remains UNKNOWN.
+
+## PR #78 — Triangle-mesh self-intersection contract (DESIGN ONLY)
+
+- Defines separate MeshIntersectionAnalysis semantics, deterministic AABB broad phase, exact represented-input predicate policy, shared-edge/shared-vertex adjacency exceptions, resource-limit UNKNOWN behavior and an independent rational reference corpus.
+- Keeps PR #77's MeshTopologyAnalysis v1.0 backward compatible with self_intersection_status UNKNOWN.
+- No triangle-triangle intersection implementation or PASS claim is made by this design PR.
 
 ## Next repository increments
 
-1. Complete PR #77 mesh topology diagnostics; then design and implement triangle-triangle self-intersection separately.
+1. Implement triangle-triangle self-intersection according to PR #78; retain UNKNOWN until the exact-predicate and adversarial corpus pass.
 2. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
 3. Neutral CAD interchange (external STL import and STEP/3MF) with independent external-tool reopen validation.
 4. Parametric sketch constraints, solver diagnostics and versioned feature history with deterministic recomputation.
