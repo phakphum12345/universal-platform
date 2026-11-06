@@ -3,8 +3,7 @@
 This dependency-free arrangement engine operates on the exact rational values
 represented by input binary64 coordinates. Generated intersections are rounded
 once to binary64 for the public PlanarRegion model; the result reports the
-coordinate and area rounding error. Ambiguous point-touching output and bounded
-resource exhaustion fail closed.
+coordinate and area rounding error. Ambiguous branching topology and bounded resource exhaustion fail closed.
 """
 from __future__ import annotations
 
@@ -14,6 +13,7 @@ from fractions import Fraction
 from hashlib import sha256
 from json import dumps
 from typing import ClassVar, Mapping
+from functools import cmp_to_key
 
 from .errors import InvalidModelError
 from .planar_region import PlanarRegion, _point
@@ -168,32 +168,86 @@ def _loop_area2(loop: tuple[_Point, ...]) -> Fraction:
     return total
 
 
+def _angle_compare(first: _Point, second: _Point) -> int:
+    """Compare vector polar angles counter-clockwise using exact rational predicates."""
+    first_half = 0 if first[1] > 0 or (first[1] == 0 and first[0] >= 0) else 1
+    second_half = 0 if second[1] > 0 or (second[1] == 0 and second[0] >= 0) else 1
+    if first_half != second_half:
+        return -1 if first_half < second_half else 1
+    cross = _cross(first, second)
+    if cross > 0:
+        return -1
+    if cross < 0:
+        return 1
+    return 0
+
+
 def _stitch(directed: set[_Edge]) -> tuple[tuple[_Point, ...], ...]:
+    """Stitch oriented boundaries using the clockwise predecessor rule.
+
+    At a point-contact vertex, choose the outgoing boundary half-edge immediately
+    clockwise from the reverse incoming direction. This is the deterministic
+    planar rotation-system rule that keeps point-touching material components
+    as separate cycles instead of producing a figure-eight boundary.
+    """
     outgoing: dict[_Point, list[_Point]] = {}
-    incoming: dict[_Point, int] = {}
+    incoming: dict[_Point, list[_Point]] = {}
     for start, end in directed:
         outgoing.setdefault(start, []).append(end)
-        incoming[end] = incoming.get(end, 0) + 1
+        incoming.setdefault(end, []).append(start)
     vertices = set(outgoing) | set(incoming)
-    if any(len(outgoing.get(vertex, ())) != 1 or incoming.get(vertex, 0) != 1
-           for vertex in vertices):
-        raise InvalidModelError("Boolean output has point-touching or branching boundaries")
+    successor: dict[_Edge, _Edge] = {}
+    for vertex in vertices:
+        ins = incoming.get(vertex, [])
+        outs = outgoing.get(vertex, [])
+        if len(ins) != len(outs) or not ins:
+            raise InvalidModelError("Boolean output has unbalanced boundary incidence")
+        ordered_outs = sorted(
+            outs,
+            key=cmp_to_key(lambda a, b: _angle_compare(_sub(a, vertex), _sub(b, vertex))),
+        )
+        for first, second in zip(ordered_outs, ordered_outs[1:]):
+            if _angle_compare(_sub(first, vertex), _sub(second, vertex)) == 0:
+                raise InvalidModelError("Boolean output has coincident outgoing branches")
+        used_outgoing: set[_Point] = set()
+        for previous in sorted(ins):
+            reverse_direction = _sub(previous, vertex)
+            candidates = [
+                point for point in ordered_outs
+                if _angle_compare(_sub(point, vertex), reverse_direction) != 0
+            ]
+            if not candidates:
+                raise InvalidModelError("Boolean output has no unambiguous outgoing boundary")
+            clockwise_predecessors = [
+                point for point in candidates
+                if _angle_compare(_sub(point, vertex), reverse_direction) < 0
+            ]
+            chosen = clockwise_predecessors[-1] if clockwise_predecessors else candidates[-1]
+            if chosen in used_outgoing:
+                raise InvalidModelError("Boolean output boundary rotation is ambiguous")
+            used_outgoing.add(chosen)
+            successor[(previous, vertex)] = (vertex, chosen)
+
     unused = set(directed)
     loops: list[tuple[_Point, ...]] = []
     while unused:
         first = min(unused)
-        start, current = first
+        start = first[0]
+        current = first
         points = [start]
-        unused.remove(first)
         for _ in range(len(directed) + 1):
-            if current == start:
+            if current not in unused:
+                raise InvalidModelError("Boolean boundary traversal reuses an edge")
+            unused.remove(current)
+            endpoint = current[1]
+            if endpoint == start:
                 break
-            points.append(current)
-            following = outgoing[current][0]
-            edge = (current, following)
-            if edge not in unused:
-                raise InvalidModelError("Boolean boundary traversal is not a simple cycle")
-            unused.remove(edge)
+            if endpoint in points:
+                raise InvalidModelError("Boolean boundary cycle repeats a vertex")
+            points.append(endpoint)
+            following = successor.get(current)
+            if following is None:
+                raise InvalidModelError("Boolean boundary traversal has no successor")
             current = following
         else:
             raise InvalidModelError("Boolean boundary traversal exceeded its edge budget")
@@ -242,7 +296,7 @@ class PlanarRegionBooleanResult:
             "max_coordinate_rounding_error": self.max_coordinate_rounding_error,
             "area_rounding_error": self.area_rounding_error,
             "limitations": [
-                "Point-touching or branching output boundaries fail closed.",
+                "Branching output boundaries with ambiguous rotation fail closed.",
                 "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
                 "Generated intersections are rounded to binary64 and error is reported.",
                 "Resource limits reject the operation; no partial result is returned.",
@@ -293,7 +347,7 @@ class PlanarRegionBooleanResult:
         if float(value["area"]) != sum(region.area for region in regions):
             raise InvalidModelError("area does not match the serialized output regions")
         limitations = [
-            "Point-touching or branching output boundaries fail closed.",
+            "Branching output boundaries with ambiguous rotation fail closed.",
             "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
             "Generated intersections are rounded to binary64 and error is reported.",
             "Resource limits reject the operation; no partial result is returned.",
