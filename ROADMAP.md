@@ -273,3 +273,12 @@ General planar-region Boolean topology beyond convex loops is next, but implemen
 ## Next increment — exact planar-region Boolean arrangement
 
 Implement union, intersection, difference and symmetric difference for PlanarRegion sets with multiple components and holes. Require independent exact-rational topology/area references, deterministic boundary graph traversal, output rounding/error bounds, and resource-limit UNKNOWN behavior before declaring completion. See [post-PR #82 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md).
+
+
+## PR #84 — Pairwise exact PlanarRegion Boolean engine (MERGED)
+
+- Merge SHA / integration HEAD: `1b75e2dab5b64d2d089e410bba02187d28772193`; base `8d62d1940cdae10e2f3f760dbb1296cd714c0017`; exact PR head `999235de2627f948a6fba8c4c9a038cea7cf8857`.
+- PR-head workflow #42250468895 and exact post-merge workflow #42250583756 passed both required jobs; **580 tests** on each (2.14s PR-head, 2.96s post-merge).
+- Adds pairwise UNION / INTERSECTION / DIFFERENCE / SYMMETRIC_DIFFERENCE for PlanarRegion v1.0, exact rational arrangement predicates, multiple components/holes, deterministic cycles, binary64 coordinate and area rounding-error reporting, strict result schema and snapshot import validation.
+- Limits: 256 total input edges; point-touching/branching output fails closed; frames/units must match; no implicit conversion, snap, repair, B-rep, 3D Boolean or arcs/splines. Existing convex ProfileLoop v1.0 remains unchanged.
+- Next: broaden independent rational/adversarial references; specify point-contact traversal semantics; design pairwise result aggregation/region-set API; then continue sketch/feature history, B-rep/interchange, EDA/circuit simulation, multiphysics adapters and secure runtime. See [post-PR #84 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md).
