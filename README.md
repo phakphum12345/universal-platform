@@ -179,3 +179,8 @@ Integration HEAD: `1b75e2dab5b64d2d089e410bba02187d28772193`. PR #84 adds a boun
 ## Current verified integration baseline (post-PR #88)
 
 Integration HEAD `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 239 ahead / 0 behind. PRs #84–#88 are merged into integration only. The CAD vertical slice now supports pairwise and multi-region PlanarRegion Booleans, extrusion to an analytic solid, and validated watertight triangle meshing. PR #88 exact-head and push CI passed 607 tests each; post-merge workflow #42252619167 passed both required jobs with 607 tests. Tree: 216 files, 96 Markdown, 99 Python, 17 schemas, 51 test files. B-rep/3D Boolean, feature history, sketch constraints and STEP/3MF remain open. See [post-PR #88 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md).
+
+
+## Parametric sketch foundation (PR #90)
+
+The integration branch now includes versioned 2D `ParametricSketch` records, straight segments and eight initial constraints (horizontal, vertical, coincident, distance, horizontal/vertical distance, fixed X/Y). The adapter reuses the bounded nonlinear solver and reports its convergence and rank diagnostics. PR #90 merge SHA `e2d631b49910e3d7f05fea6337742fd87385fb81`; exact-head run #42260796531 and post-merge run #42260977543 both passed 618 tests. This is a bounded point/line sketch foundation, not a complete interactive CAD sketcher. See [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
