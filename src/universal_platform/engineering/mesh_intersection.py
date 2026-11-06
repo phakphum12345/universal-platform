@@ -210,7 +210,7 @@ def _dedupe_polygon(points: list[_POINT2]) -> list[_POINT2]:
 
 
 def _coplanar_intersection(a: tuple[_POINT, _POINT, _POINT],
-                           b: tuple[_POINT, _POINT, _POINT]) -> tuple[bool, bool]:
+                           b: tuple[_POINT, _POINT, _POINT]) -> tuple[tuple[_POINT2, ...], bool]:
     normal = _cross(_sub(a[1], a[0]), _sub(a[2], a[0]))
     drop = max(range(3), key=lambda axis: (abs(normal[axis]), -axis))
     subject = [_project(point, drop) for point in a]
@@ -236,11 +236,11 @@ def _coplanar_intersection(a: tuple[_POINT, _POINT, _POINT],
             previous, d_previous = current, d_current
         polygon = _dedupe_polygon(output)
     if not polygon:
-        return False, False
+        return (), False
     area2 = sum(polygon[i][0]*polygon[(i+1) % len(polygon)][1]
                 - polygon[(i+1) % len(polygon)][0]*polygon[i][1]
                 for i in range(len(polygon))) if len(polygon) >= 3 else Fraction(0)
-    return True, area2 != 0
+    return tuple(polygon), area2 != 0
 
 
 def _segment_plane_point(p: _POINT, q: _POINT, dp: Fraction, dq: Fraction) -> _POINT:
@@ -295,8 +295,8 @@ def _pair_intersection(mesh: TriangleMesh, ia: int, ib: int) -> str | None:
     da = tuple(_dot(na, _sub(point, ta[0])) for point in tb)
     db = tuple(_dot(nb, _sub(point, tb[0])) for point in ta)
     if all(value == 0 for value in da) and all(value == 0 for value in db):
-        touches, positive_area = _coplanar_intersection(ta, tb)
-        if not touches:
+        clipped_points, positive_area = _coplanar_intersection(ta, tb)
+        if not clipped_points:
             return None
         if positive_area:
             if len(common) == 2:
@@ -304,19 +304,17 @@ def _pair_intersection(mesh: TriangleMesh, ia: int, ib: int) -> str | None:
             if len(common) == 1:
                 return "ADJACENT_VERTEX_CROSSING"
             return "COPLANAR_OVERLAP"
+        normal = na
+        drop = max(range(3), key=lambda axis: (abs(normal[axis]), -axis))
         if len(common) == 2:
-            shared = tuple(mesh.vertices[index] for index in sorted(common))
-            p0 = tuple(_q(v) for v in (shared[0].x, shared[0].y, shared[0].z))
-            p1 = tuple(_q(v) for v in (shared[1].x, shared[1].y, shared[1].z))
-            return None if all(_on_segment(point, p0, p1) for point in set(ta+tb)) else "UNSHARED_CONTACT"
+            shared = [mesh.vertices[index] for index in sorted(common)]
+            expected = {_project(tuple(_q(v) for v in (point.x, point.y, point.z)), drop)
+                        for point in shared}
+            return None if set(clipped_points).issubset(expected) else "UNSHARED_CONTACT"
         if len(common) == 1:
-            shared = next(iter(common))
-            point = mesh.vertices[shared]
-            qpoint = tuple(_q(v) for v in (point.x, point.y, point.z))
-            # A zero-area contact at the expected common vertex is ordinary adjacency.
-            if all(point == qpoint for point in ()):
-                return None
-            return "ADJACENT_VERTEX_CROSSING"
+            point = mesh.vertices[next(iter(common))]
+            expected = _project(tuple(_q(v) for v in (point.x, point.y, point.z)), drop)
+            return None if set(clipped_points) == {expected} else "ADJACENT_VERTEX_CROSSING"
         return "UNSHARED_CONTACT"
     points = _edge_plane_points(ta, tb) | _edge_plane_points(tb, ta)
     if not points:
