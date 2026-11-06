@@ -27,6 +27,7 @@ Current modules include:
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
 - An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).
 - A planar four-bar (4R) loop-closure adapter based on circle intersections, plus a Kutzbach planar mobility estimate (not a general closed-loop constraint solver).
+- A new general-purpose nonlinear equality-constraint solver is introduced as a bounded, local Levenberg–Marquardt numerical core; see [Nonlinear Constraint Solver Contract](docs/engineering/NONLINEAR_CONSTRAINT_SOLVER_CONTRACT.md) for exact scope and limitations.
 - A transparent linear-system simulation example with limitations and evidence.
 - Starter mechanics (axial stress/strain and factor of safety), DC electrical calculations, linear thermal expansion and validated material-property records.
 - Versioned module request/response envelopes.
@@ -92,6 +93,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Assembly Tree Forward-Kinematics Contract](docs/design-3d/ASSEMBLY_TREE_FORWARD_KINEMATICS_CONTRACT.md)
 - [Planar Two-Link Inverse-Kinematics Contract](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md)
 - [Planar Four-Bar Loop-Closure Contract](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md)
+- [Nonlinear Constraint Solver Contract](docs/engineering/NONLINEAR_CONSTRAINT_SOLVER_CONTRACT.md)
 - [3D Engineering Simulation](docs/design-3d/3D_ENGINEERING_SIMULATION.md)
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md)
 - [CAD to Manufacturing](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md)
