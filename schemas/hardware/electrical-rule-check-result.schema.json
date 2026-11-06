@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ElectricalRuleCheckResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "ruleset_version", "input_sha256", "status", "evaluated_rule_ids", "skipped_rule_ids", "summary", "findings", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "ruleset_version": {"const": "1.0"},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["PASS", "FAIL", "SKIPPED", "UNKNOWN", "NOT_APPLICABLE"]},
+    "evaluated_rule_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "skipped_rule_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_count", "blocker_count", "error_count", "warning_count", "info_count"],
+      "properties": {
+        "finding_count": {"type": "integer", "minimum": 0},
+        "blocker_count": {"type": "integer", "minimum": 0},
+        "error_count": {"type": "integer", "minimum": 0},
+        "warning_count": {"type": "integer", "minimum": 0},
+        "info_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_id", "rule_id", "rule_version", "severity", "status", "object_refs", "message", "recommendation", "evidence"],
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "rule_id": {"type": "string", "pattern": "^ERC-[A-Z]+-[0-9]{3}$"},
+        "rule_version": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["BLOCKER", "ERROR", "WARNING", "INFO"]},
+        "status": {"const": "FAIL"},
+        "object_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "message": {"type": "string", "minLength": 1},
+        "recommendation": {"type": "string", "minLength": 1},
+        "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}
