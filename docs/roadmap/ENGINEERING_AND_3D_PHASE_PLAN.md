@@ -106,3 +106,8 @@ Connects deterministic graph topology with generated geometric joint residuals t
 
 
 PR #35 is merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`. Exact PR head `9c5b5f43aa6af44da59f7b33cfa5db3448fd4d44` passed run #283 (`42161855276`) with 253 tests; post-merge run #284 (`42161983634`) on the exact merge SHA passed 253 tests. The implemented scope is geometric evaluation of supplied configurations only.
+
+
+## PR #36 — Geometric loop coordinate fitting
+
+Adds a bounded local solver adapter that adjusts only generalized-coordinate values against all generated joint pose-consistency residuals while body poses are held fixed. It forwards explicit coordinate bounds and scales, normalizes residuals by declared tolerances, and preserves NOT_CONVERGED for failed local solves. This is not a general body-pose configuration solver.
