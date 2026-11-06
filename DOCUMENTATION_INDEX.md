@@ -174,3 +174,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v1.0 closed triangular planar shell topology, exact validation invariants, mesh bridge and explicit limitations.
 - [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
+
+
+- [Axis-Aligned Faceted B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md) — bounded exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-rep inputs.
+- [B-rep Boolean Result Schema](schemas/geometry/brep-boolean-result.schema.json) — strict result envelope, source digests and component shells.

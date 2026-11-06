@@ -155,7 +155,7 @@ def test_mesh_schema_matches_serialized_shape():
     )
     assert schema["properties"]["schema_version"]["const"] == snapshot["schema_version"]
     assert set(snapshot) == set(schema["required"])
-    assert schema["properties"]["source_kind"]["enum"] == ["BOX", "CYLINDER", "EXTRUDED_PROFILE", "IMPORTED_3MF", "IMPORTED_STEP", "IMPORTED_BREP"]
+    assert schema["properties"]["source_kind"]["enum"] == ["BOX", "CYLINDER", "EXTRUDED_PROFILE", "IMPORTED_3MF", "IMPORTED_STEP", "IMPORTED_BREP", "BREP_BOOLEAN"]
 
 
 def test_mesh_rejects_non_length_units():
