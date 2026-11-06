@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 0379c8613c7668a56b681a91d01882c66f1c812c (PR #12)  
-**Latest feature:** Planar two-link inverse kinematics (PR #12), merged and verified on the exact PR head and merge commit.  
-**Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics and a narrow analytic planar 2R inverse-kinematics adapter.
+**Latest merged baseline:** c384492b058ec9dee3599feb60bb7475de298181 (PR #13)  
+**Current feature work:** feat/planar-four-bar-loop-closure — planar 4R loop closure and mobility estimate; pending exact-SHA CI.  
+**Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics and a narrow planar 4R loop-closure adapter.
 
 ## Implemented in the merged baseline
 
@@ -22,36 +22,38 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## Current feature slice — planar four-bar loop closure and mobility estimate
+
+The feature branch adds one planar four-link/four-revolute (4R) loop closure adapter. It solves the coupler endpoint as the intersection of two circles, returns left/right assembly branches and verifies the link-length closure residual. It also adds the planar Kutzbach/Gruebler mobility count, explicitly labeled as an estimate.
+
+This is not a general nonlinear constraint solver. It does not solve arbitrary topologies, multiple loops, 3D constraints, redundant systems or physical mechanisms. Its implementation status remains PENDING CI until the exact PR head SHA has passing workflow evidence.
+
 ## PR #12 — Planar two-link inverse kinematics
 
-- PR: https://github.com/phakphum12345/universal-platform/pull/12
-- Base: docs/phase-0-complete-requirements at 06334b68e7ce084e99df70a7651face34d3a3ec0.
-- Tested PR head: e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
-- Merge commit: 0379c8613c7668a56b681a91d01882c66f1c812c.
-- [PR Actions run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- [Push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- [Post-merge push run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390) on merge commit 0379c8613c7668a56b681a91d01882c66f1c812c: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
-- The initial PR head 95938cc6f86753d8c3ffc682aa0e45d435ffe86e had run #80 fail with 83 passed and 1 failed because a shoulder-limit test used a range that actually contained the computed angle. The test range was corrected in the next commit; the corrected head and merge commit passed. This historical failure remains recorded.
+- PR #12 merged at 0379c8613c7668a56b681a91d01882c66f1c812c; tested PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
+- [PR run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495) and [push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146): workflow-sanity and python-tests PASS.
+- [Post-merge run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390): workflow-sanity and python-tests PASS.
+- Documentation-only markers were SKIPPED, not PASS. Initial run #80 failure remains recorded in the PR #13 reconciliation.
 
-## PR #10 and #11 evidence baseline
+## PR #13 — Evidence reconciliation
 
-- PR #10 merged at 8db7010872d69635963a982f4f09ec3cda0913a8; tested PR head dae2db5d069ef72ce155d97b7531f7beb1b2ca7a.
-- [Actions run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218): workflow-sanity PASS; python-tests PASS; engineering core tests executed successfully. Documentation-only marker SKIPPED, not PASS.
-- PR #11 merged at 06334b68e7ce084e99df70a7651face34d3a3ec0; it reconciled this documentation baseline.
-- Post-merge push evidence for PR #8–#11 was not returned by the available status interface; those historical post-merge statuses remain UNKNOWN, not PASS.
+- PR #13 merged at c384492b058ec9dee3599feb60bb7475de298181.
+- Tested PR head 757d036e190a426cb3b9a6615b13d73dd0e6f31c.
+- [PR run #86](https://github.com/phakphum12345/universal-platform/actions/runs/42137072600) and [push run #85](https://github.com/phakphum12345/universal-platform/actions/runs/42137057985): workflow-sanity and python-tests PASS.
+- Post-merge [push run #87](https://github.com/phakphum12345/universal-platform/actions/runs/42137139200): workflow-sanity and python-tests PASS. Documentation-only marker SKIPPED, not PASS.
 
-## Earlier implementation evidence
+## Historical evidence
 
-- PR #1 pre-merge [run #18](https://github.com/phakphum12345/universal-platform/actions/runs/42086496425) passed on its exact tested head; post-merge [run #19](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425) passed on merge SHA 647956be574ffc0055d2613be5a7a4781d660542.
-- PR #4 rigid transforms [run #34](https://github.com/phakphum12345/universal-platform/actions/runs/42090211506) passed.
-- PR #6 assembly/joint validation [run #44](https://github.com/phakphum12345/universal-platform/actions/runs/42090605011) passed.
-- PR #8 frame graph [run #57](https://github.com/phakphum12345/universal-platform/actions/runs/42091837580) passed on its PR head.
-- PR #9 tree forward kinematics [run #68](https://github.com/phakphum12345/universal-platform/actions/runs/42092666100) passed on its PR head.
+- PR #10 merged at 8db7010872d69635963a982f4f09ec3cda0913a8; [run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218) passed workflow-sanity and python-tests.
+- PR #11 merged at 06334b68e7ce084e99df70a7651face34d3a3ec0.
+- Post-merge push evidence for PR #8–#11 was not returned by the earlier status interface; those historical post-merge statuses remain UNKNOWN, not PASS.
+- PR #1 post-merge [run #19](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425) passed on merge SHA 647956be574ffc0055d2613be5a7a4781d660542.
+- PR #4 [run #34](https://github.com/phakphum12345/universal-platform/actions/runs/42090211506), PR #6 [run #44](https://github.com/phakphum12345/universal-platform/actions/runs/42090605011), PR #8 [run #57](https://github.com/phakphum12345/universal-platform/actions/runs/42091837580), and PR #9 [run #68](https://github.com/phakphum12345/universal-platform/actions/runs/42092666100) passed on their exact PR heads.
 
 ## Explicitly not implemented or not verified
 
 - General inverse kinematics for arbitrary chains, 3D robots or redundant mechanisms.
-- Closed-loop constraint solving, mechanism mobility analysis, over-constraint resolution and general nonlinear constraint systems.
+- General closed-loop constraint solving, multi-loop coupling, arbitrary nonlinear constraints, full mechanism mobility/over-constraint analysis and singularity classification.
 - Dynamics, acceleration, torque, friction, backlash, compliance, collision, contact, tolerance stack-up and singularity conditioning analysis.
 - General symbolic mathematics, nonlinear/multiphysics solvers, FEA, CFD, FEM meshing or convergence studies.
 - B-rep/parametric CAD kernel, STEP/STL/3MF import/export, Boolean operations, sketch constraints or manufacturing drawings.
