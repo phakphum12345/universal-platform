@@ -141,6 +141,15 @@ def test_stl_manifest_is_strict_and_round_trips():
     with pytest.raises(InvalidModelError):
         STLInterchangeManifest.from_dict(malformed)
 
+    malformed = deepcopy(snapshot)
+    malformed["source_kind"] = ["BOX"]
+    with pytest.raises(InvalidModelError):
+        STLInterchangeManifest.from_dict(malformed)
+    malformed = deepcopy(snapshot)
+    malformed["max_coordinate_rounding_error"] = -1.0
+    with pytest.raises(InvalidModelError):
+        STLInterchangeManifest.from_dict(malformed)
+
 
 def test_stl_manifest_schema_matches_exported_shape():
     artifact = export_binary_stl(tessellate_box(BoxSolid("box.schema.stl", "world", Vec3(1, 1, 1))))
