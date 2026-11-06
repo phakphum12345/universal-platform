@@ -275,8 +275,12 @@ def analyze_mechanism_mobility(
             singularity = SingularityStatus.UNKNOWN
         elif rank.estimated_rank < reference_constraint_rank:
             singularity = SingularityStatus.POSSIBLE_SINGULARITY
-        else:
+        elif rank.estimated_rank == reference_constraint_rank:
             singularity = SingularityStatus.NOT_DETECTED
+        else:
+            # A local rank above the supplied regular reference makes that
+            # reference inconsistent; do not silently report regularity.
+            singularity = SingularityStatus.UNKNOWN
 
     return MobilityAnalysisResult(
         schema_version=SCHEMA_VERSION,

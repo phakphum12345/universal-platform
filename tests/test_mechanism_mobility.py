@@ -209,3 +209,12 @@ def test_analysis_requires_explicit_ground_and_full_free_body_coordinate_set():
         analyze_mechanism_mobility(
             model, MobilityFormulation.PLANAR, jac, ground_link_id="ground"
         )
+
+
+def test_reference_rank_below_observed_rank_keeps_singularity_unknown():
+    result = analyze_mechanism_mobility(
+        four_bar(), MobilityFormulation.PLANAR, planar_four_bar_jacobian(),
+        ground_link_id="ground", reference_constraint_rank=7,
+    )
+    assert result.jacobian_rank.estimated_rank == 8
+    assert result.singularity_status is SingularityStatus.UNKNOWN
