@@ -311,7 +311,6 @@ def _near_coincident_groups(
 
     buckets: dict[tuple[int, int, int], list[int]] = {}
     comparisons = 0
-    tolerance_squared = tolerance * tolerance
     for index, vertex in enumerate(mesh.vertices):
         try:
             cell = (
@@ -402,7 +401,15 @@ def analyze_mesh_topology(
     for index in unused:
         issues.append(f"UNUSED_VERTEX:{index}")
     normalized_issues = tuple(sorted(issues))
+    mesh_snapshot = dumps(mesh.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False)
     return MeshTopologyAnalysis(
+        solid_id=mesh.solid_id,
+        frame_id=mesh.frame_id,
+        length_unit=mesh.length_unit,
+        source_geometry_sha256=mesh.source_geometry_sha256,
+        mesh_snapshot_sha256=sha256(mesh_snapshot.encode("utf-8")).hexdigest(),
+        vertex_count=len(mesh.vertices),
+        triangle_count=len(mesh.triangles),
         face_components=components,
         exact_duplicate_vertex_groups=exact_duplicates,
         near_coincident_vertex_groups=near_groups,
