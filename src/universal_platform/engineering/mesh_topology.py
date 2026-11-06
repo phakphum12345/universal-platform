@@ -7,15 +7,18 @@ vertices, welding, snapping, or claiming geometric self-intersection freedom.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
+from json import dumps
 from math import dist, floor, isfinite
 from typing import Any, ClassVar, Mapping
 
 from .errors import InvalidModelError
 from .mesh import TriangleMesh
+from .quantity import LENGTH, Quantity
 
 MAX_COINCIDENT_NEIGHBOR_COMPARISONS = 5_000_000
 _ANALYSIS_FIELDS = {
-    "schema_version", "face_component_count", "face_components",
+    "schema_version", "solid_id", "frame_id", "length_unit", "source_geometry_sha256", "mesh_snapshot_sha256", "vertex_count", "triangle_count", "face_component_count", "face_components",
     "exact_duplicate_vertex_groups", "near_coincident_vertex_groups",
     "nonmanifold_vertex_indices", "unused_vertex_indices",
     "coincident_tolerance", "diagnostic_status", "self_intersection_status", "issues",
