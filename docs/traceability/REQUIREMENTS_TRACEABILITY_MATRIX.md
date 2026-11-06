@@ -17,11 +17,11 @@
 | R-011 | Review requirements before implementation | ROADMAP; UNIVERSAL_REQUIREMENTS | Documented; ongoing gates apply |
 | R-012 | No automatic integration of existing projects | PROJECT_INTEGRATION | Explicit boundary |
 | R-013 | Shared multidisciplinary engineering core | UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE | Initial foundation implemented; full UEIC orchestration proposed |
-| R-014 | 3D design, tools, machines, mechanisms, structures and products | 3D_DESIGN_INTELLIGENCE; 3D_TOOL_GENERATION_ENGINE | Specification; only analytic primitives and nominal joint contracts implemented |
+| R-014 | 3D design, tools, machines, mechanisms, structures and products | 3D_DESIGN_INTELLIGENCE; 3D_TOOL_GENERATION_ENGINE | Specification; only analytic primitives, nominal joint contracts and narrow tree/planar kinematics slices implemented |
 | R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | EFI/OpenCore candidate partially inspected; generic source UNKNOWN |
 
 ## Engineering and 3D sub-requirements
-See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with proposed acceptance evidence.
+See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with proposed acceptance evidence. CAD-003A tracks the initial planar 2R inverse-kinematics slice separately; it does not close general CAD-003.
 
 ## Audit and planning artifacts
 - [x] Repository capability inventory created.

@@ -9,11 +9,16 @@ from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
 from .frame_graph import FrameGraph
 from .kinematics import JointPlacement, solve_tree_forward_kinematics
+from .inverse_kinematics import (
+    PlanarIKResult,
+    solve_planar_two_link_inverse_kinematics,
+)
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "JointPlacement",
-    "solve_tree_forward_kinematics",
+    "solve_tree_forward_kinematics", "PlanarIKResult",
+    "solve_planar_two_link_inverse_kinematics",
 ]

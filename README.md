@@ -4,7 +4,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Phase 0 requirements baseline with active, incremental engineering-core implementation
-- Implementation: Initial Python engineering core, rigid transforms, coordinate-frame forest and limited rooted-tree forward-kinematics adapter; broader UEIC/CAD/CAE capabilities remain incomplete
+- Implementation: Initial Python engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics and an analytic planar two-link inverse-kinematics adapter; broader UEIC/CAD/CAE capabilities remain incomplete
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure
 - Hardware boundary: Analysis and simulation only; no physical control
 - Integration: Existing projects remain independent until assessed and explicitly approved
@@ -13,11 +13,11 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Initial implementation (active development)
 
-The merged requirements baseline contains the first executable Python engineering-core slice under `src/universal_platform/engineering`; work is delivered incrementally through reviewed pull requests.
+The merged requirements baseline contains the first executable Python engineering-core slice under src/universal_platform/engineering; work is delivered incrementally through reviewed pull requests.
 
 Current modules include:
 - SI-backed quantities with dimensional checks (limited initial unit registry).
-- Evidence and provenance records with explicit evidence kinds and statuses.
+- Evidence and provenance contracts with explicit evidence kinds and statuses.
 - A fail-closed safety gate for offline engineering workflows.
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
@@ -25,18 +25,17 @@ Current modules include:
 - Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
+- An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D or closed-loop IK).
 - A transparent linear-system simulation example with limitations and evidence.
 - Starter mechanics (axial stress/strain and factor of safety), DC electrical calculations, linear thermal expansion and validated material-property records.
 - Versioned module request/response envelopes.
 
 Install and run the initial tests:
 
-```bash
-python -m pip install -e ".[dev]"
-python -m pytest -q
-```
+    python -m pip install -e ".[dev]"
+    python -m pytest -q
 
-This is an initial foundation, not a completed universal engineering system. General CAD/B-rep, mesh/STEP/STL export, FEA/CFD, nonlinear and multiphysics solving, inverse/closed-loop kinematics, collision/dynamics analysis, hardware schematic intelligence and generic driver generation remain unimplemented or require separate audited adapters. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md).
+This is an initial foundation, not a completed universal engineering system. General CAD/B-rep, mesh/STEP/STL export, FEA/CFD, nonlinear and multiphysics solving, general inverse/closed-loop kinematics, collision/dynamics analysis, hardware schematic intelligence and generic driver generation remain unimplemented or require separate audited adapters. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md).
 
 ## Core goals
 - Learn from authorized documentation, source code, APIs, datasheets, and datasets.
@@ -90,6 +89,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [3D Tool Generation](docs/design-3d/3D_TOOL_GENERATION_ENGINE.md)
 - [3D Assembly and Kinematics](docs/design-3d/3D_ASSEMBLY_AND_KINEMATICS.md)
 - [Assembly Tree Forward-Kinematics Contract](docs/design-3d/ASSEMBLY_TREE_FORWARD_KINEMATICS_CONTRACT.md)
+- [Planar Two-Link Inverse-Kinematics Contract](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md)
 - [3D Engineering Simulation](docs/design-3d/3D_ENGINEERING_SIMULATION.md)
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md)
 - [CAD to Manufacturing](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md)
