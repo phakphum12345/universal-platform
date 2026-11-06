@@ -72,7 +72,7 @@ PRs #32–#38 are complete and merged on `docs/phase-0-complete-requirements`: g
 
 PR #49 (profile extrusion) is integrated at `bfc3e6585106c73b29297cbda2ab9ec9d50340db`. PR #52 integrated the through-hole extension and public exports at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`. Exact PR-head run #384 (`42191597715`) passed both jobs with 425 tests; post-merge run #385 (`42191666816`) on the exact merge SHA passed both jobs with 425 tests. The PR #50 implementation was ported because its original stacked feature branch was not an ancestor of the integration branch. PR #51's documentation index was restored to the integration line by PR #53 at `1db066915c4993e544b386c0311e332874ef4aed`; PR #53 exact head run #401 (`42192288446`) and post-merge run #402 (`42192465566`) both passed 425 tests.
 
-Next repository-wide work is driven by the capability audit: curved CAD profiles and Boolean topology; mesh generation and independent STL/STEP interchange; sketch constraints/feature history; schematic rendering/ERC/circuit simulation; validated solver adapters for additional physics domains; and module runtime/isolation only after separate security and permission contracts. Each item remains PLANNED/PARTIAL until implemented and reference-tested. PR #56 closes the explicit planar plane-frame mobility gap but not general multibody dynamics or global configuration solving.
+Next repository-wide work is driven by the capability audit: general CAD Boolean topology beyond convex 2D cells; mesh generation and independent STL/STEP interchange; sketch constraints/feature history; schematic EDA exchange and circuit simulation; datasheet-backed electrical constraints; validated solver adapters for additional physics domains; and module runtime/isolation only after separate security and permission contracts. Each item remains PLANNED/PARTIAL until implemented and reference-tested. PR #56 closes the explicit planar plane-frame mobility gap but not general multibody dynamics or global configuration solving.
 
 
 PR #35 — Geometry-aware loop-closure evaluation — merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`; exact PR-head run #283 and post-merge run #284 passed 253 tests each. This validates supplied configurations only and does not imply nonlinear configuration search or physical feasibility.
@@ -105,11 +105,21 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Remaining hardware roadmap: symbol/library import and EDA exchange; electrical rule checking; power-domain and component-rating validation; circuit simulation; BOM/footprint reconciliation. These remain separate requirements and are not implied by SVG rendering.
 
 
-## Next hardware verification increment — PR #60 candidate
+## Hardware verification increment — PR #60 merged
 
-- Add versioned static ERC result schema and deterministic offline rules over normalized SchematicModel v1.0.
+- PR #60 merged at `e641ca19b4f28bb2e2077cf475b371125ebf237a`; exact PR head `052b48be982c09cc10deeba0f173aa493432681d`; PR and push runs `42206594529` / `42206646922` passed; post-merge run `42206719188` passed both jobs with 485 tests. Adds versioned static ERC result schema and deterministic offline rules over normalized SchematicModel v1.0.
 - Rules: unconnected non-NO_CONNECT pins; multiple push-pull outputs; multiple declared power sources; power inputs without a declared POWER_OUT; power inputs mixed with signal drivers; open-drain/open-collector nets without a declared POWER_OUT.
 - Record canonical input SHA-256, stable finding IDs, rule versions, severity, affected objects, evidence, recommendations and explicit limitations.
 - No voltage/current/thermal/timing analysis, external standards, passive pull-up inference, waiver ledger, circuit simulation, physical verification or hardware operation.
 - Follow-up roadmap remains: datasheet-backed power-domain/rating checks; EDA symbol/library import and exchange; circuit simulation; BOM/footprint reconciliation.
+
+
+
+## CAD topology increment — PR #61 candidate
+
+- Add dependency-free 2D UNION, INTERSECTION and DIFFERENCE for convex simple polygon profiles.
+- Return deterministic convex-cell decompositions with stable region ordering and computed total area; adjacent cells are intentionally not dissolved.
+- Add strict result schema v1.0, canonical public exports, result round-trip validation and reference tests for overlap, disjointness, touching and containment.
+- Concave profiles, holes, arcs, exact arithmetic, general planar arrangements and 3D B-rep Boolean operations remain unsupported.
+- Next gates: general polygon topology/holes and adversarial numeric tests; CAD-kernel technology decision; mesh generation/validation; independent STEP/STL exchange validation.
 
