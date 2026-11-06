@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `8aba562a1df6c0691c855f95ef16a9ba94089556` (PR #71 circular-arc through-hole mesh reference squash merge).  
-**Exact post-merge CI:** PR #71 post-merge run #42225830931 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **516 passed in 1.45s**. Exact PR-head run #42225768304 passed both required jobs with 516 tests in 1.74s.  
+**Integration HEAD:** `6cdfffc8d9fffadb7162977c77efd54445bb9471` (PR #72 implementation-evidence reconciliation squash merge).  
+**Exact post-merge CI:** PR #72 post-merge run #42226282668 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **516 passed in 2.03s**. Exact PR-head run #42226211860 passed both required jobs with 516 tests in 2.07s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -641,3 +641,11 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds a curved polygonal-hole reference validating watertightness, manifold edge incidence, winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict snapshot round trip.
 - Test-only change; production API/schema unchanged. This closes the reference-coverage gap for the hole-arc path.
 
+
+
+## PR #73 — Binary STL interchange contract (DESIGN ONLY)
+
+- Branch: `docs/stl-interchange-contract`; base integration SHA: `6cdfffc8d9fffadb7162977c77efd54445bb9471`.
+- Adds `docs/design-3d/STL_INTERCHANGE_CONTRACT.md` defining deterministic binary STL export and a mandatory sidecar manifest with frame, unit, source provenance, chordal tolerance, payload digest, counts and float32 quantization error.
+- First implementation slice is export-only with an independent test-only reader; arbitrary external STL import and external CAD application reopen are not implemented.
+- No STL exporter, manifest schema, STEP/3MF support, external toolchain selection or third-party dependency is claimed.
