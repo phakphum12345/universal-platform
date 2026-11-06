@@ -7,13 +7,14 @@ import json
 
 import pytest
 
-from universal_platform.engineering import BoxSolid, CylinderSolid
+from universal_platform.engineering import BoxSolid, CylinderSolid, ExtrudedProfileSolid, Vec2
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.mesh import (
     TriangleMesh,
     tessellate_box,
     tessellate_cylinder,
+    tessellate_extruded_profile,
     validate_triangle_mesh,
 )
 
@@ -154,7 +155,7 @@ def test_mesh_schema_matches_serialized_shape():
     )
     assert schema["properties"]["schema_version"]["const"] == snapshot["schema_version"]
     assert set(snapshot) == set(schema["required"])
-    assert schema["properties"]["source_kind"]["enum"] == ["BOX", "CYLINDER"]
+    assert schema["properties"]["source_kind"]["enum"] == ["BOX", "CYLINDER", "EXTRUDED_PROFILE"]
 
 
 def test_mesh_rejects_non_length_units():
@@ -163,3 +164,81 @@ def test_mesh_rejects_non_length_units():
     mesh["length_unit"] = "kg"
     with pytest.raises(InvalidModelError):
         TriangleMesh.from_dict(mesh)
+
+def _l_profile(solid_id: str, points=None) -> ExtrudedProfileSolid:
+    profile = points or (
+        Vec2(0, 0), Vec2(2, 0), Vec2(2, 1),
+        Vec2(1, 1), Vec2(1, 2), Vec2(0, 2),
+    )
+    return ExtrudedProfileSolid(solid_id, "profile.frame", profile, 4.0, "m")
+
+
+def test_concave_straight_profile_tessellation_matches_analytic_metrics():
+    solid = _l_profile("profile.concave")
+    mesh = tessellate_extruded_profile(solid)
+    result = validate_triangle_mesh(mesh)
+
+    assert result.valid
+    assert result.watertight
+    assert result.consistently_oriented
+    assert result.vertex_count == 12
+    assert result.triangle_count == 20
+    assert result.boundary_edge_count == 0
+    assert result.nonmanifold_edge_count == 0
+    assert result.winding_conflict_count == 0
+    assert result.signed_volume == pytest.approx(12.0)
+    assert result.surface_area == pytest.approx(38.0)
+    assert mesh.source_kind == "EXTRUDED_PROFILE"
+    assert mesh.frame_id == "profile.frame"
+    assert mesh.length_unit == "m"
+
+
+def test_profile_tessellation_is_consistent_for_clockwise_and_counterclockwise_loops():
+    ccw = _l_profile("profile.ccw")
+    cw = _l_profile("profile.cw", tuple(reversed(ccw.profile)))
+    ccw_mesh = tessellate_extruded_profile(ccw)
+    cw_mesh = tessellate_extruded_profile(cw)
+
+    assert validate_triangle_mesh(ccw_mesh).valid
+    assert validate_triangle_mesh(cw_mesh).valid
+    assert validate_triangle_mesh(ccw_mesh).signed_volume == pytest.approx(12.0)
+    assert validate_triangle_mesh(cw_mesh).signed_volume == pytest.approx(12.0)
+    assert validate_triangle_mesh(cw_mesh).surface_area == pytest.approx(38.0)
+
+
+def test_profile_tessellation_handles_collinear_boundary_vertices():
+    points = (
+        Vec2(0, 0), Vec2(1, 0), Vec2(2, 0),
+        Vec2(2, 1), Vec2(0, 1),
+    )
+    solid = ExtrudedProfileSolid("profile.collinear", "world", points, 3.0, "cm")
+    mesh = tessellate_extruded_profile(solid)
+    result = validate_triangle_mesh(mesh)
+
+    assert result.valid
+    assert result.signed_volume == pytest.approx(6.0)
+    assert result.surface_area == pytest.approx(22.0)
+
+
+def test_profile_tessellation_rejects_holes_and_curved_edges():
+    outer = (Vec2(0, 0), Vec2(4, 0), Vec2(4, 4), Vec2(0, 4))
+    hole = (Vec2(1, 1), Vec2(1, 2), Vec2(2, 2), Vec2(2, 1))
+    with_hole = ExtrudedProfileSolid("profile.hole", "world", outer, 1.0, "m", (hole,))
+    with pytest.raises(InvalidModelError):
+        tessellate_extruded_profile(with_hole)
+
+    curved = ExtrudedProfileSolid(
+        "profile.curved", "world",
+        (Vec2(0, 0), Vec2(2, 0), Vec2(0, 2)), 1.0, "m",
+        arc_sweeps_rad=(0.5, 0.0, 0.0),
+        segment_ids=("edge.arc", "edge.line1", "edge.line2"),
+    )
+    with pytest.raises(InvalidModelError):
+        tessellate_extruded_profile(curved)
+
+
+def test_profile_mesh_snapshot_round_trip_preserves_provenance():
+    mesh = tessellate_extruded_profile(_l_profile("profile.roundtrip"))
+    restored = TriangleMesh.from_dict(mesh.to_dict())
+    assert restored == mesh
+    assert validate_triangle_mesh(restored).valid
