@@ -220,3 +220,85 @@ def test_profile_extrusion_types_are_exported_from_engineering_package():
 
     assert PublicExtrudedProfileSolid is ExtrudedProfileSolid
     assert PublicVec2 is Vec2
+
+def test_curved_profile_quarter_circle_has_exact_analytic_properties_and_v11_snapshot():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    profile = (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1))
+    solid = ExtrudedProfileSolid(
+        "solid.quarter-disk", "part", profile, 2, "m",
+        arc_sweeps_rad=(0.0, pi / 2.0, 0.0),
+        segment_ids=("edge.base", "edge.arc", "edge.radius"),
+    )
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    assert model.to_dict()["schema_version"] == "1.1"
+    assert solid.area == pytest.approx(pi / 4.0)
+    assert solid.perimeter == pytest.approx(2.0 + pi / 2.0)
+    assert model.volume("solid.quarter-disk").si_value == pytest.approx(pi / 2.0)
+    assert model.surface_area("solid.quarter-disk").si_value == pytest.approx(4.0 + 1.5 * pi)
+    snapshot = model.to_dict()
+    restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(snapshot)))
+    assert restored.to_dict() == snapshot
+
+
+def test_curved_profile_supports_circular_through_hole_and_inner_wall_area():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    outer = (Vec2(0, 0), Vec2(4, 0), Vec2(4, 4), Vec2(0, 4))
+    hole = (Vec2(2.5, 2), Vec2(2, 2.5), Vec2(1.5, 2), Vec2(2, 1.5))
+    solid = ExtrudedProfileSolid(
+        "solid.circular-hole", "part", outer, 1, "mm", (hole,),
+        hole_arc_sweeps_rad=((pi / 2.0,) * 4,),
+        hole_segment_ids=(("hole.arc.1", "hole.arc.2", "hole.arc.3", "hole.arc.4"),),
+    )
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    assert solid.area == pytest.approx(16.0 - pi / 4.0)
+    assert solid.perimeter == pytest.approx(16.0 + pi)
+    assert model.volume("solid.circular-hole").si_value == pytest.approx((16.0 - pi / 4.0) * 1e-9)
+    assert model.surface_area("solid.circular-hole").si_value == pytest.approx((2.0 * (16.0 - pi / 4.0) + 16.0 + pi) * 1e-6)
+    restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(model.to_dict())))
+    assert restored.to_dict() == model.to_dict()
+
+
+def test_curved_profile_bounds_include_arc_extrema_and_transformed_enclosure():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    graph = FrameGraph()
+    graph.add_transform(RigidTransform("part", "world", RZ90, Vec3(10, 20, 0), "m"))
+    solid = ExtrudedProfileSolid(
+        "solid.quarter-disk", "part",
+        (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1)), 2, "m",
+        arc_sweeps_rad=(0.0, pi / 2.0, 0.0),
+        segment_ids=("edge.base", "edge.arc", "edge.radius"),
+    )
+    model = PrimitiveGeometryModel(graph, (solid,))
+    local = model.bounding_box("solid.quarter-disk", "part").bounds
+    assert local.minimum == Vec3(0, 0, 0)
+    assert local.maximum == Vec3(1, 1, 2)
+    world = model.bounding_box("solid.quarter-disk", "world").bounds
+    assert world.minimum == Vec3(9, 20, 0)
+    assert world.maximum == Vec3(10, 21, 2)
+
+
+def test_curved_profile_requires_stable_segment_ids_and_valid_sweeps():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    profile = (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1))
+    with pytest.raises(InvalidModelError, match="segment IDs"):
+        ExtrudedProfileSolid("solid.no-ids", "part", profile, 1, arc_sweeps_rad=(0, pi / 2, 0))
+    with pytest.raises(InvalidModelError, match=r"2\\*pi"):
+        ExtrudedProfileSolid("solid.full-turn", "part", profile, 1,
+                             arc_sweeps_rad=(0, 2 * pi, 0),
+                             segment_ids=("edge.a", "edge.b", "edge.c"))
+    with pytest.raises(InvalidModelError, match="one signed sweep"):
+        ExtrudedProfileSolid("solid.bad-count", "part", profile, 1,
+                             arc_sweeps_rad=(0, pi / 2),
+                             segment_ids=("edge.a", "edge.b", "edge.c"))
+
+
+def test_schema_v1_0_rejects_curved_profile_extension():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    solid = ExtrudedProfileSolid(
+        "solid.quarter-disk", "part",
+        (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1)), 1,
+        arc_sweeps_rad=(0, pi / 2, 0),
+        segment_ids=("edge.base", "edge.arc", "edge.radius"),
+    )
+    with pytest.raises(InvalidModelError, match="schema version"):
+        PrimitiveGeometryModel(graph_with_frame("part"), (solid,), "1.0")

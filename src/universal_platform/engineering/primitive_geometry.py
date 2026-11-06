@@ -181,9 +181,11 @@ def _profile_loop_samples(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -
 
 
 def _profile_loop_area(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -> float:
+    origin = points[0]
+    shifted = tuple(Vec2(point.x - origin.x, point.y - origin.y) for point in points)
     total = 0.0
     for index, sweep in enumerate(sweeps):
-        start, end = points[index], points[(index + 1) % len(points)]
+        start, end = shifted[index], shifted[(index + 1) % len(shifted)]
         if sweep == 0.0:
             total += (start.x * end.y - end.x * start.y) / 2.0
             continue
