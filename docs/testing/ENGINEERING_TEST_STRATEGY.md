@@ -139,10 +139,15 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Curved outer/hole boundaries remain rejected; touching, crossing and nested invalid holes remain rejected by source profile validation.
 
 
-## Circular-arc profile mesh references (PR #70 candidate)
+## Circular-arc profile mesh references (PR #70 merged; PR #71 reference coverage)
 
 - Require an explicit positive chordal tolerance for every profile with circular arcs; reject missing, zero, negative, under-resolution and resource-excessive tolerances.
 - Verify the maximum radial chord deviation formula for each subdivided arc and preserve exact source endpoints.
 - Verify closed two-manifold edge incidence, consistent winding, positive signed volume, deterministic snapshots and source provenance.
 - Exercise both outer-boundary arcs and hole-boundary arcs; retain straight-only, single-hole and multiple-hole references.
 - This remains a tessellated approximation; it does not establish exact curved B-rep geometry or manufacturing tolerance.
+
+
+- PR #70 exact PR-head runs #42223197118/#42223188816 passed both jobs with 515 tests; post-merge run #42223460020 passed with 515 tests in 2.01s.
+- PR #71 adds a curved polygonal-hole fixture. Exact PR-head run #42225768304 passed with 516 tests in 1.74s; post-merge run #42225830931 passed with 516 tests in 1.45s.
+- The curved-hole reference checks closed/manifold topology, consistent winding, positive volume, a conservative chordal-area error bound, exact source endpoint retention, deterministic output and strict snapshot round trip.
