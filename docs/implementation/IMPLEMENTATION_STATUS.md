@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** c384492b058ec9dee3599feb60bb7475de298181 (PR #13)  
-**Current feature work:** feat/planar-four-bar-loop-closure — planar 4R loop closure and mobility estimate; pending exact-SHA CI.  
+**Latest merged baseline:** c33ef005896b71aa2ff0721efb87245781526ca7 (PR #14)  
+**Latest feature:** Planar four-bar loop closure and planar mobility estimate (PR #14), merged and verified on the exact PR head and merge commit.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics and a narrow planar 4R loop-closure adapter.
 
 ## Implemented in the merged baseline
@@ -18,22 +18,28 @@
 - Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
 - Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
 - Narrow analytic planar two-link (2R) inverse kinematics for elbow-up and elbow-down branches, with workspace, joint-limit, finite-input and forward-reconstruction residual checks.
+- Narrow planar four-link/four-revolute (4R) loop closure by circle intersection, left/right branches, reachability checks and closure residual validation.
+- Planar Kutzbach/Gruebler mobility estimate; a nominal count, not a proof of actual mobility.
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## Current feature slice — planar four-bar loop closure and mobility estimate
+## PR #14 — Planar four-bar loop closure
 
-The feature branch adds one planar four-link/four-revolute (4R) loop closure adapter. It solves the coupler endpoint as the intersection of two circles, returns left/right assembly branches and verifies the link-length closure residual. It also adds the planar Kutzbach/Gruebler mobility count, explicitly labeled as an estimate.
-
-This is not a general nonlinear constraint solver. It does not solve arbitrary topologies, multiple loops, 3D constraints, redundant systems or physical mechanisms. Its implementation status remains PENDING CI until the exact PR head SHA has passing workflow evidence.
+- PR: https://github.com/phakphum12345/universal-platform/pull/14
+- Base: docs/phase-0-complete-requirements at c384492b058ec9dee3599feb60bb7475de298181.
+- Tested PR head: 31e104bf476aaccb751dac2329ab6d16455650b0.
+- Merge commit: c33ef005896b71aa2ff0721efb87245781526ca7.
+- [PR Actions run #90](https://github.com/phakphum12345/universal-platform/actions/runs/42137524286): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Push run #89](https://github.com/phakphum12345/universal-platform/actions/runs/42137510261) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Post-merge [push run #91](https://github.com/phakphum12345/universal-platform/actions/runs/42137584363) on merge SHA c33ef005896b71aa2ff0721efb87245781526ca7: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
 
 ## PR #12 — Planar two-link inverse kinematics
 
 - PR #12 merged at 0379c8613c7668a56b681a91d01882c66f1c812c; tested PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
 - [PR run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495) and [push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146): workflow-sanity and python-tests PASS.
 - [Post-merge run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390): workflow-sanity and python-tests PASS.
-- Documentation-only markers were SKIPPED, not PASS. Initial run #80 failure remains recorded in the PR #13 reconciliation.
+- Documentation-only markers were SKIPPED, not PASS. Initial run #80 failure (83 passed, 1 faulty limit-test expectation) is retained in PR #13 evidence reconciliation.
 
 ## PR #13 — Evidence reconciliation
 
