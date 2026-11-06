@@ -160,3 +160,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md) — exact-rational boundary pairing, point-contact component semantics, failure modes and PR #95 evidence.
+
+
+- [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md) — supported 3MF profile, provenance, deterministic package output, parser safety and explicit interoperability limits.
