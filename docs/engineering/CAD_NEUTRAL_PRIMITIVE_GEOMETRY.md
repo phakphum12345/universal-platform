@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** PR #61 implements dependency-free convex 2D profile Boolean operations v1.0; PR #62 adds a general planar topology design contract only; PR #64 implements deterministic Box/Cylinder triangle tessellation and structural validation. This remains an analytic primitive layer plus a narrow mesh adapter, not a B-rep CAD kernel.
+**Status:** PR #61 implements dependency-free convex 2D profile Boolean operations v1.0; PR #62 adds a general planar topology design contract only; PR #64 implements deterministic Box/Cylinder triangle tessellation and structural validation; PR #66 adds straight-edged, hole-free extruded-profile meshing. This remains an analytic primitive layer plus a narrow mesh adapter, not a B-rep CAD kernel.
 
 ## 1. Model
 
