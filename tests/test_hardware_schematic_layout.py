@@ -100,7 +100,7 @@ def test_missing_component_placement_symbol_or_pin_fails_closed():
         render_schematic_svg(schematic, missing_symbol)
     wrong_pins = SymbolDefinition("symbol.resistor.2", 20, 8, (SymbolPin("1", SchematicPoint(-15, 0)),),
                                   layout.symbols[1].graphics)
-    wrong_symbols = (wrong_pins, layout.symbols[1])
+    wrong_symbols = (wrong_pins, layout.symbols[0])
     wrong_layout = SchematicLayout(layout.layout_id, 200, 100, wrong_symbols, layout.component_placements, layout.net_routes)
     with pytest.raises(InvalidModelError, match="pin numbers do not match"):
         render_schematic_svg(schematic, wrong_layout)
@@ -122,3 +122,24 @@ def test_page_bounds_and_layout_snapshot_are_strict():
     data = layout.to_dict()
     with pytest.raises(InvalidModelError, match="missing or unknown"):
         SchematicLayout.from_dict(dict(data, unexpected=True))
+
+def test_component_rotation_transforms_symbol_and_pin_coordinates():
+    from math import pi
+    schematic, layout = sample_schematic(), sample_layout()
+    placements = (
+        ComponentPlacement("component.r1", 40, 40, pi / 2.0),
+        ComponentPlacement("component.j1", 160, 40),
+    )
+    rotated = SchematicLayout(layout.layout_id, 200, 100, layout.symbols, placements, layout.net_routes)
+    result = render_schematic_svg(schematic, rotated)
+    assert 'data-pin-id="r1.pin.1" data-component-id="component.r1" cx="40" cy="25"' in result.svg
+
+
+def test_layout_schema_declares_strict_v1_0_symbol_and_route_contracts():
+    from pathlib import Path
+    schema_path = Path(__file__).parents[1] / "schemas" / "hardware" / "schematic-layout.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    assert schema["properties"]["schema_version"]["const"] == "1.0"
+    assert schema["properties"]["symbols"]["items"]["$ref"] == "#/$defs/symbolDefinition"
+    assert schema["$defs"]["symbolGraphic"]["oneOf"][0]["properties"]["kind"]["const"] == "LINE"
+    assert schema["$defs"]["netRoute"]["properties"]["start_pin"]["$ref"] == "#/$defs/pinRef"
