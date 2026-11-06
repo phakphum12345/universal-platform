@@ -184,3 +184,8 @@ Integration HEAD `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; `main` remains `96e
 ## Parametric sketch foundation (PR #90)
 
 The integration branch now includes versioned 2D `ParametricSketch` records, straight segments and eight initial constraints (horizontal, vertical, coincident, distance, horizontal/vertical distance, fixed X/Y). The adapter reuses the bounded nonlinear solver and reports its convergence and rank diagnostics. PR #90 merge SHA `e2d631b49910e3d7f05fea6337742fd87385fb81`; exact-head run #42260796531 and post-merge run #42260977543 both passed 618 tests. This is a bounded point/line sketch foundation, not a complete interactive CAD sketcher. See [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## Parametric CAD pipeline: sketch → region → feature history → mesh
+
+The integration branch now supports a bounded end-to-end parametric pipeline: 2D point/line sketches with eight geometric/dimensional constraints; conversion of converged closed loops into canonical planar regions with holes and nested islands; a deterministic feature DAG with allow-listed regeneration for sketch profiles, planar Boolean, extrusion and watertight mesh validation. PR #90 (618 tests), #91 docs (620), #92 (627) and #93 (636) passed their recorded CI gates; PR #93 post-merge run #42263296016 passed both jobs with 636 tests. See [Feature History and Regeneration Contract](docs/design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md) and [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
