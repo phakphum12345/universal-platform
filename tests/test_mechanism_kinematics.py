@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -155,12 +156,7 @@ def test_versioned_result_preserves_configuration_and_provenance():
 
 def test_input_contract_rejects_mismatched_jacobian_order_and_bias_shapes():
     problem = make_problem(four_bar())
-    bad = MechanismKinematicsInput(
-        **{
-            **problem.__dict__,
-            "velocity_bias": (0.0,),
-        }
-    )
+    bad = replace(problem, velocity_bias=(0.0,))
     with pytest.raises(InvalidModelError, match="velocity_bias length"):
         solve_mechanism_kinematics(bad)
 
