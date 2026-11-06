@@ -1,42 +1,56 @@
 # Runtime Resource Adapter and Log-Driven Recovery
 
-**Status:** Initial bounded implementation; not a production process supervisor.
-
-## Purpose
-
-Provide a central typed registry for runtime components and a fail-closed recovery coordinator. The first vertical slice targets Python worker-like components through a replaceable adapter contract. It does not manage physical devices, host operating-system resources, or arbitrary Python processes.
+**Status:** Incremental implementation; process supervision is available for explicitly trusted, allow-listed workers. This is not a production security sandbox or a complete self-healing platform.
 
 ## Resource model
 
-Each registered resource has a stable resource ID, resource kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing ResourceMetric values are grouped into timestamped, sequenced ResourceSnapshot records. The registry serializes updates under a lock, rejects stale lifecycle transitions and non-monotonic measurement snapshots, and exposes the latest snapshot per resource. Metrics can represent CPU utilization, memory/GPU/disk bytes, network byte counters, worker counts and other adapter-defined measurements. It is process-local; durable persistence and distributed leases are future work.
+Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed leases are not implemented.
 
-## Log-driven detection
+## Log-driven diagnosis
 
-The analyze_logs function accepts caller-supplied text or structured JSON lines. It extracts error/critical/fatal/exception evidence, associates explicit component/resource IDs, caps lines and message length, and redacts common credential patterns. It does not execute commands, interpret log content as instructions, or autonomously decide that a source-code patch is correct. FileLogSource reads UTF-8 files only beneath a configured root, rejects traversal/out-of-root paths, and enforces a byte ceiling. The configured root must not be writable by untrusted actors. Stream ingestion, rotation/cursors and retention policy remain future work.
+The log analyzer accepts bounded caller-supplied text or structured JSON lines, extracts error/critical/fatal/exception evidence, correlates explicit component/resource IDs, and redacts common credential patterns. FileLogSource reads UTF-8 files only beneath an operator-configured root, rejects traversal/out-of-root paths and enforces a byte ceiling. Log content is evidence only; it is never executed or interpreted as instructions.
+
+Stream ingestion, rotation/cursors, retention policy and multi-source correlation remain future work.
 
 ## Recovery lifecycle
 
 ACTIVE or SUSPECT -> QUIESCING -> SLEEP -> DIAGNOSING -> REPAIRING -> VALIDATING -> CANARY -> ACTIVE
 
-Any repair, health, canary or adapter exception fails closed to QUARANTINED. Quiescing stops new scheduling and drains/cancels work via the adapter. The component is resumed only after the repair executor reports success, health checks pass and canary checks pass.
+Any repair, health, canary or adapter exception fails closed to QUARANTINED. The adapter is responsible for stopping new scheduling and draining/cancelling its own work. A component resumes only after the repair executor reports success, health checks pass, canary checks pass and configured evidence has been persisted.
 
-## Repair and replacement safeguards
+The coordinator can read from a LogSource and optionally persist redacted outcome metadata and event fingerprints through a RecoveryEvidenceSink. The JSONL evidence implementation uses process-local locking; it is not a multi-process transactional or tamper-evident ledger.
 
-- A repair executor must explicitly declare sandboxed = True; otherwise repair is not invoked and the resource is quarantined.
+## Python process supervision
+
+PythonProcessSupervisor launches explicitly allow-listed executable files without a shell, confines working directories beneath a configured root, starts with an explicit environment mapping, bounds retained stdout/stderr per stream, enforces a wall-clock timeout and supports external cancellation. On POSIX it starts a new session and signals the process group for termination. On Windows this version terminates the direct child only.
+
+**Important security boundary:** this is an OS process supervisor, not a sandbox. Allow-listed executables and their arguments must be trusted. It does not provide filesystem/network syscall isolation, OS-level CPU/memory quotas, durable checkpoints, restart policies, heartbeat monitoring, Windows Job Object containment or protection against a compromised worker. Do not run untrusted code through it.
+
+## Adapter replacement and repair safeguards
+
+- A repair executor must explicitly declare sandboxed = True; the coordinator does not itself create the sandbox.
 - Log messages are evidence only, never executable instructions.
-- Replacement adapters must match the resource kind and provide every required capability. The registry permits replacement only while the resource is asleep.
-- A production repair executor must use an isolated workspace/process/container with explicit permissions, quotas, timeout, cancellation, artifact capture and rollback. This slice defines the contract; it does not provide a sandbox implementation.
-- A failed validation must not resume the component. Recovery exceptions trigger rollback and quarantine.
+- Replacement adapters must match the resource kind and provide every required capability; the registry permits replacement only while the resource is asleep.
+- A production repair executor requires an isolated workspace/process/container, explicit permissions, quotas, timeout, cancellation, artifact capture, approval and rollback.
+- A failed validation must not resume the component.
 
-## Known limitations and next gates
+## Implemented verification
 
-1. Structured event envelope and persistent append-only recovery evidence.
-2. Permissioned file/stream log-source adapters with cursoring, rotation and bounded retention.
-3. Real Python worker adapter with process isolation, checkpoints, graceful shutdown and cancellation.
-4. Sandboxed repair executor with explicit human approval for source changes.
-5. Atomic adapter switchover, canary traffic policy, durable leases and concurrency tests.
-6. Integration with the existing module registry and permission/evidence contracts.
-7. Exact-PR-head CI and adversarial tests before merge.
+- Resource registry, metrics/snapshots and lifecycle transitions have focused tests.
+- Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
+- Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
+- Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
+
+## Remaining gates
+
+1. Persistent resource registry, durable leases and cross-process concurrency control.
+2. Stream log sources, cursoring, rotation, retention and robust cross-source correlation.
+3. OS sandbox implementation for untrusted repair and worker code; platform-specific process-tree containment.
+4. CPU/memory/disk/network quotas and resource telemetry collectors.
+5. Checkpoint/restore, heartbeat, crash restart policy and lifecycle integration with ResourceRegistry/RecoveryCoordinator.
+6. Adapter discovery, compatibility/version/license validation, tested staged switchover and canary traffic policy.
+7. Durable, multi-process, tamper-evident recovery evidence and retention policy.
+8. Human approval and permission integration for source/dependency changes.
+9. Exact-head CI, security review and adversarial tests before any merge.
 
 No arbitrary self-modification, privilege escalation, automatic production code patching or physical hardware control is enabled.
-\n\n## Log-source and evidence increment\n\nFileLogSource provides bounded, read-only UTF-8 ingestion from an operator-configured root. JsonlRecoveryEvidenceStore appends structured recovery records with SHA-256 event fingerprints and fsync; it does not persist raw logs. The store uses a process-local lock and is not yet wired automatically into RecoveryCoordinator. Configure its directory with owner-only access; distributed locking and tamper-evident chaining are future work.\n\n\n## Coordinator integration increment\n\nWhen an evidence store is configured, the coordinator records redacted outcome metadata and event fingerprints for successful and quarantined recoveries. It never stores raw log text. The evidence sink is optional; deployments requiring audit evidence must configure a durable owner-controlled store and monitor append failures. The JSONL implementation currently provides process-local locking, not multi-process/distributed serialization.\n
