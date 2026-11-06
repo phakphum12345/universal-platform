@@ -12,7 +12,7 @@ Each registered resource has a stable resource ID, resource kind, adapter ID, re
 
 ## Log-driven detection
 
-The analyze_logs function accepts caller-supplied text or structured JSON lines. It extracts error/critical/fatal/exception evidence, associates explicit component/resource IDs, caps lines and message length, and redacts common credential patterns. It does not open arbitrary paths, execute commands, interpret log content as instructions, or autonomously decide that a source-code patch is correct. Production ingestion needs an explicit permissioned log-source adapter and retention policy.
+The analyze_logs function accepts caller-supplied text or structured JSON lines. It extracts error/critical/fatal/exception evidence, associates explicit component/resource IDs, caps lines and message length, and redacts common credential patterns. It does not execute commands, interpret log content as instructions, or autonomously decide that a source-code patch is correct. FileLogSource reads UTF-8 files only beneath a configured root, rejects traversal/out-of-root paths, and enforces a byte ceiling. The configured root must not be writable by untrusted actors. Stream ingestion, rotation/cursors and retention policy remain future work.
 
 ## Recovery lifecycle
 
@@ -39,3 +39,4 @@ Any repair, health, canary or adapter exception fails closed to QUARANTINED. Qui
 7. Exact-PR-head CI and adversarial tests before merge.
 
 No arbitrary self-modification, privilege escalation, automatic production code patching or physical hardware control is enabled.
+\n\n## Log-source and evidence increment\n\nFileLogSource provides bounded, read-only UTF-8 ingestion from an operator-configured root. JsonlRecoveryEvidenceStore appends structured recovery records with SHA-256 event fingerprints and fsync; it does not persist raw logs. The store uses a process-local lock and is not yet wired automatically into RecoveryCoordinator. Configure its directory with owner-only access; distributed locking and tamper-evident chaining are future work.\n
