@@ -347,7 +347,7 @@ class PlanarRegionBooleanResult:
         if float(value["area"]) != sum(region.area for region in regions):
             raise InvalidModelError("area does not match the serialized output regions")
         limitations = [
-            "Point-touching or branching output boundaries fail closed.",
+            "Branching output boundaries with ambiguous rotation fail closed.",
             "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
             "Generated intersections are rounded to binary64 and error is reported.",
             "Resource limits reject the operation; no partial result is returned.",
