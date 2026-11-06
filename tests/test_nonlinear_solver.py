@@ -352,3 +352,53 @@ def test_rank_estimator_detects_zero_jacobian_column():
     diagnostic = _estimate_jacobian_rank([[1.0, 0.0], [2.0, 0.0]], 1e-10)
     assert diagnostic.status is JacobianRankStatus.RANK_DEFICIENT
     assert diagnostic.estimated_rank == 1
+
+
+def test_variable_scaling_balances_jacobian_columns_and_solves_mixed_scales():
+    from universal_platform.engineering.nonlinear_solver import JacobianScaleStatus
+
+    constraints = [
+        NonlinearConstraint("sum", lambda v: v["x"] * 1e-6 + v["y"] * 1e6 - 2.0),
+        NonlinearConstraint("difference", lambda v: v["x"] * 1e-6 - v["y"] * 1e6),
+    ]
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8e6, "y": 0.8e-6}, constraints,
+        variable_scales={"x": 1e6, "y": 1e-6},
+    )
+    assert result.status is NonlinearSolveStatus.CONVERGED
+    assert result.values["x"] == pytest.approx(1e6, rel=1e-7)
+    assert result.values["y"] == pytest.approx(1e-6, rel=1e-7)
+    assert result.variable_scales == (("x", 1e6), ("y", 1e-6))
+    assert result.jacobian_scale is not None
+    assert result.jacobian_scale.status is JacobianScaleStatus.BALANCED
+    assert result.jacobian_scale.column_norm_ratio == pytest.approx(1.0, rel=1e-4)
+
+
+def test_unscaled_mixed_magnitude_columns_report_scale_disparity():
+    from universal_platform.engineering.nonlinear_solver import JacobianScaleStatus
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8e6, "y": 0.8e-6},
+        [
+            NonlinearConstraint("sum", lambda v: v["x"] * 1e-6 + v["y"] * 1e6 - 2.0),
+            NonlinearConstraint("difference", lambda v: v["x"] * 1e-6 - v["y"] * 1e6),
+        ],
+    )
+    assert result.jacobian_scale is not None
+    assert result.jacobian_scale.status is JacobianScaleStatus.SCALE_DISPARITY
+    assert result.jacobian_scale.column_norm_ratio > 1e8
+
+
+def test_variable_scales_reject_unknown_names_and_invalid_values():
+    with pytest.raises(SolverError, match="unknown variable"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
+            variable_scales={"y": 1.0},
+        )
+    with pytest.raises(SolverError, match="finite and positive"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
+            variable_scales={"x": 0.0},
+        )

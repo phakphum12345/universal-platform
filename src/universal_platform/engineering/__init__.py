@@ -21,6 +21,8 @@ from .planar_mechanisms import (
 )
 from .nonlinear_solver import (
     JacobianMethod,
+    JacobianScaleDiagnostics,
+    JacobianScaleStatus,
     JacobianRankDiagnostics,
     JacobianRankStatus,
     NonlinearConstraint,
@@ -40,7 +42,8 @@ __all__ = [
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
-    "estimate_planar_mobility", "JacobianMethod", "JacobianRankDiagnostics",
+    "estimate_planar_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
+    "JacobianScaleStatus", "JacobianRankDiagnostics",
     "JacobianRankStatus", "NonlinearConstraint",
     "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
