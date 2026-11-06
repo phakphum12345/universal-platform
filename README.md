@@ -58,6 +58,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Contributing](CONTRIBUTING.md)
 - [Domain Catalogue](docs/DOMAIN_CATALOGUE.md)
 - [Engineering and 3D Project Plan](docs/roadmap/ENGINEERING_AND_3D_PHASE_PLAN.md)
+- [Phase 2 Numerical Reliability Plan](docs/roadmap/PHASE_2_NUMERICAL_RELIABILITY_PLAN.md)
 - [Engineering Master File Plan](docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md)
 - [Engineering Vertical Slice Specification](docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md)
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md)
