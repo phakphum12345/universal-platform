@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `22bbf1714224095cfd652d6887130d26facef087` (PR #54 merge); post-merge run `42193654653` passed workflow-sanity and python-tests, 452 tests. PR #49, #52 and #54 are integrated; PR #51's documentation index was restored to this integration line by PR #53.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `263a53c0862276a33e735c616d33d24d89b09f74` (PR #55 documentation reconciliation merge); post-merge run `42194422246` passed workflow-sanity and python-tests, 452 tests. PR #49, #52 and #54 are integrated; PR #53 restored the documentation index to this integration line. Candidate PR #56 scopes explicit planar plane-frame mobility.
 
 ## Repository-level product and governance
 
@@ -77,6 +77,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Automatic Joint Constraint Generation](docs/design-3d/AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT.md) — generated pose-consistency residuals.
 - [Automatic Joint Constraint Jacobian](docs/design-3d/AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT.md) — finite-difference Jacobian contract.
 - [Automatic Geometric Mobility](docs/design-3d/AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT.md) — spatial local mobility diagnostics.
+- [Planar Plane-Frame Mobility](docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md) — candidate PR #56 contract and acceptance criteria.
 - [Planar Two-Link Inverse Kinematics](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md) — narrow analytic planar 2R adapter.
 - [Planar Four-Bar Loop Closure](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md) — narrow planar 4R closure and mobility estimate.
 

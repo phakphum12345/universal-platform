@@ -7,7 +7,7 @@ kinematic consistency layer, not a dynamics or physical-feasibility solver.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import acos, cos, isfinite, sin, sqrt
+from math import atan2, cos, isfinite, sin, sqrt
 from typing import Mapping
 
 from .errors import InvalidModelError
@@ -59,12 +59,16 @@ def _rotation_error(
     """Return the logarithmic rotation error of expected.T @ actual in radians."""
     relative = _matmul(_transpose(expected), actual)
     cosine = max(-1.0, min(1.0, (relative[0][0] + relative[1][1] + relative[2][2] - 1.0) / 2.0))
-    angle = acos(cosine)
     skew = (
         relative[2][1] - relative[1][2],
         relative[0][2] - relative[2][0],
         relative[1][0] - relative[0][1],
     )
+    # atan2 remains well-conditioned near identity; acos(trace) loses
+    # significant relative precision for the small rotations used by the
+    # finite-difference Jacobian.
+    sine = 0.5 * sqrt(sum(value * value for value in skew))
+    angle = atan2(sine, cosine)
     if angle < 1e-8:
         return tuple(0.5 * value for value in skew)  # type: ignore[return-value]
     if 3.141592653589793 - angle < 1e-6:

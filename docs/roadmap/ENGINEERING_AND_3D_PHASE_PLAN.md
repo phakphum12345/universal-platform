@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #54 spatial joint reference validation merged at `22bbf1714224095cfd652d6887130d26facef087`; exact post-merge run #405 (`42193654653`) passed workflow-sanity and python-tests, 452 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
+**Current integration baseline:** PR #55 documentation reconciliation merged at `263a53c0862276a33e735c616d33d24d89b09f74`; exact post-merge run #422 (`42194422246`) passed workflow-sanity and python-tests, 452 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -244,3 +244,13 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - PR run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
 - Merge `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
 - Restores the documentation index to the integration branch and reconciles the CAD implementation status and exact evidence.
+
+
+## PR #56 — Explicit planar plane-frame mobility (candidate)
+
+- Base integration SHA: `263a53c0862276a33e735c616d33d24d89b09f74` (PR #55 documentation reconciliation merge; post-merge run #422 / `42194422246`: 452 tests PASS).
+- Candidate branch: `feat/planar-plane-frame-mobility`.
+- Contract: `PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md`. The caller supplies a plane-to-world RigidTransform; body origins/local +Z, joint anchors and coordinate axes are checked for coplanarity and direction.
+- Implementation projects the generated world-frame Jacobian into two in-plane translations and one plane-normal rotation per non-ground link while preserving generalized-coordinate columns.
+- Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. Other families fail closed.
+- Tests cover single-joint references, rotated/translated planes, ground reversal and invalid out-of-plane conditions. Exact-head and post-merge CI pending.

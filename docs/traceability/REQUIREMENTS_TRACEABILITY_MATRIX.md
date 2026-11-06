@@ -63,3 +63,6 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | MECH-SPATIAL-JOINT-001 | Spatial joint family reference validation | SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT | IMPLEMENTED — PR #54 merged at `22bbf1714224095cfd652d6887130d26facef087`; exact-head and post-merge CI PASS, 452 tests each. 2D PLANAR mobility formulation remains deferred. |
+
+
+| MECH-PLANAR-MOBILITY-001 | Explicit plane-frame geometric mobility | PLANAR_PLANE_FRAME_MOBILITY_CONTRACT | CANDIDATE — PR #56 adds plane validation and projected planar Jacobian; exact-head and post-merge evidence pending. |
