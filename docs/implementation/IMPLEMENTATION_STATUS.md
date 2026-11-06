@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** c33ef005896b71aa2ff0721efb87245781526ca7 (PR #14)  
-**Latest feature:** Planar four-bar loop closure and planar mobility estimate (PR #14), merged and verified on the exact PR head and merge commit.  
-**Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics and a narrow planar 4R loop-closure adapter.
+**Latest merged baseline:** 77dd2de9b49773fe24324cb9732b7db5e2623ecf (PR #16)  
+**Latest feature:** Bounded nonlinear equality-constraint solver (PR #16), merged and verified on the exact PR head and merge commit.  
+**Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
 
@@ -11,6 +11,7 @@
 - Evidence/provenance records with FACT / ASSUMPTION / SIMULATION / UNKNOWN distinctions and PASS / FAIL / SKIPPED / UNKNOWN statuses.
 - Fail-closed safety gate that rejects physical execution actions.
 - Small dense linear solver with partial pivoting and residual calculation.
+- Bounded finite-difference Levenberg–Marquardt solver for scalar nonlinear equality residuals, with residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
@@ -23,6 +24,18 @@
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+
+## PR #16 — Bounded nonlinear equality-constraint solver
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/16
+- Base: docs/phase-0-complete-requirements at 4a5bf5b2a63c0192dbb5f2ab60b4e3f62df74a44.
+- Tested PR head: 26730dba8ea3199e9576fa071a7207ed6c59c38d.
+- Merge commit: 77dd2de9b49773fe24324cb9732b7db5e2623ecf.
+- [PR Actions run #98](https://github.com/phakphum12345/universal-platform/actions/runs/42140506796): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Push run #97](https://github.com/phakphum12345/universal-platform/actions/runs/42140488356) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Post-merge [push run #99](https://github.com/phakphum12345/universal-platform/actions/runs/42140562726) on merge SHA 77dd2de9b49773fe24324cb9732b7db5e2623ecf: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Tests cover scalar and coupled nonlinear systems, an overdetermined consistent system, bounds, unsatisfied stationary points, zero-iteration convergence, malformed inputs and callback errors.
+- Limitations: local small dense equality least squares only; no global guarantee, exact/sparse Jacobian, robust rank/conditioning analysis, inequalities/contact, complementarity, continuation, branch enumeration, gauge fixing or automatic dimensional analysis.
 
 ## PR #14 — Planar four-bar loop closure
 
@@ -59,7 +72,7 @@
 ## Explicitly not implemented or not verified
 
 - General inverse kinematics for arbitrary chains, 3D robots or redundant mechanisms.
-- General closed-loop constraint solving, multi-loop coupling, arbitrary nonlinear constraints, full mechanism mobility/over-constraint analysis and singularity classification.
+- General mechanism-level closed-loop solving, multi-loop coupling, inequality/contact/complementarity, robust rank/conditioning analysis, continuation, branch enumeration, automatic gauge fixing, full mobility/over-constraint analysis and singularity classification. PR #16 supplies a local equality least-squares numerical core, not a general mechanism solver.
 - Dynamics, acceleration, torque, friction, backlash, compliance, collision, contact, tolerance stack-up and singularity conditioning analysis.
 - General symbolic mathematics, nonlinear/multiphysics solvers, FEA, CFD, FEM meshing or convergence studies.
 - B-rep/parametric CAD kernel, STEP/STL/3MF import/export, Boolean operations, sketch constraints or manufacturing drawings.
