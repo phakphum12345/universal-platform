@@ -171,7 +171,7 @@ Do not bundle unrelated 3D CAD kernel, physics, dynamics, hardware schematic, or
 | WP-2.1 Jacobian strategies | PR #19 merged at `9676bdb00f3ffb1c8a2b0929fd27481b47368d43` | Tested head `db18dc115a55a2ba2aa648e7665e2d111a52e572`; run #118; 120 tests passed; workflow-sanity PASS | Implemented; post-merge CI lookup UNKNOWN |
 | WP-2.2 Rank diagnostics | PR #20 merged at `6651b5985391679daba15abb6bdf2f78b9ff894b` | Tested head `43dbe1cb76eff112b6c4ea4bd348cd72f596da69`; run #131; 127 tests passed; workflow-sanity PASS | Implemented as a threshold-dependent estimate; post-merge CI lookup UNKNOWN |
 | WP-2.3 Scaling indicators | PR #21 merged at `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c` | Tested head `8f5c1ad54e42dd40f585c7860e37a6ac37b9dc78`; run #142; 130 tests passed; workflow-sanity PASS | Variable scaling and column-norm disparity indicator implemented; not a formal condition number; post-merge CI lookup UNKNOWN |
-| WP-2.4 Reliability regression matrix | PR #22 candidate | CI pending | In progress; not merged |
+| WP-2.4 Reliability regression matrix | PR #22 merged at `1a3f05b5f99fa330cf0fd79e64f7ff3934211265` | Corrected tested head `265a7420edbb21da977dd357affaec61fa63f701`; run #147; 139 tests passed; workflow-sanity PASS | Implemented; first run #146 failed due a test fixture tolerance; corrected in run #147; post-merge CI lookup UNKNOWN |
 | WP-2.5 Structured diagnostics/evidence | Partial in PR #19–#21 | Method, callback counts, rank and scale diagnostics are returned by solver results | Stable serialization/reporting contract remains open |
 | WP-2.6 Mechanism constraint adapter | Not started | None | Proposed only |
 
