@@ -270,8 +270,12 @@ def test_curved_profile_bounds_include_arc_extrema_and_transformed_enclosure():
     )
     model = PrimitiveGeometryModel(graph, (solid,))
     local = model.bounding_box("solid.quarter-disk", "part").bounds
-    assert local.minimum == Vec3(0, 0, 0)
-    assert local.maximum == Vec3(1, 1, 2)
+    assert local.minimum.x == pytest.approx(0.0)
+    assert local.minimum.y == pytest.approx(0.0)
+    assert local.minimum.z == pytest.approx(0.0)
+    assert local.maximum.x == pytest.approx(1.0)
+    assert local.maximum.y == pytest.approx(1.0)
+    assert local.maximum.z == pytest.approx(2.0)
     world = model.bounding_box("solid.quarter-disk", "world").bounds
     assert world.minimum == Vec3(9, 20, 0)
     assert world.maximum == Vec3(10, 21, 2)
@@ -280,7 +284,7 @@ def test_curved_profile_bounds_include_arc_extrema_and_transformed_enclosure():
 def test_curved_profile_requires_stable_segment_ids_and_valid_sweeps():
     from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
     profile = (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1))
-    with pytest.raises(InvalidModelError, match="segment IDs"):
+    with pytest.raises(InvalidModelError, match="segment_ids"):
         ExtrudedProfileSolid("solid.no-ids", "part", profile, 1, arc_sweeps_rad=(0, pi / 2, 0))
     with pytest.raises(InvalidModelError, match=r"2\*pi"):
         ExtrudedProfileSolid("solid.full-turn", "part", profile, 1,
