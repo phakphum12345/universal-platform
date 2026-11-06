@@ -72,6 +72,11 @@ class RecoveryCoordinator:
             self._registry.transition(resource_id, ResourceState.CANARY)
             if not adapter.canary_check(resource_id):
                 return self._rollback_and_quarantine(resource_id, events, initial_state, "canary check failed", adapter)
+            if self._evidence_store is not None:
+                pending = RecoveryResult(resource_id, ResourceState.CANARY, True, False, len(events), "validation passed; resume pending")
+                pending = self._persist_result(pending, events, initial_state)
+                if not pending.evidence_recorded:
+                    return self._rollback_and_quarantine(resource_id, events, initial_state, "pre-resume evidence unavailable", adapter)
             adapter.resume(resource_id)
             self._registry.transition(resource_id, ResourceState.ACTIVE)
             result = RecoveryResult(resource_id, ResourceState.ACTIVE, True, True, len(events), "recovery validated")
