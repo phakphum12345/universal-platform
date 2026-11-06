@@ -6,7 +6,7 @@
 
 - The caller supplies a `RigidTransform` named `plane_frame` mapping a stable plane frame into the shared world frame.
 - The plane frame's local +X/+Y axes define the analysis plane; local +Z is its normal.
-- All link body poses map link frames into the same world frame and use the same length unit as `plane_frame`.
+- All link body poses map link frames into the same world frame and use metres (m), matching the generated translational residuals and `plane_tolerance_m`.
 - Every body origin must lie on the plane within `plane_tolerance_m`.
 - Every body frame's local +Z axis must align with the plane normal within `angular_tolerance_rad`; body motion is restricted to two in-plane translations and rotation about the plane normal.
 - Every joint-frame origin must lie on the plane. Rotational generalized-coordinate axes must be parallel to the plane normal; translational axes must lie in the plane.
