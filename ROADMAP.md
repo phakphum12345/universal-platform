@@ -325,3 +325,13 @@ Next dependency order: closed-loop sketch-to-region adapter → feature DAG/hist
 - No arbitrary code execution, persistence service, incremental recompute, B-rep or general 3D Boolean.
 
 Next: extend sketch constraint families and arc/spline support; add feature edit/recompute semantics and persistent document contracts; then resolve planar point-contact topology before B-rep/3D Boolean and STEP/3MF.
+
+
+## PR #95 — Planar Boolean Point-Contact Topology (MERGED)
+
+- Merge SHA: `2eea0bdc9226c8ec3b3d5458e3902ee01b8314f0`.
+- Exact PR-head run #42264798640 and post-merge run #42264923364 both passed `workflow-sanity` and `python-tests`, 639 tests.
+- Replaces blanket point-contact rejection with exact-rational clockwise-predecessor boundary pairing; point-only contacts preserve separate output components; shared edges still dissolve.
+- Ambiguous branch incidence, coincident outgoing branches, repeated-vertex cycles and invalid hole topology remain fail-closed.
+
+See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md). General B-rep/3D Boolean remains open.
