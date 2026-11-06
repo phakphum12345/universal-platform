@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Historical implementation snapshot HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model). The currently observed integration branch tip is `afcb151e29ff9a8cb5a8e871400910a0fe950c57`; default `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+**Historical implementation snapshot HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model). The currently observed integration branch tip is `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; default `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 **Exact post-merge CI:** PR #82 merge SHA `114bf8dd84831d7d4080922ed7069cadda380ba3`; workflow #42240292055: workflow-sanity PASS and python-tests PASS; **563 passed in 2.47s**. Documentation-only marker step SKIPPED.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
@@ -803,31 +803,52 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Contract: [3MF Core Mesh Interchange](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Runtime Resource and Recovery Workstream — OPEN PRs #100–#106
+## Recent integrated increments — 2026-11-07
 
-**Branch relationship:** PR #100 targets `docs/phase-0-complete-requirements`; PRs #101–#106 are stacked in dependency order. None of these PRs is merged as of this status update. Their feature branches are not part of the integration baseline or `main`.
+**Current integration HEAD:** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration has not been merged to main).  
+**Post-merge CI:** PR #113 merge SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; run #42279521637: workflow-sanity PASS, python-tests PASS, **732 passed**.
 
-| PR | Scope | Exact tested head | CI result | Maturity |
-|---|---|---|---|---|
-| #100 | Resource registry, metrics, log analysis, recovery lifecycle | `b672c7bf0f509990be3a172ec6085ccb2be1e9c8` | PASS — 662 tests | PARTIAL; in-memory contracts, no process supervisor |
-| #101 | Bounded file-log ingestion and JSONL evidence | `177567feb2cc5a855a9cdf10ba5d9286399375e3` | PASS — 667 tests | PARTIAL; process-local evidence lock |
-| #102 | Recovery coordinator integration with logs/evidence | `25f82f272b653f5be2164cd9e41d6e3eca1ab526` | PASS — 669 tests | PARTIAL; sandbox and durable evidence remain open |
-| #103 | Allow-listed trusted-worker process supervision | `ff4e96452364355855403d2fcbe9aca57eb50cfb` | PASS — 677 tests | PARTIAL; not a security sandbox |
-| #104 | Adapter discovery and policy-gated replacement | `dff96a6a3a8c1ead4be3dae64f6457b68edce9c1` | PASS — 685 tests | PARTIAL; runtime routing remains caller-owned |
-| #105 | Resource quotas and expiring leases | `c74c6d4ddda060e08a3aaf04453a0e4d4741caa7` | PASS — 691 tests | PARTIAL; in-memory, process-local |
-| #106 | Resource snapshot collector and local metrics | `2a56c5ee9a068a48efa38da769f8c8b6a45950d2` | PASS — 697 tests | PARTIAL; provider/platform dependent |
+### PR #99 — Bounded STEP AP214 faceted BREP (MERGED)
 
-All listed CI counts are from the Python test job on the stated exact head; workflow-sanity also passed. Documentation-only conditional steps that were skipped are not counted as passes.
+- Merge SHA: `96654d8708cd96ad8c7d6212c5777feb693fc873`.
+- Exact PR head: `04541b38ccd35d0bd1f955ad52ccacdc47fb3f30`; workflow-sanity and python-tests PASS, 664 tests.
+- Implements a bounded Part 21 AP214 faceted BREP subset for one connected closed triangular shell, with SI units and source provenance.
+- Not a full STEP translator: no assemblies, curves, analytic surfaces, face holes, colors/PMI or arbitrary B-rep graphs.
 
-### Runtime gates still OPEN
+### PR #107 — Runtime resource and recovery foundation (MERGED)
 
-- OS/container sandbox for untrusted worker and repair code; process isolation alone is not sufficient.
-- OS-level CPU, memory, disk and network quotas; GPU telemetry and CPU utilization providers.
-- Durable resource leases and multi-process/distributed allocation coordination.
-- Durable, multi-process and tamper-evident recovery evidence.
-- Process checkpoints, restore, heartbeat, restart policy and full integration with ResourceRegistry/RecoveryCoordinator.
-- Runtime adapter routing/switchover, canary traffic management and rollback of a live adapter.
-- Permission, approval, module-registry and audit-governance integration.
-- Stream log ingestion, rotation, cursors, retention and cross-source correlation.
+- Merge SHA: `2bdeb85239eed84ae1738a2dc9bf332a5b8bbbd8`.
+- Integrates the incremental source work developed in PRs #100–#106: typed resource registry/snapshots, bounded log analysis and file ingestion, JSONL recovery evidence, coordinator integration, trusted-worker process supervision, adapter catalog, logical quota leases and local resource snapshots.
+- The source PRs #100–#106 were closed as individual PRs; their code is included through the consolidated PR #107 merge commit.
+- PR #107 post-merge CI run #42279290604: workflow-sanity PASS and python-tests PASS, **717 tests passed**.
 
-See [Runtime Resource Adapter and Recovery](../architecture/RESOURCE_ADAPTER_RECOVERY.md) for the implementation boundary and tests.
+### PR #110 — Central Physics Solver Registry (MERGED)
+
+- Merge SHA: `75b549b7a3e5e643a978176e2babde68b7a030f4`.
+- Exact integrated PR head: `8e09f77845fb0794c07f52a7042cc96e7c1fb77f`; exact-head and post-merge checks PASS, **672 tests**.
+- Adds typed/versioned solver descriptors, domain/method dispatch, license/dependency gates and provenance-bearing results.
+- Built-in analytical solvers: axial stress, ideal lumped DC Ohm's law/power and linear thermal expansion.
+- No general FEA/CFD, broad multiphysics, safety certification or untrusted solver sandbox is claimed.
+
+### PR #113 — Adapter routing, evidence integrity and health monitoring (MERGED)
+
+- Merge SHA/current integration HEAD: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
+- Consolidates the incremental work originally developed in PRs #109, #111 and #112 on top of the integrated PR #107 foundation.
+- Adds RuntimeAdapterRouter, cross-process local file locking, bounded SHA-256 chained recovery evidence and threshold-based health assessment with HEALTHY/SUSPECT/UNKNOWN semantics.
+- Exact-head run #42279444983: workflow-sanity PASS and python-tests PASS, **732 tests passed**.
+- Post-merge run #42279521637: workflow-sanity PASS and python-tests PASS, **732 tests passed**.
+- The source PR #109 was closed without merge; PRs #111 and #112 may remain open as superseded source branches. Their incremental changes are already present in PR #113's merge tree.
+
+### Runtime and physics gates still OPEN
+
+- A real OS/container sandbox for untrusted worker and repair code; the process supervisor alone is not a sandbox.
+- OS-enforced CPU/memory/disk/network quotas and platform-specific containment.
+- Durable/distributed resource leases, persistence and route coordination.
+- Checkpoint/restore, heartbeat, crash restart and production lifecycle orchestration.
+- Approved repair executor with scoped permissions, human approval and rollback.
+- Stream log sources, rotation, cursors, retention and cross-source correlation.
+- Signed/external evidence anchoring, key management, replication and retention.
+- Additional validated physics solver families (fluid, electromagnetic, thermodynamic, general dynamics, materials, FEA/CFD), convergence/uncertainty and independent cross-checks.
+
+The current integrated runtime and physics work is PARTIAL, not COMPLETE. See [Runtime Resource Adapter and Recovery](../architecture/RESOURCE_ADAPTER_RECOVERY.md) and [Physics and First-Principles Modeling](../engineering/PHYSICS_AND_FIRST_PRINCIPLES.md).
