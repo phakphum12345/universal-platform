@@ -5,7 +5,7 @@
 | ID | Requirement | Primary specification | Acceptance evidence |
 |---|---|---|---|
 | UEIC-001 | Shared multidisciplinary engineering core | UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE | Module composition and provenance tests |
-| UEIC-002 | Pluggable discipline modules | MULTIDISCIPLINARY_KNOWLEDGE_MODULES; ENGINEERING_MODULE_API_CONTRACT | Metadata-only ModuleManifest/ModuleRegistry: stable IDs, versions, license/maturity, operation schemas, permission subset checks, duplicate rejection, deterministic dependency order and snapshot tests (PR #39; exact-SHA CI pending). Runtime loading/invocation remains NOT IMPLEMENTED |
+| UEIC-002 | Pluggable discipline modules | MULTIDISCIPLINARY_KNOWLEDGE_MODULES; ENGINEERING_MODULE_API_CONTRACT | Metadata-only ModuleManifest/ModuleRegistry: stable IDs, versions, license/maturity, operation schemas, permission subset checks, duplicate rejection, deterministic dependency order and snapshot tests (PR #39 code head `8ed4d4f9778a264cf3676d1821807ebdc3943fda`; PR run #305 (`42166708892`): workflow-sanity PASS, python-tests PASS, 304 tests in 0.90s; documentation-only marker SKIPPED. Final documentation-head CI pending. Runtime loading/invocation remains NOT IMPLEMENTED |
 | UEIC-003 | First-principles physics models | PHYSICS_AND_FIRST_PRINCIPLES | Reference cases and dimensional checks |
 | UEIC-004 | Replaceable solver adapters | ENGINEERING_SOLVER_AND_MODEL_CONTRACT; NONLINEAR_CONSTRAINT_SOLVER_CONTRACT | Bounded local nonlinear equality solver; PR #16 exact-SHA CI and post-merge evidence; replaceable adapter boundary remains in progress |
 | UEIC-005 | Units, uncertainty and source lineage | ENGINEERING_UNITS_UNCERTAINTY_AND_PROVENANCE | Unit, propagation and provenance tests |

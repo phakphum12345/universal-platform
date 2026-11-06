@@ -137,6 +137,7 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Branch: `feat/module-manifest-registry`.
 - Base integration SHA: `22c71b610b3af4e2707389f0b62e039135ef76a0`.
 - Initial PR head: `e7f7addfcb0eb49cc46862113c53d61ab7e69036`.
+- Code head tested: `8ed4d4f9778a264cf3676d1821807ebdc3943fda`; PR run #305 (`42166708892`) passed workflow-sanity and python-tests; 304 passed in 0.90s; documentation-only marker SKIPPED.
 - Scope: immutable module manifests, operation declarations, explicit version/license/maturity/permissions, deterministic registry snapshots and dependency validation.
 - Boundary: metadata only; no dynamic loading, invocation, process isolation, permission enforcement or external/physical writes.
-- Exact-SHA CI and post-merge evidence: PENDING.
+- Final documentation-head CI and post-merge evidence: PENDING.
