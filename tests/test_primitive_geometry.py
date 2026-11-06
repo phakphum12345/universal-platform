@@ -317,3 +317,37 @@ def test_schema_v10_rejects_curved_segment_metadata_even_without_arc_sweeps():
     snapshot["solids"][0]["segment_ids"] = ["edge.a", "edge.b", "edge.c"]
     with pytest.raises(InvalidModelError, match="schema version 1.0"):
         PrimitiveGeometryModel.from_dict(snapshot)
+
+def test_curved_profile_bounds_include_interior_arc_extrema():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    solid = ExtrudedProfileSolid(
+        "solid.major-sector", "part",
+        (Vec2(0, 0), Vec2(1, 1), Vec2(-1, 1)), 1, "m",
+        arc_sweeps_rad=(0.0, pi / 2.0, 0.0),
+        segment_ids=("edge.first", "edge.arc", "edge.last"),
+    )
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    bounds = model.bounding_box("solid.major-sector", "part").bounds
+    assert bounds.minimum.x == pytest.approx(-1.0)
+    assert bounds.minimum.y == pytest.approx(0.0)
+    assert bounds.maximum.x == pytest.approx(1.0)
+    assert bounds.maximum.y == pytest.approx(sqrt(2.0))
+
+
+def test_curved_profile_rejects_duplicate_segment_ids_and_outside_curved_holes():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    profile = (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1))
+    with pytest.raises(InvalidModelError, match="unique"):
+        ExtrudedProfileSolid(
+            "solid.duplicate-segment-id", "part", profile, 1,
+            arc_sweeps_rad=(0.0, pi / 2.0, 0.0),
+            segment_ids=("edge.same", "edge.same", "edge.last"),
+        )
+    outer = (Vec2(0, 0), Vec2(4, 0), Vec2(4, 4), Vec2(0, 4))
+    outside_hole = (Vec2(0.5, 2), Vec2(0, 2.5), Vec2(-0.5, 2), Vec2(0, 1.5))
+    with pytest.raises(InvalidModelError, match="strictly inside"):
+        ExtrudedProfileSolid(
+            "solid.outside-curved-hole", "part", outer, 1, "m", (outside_hole,),
+            hole_arc_sweeps_rad=((pi / 2.0,) * 4,),
+            hole_segment_ids=(("hole.edge.1", "hole.edge.2", "hole.edge.3", "hole.edge.4"),),
+        )
