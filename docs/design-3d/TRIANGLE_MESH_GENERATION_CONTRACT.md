@@ -1,6 +1,6 @@
 # Deterministic Primitive Triangle Mesh Contract
 
-**Status:** Implemented by PR #64 for BoxSolid/CylinderSolid and PR #66 for straight-edged, hole-free ExtrudedProfileSolid. This is a triangle-surface tessellator and structural mesh checker, not a B-rep CAD kernel.
+**Status:** Implemented by PR #64 for BoxSolid/CylinderSolid, PR #66 for straight-edged profiles, and PR #68 for polygonal through-holes. This is a triangle-surface tessellator and structural mesh checker, not a B-rep CAD kernel.
 
 ## 1. Scope
 
