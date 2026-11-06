@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 870a3f634d7a7fbd47e838f85aff4dc2f1b76162 (PR #23; versioned solver result schema)  
-**Latest merged implementation:** Versioned nonlinear solver result schema (PR #23), merged at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
+**Latest merged baseline:** 7aead53ac5af9dd3a82999c823a413db0e2f4ead (PR #24; mechanism adapter contract)  
+**Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -29,12 +29,16 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #24 — Mechanism constraint adapter contract (under review)
+## PR #24 — Mechanism constraint adapter contract (design only)
 
-- Candidate branch: `docs/phase-2-mechanism-adapter-contract`.
-- Adds `docs/engineering/MECHANISM_CONSTRAINT_ADAPTER_CONTRACT.md` specifying proposed input snapshot, normalized problem fields, stable identifiers, residual conventions, validation gates, gauge/redundancy/branch/singularity handling, result mapping and future acceptance tests.
-- Updates the solver/model contract and Phase 2 WP-2.6 references.
-- **Evidence status:** documentation/design proposal only; no general mechanism adapter implementation is claimed. CI and merge status pending.
+- PR: https://github.com/phakphum12345/universal-platform/pull/24
+- Base: `docs/phase-0-complete-requirements` at `8084ccf9375245b7e7eaa1812628703292746c67`.
+- Tested PR head: `ef4330d1e7aa424df8cd58f4ff46ba572beaf975`.
+- GitHub Actions run #170 (run ID `42146444943`): `workflow-sanity` PASS; `python-tests` PASS, **141 passed in 0.32s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `7aead53ac5af9dd3a82999c823a413db0e2f4ead`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds a proposed mechanism-to-solver contract covering immutable snapshots, deterministic IDs/order, units/frames/topology/ground validation, residual mapping, branch/gauge/redundancy handling and acceptance tests.
+- **No general mechanism adapter implementation is claimed.** Existing assembly contracts, tree kinematics and planar four-bar utility remain narrow capabilities.
 
 ## PR #23 — Versioned nonlinear solver result schema
 
