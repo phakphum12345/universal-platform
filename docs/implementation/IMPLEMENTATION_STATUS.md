@@ -28,6 +28,14 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## PR #23 — Versioned solver result serialization (under review)
+
+- Candidate branch: `feat/phase-2-solver-result-schema`.
+- Adds `NonlinearSolveResult.to_dict()` with a versioned JSON-compatible schema for status, variables, residuals, iteration/objective, derivative method, evaluation counts, rank/scale diagnostics, effective variable scales, limitations and aggregate constraint result.
+- Diagnostics not computed are serialized as null; no values are fabricated.
+- Tests cover deterministic sorted JSON encoding, schema version, full diagnostics and uncomputed diagnostics.
+- **Evidence status:** implementation candidate only; CI and merge verification pending.
+
 ## PR #22 — Nonlinear solver reliability regression matrix
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/22
