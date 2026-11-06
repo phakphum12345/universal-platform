@@ -141,3 +141,117 @@ def test_constraint_function_exception_is_reported_as_solver_error():
             ["x"], {"x": 1.0},
             [NonlinearConstraint("eq", broken)],
         )
+
+
+
+def test_forward_difference_remains_the_default_and_reports_evaluations():
+    result = solve_nonlinear_constraints(
+        ["x"], {"x": 1.0},
+        [NonlinearConstraint("square", lambda v: v["x"] ** 2 - 4.0)],
+    )
+    assert result.status is NonlinearSolveStatus.CONVERGED
+    assert result.jacobian_method == "forward_finite_difference"
+    assert result.jacobian_evaluations > 0
+    assert result.residual_evaluations > 1
+    assert result.analytic_jacobian_evaluations == 0
+
+
+def test_central_difference_solves_coupled_system_and_reports_method():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8, "y": 2.2},
+        [
+            NonlinearConstraint("circle", lambda v: v["x"] ** 2 + v["y"] ** 2 - 5.0),
+            NonlinearConstraint("line", lambda v: v["x"] + v["y"] - 3.0),
+        ],
+        options=NonlinearSolverOptions(jacobian_method=JacobianMethod.CENTRAL_FINITE_DIFFERENCE),
+    )
+    assert result.status is NonlinearSolveStatus.CONVERGED
+    assert result.values["x"] == pytest.approx(1.0, abs=1e-6)
+    assert result.values["y"] == pytest.approx(2.0, abs=1e-6)
+    assert result.jacobian_method == "central_finite_difference"
+
+
+def test_analytic_jacobian_matches_numeric_solution_and_counts_callback():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    calls = []
+    def analytic(values):
+        calls.append(dict(values))
+        return [[2.0 * values["x"], 2.0 * values["y"]], [1.0, 1.0]]
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8, "y": 2.2},
+        [
+            NonlinearConstraint("circle", lambda v: v["x"] ** 2 + v["y"] ** 2 - 5.0),
+            NonlinearConstraint("line", lambda v: v["x"] + v["y"] - 3.0),
+        ],
+        options=NonlinearSolverOptions(jacobian_method=JacobianMethod.ANALYTIC),
+        jacobian=analytic,
+    )
+    assert result.status is NonlinearSolveStatus.CONVERGED
+    assert result.values["x"] == pytest.approx(1.0, abs=1e-6)
+    assert result.values["y"] == pytest.approx(2.0, abs=1e-6)
+    assert result.jacobian_method == "analytic"
+    assert result.analytic_jacobian_evaluations == len(calls)
+    assert result.analytic_jacobian_evaluations == result.jacobian_evaluations
+
+
+def test_analytic_jacobian_respects_residual_scaling():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    result = solve_nonlinear_constraints(
+        ["x"], {"x": 1.0},
+        [NonlinearConstraint("scaled", lambda v: 10.0 * (v["x"] - 2.0), scale=10.0)],
+        options=NonlinearSolverOptions(jacobian_method=JacobianMethod.ANALYTIC),
+        jacobian=lambda _v: [[10.0]],
+    )
+    assert result.status is NonlinearSolveStatus.CONVERGED
+    assert result.values["x"] == pytest.approx(2.0, abs=1e-7)
+
+
+def test_analytic_jacobian_rejects_wrong_shape_and_non_finite_values():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    options = NonlinearSolverOptions(jacobian_method=JacobianMethod.ANALYTIC)
+    constraints = [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)]
+    with pytest.raises(SolverError, match="shape"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0}, constraints, options=options,
+            jacobian=lambda _v: [[1.0, 2.0]],
+        )
+    with pytest.raises(SolverError, match="non-finite"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0}, constraints, options=options,
+            jacobian=lambda _v: [[math.nan]],
+        )
+
+
+def test_analytic_jacobian_callback_failures_are_typed_solver_errors():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    with pytest.raises(SolverError, match="Analytic Jacobian evaluation failed"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
+            options=NonlinearSolverOptions(jacobian_method=JacobianMethod.ANALYTIC),
+            jacobian=lambda _v: (_ for _ in ()).throw(RuntimeError("bad derivative")),
+        )
+
+
+def test_jacobian_callback_and_strategy_must_be_consistent():
+    from universal_platform.engineering.nonlinear_solver import JacobianMethod
+
+    with pytest.raises(SolverError, match="requires a jacobian callback"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
+            options=NonlinearSolverOptions(jacobian_method=JacobianMethod.ANALYTIC),
+        )
+    with pytest.raises(SolverError, match="requires jacobian_method"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
+            jacobian=lambda _v: [[1.0]],
+        )
