@@ -183,13 +183,20 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Defines deterministic binary STL export with a mandatory metadata sidecar, explicit frame/unit/provenance/tolerance, SHA-256 binding, binary32 quantization, resource limits and independent test-reader requirements.
 - Design only; no STL exporter/importer, STEP/3MF support, third-party runtime dependency or external CAD toolchain selection is claimed.
 
-## PR #74 — Deterministic binary STL export (IMPLEMENTATION CANDIDATE)
+## PR #74 — Deterministic binary STL export (MERGED)
 
-- Implements binary STL v1.0 export for validated TriangleMesh inputs with strict manifest snapshots and caller-verified frame/unit context.
-- Exposes immutable byte artifact and manifest API; writes deterministic 80-byte header, little-endian facet count, source-order 50-byte records, recomputed normals and zero attributes.
-- Rejects invalid source meshes, facet-limit excess, float32 overflow, collapsed vertices, quantized degenerate facets and malformed/tampered metadata.
-- Adds an independent test-only binary reader and Box/Cylinder/straight-hole/curved-hole references. External CAD application reopen and arbitrary STL import remain separate gates.
-- Exact PR-head and post-merge CI evidence pending; implementation must not be called complete until both required workflows pass on exact SHAs.
+- PR #74 merged at `1503266c18c5ed74c5756391c033437b05ae6f13`; exact PR head `e7491d976177a51933f62e5eefcab90d11dcc19f`; base `24f0b7083d95fb5582e26f4614a227250e0a2de0`.
+- Exact PR workflow #42227530004 passed both required checks with **523 tests in 1.61s**; exact push workflow #42227459289 passed both checks with **523 tests in 1.12s**.
+- Exact post-merge run #42227796004 passed both required jobs on the merge SHA; **523 tests in 1.31s**.
+- Adds deterministic binary STL export, strict sidecar manifest v1.0, source frame/unit/provenance/tolerance, payload SHA-256, measured binary32 quantization error, caller-context validation and a 1,000,000-facet ceiling.
+- Independent test-only parser covers Box, Cylinder, straight-hole and circular-arc-hole output. Arbitrary STL import and external CAD application reopen remain unsupported.
+
+## PR #75 — Independent STL geometric reopen references (TEST CANDIDATE)
+
+- Extends the independent test reader to calculate quantized bounding boxes and signed volume directly from the binary facet records.
+- Compares those independent metrics against the source TriangleMesh using an explicit coordinate-error-derived volume bound.
+- Adds corrupt non-finite facet and inconsistent-normal rejection references.
+- Exact-head and post-merge CI evidence pending.
 
 ## Next repository increments
 
