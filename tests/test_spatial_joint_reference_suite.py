@@ -1,10 +1,11 @@
 import json
 from dataclasses import replace
 from pathlib import Path
-from math import cos, sin
+from math import cos, sin, isfinite
 
 import pytest
 
+from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.joint_constraints import generate_joint_constraints
 from universal_platform.engineering.joint_jacobian import build_joint_constraint_jacobian
@@ -135,7 +136,7 @@ def test_all_joint_families_match_reference_jacobian_entries(case):
     jacobian = build_joint_constraint_jacobian(generated, poses, values)
     assert jacobian.shape == (6, 6 + case["nominal_dof"])
     assert all(
-        isinstance(value, (int, float)) and value == value
+        isinstance(value, (int, float)) and isfinite(value)
         for row in jacobian.values for value in row
     )
     for expected in case["expected_jacobian_entries"]:
@@ -222,7 +223,7 @@ def test_planar_joint_family_is_valid_in_spatial_but_not_implicit_planar_formula
         reference_constraint_rank=6,
     )
     assert spatial.local_mobility == 3
-    with pytest.raises(Exception, match="explicit plane-frame contract"):
+    with pytest.raises(InvalidModelError, match="explicit plane-frame contract"):
         analyze_geometric_mechanism_mobility(
             model, MobilityFormulation.PLANAR, poses, values,
             ground_link_id="link/parent", configuration_id="configuration/planar-formulation",
