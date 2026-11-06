@@ -255,3 +255,75 @@ def test_jacobian_callback_and_strategy_must_be_consistent():
             [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
             jacobian=lambda _v: [[1.0]],
         )
+
+
+
+def test_jacobian_rank_diagnostic_reports_full_rank_and_square_shape():
+    from universal_platform.engineering.nonlinear_solver import JacobianRankStatus
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8, "y": 2.2},
+        [
+            NonlinearConstraint("sum", lambda v: v["x"] + v["y"] - 3.0),
+            NonlinearConstraint("difference", lambda v: v["x"] - v["y"] + 1.0),
+        ],
+    )
+    assert result.jacobian_rank is not None
+    assert result.jacobian_rank.status is JacobianRankStatus.FULL_RANK
+    assert result.jacobian_rank.estimated_rank == 2
+    assert result.jacobian_rank.system_shape == "SQUARE"
+
+
+def test_jacobian_rank_diagnostic_detects_duplicate_constraint_rows():
+    from universal_platform.engineering.nonlinear_solver import JacobianRankStatus
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.0, "y": 0.0},
+        [
+            NonlinearConstraint("first", lambda v: v["x"] + v["y"] - 2.0),
+            NonlinearConstraint("duplicate", lambda v: 2.0 * (v["x"] + v["y"] - 2.0)),
+        ],
+    )
+    assert result.jacobian_rank is not None
+    assert result.jacobian_rank.status is JacobianRankStatus.RANK_DEFICIENT
+    assert result.jacobian_rank.estimated_rank == 1
+
+
+def test_jacobian_rank_diagnostic_labels_underdetermined_full_row_rank():
+    from universal_platform.engineering.nonlinear_solver import JacobianRankStatus
+
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.0, "y": 0.0},
+        [NonlinearConstraint("sum", lambda v: v["x"] + v["y"] - 2.0)],
+    )
+    assert result.jacobian_rank is not None
+    assert result.jacobian_rank.status is JacobianRankStatus.FULL_RANK
+    assert result.jacobian_rank.system_shape == "UNDERDETERMINED"
+    assert result.jacobian_rank.maximum_rank == 1
+
+
+def test_jacobian_rank_tolerance_is_validated_and_diagnostics_can_be_uncomputed():
+    from universal_platform.engineering.nonlinear_solver import JacobianRankDiagnostics
+
+    with pytest.raises(SolverError, match="step, tolerance and damping"):
+        solve_nonlinear_constraints(
+            ["x"], {"x": 1.0},
+            [NonlinearConstraint("eq", lambda v: v["x"] - 1.0)],
+            options=NonlinearSolverOptions(rank_tolerance=0.0),
+        )
+    result = solve_nonlinear_constraints(
+        ["x"], {"x": 1.0},
+        [NonlinearConstraint("eq", lambda v: v["x"] - 1.0)],
+    )
+    assert result.jacobian_rank is None
+
+
+def test_rank_estimator_reports_indeterminate_for_non_finite_matrix():
+    from universal_platform.engineering.nonlinear_solver import (
+        JacobianRankStatus,
+        _estimate_jacobian_rank,
+    )
+
+    diagnostic = _estimate_jacobian_rank([[math.inf, 0.0]], 1e-10)
+    assert diagnostic.status is JacobianRankStatus.INDETERMINATE
+    assert diagnostic.estimated_rank is None
