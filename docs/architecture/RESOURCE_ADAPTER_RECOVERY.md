@@ -8,7 +8,7 @@ Provide a central typed registry for runtime components and a fail-closed recove
 
 ## Resource model
 
-Each registered resource has a stable resource ID, resource kind, adapter ID, required capabilities, lifecycle state and generation counter. The in-memory registry serializes updates under a lock and rejects stale or illegal transitions. It is process-local; durable persistence and distributed leases are future work.
+Each registered resource has a stable resource ID, resource kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing ResourceMetric values are grouped into timestamped, sequenced ResourceSnapshot records. The registry serializes updates under a lock, rejects stale lifecycle transitions and non-monotonic measurement snapshots, and exposes the latest snapshot per resource. Metrics can represent CPU utilization, memory/GPU/disk bytes, network byte counters, worker counts and other adapter-defined measurements. It is process-local; durable persistence and distributed leases are future work.
 
 ## Log-driven detection
 
