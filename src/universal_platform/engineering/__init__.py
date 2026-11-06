@@ -13,6 +13,7 @@ from .framed_coordinates import FramedPoint3, FramedVector3
 from .frame_graph import FrameGraph
 from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, FramedBounds3, PrimitiveGeometryModel, Vec2
 from .profile_boolean import ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles
+from .mesh import TriangleMesh, MeshValidationResult, tessellate_box, tessellate_cylinder, validate_triangle_mesh
 from .kinematics import JointPlacement, solve_tree_forward_kinematics
 from .inverse_kinematics import (
     PlanarIKResult,
@@ -115,7 +116,7 @@ __all__ = [
     "ModuleManifest", "ModuleOperation", "ModuleRegistry", "ModuleRequest", "ModuleResponse",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
-    "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "ExtrudedProfileSolid", "FramedBounds3", "PrimitiveGeometryModel", "Vec2", "ProfileBooleanOperation", "ProfileBooleanResult", "ProfileLoop", "boolean_profiles", "JointPlacement",
+    "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "ExtrudedProfileSolid", "FramedBounds3", "PrimitiveGeometryModel", "Vec2", "TriangleMesh", "MeshValidationResult", "tessellate_box", "tessellate_cylinder", "validate_triangle_mesh", "ProfileBooleanOperation", "ProfileBooleanResult", "ProfileLoop", "boolean_profiles", "JointPlacement",
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
