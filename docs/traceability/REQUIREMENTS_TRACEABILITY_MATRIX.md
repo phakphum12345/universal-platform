@@ -87,3 +87,23 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | CAD-3MF-MESH-001 | Bounded 3MF Core import/export for validated watertight triangle meshes with source provenance | [3MF Core Mesh Interchange Contract](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md); `export_3mf` / `import_3mf` | IMPLEMENTED — PR #97 merged at `9b415f7c6be0f537feb67cbe86a911dc0ef5f662`; exact-head and post-merge CI PASS, 650 tests. One untransformed mesh object only; full 3MF and STEP remain OPEN. |
+
+
+## Runtime, resource and recovery sub-requirements
+
+These sub-requirements decompose the runtime and governance scope in the master command. Status below reflects open PR implementations, not merged integration capability.
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| RT-001 | Typed central resource registry and lifecycle transitions | PR #100; `runtime/resources/registry.py` | PARTIAL — process-local registry |
+| RT-002 | Unit-bearing resource snapshots and provider collection | PR #100, #106; `runtime/resources/collector.py` | PARTIAL — CPU count, supported memory, disk and Linux network only |
+| RT-003 | Resource quota allocation and expiring leases | PR #105; `runtime/resources/allocator.py` | PARTIAL — in-memory logical quota, no OS enforcement/distributed leases |
+| RT-004 | Bounded log analysis and component correlation | PR #100; `runtime/health/log_analyzer.py` | PARTIAL — bounded parser and explicit component IDs |
+| RT-005 | Permission-bounded file log ingestion | PR #101; `runtime/health/log_sources.py` | PARTIAL — configured-root UTF-8 files; no stream rotation/cursors |
+| RT-006 | Recovery evidence and evidence-before-resume | PR #101–#102; `runtime/evidence/recovery_records.py` and coordinator | PARTIAL — JSONL store with process-local lock |
+| RT-007 | Sleep/repair/validate/canary/quarantine lifecycle | PR #100–#102; `runtime/recovery/coordinator.py` | PARTIAL — contract/coordinator; repair executor must provide real sandbox |
+| RT-008 | Trusted-worker process supervision | PR #103; `runtime/supervisor.py` | PARTIAL — allow-list, timeout, cancellation and bounded output; not a sandbox |
+| RT-009 | Compatible fallback adapter discovery and replacement | PR #104; `runtime/adapters/catalog.py` | PARTIAL — license/capability/version/dependency checks; caller owns runtime routing |
+| RT-010 | OS-level sandbox, quotas, durable leases/evidence and restart/checkpoint | Future implementation gates | OPEN — not implemented or claimed |
+
+Acceptance remains blocked until the required PR stack is reviewed and integrated, the remaining security/runtime gates are implemented, and the relevant integration/failure-injection tests pass.
