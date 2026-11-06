@@ -264,3 +264,14 @@ def test_planar_mobility_rejects_unsupported_joint_family_and_bad_plane_frame():
             plane_frame=RigidTransform("plane/xy", "world"),
             plane_tolerance_m=0.0,
         )
+
+
+def test_planar_mobility_requires_metre_based_plane_frame():
+    case = next(item for item in cases_for_planar() if item["joint_kind"] == "FIXED")
+    model, poses, values = build_model(case)
+    with pytest.raises(InvalidModelError, match="must use metres"):
+        analyze_geometric_mechanism_mobility(
+            model, MobilityFormulation.PLANAR, poses, values,
+            ground_link_id="link/parent", configuration_id="planar/non-metre-frame",
+            plane_frame=RigidTransform("plane/xy", "world", length_unit="mm"),
+        )
