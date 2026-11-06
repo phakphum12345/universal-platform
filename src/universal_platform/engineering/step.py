@@ -347,15 +347,43 @@ def import_step(content: bytes) -> STEPImportResult:
         "POLY_LOOP", "FACE_OUTER_BOUND", "FACE_SURFACE", "CLOSED_SHELL",
         "FACETED_BREP", "FACETED_BREP_SHAPE_REPRESENTATION",
     }
-    complex_instances = [raw for kind, raw in instances.values() if kind == "__COMPLEX__"]
+    complex_instances = [
+        (identifier, raw)
+        for identifier, (kind, raw) in instances.items()
+        if kind == "__COMPLEX__"
+    ]
     if any(kind not in allowed_simple | {"__COMPLEX__"} for kind, _ in instances.values()):
         raise InvalidModelError("STEP file contains an unsupported entity type")
     if len(complex_instances) != 2:
         raise InvalidModelError("STEP profile requires one length unit and one geometric context")
-    unit_match = re.search(r"SI_UNIT\s*\(\s*(\$|\.[A-Z]+\.)\s*,\s*\.METRE\.\s*\)", " ".join(complex_instances))
-    if not unit_match or unit_match.group(1) not in _PREFIX_UNIT:
-        raise InvalidModelError("STEP profile has an unsupported or missing SI length unit")
-    length_unit = _PREFIX_UNIT[unit_match.group(1)]
+
+    unit_instances: list[tuple[int, str]] = []
+    context_instances: list[tuple[int, int]] = []
+    for identifier, raw in complex_instances:
+        unit_match = re.fullmatch(
+            r"\s*LENGTH_UNIT\(\)\s+NAMED_UNIT\(\*\)\s+"
+            r"SI_UNIT\(\s*(\$|\.[A-Z]+\.)\s*,\s*\.METRE\.\s*\)\s*",
+            raw,
+        )
+        context_match = re.fullmatch(
+            r"\s*GEOMETRIC_REPRESENTATION_CONTEXT\(\s*3\s*\)\s+"
+            r"GLOBAL_UNIT_ASSIGNED_CONTEXT\(\s*\(\s*#([0-9]+)\s*\)\s*\)\s+"
+            r"REPRESENTATION_CONTEXT\(\s*''\s*,\s*''\s*\)\s*",
+            raw,
+        )
+        if unit_match:
+            unit_instances.append((identifier, unit_match.group(1)))
+        elif context_match:
+            context_instances.append((identifier, int(context_match.group(1))))
+        else:
+            raise InvalidModelError("STEP complex instance is outside the supported unit/context profile")
+    if len(unit_instances) != 1 or len(context_instances) != 1:
+        raise InvalidModelError("STEP profile requires one length unit and one geometric context")
+    unit_id, unit_prefix = unit_instances[0]
+    context_id, assigned_unit_id = context_instances[0]
+    if unit_prefix not in _PREFIX_UNIT or assigned_unit_id != unit_id:
+        raise InvalidModelError("STEP geometric context must assign the declared SI length unit")
+    length_unit = _PREFIX_UNIT[unit_prefix]
 
     parsed: dict[int, tuple[str, list[str]]] = {}
     for identifier, (kind, raw) in instances.items():
