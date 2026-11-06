@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 2d99717da12974434d71c686dc18dff48271d617 (PR #27; normalized stable-ID mechanism model schema and validator)  
+**Latest merged baseline:** 0b1370460dd37afc685d5b7f2ec64cdeb77659b8 (PR #28; deterministic general loop topology and explicit residual-to-solver bridge)  
 **Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, normalized stable-ID mechanism schema, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
@@ -199,8 +199,9 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds deterministic spanning-forest and fundamental-cycle analysis over normalized stable-ID links and joints. Reports connected components, tree edges, loop-closing edges and ordered cycle paths; handles disconnected components, isolated links and parallel joints.
 - Adds caller-supplied scalar residual records associated with every loop-closing edge and bridges them to the existing nonlinear equality solver. Each closing edge must be covered; residual IDs, tolerance and scale flow into the existing solver.
 - Status semantics: CONVERGED only when supplied residuals pass; UNDERCONSTRAINED only when the solver diagnostics explicitly show an underdetermined Jacobian with estimated rank below variable count; otherwise UNKNOWN. SINGULAR and UNREACHABLE are not inferred from local solver failure.
-- Exact tested PR head: `5318f93d1964e81e3dfc11c7a11fd0061e0d47b2`.
-- GitHub Actions PR run #218 (run ID `42150595977`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.41s**. Documentation-only marker SKIPPED, not PASS.
+- Corrected tested code head: `5318f93d1964e81e3dfc11c7a11fd0061e0d47b2`; PR run #218 (run ID `42150595977`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.41s**.
+- Final tested PR head including evidence documentation: `ebd545ef4a47770b13878d5261966c50a5807939`; PR run #220 (run ID `42150727013`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.35s**. Documentation-only markers were SKIPPED, not PASS.
 - Initial push run #216 (run ID `42150470866`) failed at the first test head `a4e41c9ce33586bb15e74d5a5dc664169706ac9e` (179 passed, 2 failed). Both were test-fixture expectation defects; corrected on the exact tested head above. The earlier failure is retained as evidence, not overwritten.
-- Merge status: PR remains open; no merge or post-merge CI claim is made.
+- Squash merge commit: `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`.
+- Post-merge push run #221 (run ID `42150851188`) on exact merge SHA `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`: `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.40s**. Documentation-only marker SKIPPED, not PASS.
 - Explicit limits: normalized JointModel does not contain enough complete placement/coordinate/geometry information to generate general joint equations. This PR provides topology and an explicit residual bridge, not automatic arbitrary-mechanism or spatial geometry solving.
