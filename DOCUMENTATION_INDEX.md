@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `cb91c7c49406fd02324be6b30d5570e821b4d503` (PR #80 merge); exact PR workflow #42238370626 passed workflow-sanity and python-tests with 550 tests; push workflow #42238360081 passed both jobs; post-merge CI for this integration SHA is UNKNOWN. PRs #49, #52, #54, #56, #59–#80 are integrated on `docs/phase-0-complete-requirements`. The last recursive tree audit was pinned to the PR #78 baseline SHA `502d49baf58e43938d2746859e10817badd43f6e` (193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files). PRs #79 and #80 changed the tree; a new recursive tree enumeration has not been performed, so current counts are UNKNOWN. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53` (PR #81 merge); post-merge workflow #42239244546 passed workflow-sanity and python-tests with 550 tests in 1.97s. PRs #49, #52, #54, #56, #59–#80 are integrated on `docs/phase-0-complete-requirements`. The last recursive tree audit was pinned to the PR #78 baseline SHA `502d49baf58e43938d2746859e10817badd43f6e` (193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files). PRs #79 and #80 changed the tree; a new recursive tree enumeration has not been performed, so current counts are UNKNOWN. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 
@@ -132,3 +132,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
 - [Repository Audit post-PR #80](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md) — current integration SHA, PR #80 evidence, maturity boundaries and remaining gated work.
+
+- [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — dependency-free exact-rational predicate policy for PlanarRegion v1.
+- [Repository Audit post-PR #81](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR81.md) — current baseline, tree counts, maturity boundaries and next gated work.

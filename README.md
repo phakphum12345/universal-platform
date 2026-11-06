@@ -159,3 +159,8 @@ The integration branch is at `502d49baf58e43938d2746859e10817badd43f6e` after PR
 ## Current verified integration baseline (post-PR #80)
 
 Integration branch HEAD: `cb91c7c49406fd02324be6b30d5570e821b4d503`. PR #80 implements additive exact-rational triangle-mesh intersection analysis; exact PR workflow #42238370626 passed both required jobs with 550 tests, and push workflow #42238360081 passed both jobs. Post-merge CI for the integration SHA remains UNKNOWN. See [post-PR #80 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md). This does not mean the entire platform is complete.
+
+
+## Current verified integration baseline (post-PR #81)
+
+Integration HEAD `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; post-merge workflow #42239244546 passed workflow-sanity and python-tests with 550 tests in 1.97s. Recursive tree: 199 files, 92 Markdown, 90 Python, 13 schemas and 48 test files. PR #82 is the next candidate increment for a separate exact-predicate PlanarRegion input model; it does not yet implement general planar Boolean operations. See [post-PR #81 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR81.md).
