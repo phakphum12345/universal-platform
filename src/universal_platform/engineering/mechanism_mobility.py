@@ -61,6 +61,7 @@ class NominalMobilityEstimate:
     formulation: MobilityFormulation
     body_dimension: int
     link_count: int
+    ground_link_id: str
     free_body_dof: int
     nominal_joint_constraints: int
     estimated_dof: int
@@ -99,6 +100,7 @@ class MobilityAnalysisResult:
                 "formulation": self.nominal.formulation.value,
                 "body_dimension": self.nominal.body_dimension,
                 "link_count": self.nominal.link_count,
+                "ground_link_id": self.nominal.ground_link_id,
                 "free_body_dof": self.nominal.free_body_dof,
                 "nominal_joint_constraints": self.nominal.nominal_joint_constraints,
                 "estimated_dof": self.nominal.estimated_dof,
@@ -125,6 +127,8 @@ class MobilityAnalysisResult:
 def estimate_nominal_mobility(
     model: MechanismModel,
     formulation: MobilityFormulation,
+    *,
+    ground_link_id: str,
 ) -> NominalMobilityEstimate:
     """Estimate nominal DOF from free rigid bodies and joint metadata.
 
@@ -142,6 +146,10 @@ def estimate_nominal_mobility(
         raise InvalidModelError("formulation must be a MobilityFormulation")
     if len(model.links) < 2:
         raise InvalidModelError("Mobility analysis requires at least two links")
+    if not isinstance(ground_link_id, str) or not ground_link_id.strip():
+        raise InvalidModelError("ground_link_id must be a non-empty stable link ID")
+    if ground_link_id not in {item.link_id for item in model.links}:
+        raise InvalidModelError(f"Unknown ground_link_id: {ground_link_id!r}")
 
     dimension = 3 if formulation is MobilityFormulation.PLANAR else 6
     planar_joint_dof = {
@@ -182,6 +190,7 @@ def estimate_nominal_mobility(
         formulation=formulation,
         body_dimension=dimension,
         link_count=len(model.links),
+        ground_link_id=ground_link_id,
         free_body_dof=free_body_dof,
         nominal_joint_constraints=constraints,
         estimated_dof=estimated,
@@ -195,6 +204,7 @@ def analyze_mechanism_mobility(
     formulation: MobilityFormulation,
     jacobian: ConstraintJacobian,
     *,
+    ground_link_id: str,
     reference_constraint_rank: int | None = None,
     rank_tolerance: float = 1e-10,
 ) -> MobilityAnalysisResult:
@@ -205,7 +215,7 @@ def analyze_mechanism_mobility(
     same constraint system. A lower local rank is flagged as a *possible*
     singularity, never as a proof of one.
     """
-    nominal = estimate_nominal_mobility(model, formulation)
+    nominal = estimate_nominal_mobility(model, formulation, ground_link_id=ground_link_id)
     if not isinstance(jacobian, ConstraintJacobian):
         raise InvalidModelError("jacobian must be a ConstraintJacobian")
     for label, value in (
@@ -232,8 +242,14 @@ def analyze_mechanism_mobility(
         for row in jacobian.values for value in row
     ):
         raise InvalidModelError("Jacobian values must be finite numbers (not booleans)")
-    if not isfinite(rank_tolerance) or rank_tolerance <= 0.0:
+    if isinstance(rank_tolerance, bool) or not isfinite(rank_tolerance) or rank_tolerance <= 0.0:
         raise InvalidModelError("rank_tolerance must be finite and positive")
+
+    if len(jacobian.coordinate_ids) != nominal.free_body_dof:
+        raise InvalidModelError(
+            "Jacobian coordinate count must match the free-body generalized DOF "
+            f"({nominal.free_body_dof}) for the selected ground link"
+        )
 
     max_rank = min(len(jacobian.constraint_ids), len(jacobian.coordinate_ids))
     if reference_constraint_rank is not None and (

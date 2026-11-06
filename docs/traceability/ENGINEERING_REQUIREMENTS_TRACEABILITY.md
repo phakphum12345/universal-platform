@@ -44,7 +44,7 @@ PR #28 adds deterministic fundamental-cycle topology for normalized mechanism gr
 
 ## CAD-003C — Mobility / degrees-of-freedom diagnostics (PR #29)
 
-- Adds separate nominal PLANAR/SPATIAL joint-count estimates and local configuration-specific mobility from a caller-supplied constraint Jacobian.
+- Adds separate nominal PLANAR/SPATIAL joint-count estimates with an explicit grounded-link ID and local configuration-specific mobility from a caller-supplied constraint Jacobian whose columns cover the complete free-body generalized-coordinate set.
 - Reports estimated rank, redundant constraint rows, negative nominal DOF and possible singularity as separate fields. Singularity remains UNKNOWN without an explicit regular-configuration reference rank.
 - Tests cover planar 4R nominal and local mobility, spatial revolute-pair nominal mobility, unsupported planar joint kinds, redundant rows, rank drop, negative nominal count, validation and versioned provenance snapshots.
-- This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Exact-SHA CI evidence is pending.
+- This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Initial exact-head CI passed 194 tests (run #225); a follow-up contract tightening requires fresh exact-head CI.

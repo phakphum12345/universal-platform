@@ -209,10 +209,10 @@ Passing tests validate only the code and contracts present at the exact tested S
 
 ## PR #29 — Nominal and local mechanism mobility diagnostics
 
-- Adds explicit PLANAR and SPATIAL nominal mobility formulations over normalized stable-ID mechanism models. Nominal counts use free rigid-body coordinates minus ideal lower-pair constraint counts derived from each joint's declared nominal relative DOF.
-- Adds a caller-supplied constraint Jacobian contract with named constraints, named free-body generalized coordinates, a configuration ID and a source/provenance label. Local mobility is estimated as coordinate count minus the numerical Jacobian rank at that configuration.
+- Adds explicit PLANAR and SPATIAL nominal mobility formulations over normalized stable-ID mechanism models. The caller must identify the grounded link; nominal counts use free rigid-body coordinates minus ideal lower-pair constraint counts derived from each joint's declared nominal relative DOF.
+- Adds a caller-supplied constraint Jacobian contract with named constraints, the complete free-body generalized-coordinate set for the selected ground link, a configuration ID and a source/provenance label. Local mobility is estimated as coordinate count minus the numerical Jacobian rank at that configuration.
 - Reports redundant Jacobian rows separately from negative nominal DOF. These are distinct diagnostics; redundant rows alone do not prove physical overconstraint.
 - Singularity status remains UNKNOWN unless the caller supplies a regular-configuration reference rank. A lower rank is reported only as POSSIBLE_SINGULARITY, not a proof.
 - Rank uses the existing threshold-dependent modified Gram–Schmidt estimator; results retain rank method and threshold. Caller is responsible for consistent units/scaling and geometric Jacobian derivation.
 - The normalized JointModel schema still does not provide complete placements/parameterizations to generate geometric joint equations automatically. Higher pairs, automatic Jacobian construction, dynamics, contact, physical feasibility and certification remain out of scope.
-- PR #29 validation evidence is pending until CI runs on the exact final PR head SHA.
+- PR #29 initial exact-head CI passed (run #225, head `2f33d2e9a1656d29599f0f9ec5cb98fad991177e`; 194 tests); a follow-up contract tightening now requires explicit ground-link identity and full free-body coordinate coverage, so fresh CI is pending on the revised head.
