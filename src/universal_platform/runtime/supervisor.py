@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import os
+import math
 from pathlib import Path
 import signal
 import subprocess
@@ -34,13 +35,13 @@ class WorkerSpec:
             raise ValueError("arguments must be NUL-free strings")
         if not self.working_directory.strip():
             raise ValueError("working_directory must be non-empty")
-        if self.timeout_seconds <= 0:
-            raise ValueError("timeout_seconds must be positive")
-        if self.terminate_grace_seconds < 0:
-            raise ValueError("terminate_grace_seconds must be non-negative")
+        if isinstance(self.timeout_seconds, bool) or not isinstance(self.timeout_seconds, (int, float)) or not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be finite and positive")
+        if isinstance(self.terminate_grace_seconds, bool) or not isinstance(self.terminate_grace_seconds, (int, float)) or not math.isfinite(self.terminate_grace_seconds) or self.terminate_grace_seconds < 0:
+            raise ValueError("terminate_grace_seconds must be finite and non-negative")
         for key, value in self.environment.items():
-            if not key or "=" in key or "\x00" in key or "\x00" in value:
-                raise ValueError("environment entries must have valid names and NUL-free values")
+            if not isinstance(key, str) or not isinstance(value, str) or not key or "=" in key or "\x00" in key or "\x00" in value:
+                raise ValueError("environment entries must have valid names and NUL-free string values")
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,12 +199,14 @@ class PythonProcessSupervisor:
             pass
         try:
             process.wait(timeout=grace_seconds)
-            return
         except subprocess.TimeoutExpired:
             pass
+        # A parent can exit on SIGTERM while descendants remain in its POSIX
+        # process group. Always kill the remaining group after the grace period.
         try:
             if os.name == "nt":
-                process.kill()
+                if process.poll() is None:
+                    process.kill()
             else:
                 os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
