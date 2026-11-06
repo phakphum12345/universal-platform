@@ -1,13 +1,20 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (post-PR #113).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 253 ahead / 0 behind).  
-**Latest post-merge CI:** workflow #42279521637 — workflow-sanity PASS; python-tests PASS; **732 passed in 3.79s**.  
-**Current tree:** 268 files, 102 Markdown, 143 Python, 19 JSON schemas, 71 test files; recursive response not truncated.  
-**Open PRs:** 0 at audit time. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Current integration HEAD:** `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (post-PR #118).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 265 ahead / 0 behind).  
+**Latest post-merge CI:** PR #118 workflow #42282428283 on `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` — workflow-sanity PASS; python-tests PASS; **755 passed in 2.83s**.  
+**Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
+**Open PRs:** 0 at post-PR #118 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
+
+## Current CAD/B-rep status — post-PR #117 and #118
+
+- PR #117 adds `BRepSolid` v1.0: a single connected closed shell of triangular planar faces, canonical edges/oriented uses, exact-rational validation, two-face edge incidence, opposite edge directions, connected face adjacency, Euler/genus checks and positive signed volume. It bridges to/from validated triangle meshes. It does not support n-gons, face inner loops, multiple shells, shell healing or arbitrary self-intersection proof.
+- PR #118 adds exact-grid Boolean UNION, INTERSECTION, first-minus-rest DIFFERENCE and odd/even SYMMETRIC_DIFFERENCE for 2–16 axis-aligned box B-reps, capped at 32,768 grid cells. Output components are face-connected closed shells and pass mesh/B-rep validation. Point/edge contacts remain separate; enclosed cavities and arbitrary/rotated/curved solids fail closed.
+- PR #118 merge SHA: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; exact post-merge workflow #42282428283 passed `workflow-sanity` and `python-tests`, **755 tests in 2.83s**. No review submissions or unresolved review threads were returned for PR #117/#118. PR #116 had one owner-authored COMMENTED review and no inline threads.
+- The broader platform remains PARTIAL. The post-PR #118 audit records CAD, EDA, physics and runtime/security gates. Main remains unchanged; no promotion performed.
 
 ## Implemented in the merged baseline
 
