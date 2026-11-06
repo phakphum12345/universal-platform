@@ -152,3 +152,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | CAD-PROFILE-001 | Parametric 2D profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY; src/universal_platform/engineering/primitive_geometry.py | Simple polygon validation, extrusion height, analytic area/perimeter/volume/surface area, deterministic v1.0 serialization and transformed AABB tests (PR #49; exact-SHA CI pending). Curved profiles, holes and Boolean operations remain NOT IMPLEMENTED. |
+
+
+| CAD-PROFILE-002 | Through-hole loops in straight-sided profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY; schemas/geometry/primitive-geometry.schema.json | Candidate PR #52 ports merged PR #50 into the integration line, includes optional backward-compatible `holes`, strict loop topology, net area/perimeter/SI volume/surface area including inner walls, and public package exports. Exact PR-head CI and post-merge evidence pending; not yet IMPLEMENTED in the integration baseline. |

@@ -1,8 +1,10 @@
 # Implementation Status — UEIC Foundation
 
-**Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48; CAD-neutral analytic primitive geometry). **Latest merged feature baseline:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48).
-**Latest merged feature:** PR #48 squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; exact PR-head run #349 (`42172938440`) passed workflow-sanity and python-tests; **412 tests passed in 1.07s**. Post-merge run #350 (`42173099340`) on the exact merge SHA passed both jobs; **412 tests passed in 0.62s**. PR #39–#47 evidence remains recorded below.
+**Integration branch:** `docs/phase-0-complete-requirements`  
+**Integration HEAD:** `bfc3e6585106c73b29297cbda2ab9ec9d50340db` (PR #49 merge commit).  
+**Exact integration CI:** run #356 / ID `42186896757` on that SHA; `workflow-sanity` PASS, `python-tests` PASS; job log: **416 passed in 0.84s**.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 202 commits ahead and 0 behind. This work has not been merged to `main`.  
+**CAD integration gap:** PR #50 (through-holes) and PR #51 (documentation audit) are merged on their stacked feature branches but are not ancestors of this integration HEAD. Candidate branch `fix/cad-profile-holes-integration` ports the through-hole implementation, schema and tests, and fixes the missing public imports for `ExtrudedProfileSolid` and `Vec2`; PR/CI evidence is pending.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
