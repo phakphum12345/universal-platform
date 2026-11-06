@@ -52,6 +52,13 @@ from .mechanism_mobility import (
     analyze_mechanism_mobility,
     estimate_nominal_mobility,
 )
+from .joint_constraints import (
+    GeneratedJointConstraintSet,
+    JointConstraintDefinition,
+    JointConstraintEvaluation,
+    JointConstraintResidual,
+    generate_joint_constraints,
+)
 from .mechanism_kinematics import (
     BranchContinuityStatus,
     DerivativeKinematicsResult,
@@ -98,7 +105,10 @@ __all__ = [
     "JointCoordinateParameterization", "GeometryPlacement", "JointFramePlacement", "GeometryKind",
     "GeometryReference", "JointKind", "JointModel", "LinkModel",
     "MechanismModel", "ModelValidationResult", "SolverCapability",
-    "validate_mechanism_model", "LoopClosureConstraint", "LoopClosureResult",
+    "validate_mechanism_model", "GeneratedJointConstraintSet",
+    "JointConstraintDefinition", "JointConstraintEvaluation",
+    "JointConstraintResidual", "generate_joint_constraints",
+    "LoopClosureConstraint", "LoopClosureResult",
     "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
     "solve_mechanism_loops", "BranchContinuityStatus", "DerivativeKinematicsResult",
     "MechanismKinematicsInput", "MechanismKinematicsResult",
