@@ -1,6 +1,6 @@
 # Automatic Joint Constraint Generation Contract
 
-**Status:** Implemented candidate in PR #33; merge and exact-SHA CI evidence pending.
+**Status:** Implemented and merged in PR #33 at `62c71e4ca1f60eff5b496305429e6d141a81d268`; post-merge run #272 passed 241 tests.
 
 ## Purpose and boundary
 

@@ -98,3 +98,8 @@ PR #33 merged at `62c71e4ca1f60eff5b496305429e6d141a81d268`. Final PR head `68fb
 ## PR #34 — Automatic constraint Jacobian
 
 PR #34 merged at `b8ff9e505005261bddfe246f29dd2a21d744a174`. Final PR head `405be03046009f286536b8aa66be973c40c64fad` passed push run #278 and PR run #279 (248 tests each); post-merge run #280 on the exact merge SHA passed 248 tests. The implementation adds a numerical Jacobian for generated joint residuals with deterministic stable-ID columns for generalized coordinates and body poses. Forward/central finite differences, characteristic coordinate scales, physical row/column units and bound-aware one-sided differences are represented explicitly. Exact symbolic derivatives and solver convergence claims remain out of scope.
+
+
+## PR #35 — Geometry-aware loop-closure evaluation
+
+Connects deterministic graph topology with generated geometric joint residuals to evaluate caller-supplied configurations. All joint residuals are retained, each fundamental cycle's closing-edge residuals are grouped, and any failed represented joint relation prevents an overall PASS. This is evaluation-only; nonlinear configuration search and solver coupling remain separate follow-on work.

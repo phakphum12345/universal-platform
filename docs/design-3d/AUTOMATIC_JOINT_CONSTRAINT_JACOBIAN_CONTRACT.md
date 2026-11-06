@@ -1,6 +1,6 @@
 # Automatic Joint Constraint Jacobian Contract
 
-**Status:** Implemented candidate in PR #34; merge and exact-SHA CI evidence pending.
+**Status:** Implemented and merged in PR #34 at `b8ff9e505005261bddfe246f29dd2a21d744a174`; post-merge run #280 passed 248 tests.
 
 ## Purpose
 

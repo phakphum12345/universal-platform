@@ -26,6 +26,7 @@ Current modules include:
 - Normalized mechanism schema v1.2 with stable generalized-coordinate IDs and explicit per-joint coordinate ordering, units, axes, bounds and scales; missing parameterization coverage remains visible.
 - Automatic six-component joint pose-consistency residual generation from explicit body poses, placements and generalized coordinates for all eight declared joint families; this is not a general dynamics solver.
 - Finite-difference constraint Jacobian generation over generalized coordinates and body-pose tangent variables, with stable variable/row ordering and bound-aware one-sided fallback; this is not a symbolic or analytic derivative engine.
+- Geometry-aware loop-closure evaluation that combines deterministic fundamental cycles with generated joint residuals, retaining closing-edge and spanning-tree evidence for caller-supplied configurations; this is not a configuration-search solver.
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
 - An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).

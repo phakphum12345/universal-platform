@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged integration baseline:** e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598 (PR #32; schema v1.2 generalized coordinates and joint parameterization).  
-**Latest merged feature:** PR #32 squash merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258 (ID 42157428741) passed workflow-sanity and python-tests; 225 tests passed in 0.59s. PR #31 placement baseline and evidence are retained below.  
+**Latest merged integration baseline before PR #35:** d8523bffa58a0c7a5ed8a34433c939d70c225d42 (PR #34 plus evidence documentation).  
+**Latest merged feature:** PR #34 squash merge `b8ff9e505005261bddfe246f29dd2a21d744a174`; post-merge run #280 (ID `42159256016`) passed workflow-sanity and python-tests; 248 tests passed. Integration documentation commit `d8523bffa58a0c7a5ed8a34433c939d70c225d42` passed run #281 (ID `42159373280`); 248 tests passed. PRs #32 and #33 evidence is retained below.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -292,3 +292,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Does not claim symbolic/exact derivatives, solver convergence, rank proof or physical validation. Jacobian rank remains a separate numerical diagnostic.
 - PR branch: feat/automatic-joint-constraint-jacobian; base SHA: 74a5fed138d9dc2bdf543da9263397c095de7514.
 - Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f`: push run #276 (`42159087591`) and PR run #277 (`42159114452`) both passed workflow-sanity and python-tests; **248 passed** (0.51s / 0.35s). Documentation-only marker SKIPPED. Mergeability/review/thread inspection and post-merge evidence pending.
+
+
+## PR #35 — Geometry-aware loop-closure evaluation (implementation candidate)
+
+- Connects deterministic fundamental-cycle topology with automatic six-component joint pose-consistency residuals.
+- Evaluates and retains every joint residual, then groups the six residuals associated with each loop-closing joint; spanning-tree failures remain visible and prevent an overall PASS.
+- Requires explicit placements, complete generalized-coordinate parameterization, body-to-world poses, finite in-limit coordinate values and SI tolerances.
+- Reports PASS/FAIL only for the supplied configuration. It does not search for a configuration or claim global reachability, physical feasibility or certification.
+- Base integration SHA: `d8523bffa58a0c7a5ed8a34433c939d70c225d42`. Exact PR-head and post-merge CI evidence to be recorded after validation.
