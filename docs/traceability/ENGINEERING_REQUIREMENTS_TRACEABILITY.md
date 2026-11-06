@@ -14,7 +14,7 @@
 | CAD-002 | Generate tools and fixtures | 3D_TOOL_GENERATION_ENGINE | Requirement-to-model acceptance cases |
 | CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS | Joint, DOF and motion tests |
 | CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both branches, workspace boundaries, limits, residual tests and exact-SHA CI; PR #12 merged |
-| CAD-003B | Planar four-bar loop closure and mobility estimate | PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT | Analytic left/right branches, reachability, closure residuals, tangent case and Kutzbach count (PR #14); stable-ID, dimension-checked model snapshot mapping and deterministic result serialization (PR #25 merged at `6198529d0e816898ad84e20efa153d54c6e0c61d`; exact PR-head CI: 155 tests passed; post-merge CI UNKNOWN). General multi-loop/3D adapter remains open |
+| CAD-003B | Planar four-bar loop closure and mobility estimate | PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT | Analytic left/right branches, reachability, closure residuals, tangent case and Kutzbach count (PR #14); stable-ID, dimension-checked model snapshot mapping and deterministic result serialization (PR #25 merged); complete four-link residual mapping and strict angle validation (PR #26 merged at `129a5f7867147b32d5582695b68d365db2b0c497`; exact PR-head CI: 156 tests passed; post-merge CI UNKNOWN). General multi-loop/3D adapter remains open |
 | CAD-004 | Engineering simulation | 3D_ENGINEERING_SIMULATION | Benchmarks and convergence evidence |
 | CAD-005 | Structural/civil design support | STRUCTURAL_AND_CIVIL_DESIGN | Code-basis and independent review evidence |
 | CAD-006 | CAD-to-manufacturing preparation | CAD_TO_MANUFACTURING_PIPELINE | Export, drawing and BOM reconciliation |
