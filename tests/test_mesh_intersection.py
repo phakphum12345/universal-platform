@@ -264,3 +264,22 @@ def test_result_rejects_intersection_indices_outside_source_triangle_count():
     malformed["status"] = "INTERSECTIONS_FOUND"
     with pytest.raises(InvalidModelError):
         MeshIntersectionAnalysis.from_dict(malformed)
+
+
+
+def test_near_coplanar_predicates_use_exact_represented_binary64_signs():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    delta = 2**-52
+    crossing = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (0.5, 0.5, -delta), (1.5, 0.5, delta), (0.5, 1.5, delta)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    separated = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (0.5, 0.5, delta), (1.5, 0.5, delta), (0.5, 1.5, delta)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    assert _pair_intersection(crossing, 0, 1) == "PROPER_INTERSECTION"
+    assert _pair_intersection(separated, 0, 1) is None
