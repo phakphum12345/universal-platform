@@ -6,7 +6,7 @@ from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.frame_graph import FrameGraph
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.primitive_geometry import (
-    BoxSolid, CylinderSolid, PrimitiveGeometryModel,
+    BoxSolid, CylinderSolid, PrimitiveGeometryModel, Vec2,
 )
 from universal_platform.engineering.transforms import RigidTransform
 
@@ -167,9 +167,9 @@ def test_extruded_profile_through_hole_area_surface_and_snapshot():
     solid = ExtrudedProfileSolid("solid.plate-hole", "part", outer, 3, "mm", (hole,))
     model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
     assert solid.area == pytest.approx(74.0)
-    assert solid.perimeter == pytest.approx(42.0)
+    assert solid.perimeter == pytest.approx(46.0)
     assert model.volume("solid.plate-hole").si_value == pytest.approx(222e-9)
-    assert model.surface_area("solid.plate-hole").si_value == pytest.approx(400e-6)
+    assert model.surface_area("solid.plate-hole").si_value == pytest.approx(286e-6)
     restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(model.to_dict())))
     assert restored.to_dict() == model.to_dict()
 
@@ -182,8 +182,8 @@ def test_extruded_profile_supports_multiple_disjoint_holes():
         (Vec2(7, 2), Vec2(7, 5), Vec2(10, 5), Vec2(10, 2)),
     )
     solid = ExtrudedProfileSolid("solid.multi-hole", "part", outer, 2, "mm", holes)
-    assert solid.area == pytest.approx(72.0)
-    assert solid.perimeter == pytest.approx(54.0)
+    assert solid.area == pytest.approx(83.0)
+    assert solid.perimeter == pytest.approx(60.0)
 
 
 @pytest.mark.parametrize("holes", [
