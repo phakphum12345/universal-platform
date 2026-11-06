@@ -85,3 +85,8 @@ RigidTransform and FrameGraph use versioned v1.0 JSON-compatible snapshots. Tran
 ## Frame-bound spatial values (PR #45)
 
 FramedPoint3 and FramedVector3 bind Vec3 values to a stable frame ID and explicit length unit. Their v1.0 JSON snapshots distinguish POINT from VECTOR. Conversion uses FrameGraph and requires matching length units. Points apply rotation and translation; displacement vectors apply rotation only. These types represent spatial coordinates/displacements, not arbitrary force or velocity vectors.
+
+
+## CAD-neutral primitive geometry (PR #48)
+
+The engineering package exports BoxSolid, CylinderSolid, FramedBounds3 and PrimitiveGeometryModel. The model uses FrameGraph to transform bounds and Quantity to report SI volume/surface area. It is a primitive analytic layer, not a CAD kernel.

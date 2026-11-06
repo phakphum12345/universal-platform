@@ -135,3 +135,8 @@ This is an initial foundation, not a completed universal engineering system. Gen
 No claim of success without evidence. Untrusted code must be isolated. Privileged actions, production changes, deployment, physical device control, and self-modification require explicit human approval. Initial device scope is analysis and simulation only.
 
 Documentation and proposals do not mean capabilities are implemented. Evidence statuses must distinguish PASS, FAIL, SKIPPED, and UNKNOWN, with exact versions and reproducible checks where applicable. A completed solver run is not automatically an engineering PASS.
+
+
+### CAD-neutral geometry
+
+- Analytic Box/Cylinder primitive solids with explicit units, SI volume/surface area, frame-aware bounds and versioned serialization (PR #48 under review; not a B-rep/mesh CAD kernel).
