@@ -37,6 +37,15 @@ from .mechanism_model import (
     SolverCapability,
     validate_mechanism_model,
 )
+from .mechanism_mobility import (
+    ConstraintJacobian,
+    MobilityAnalysisResult,
+    MobilityFormulation,
+    NominalMobilityEstimate,
+    SingularityStatus,
+    analyze_mechanism_mobility,
+    estimate_nominal_mobility,
+)
 from .mechanism_loops import (
     LoopClosureConstraint,
     LoopClosureResult,
@@ -76,7 +85,9 @@ __all__ = [
     "MechanismModel", "ModelValidationResult", "SolverCapability",
     "validate_mechanism_model", "LoopClosureConstraint", "LoopClosureResult",
     "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
-    "solve_mechanism_loops", "JacobianMethod", "JacobianScaleDiagnostics",
+    "solve_mechanism_loops", "ConstraintJacobian", "MobilityAnalysisResult",
+    "MobilityFormulation", "NominalMobilityEstimate", "SingularityStatus",
+    "analyze_mechanism_mobility", "estimate_nominal_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",

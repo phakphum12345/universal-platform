@@ -205,3 +205,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Squash merge commit: `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`.
 - Post-merge push run #221 (run ID `42150851188`) on exact merge SHA `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`: `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.40s**. Documentation-only marker SKIPPED, not PASS.
 - Explicit limits: normalized JointModel does not contain enough complete placement/coordinate/geometry information to generate general joint equations. This PR provides topology and an explicit residual bridge, not automatic arbitrary-mechanism or spatial geometry solving.
+
+
+## PR #29 — Nominal and local mechanism mobility diagnostics
+
+- Adds explicit PLANAR and SPATIAL nominal mobility formulations over normalized stable-ID mechanism models. The caller must identify the grounded link; nominal counts use free rigid-body coordinates minus ideal lower-pair constraint counts derived from each joint's declared nominal relative DOF.
+- Adds a caller-supplied constraint Jacobian contract with named constraints, the complete free-body generalized-coordinate set for the selected ground link, a configuration ID and a source/provenance label. Local mobility is estimated as coordinate count minus the numerical Jacobian rank at that configuration.
+- Reports redundant Jacobian rows separately from negative nominal DOF. These are distinct diagnostics; redundant rows alone do not prove physical overconstraint.
+- Singularity status remains UNKNOWN unless the caller supplies a regular-configuration reference rank. A lower rank is reported only as POSSIBLE_SINGULARITY, not a proof.
+- Rank uses the existing threshold-dependent modified Gram–Schmidt estimator; results retain rank method and threshold. Caller is responsible for consistent units/scaling and geometric Jacobian derivation.
+- The normalized JointModel schema still does not provide complete placements/parameterizations to generate geometric joint equations automatically. Higher pairs, automatic Jacobian construction, dynamics, contact, physical feasibility and certification remain out of scope.
+- PR #29 final tested code head `ce2f1dd7e46279f58a6d6572efebe0c62e1c98ba`; run #231 (run ID `42152636174`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.23s**. Documentation-only marker SKIPPED, not PASS. A preceding head run #225 passed 194 tests before explicit-ground and full-coordinate validation; run #229 passed 195 tests before the final fail-closed singularity-reference guard.

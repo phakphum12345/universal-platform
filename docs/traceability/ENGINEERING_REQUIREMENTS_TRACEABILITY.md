@@ -40,3 +40,11 @@ Neither narrow slice closes general CAD-003. All other listed requirements remai
 
 
 PR #28 adds deterministic fundamental-cycle topology for normalized mechanism graphs and a caller-supplied residual bridge to the existing nonlinear equality solver. Final PR head `ebd545ef4a47770b13878d5261966c50a5807939` passed run #220 (`workflow-sanity` PASS; `python-tests` PASS, 181 tests); documentation-only marker SKIPPED. It merged at `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`; post-merge push run #221 passed on that exact merge SHA (`workflow-sanity` PASS; `python-tests` PASS, 181 tests). Automatic joint-equation generation, spatial geometry solving, mobility proof and singularity classification remain unimplemented.
+
+
+## CAD-003C — Mobility / degrees-of-freedom diagnostics (PR #29)
+
+- Adds separate nominal PLANAR/SPATIAL joint-count estimates with an explicit grounded-link ID and local configuration-specific mobility from a caller-supplied constraint Jacobian whose columns cover the complete free-body generalized-coordinate set.
+- Reports estimated rank, redundant constraint rows, negative nominal DOF and possible singularity as separate fields. Singularity remains UNKNOWN without an explicit regular-configuration reference rank.
+- Tests cover planar 4R nominal and local mobility, spatial revolute-pair nominal mobility, unsupported planar joint kinds, redundant rows, rank drop, negative nominal count, validation and versioned provenance snapshots.
+- This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Final tested code head `ce2f1dd7e46279f58a6d6572efebe0c62e1c98ba`; run #231 (`42152636174`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, 196 passed in 0.23s; documentation-only marker SKIPPED. The implementation returns singularity UNKNOWN if a supplied regular-rank reference is inconsistent with a higher observed rank.
