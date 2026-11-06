@@ -188,6 +188,10 @@ class AdapterReplacementCoordinator:
         self._adapters = adapters
         self._router = router
 
+    @property
+    def router(self) -> RuntimeAdapterRouter | None:
+        return self._router
+
     def replace_asleep_resource(
         self,
         resource_id: str,
