@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `1503266c18c5ed74c5756391c033437b05ae6f13` (PR #74 binary STL exporter squash merge).  
-**Exact post-merge CI:** PR #74 post-merge run #42227796004 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **523 passed in 1.31s**. Exact PR-head run #42227530004 passed both required jobs with 523 tests in 1.61s; exact push run #42227459289 passed with 523 tests in 1.12s.  
+**Integration HEAD:** `a8a7e6b28650a90665a465e7373d8ad6582f7832` (PR #75 independent STL geometry reference squash merge).  
+**Exact post-merge CI:** PR #75 post-merge run #42228462537 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **524 passed in 2.20s**. Exact PR-head run #42228344477 passed both required jobs with 524 tests in 2.09s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -680,3 +680,20 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Branch: `test/stl-independent-geometry-references`; base SHA: `1503266c18c5ed74c5756391c033437b05ae6f13`.
 - Extends independent parsing to compare quantized bounds and signed volume using a coordinate-error-derived tolerance; adds non-finite facet and inconsistent-normal corruption cases.
 - Exact-head and post-merge CI evidence pending.
+
+
+## PR #75 — Independent STL geometric reopen references (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/75
+- Base SHA: `1503266c18c5ed74c5756391c033437b05ae6f13`; exact PR head: `0d17638b6c361abfed7d0501576b0bc7de277809`.
+- Merge commit / integration HEAD: `a8a7e6b28650a90665a465e7373d8ad6582f7832`.
+- Exact PR workflow #42228344477 passed both jobs with 524 tests in 2.09s; exact post-merge run #42228462537 passed both jobs with **524 tests in 2.20s**.
+- Adds independent facet-record bounding-box and signed-volume comparison, coordinate-error-derived tolerance and non-finite/normal corruption tests.
+- This is test-only; production STL API/schema is unchanged.
+
+## PR #76 — Mesh geometric topology analysis contract (DESIGN ONLY)
+
+- Branch: `docs/mesh-topology-validation-contract`; base SHA: `a8a7e6b28650a90665a465e7373d8ad6582f7832`.
+- Adds a versioned contract for edge-connected components, vertex-link manifoldness, unused vertices, exact duplicate coordinates and optional caller-supplied near-coincident tolerance.
+- Explicitly preserves the existing `validate_triangle_mesh` contract and leaves geometric self-intersection status UNKNOWN.
+- No implementation is claimed; exact-head CI evidence pending.
