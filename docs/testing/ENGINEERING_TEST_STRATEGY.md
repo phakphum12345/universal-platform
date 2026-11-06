@@ -53,3 +53,8 @@ PR #44 adds Quantity v1.0 JSON round-trip, SI-value/dimension/source-unit preser
 ## Frame-bound spatial value validation
 
 PR #45 tests strict v1.0 serialization, POINT/VECTOR distinction, frame identity, explicit units, correct translation-versus-rotation behavior, unknown/disconnected frames and unit mismatch rejection.
+
+
+## Hardware schematic model validation
+
+PR #46 tests strict SchematicModel v1.0 JSON round-trip, deterministic component/net/pin ordering, stable IDs and reference designators, duplicate detection, dangling terminal rejection, one-net-per-pin, NO_CONNECT enforcement, schema version and unknown-field rejection. These are connectivity-model checks, not electrical rule checking.

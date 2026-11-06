@@ -84,3 +84,8 @@ HWR-006 — Offline hardware and driver design verification (PROPOSED). Supports
 - Which checks must be deterministic in the first milestone?
 - Which thresholds/tolerances are configurable per project?
 - How can reviewers approve or waive findings while preserving audit history?
+
+
+## Current implementation boundary
+
+PR #46 introduces a normalized SchematicModel v1.0 connectivity graph. Its structural checks (stable IDs, terminal resolution, pin uniqueness and NO_CONNECT handling) are not electrical rule checking. ERC, simulation, design-rule standards, component derating and physical verification remain NOT IMPLEMENTED / NOT VERIFIED.

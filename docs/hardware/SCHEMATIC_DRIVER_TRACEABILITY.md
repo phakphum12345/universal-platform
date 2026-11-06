@@ -2,7 +2,7 @@
 
 **Status:** PROPOSED  
 **Requirement:** HWR-005  
-**Implementation:** NOT IMPLEMENTED / NOT VERIFIED
+**Implementation:** PARTIAL — normalized SchematicModel connectivity graph implemented in PR #46; schematic rendering and schematic-to-driver traceability remain NOT IMPLEMENTED / NOT VERIFIED
 
 ## 1. Purpose
 
@@ -57,3 +57,8 @@ HWR-005 — Schematic/driver bidirectional traceability (PROPOSED). Supports HR-
 - Which EDA and source-control object IDs are stable enough for long-lived links?
 - Should links be sidecar metadata, generated indexes, or both?
 - Which reviewer roles may mark a relationship MANUALLY_CONFIRMED?
+
+
+## Implemented schematic data subset
+
+PR #46 adds normalized components, symbol IDs, pin identities/numbers/names/electrical types, nets and terminal references with deterministic JSON serialization. This does not yet provide EDA import/export, diagram rendering, electrical rule checking, or driver-interface binding.

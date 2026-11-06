@@ -140,3 +140,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | GEO-FRAME-002 | Frame-bound spatial points and displacement vectors | FRAMED_COORDINATE_CONTRACT; schemas/geometry/framed-coordinate.schema.json | FramedPoint3/FramedVector3 v1.0 JSON round-trip; explicit frame/unit binding; point transforms apply rotation+translation; vector transforms apply rotation only; mismatched units and unknown frames fail closed (PR #45; exact-SHA CI pending). |
+
+
+| HWR-SCHEM-001 | Normalized hardware schematic connectivity model | HARDWARE_SCHEMATIC_NETLIST_CONTRACT; schemas/hardware/schematic.schema.json | SchematicModel v1.0 stable component/pin/net IDs, reference designators, pin electrical types, terminal endpoint checks, one-net-per-pin, NO_CONNECT enforcement and deterministic serialization (PR #46; exact-SHA CI pending). Rendering, ERC, circuit simulation and driver binding remain NOT IMPLEMENTED. |
