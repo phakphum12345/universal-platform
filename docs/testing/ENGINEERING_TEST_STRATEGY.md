@@ -151,3 +151,12 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - PR #70 exact PR-head runs #42223197118/#42223188816 passed both jobs with 515 tests; post-merge run #42223460020 passed with 515 tests in 2.01s.
 - PR #71 adds a curved polygonal-hole fixture. Exact PR-head run #42225768304 passed with 516 tests in 1.74s; post-merge run #42225830931 passed with 516 tests in 1.45s.
 - The curved-hole reference checks closed/manifold topology, consistent winding, positive volume, a conservative chordal-area error bound, exact source endpoint retention, deterministic output and strict snapshot round trip.
+
+
+## Binary STL export references (PR #73 design candidate)
+
+- Require a valid source TriangleMesh and reject non-finite/overflowing float32 coordinates, quantized degenerate facets and facet counts above the documented resource limit.
+- Verify deterministic 80-byte header, little-endian facet count, 50-byte facet records, zero attribute bytes and exact payload length.
+- Use an independent test-only parser that does not reuse production packing helpers; verify order, winding, bounds, signed volume and the coordinate-error bound.
+- Bind the payload SHA-256 to a strict sidecar carrying frame, length unit, source identity, source digest, chordal tolerance and facet count.
+- External CAD application reopen remains UNKNOWN until TECH-002 selects and validates an independent tool.
