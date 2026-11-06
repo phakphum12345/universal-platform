@@ -1,6 +1,6 @@
 # Mesh Geometric Topology Analysis Contract
 
-**Status:** Design contract for a staged topology-analysis layer. The existing `validate_triangle_mesh` remains the structural edge-incidence/winding validator. This contract does not claim general triangle-triangle self-intersection detection.
+**Status:** Contract implemented by PR #77 candidate; exact-SHA CI evidence pending. The existing `validate_triangle_mesh` remains the structural edge-incidence/winding validator. This contract does not claim general triangle-triangle self-intersection detection.
 
 ## 1. Purpose and separation of concerns
 
@@ -11,7 +11,8 @@ The next analysis layer is additive and must not silently change the existing `M
 ## 2. Analysis record
 
 The versioned `MeshTopologyAnalysis` v1.0 result must contain:
-- Stable schema version.
+- Stable schema version, solid/frame identity, length unit, source geometry digest and canonical mesh snapshot SHA-256.
+- Vertex and triangle counts so every reported index is range-checkable during strict snapshot import.
 - Ordered face-connected components, represented by sorted source face indices.
 - Exact duplicate-coordinate vertex groups.
 - Optional near-coincident vertex groups, using a caller-supplied positive tolerance in the mesh's declared length unit.
@@ -60,6 +61,7 @@ Exact duplicate groups use exact numeric coordinate equality; signed zero compar
 - Component, group and issue ordering is stable and independent of hash-map iteration.
 - Coordinates remain in the mesh's local frame and length unit; no transform or unit conversion occurs.
 - Result serialization is strict, versioned and deterministic.
+- Near-coincident search uses a deterministic 3D spatial bucket and a hard default ceiling of 5,000,000 neighbor comparisons; exceeding the ceiling fails closed.
 - Analysis must expose or document resource limits for vertex/face counts and neighbor comparisons.
 - Invalid face indices do not crash the analyzer; they are reported by the structural validator and excluded from topology traversal.
 

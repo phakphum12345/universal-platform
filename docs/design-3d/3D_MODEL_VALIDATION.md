@@ -34,5 +34,5 @@ Model identifier/revision; input files and hashes; CAD tool/kernel version; chec
 
 - `validate_triangle_mesh` currently checks indexed face validity, degeneracy, edge incidence, winding, signed volume and surface area.
 - Binary STL export is implemented with a metadata sidecar; independent test-only parsing verifies facets, quantized bounds and signed volume.
-- The mesh topology-analysis contract in [MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md](MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) specifies component, vertex-link and duplicate/coincident-coordinate diagnostics but is not yet implemented.
+- PR #76 merged the mesh topology-analysis contract; PR #77 adds a candidate implementation for component, vertex-link and duplicate/coincident-coordinate diagnostics, pending exact-SHA CI.
 - Triangle-triangle self-intersection detection, arbitrary mesh repair, external CAD application reopen, manufacturing checks and physical validation remain UNKNOWN or NOT IMPLEMENTED. No overall model-validity PASS may be inferred from structural mesh validation alone.
