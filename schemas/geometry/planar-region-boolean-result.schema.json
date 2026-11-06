@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PlanarRegionBooleanResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm_version",
+    "operation",
+    "first_region_id",
+    "second_region_id",
+    "first_region_sha256",
+    "second_region_sha256",
+    "frame_id",
+    "length_unit",
+    "regions",
+    "region_count",
+    "segment_pair_count",
+    "area",
+    "max_coordinate_rounding_error",
+    "area_rounding_error",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "algorithm_version": {
+      "const": "exact-rational-arrangement-v1"
+    },
+    "operation": {
+      "enum": [
+        "UNION",
+        "INTERSECTION",
+        "DIFFERENCE",
+        "SYMMETRIC_DIFFERENCE"
+      ]
+    },
+    "first_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "second_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "first_region_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "second_region_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "length_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "$ref": "planar-region.schema.json"
+      }
+    },
+    "region_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "segment_pair_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 32640
+    },
+    "area": {
+      "type": "number",
+      "minimum": 0
+    },
+    "max_coordinate_rounding_error": {
+      "type": "number",
+      "minimum": 0
+    },
+    "area_rounding_error": {
+      "type": "number",
+      "minimum": 0
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
