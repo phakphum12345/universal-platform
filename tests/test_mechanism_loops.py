@@ -37,7 +37,8 @@ def test_four_bar_has_one_fundamental_cycle_and_three_tree_edges():
     assert result.spanning_tree_joint_ids == ("j1", "j2", "j3")
     assert result.loop_closing_joint_ids == ("j4",)
     assert result.loop_count == 1
-    assert result.loops[0].joint_ids == ("j1", "j2", "j3", "j4")
+    # The path follows the closing joint's parent-to-child direction.
+    assert result.loops[0].joint_ids == ("j3", "j2", "j1", "j4")
     assert result.loops[0].link_ids[0] == result.loops[0].link_ids[-1]
 
 
@@ -88,12 +89,15 @@ def test_invalid_model_is_rejected_before_graph_analysis():
 
 
 def test_loop_solver_requires_residuals_for_every_closing_edge():
-    model = make_model(("a", "b", "c"),
-                       (("j1", "a", "b"), ("j2", "b", "c"), ("j3", "c", "a")))
+    model = make_model(
+        ("a", "b", "c", "d"),
+        (("e1", "a", "b"), ("e2", "b", "c"), ("e3", "c", "a"),
+         ("e4", "c", "d"), ("e5", "d", "a")),
+    )
     with pytest.raises(InvalidModelError, match="Missing explicit residuals"):
         solve_mechanism_loops(
             model, ("theta",), {"theta": 0.0},
-            (LoopClosureConstraint("c1", "j3", lambda values: values["theta"] - 1.0),),
+            (LoopClosureConstraint("c1", "e3", lambda values: values["theta"] - 1.0),),
         )
 
 
