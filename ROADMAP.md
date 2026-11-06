@@ -131,3 +131,12 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Design only: no general polygon Boolean implementation, precision policy selection, kernel selection or third-party dependency is claimed.
 - Next implementation gates: evaluate candidate kernels against the reference corpus and license/offline/platform requirements; implement an isolated adapter only after evidence and approval; then add mesh generation and independent interchange validation.
 
+
+
+## PR #64 — Deterministic primitive triangle mesh (implementation candidate)
+
+- Adds dependency-free deterministic tessellation for analytic BoxSolid and CylinderSolid only.
+- Preserves source solid ID, local frame, length unit and canonical source SHA-256; cylinder requires an explicit radial chordal tolerance and has a 100,000-segment resource ceiling.
+- Structural validation reports degenerate/index errors, boundary/nonmanifold edges, winding conflicts, signed volume and surface area.
+- Explicitly does not tessellate ExtrudedProfileSolid, arcs, through-holes or arbitrary surfaces; no mesh self-intersection repair, B-rep, Boolean or interchange is implied.
+- Acceptance: analytic box reference metrics, cylinder chordal-error bound, closed consistently oriented mesh topology, strict round trip, malformed mesh regressions, public exports and complete repository CI.

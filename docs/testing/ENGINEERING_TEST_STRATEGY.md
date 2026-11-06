@@ -111,3 +111,12 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Project the generated world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link; preserve generalized-coordinate columns and deterministic IDs.
 - Test rotated/translated plane frames, ground-link reversal, off-plane body origins, tilted bodies, off-plane anchors, incompatible axes, unsupported joints and invalid tolerances.
 - Acceptance contract: docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md. PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.
+
+
+## Deterministic primitive triangle mesh validation (PR #64)
+
+- Box reference: exact 8 vertices / 12 triangles, watertight two-face edge incidence, consistent outward winding, signed volume 24 m³ and surface area 52 m² for the 2×3×4 m fixture.
+- Cylinder reference: explicit maximum radial chordal error, closed edge incidence, consistent winding, positive signed volume and surface area.
+- Adversarial structural cases: out-of-range indices, open boundary, repeated triangle indices, inconsistent winding, invalid/under-resolution tolerance, and non-length units.
+- Verify strict schema/version/unknown-field rejection and deterministic round-trip snapshots.
+- This test level does not establish triangle-triangle self-intersection freedom, profile-with-hole meshing, B-rep validity or independent interchange fidelity.
