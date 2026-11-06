@@ -1,6 +1,6 @@
 # Engineering and 3D Requirements Traceability
 
-**Status:** PROPOSED mapping baseline; not implementation evidence
+**Status:** PROPOSED mapping baseline with one narrow executable kinematics slice; not implementation evidence for the broader requirements.
 
 | ID | Requirement | Primary specification | Acceptance evidence |
 |---|---|---|---|
@@ -13,6 +13,7 @@
 | CAD-001 | Parametric 3D design | 3D_DESIGN_INTELLIGENCE | Rebuild and export tests |
 | CAD-002 | Generate tools and fixtures | 3D_TOOL_GENERATION_ENGINE | Requirement-to-model acceptance cases |
 | CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS | Joint, DOF and motion tests |
+| CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both elbow branches, workspace boundaries, limits and forward-reconstruction residual tests; exact-SHA CI |
 | CAD-004 | Engineering simulation | 3D_ENGINEERING_SIMULATION | Benchmarks and convergence evidence |
 | CAD-005 | Structural/civil design support | STRUCTURAL_AND_CIVIL_DESIGN | Code-basis and independent review evidence |
 | CAD-006 | CAD-to-manufacturing preparation | CAD_TO_MANUFACTURING_PIPELINE | Export, drawing and BOM reconciliation |
@@ -23,4 +24,11 @@
 
 ## Status
 
-All listed requirements are PROPOSED as detailed acceptance items under the owner-approved scope direction. Their implementation status is NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
+CAD-003A is a narrowly scoped initial implementation on a feature branch and remains PENDING CI until checks pass on the exact PR head SHA. It does not close CAD-003 as a whole. All other listed requirements remain PROPOSED / NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
+
+## Evidence and governance gates
+
+- Documentation coverage is not implementation evidence.
+- Implemented means source exists; PASS requires executed evidence tied to an exact SHA and reproducible procedure.
+- SKIPPED and UNKNOWN are never PASS.
+- A narrow analytic 2R test suite does not certify arbitrary mechanisms or physical feasibility.
