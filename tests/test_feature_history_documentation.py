@@ -22,5 +22,5 @@ def test_feature_history_status_records_merge_evidence_and_non_claims():
         assert "0983de4c8839070e2a27cd7b8e704f975d176abf" in text
         assert "636" in text
     assert "CAD-FEATURE-HISTORY-001" in traceability
-    assert "No arbitrary Python" in contract
+    assert "No user Python" in contract
     assert "incremental recomputation" in contract.lower()
