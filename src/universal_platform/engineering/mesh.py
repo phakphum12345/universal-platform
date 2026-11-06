@@ -1,4 +1,4 @@
-"""Deterministic, dependency-free triangle meshes for analytic Box/Cylinder solids.
+"""Deterministic, dependency-free triangle meshes for supported analytic primitives.
 
 Meshes are emitted in the source solid's local coordinate frame. This module
 provides tessellation and topological checks only; it is not a B-rep kernel,
@@ -298,11 +298,11 @@ def _profile_signed_area(points: tuple[Any, ...]) -> float:
     ) / 2.0
 
 
-def _strictly_inside_triangle(point: Any, a: Any, b: Any, c: Any, epsilon: float) -> bool:
+def _inside_or_on_triangle(point: Any, a: Any, b: Any, c: Any, epsilon: float) -> bool:
     return (
-        _profile_cross(a, b, point) > epsilon
-        and _profile_cross(b, c, point) > epsilon
-        and _profile_cross(c, a, point) > epsilon
+        _profile_cross(a, b, point) >= -epsilon
+        and _profile_cross(b, c, point) >= -epsilon
+        and _profile_cross(c, a, point) >= -epsilon
     )
 
 
@@ -332,7 +332,7 @@ def _triangulate_simple_profile(points: tuple[Any, ...]) -> tuple[tuple[int, int
             if _profile_cross(a, b, c) <= epsilon:
                 continue
             if any(
-                _strictly_inside_triangle(points[index], a, b, c, epsilon)
+                _inside_or_on_triangle(points[index], a, b, c, epsilon)
                 for index in remaining if index not in {previous, current, following}
             ):
                 continue
