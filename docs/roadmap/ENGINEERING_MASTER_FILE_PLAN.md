@@ -53,6 +53,10 @@ The plan is intentionally technology-neutral. File extensions and module boundar
 
 | Priority | Target path | Purpose | Dependency |
 |---|---|---|---|
+| P0 | docs/roadmap/PHASE_2_NUMERICAL_RELIABILITY_PLAN.md | Phase-specific numerical reliability work packages, test matrix, mechanism adapter boundary and evidence gates | Nonlinear solver baseline PR #16/#17 |
+
+| Priority | Target path | Purpose | Dependency |
+|---|---|---|---|
 | P0 | docs/audit/REPOSITORY_CAPABILITY_INVENTORY.md | Actual repository/source capability inventory | Initial audit |
 | P0 | docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md | This file; canonical file map | Requirements baseline |
 | P0 | docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md | First end-to-end workflow and acceptance gates | Owner selects use case |
