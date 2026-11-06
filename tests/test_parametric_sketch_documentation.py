@@ -23,5 +23,5 @@ def test_sketch_status_documents_exact_evidence_and_bounded_scope():
         assert "e2d631b49910e3d7f05fea6337742fd87385fb81" in text
         assert "618" in text
     assert "CAD-SKETCH-001" in traceability
-    assert "no uniqueness" in contract.lower()
+    assert "unique" in contract.lower()
     assert "B-rep" in roadmap
