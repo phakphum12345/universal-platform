@@ -65,6 +65,13 @@ def _groups(value: Any, label: str, *, minimum_group_length: int) -> tuple[tuple
 class MeshTopologyAnalysis:
     """Immutable diagnostic snapshot; UNKNOWN self-intersection is never PASS."""
 
+    solid_id: str
+    frame_id: str
+    length_unit: str
+    source_geometry_sha256: str
+    mesh_snapshot_sha256: str
+    vertex_count: int
+    triangle_count: int
     face_components: tuple[tuple[int, ...], ...]
     exact_duplicate_vertex_groups: tuple[tuple[int, ...], ...]
     near_coincident_vertex_groups: tuple[tuple[int, ...], ...]
