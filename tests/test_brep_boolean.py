@@ -146,3 +146,12 @@ def test_axis_aligned_brep_boolean_public_api_is_exported():
     from universal_platform.engineering import boolean_axis_aligned_brep_solids as public_boolean
     assert PublicOperation is BRepBooleanOperation
     assert public_boolean is boolean_axis_aligned_brep_solids
+
+
+def test_axis_aligned_brep_boolean_contract_is_indexed():
+    from pathlib import Path
+    root = Path(__file__).parents[1]
+    contract = root / "docs" / "design-3d" / "AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md"
+    index = (root / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
+    assert contract.is_file()
+    assert "AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md" in index
