@@ -1,6 +1,6 @@
 # Spatial Joint Reference Validation Contract
 
-**Status:** Contract and acceptance criteria for the next reference-validation increment. Existing source implements eight joint-family coordinate mappings and six-component pose residuals; the reference suite below closes missing Jacobian and spatial-mobility coverage.
+**Status:** IMPLEMENTED reference suite in PR #54; exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359` and post-merge SHA `22bbf1714224095cfd652d6887130d26facef087` both passed CI with 452 tests.
 
 ## 1. Scope
 
