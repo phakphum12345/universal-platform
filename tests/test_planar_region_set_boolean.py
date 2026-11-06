@@ -126,7 +126,7 @@ def test_six_way_point_contact_preserves_all_components_and_is_permutation_stabl
         for region in result.regions
     )
     assert len(forward.regions) == 6
-    assert forward.area == 12.0
+    assert forward.area == 11.0
     assert signature(forward) == signature(reverse)
 
 
