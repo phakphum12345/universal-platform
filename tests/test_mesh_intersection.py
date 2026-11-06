@@ -171,3 +171,64 @@ def test_shared_edge_same_side_overlap_is_an_adjacent_foldover():
         [(0, 1, 2), (1, 0, 3)],
     )
     assert _pair_intersection(foldover, 0, 1) == "ADJACENT_FOLDOVER"
+
+
+
+def _reference_orient2(a, b, c):
+    from fractions import Fraction
+    ax, ay = Fraction.from_float(float(a[0])), Fraction.from_float(float(a[1]))
+    bx, by = Fraction.from_float(float(b[0])), Fraction.from_float(float(b[1]))
+    cx, cy = Fraction.from_float(float(c[0])), Fraction.from_float(float(c[1]))
+    return (bx-ax)*(cy-ay)-(by-ay)*(cx-ax)
+
+
+def _reference_strict_inside(point, triangle):
+    signs = (
+        _reference_orient2(triangle[0], triangle[1], point),
+        _reference_orient2(triangle[1], triangle[2], point),
+        _reference_orient2(triangle[2], triangle[0], point),
+    )
+    return all(value > 0 for value in signs) or all(value < 0 for value in signs)
+
+
+def _reference_positive_area_overlap(first, second):
+    # Independent exact-rational oracle: for two convex triangles, positive
+    # area overlap requires a strictly contained vertex or a proper edge crossing.
+    if any(_reference_strict_inside(point, second) for point in first):
+        return True
+    if any(_reference_strict_inside(point, first) for point in second):
+        return True
+    for i in range(3):
+        a, b = first[i], first[(i+1) % 3]
+        for j in range(3):
+            c, d = second[j], second[(j+1) % 3]
+            o1, o2 = _reference_orient2(a, b, c), _reference_orient2(a, b, d)
+            o3, o4 = _reference_orient2(c, d, a), _reference_orient2(c, d, b)
+            if ((o1 > 0 > o2) or (o2 > 0 > o1)) and ((o3 > 0 > o4) or (o4 > 0 > o3)):
+                return True
+    return False
+
+
+def test_coplanar_classifications_match_independent_exact_rational_oracle():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    first = ((0, 0, 0), (2, 0, 0), (0, 2, 0))
+    overlapping = ((1, 0, 0), (3, 0, 0), (1, 2, 0))
+    separated = ((3, 0, 0), (4, 0, 0), (3, 1, 0))
+    assert _reference_positive_area_overlap(first, overlapping)
+    assert not _reference_positive_area_overlap(first, separated)
+
+    overlap_mesh = _raw_pair_mesh(list(first + overlapping), [(0, 1, 2), (3, 4, 5)])
+    separated_mesh = _raw_pair_mesh(list(first + separated), [(0, 1, 2), (3, 4, 5)])
+    assert _pair_intersection(overlap_mesh, 0, 1) == "COPLANAR_OVERLAP"
+    assert _pair_intersection(separated_mesh, 0, 1) is None
+
+
+def test_projected_sweep_pair_limit_bounds_x_overlapping_aabbs():
+    mesh = _combine_boxes(0.0)
+    # The boxes are separated in y but overlap in their x projections. The
+    # conservative sweep must stop at the pair budget rather than scanning an
+    # unbounded active set while silently discarding y/z-separated pairs.
+    result = analyze_mesh_intersections(mesh, max_candidate_pairs=1)
+    assert result.status == "UNKNOWN"
+    assert result.unresolved_reasons == ("RESOURCE_LIMIT_EXCEEDED",)
