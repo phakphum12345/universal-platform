@@ -28,8 +28,12 @@ class RecoveryEvidenceRecord:
                 raise ValueError(f"{name} must be non-empty")
         if self.captured_at.tzinfo is None or self.captured_at.utcoffset() is None:
             raise ValueError("captured_at must be timezone-aware")
+        if not isinstance(self.event_fingerprints, tuple):
+            raise ValueError("event_fingerprints must be an immutable tuple")
         if len(set(self.event_fingerprints)) != len(self.event_fingerprints):
             raise ValueError("event fingerprints must be unique")
+        if not isinstance(self.repaired, bool) or not isinstance(self.resumed, bool):
+            raise ValueError("repaired and resumed must be booleans")
         if any(len(item) != 64 or any(ch not in "0123456789abcdef" for ch in item) for item in self.event_fingerprints):
             raise ValueError("event fingerprints must be lowercase SHA-256 values")
         if self.resumed and not self.repaired:
@@ -183,6 +187,8 @@ class JsonlRecoveryEvidenceStore:
             claimed_hash = envelope.pop("record_hash")
             claimed_sequence = envelope.get("sequence")
             claimed_previous = envelope.get("previous_hash")
+            if isinstance(claimed_sequence, bool) or not isinstance(claimed_sequence, int):
+                raise ValueError("recovery evidence sequence must be an integer")
             if claimed_sequence != sequence + 1 or claimed_previous != previous_hash:
                 raise ValueError("recovery evidence chain sequence or previous hash mismatch")
             canonical = json.dumps(
