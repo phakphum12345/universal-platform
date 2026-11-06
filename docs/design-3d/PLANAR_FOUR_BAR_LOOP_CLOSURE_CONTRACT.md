@@ -1,6 +1,6 @@
 # Planar Four-Bar Loop-Closure and Mobility Contract
 
-**Status:** Analytic planar 4R geometry utility is implemented; a stable-ID, unit-aware model snapshot adapter is implemented on `feat/planar-four-bar-model-adapter`; exact-SHA CI pending.
+**Status:** Analytic planar 4R geometry utility is implemented; a stable-ID, unit-aware model snapshot adapter is implemented and merged in PR #25 at `6198529d0e816898ad84e20efa153d54c6e0c61d`; exact PR-head CI passed (run #188, 155 tests). Post-merge CI lookup is UNKNOWN.
 
 ## Scope
 
