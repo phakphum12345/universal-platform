@@ -115,11 +115,18 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 
 
 
-## CAD topology increment — PR #61 candidate
+## CAD topology increment — PR #61 merged
 
-- Add dependency-free 2D UNION, INTERSECTION and DIFFERENCE for convex simple polygon profiles.
-- Return deterministic convex-cell decompositions with stable region ordering and computed total area; adjacent cells are intentionally not dissolved.
-- Add strict result schema v1.0, canonical public exports, result round-trip validation and reference tests for overlap, disjointness, touching and containment.
-- Concave profiles, holes, arcs, exact arithmetic, general planar arrangements and 3D B-rep Boolean operations remain unsupported.
-- Next gates: general polygon topology/holes and adversarial numeric tests; CAD-kernel technology decision; mesh generation/validation; independent STEP/STL exchange validation.
+- PR #61 merged at `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc` into `docs/phase-0-complete-requirements`.
+- Exact PR head `29e846f513f489196ff742ed464c983a8a771225`; PR workflow run #42207436743 and push run #42207398485 passed both required checks; PR-head test evidence: 496 passed.
+- Exact post-merge run #42217655332 on the merge SHA passed `workflow-sanity` and `python-tests`; **496 passed in 1.19s**.
+- Adds dependency-free UNION, INTERSECTION and DIFFERENCE over convex simple polygon loops, deterministic convex-cell decomposition, schema v1.0, area accounting and strict snapshot validation.
+- Deliberate limits remain: no concave loops, holes, arcs, exact arithmetic, general planar arrangements, 3D B-rep or mesh Booleans.
+
+## CAD general planar topology — PR #62 design candidate
+
+- Branch: `docs/cad-general-planar-topology-contract`, based on PR #61 merge SHA `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`.
+- Adds `CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md`: CAD-neutral region model with outer boundaries/holes, explicit frame and units, topology invariants, contact semantics, result/evidence requirements, adversarial numeric references, and a replaceable-kernel decision gate.
+- This is a design proposal only. No general polygon Boolean implementation or third-party kernel is claimed or selected.
+- Next implementation gate: agree precision policy and reference corpus, evaluate candidate kernels against license/offline/platform/robustness requirements, then implement the selected adapter behind versioned CAD-neutral schemas.
 
