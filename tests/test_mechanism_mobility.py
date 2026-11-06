@@ -166,7 +166,7 @@ def test_jacobian_rejects_non_finite_and_boolean_entries(values):
     model = four_bar()
     jac = ConstraintJacobian(("c1",), ("q1", "q2"), values, "cfg", "fixture")
     with pytest.raises(InvalidModelError, match="finite numbers"):
-        analyze_mechanism_mobility(model, MobilityFormulation.PLANAR, jac)
+        analyze_mechanism_mobility(model, MobilityFormulation.PLANAR, jac, ground_link_id="ground")
 
 
 def test_reference_rank_and_tolerance_are_validated():
@@ -185,13 +185,14 @@ def test_reference_rank_and_tolerance_are_validated():
 def test_result_snapshot_is_versioned_deterministic_and_has_provenance():
     result = analyze_mechanism_mobility(
         four_bar(), MobilityFormulation.PLANAR, planar_four_bar_jacobian(),
-        reference_constraint_rank=8,
+        ground_link_id="ground", reference_constraint_rank=8,
     )
     encoded = json.dumps(result.to_dict(), sort_keys=True)
     assert json.loads(encoded)["schema_version"] == "1.0"
     assert json.loads(encoded)["model"] == {
-        "model_id": "test-mechanism", "revision": "rev-1", "ground_link_id": "ground"
+        "model_id": "test-mechanism", "revision": "rev-1"
     }
+    assert json.loads(encoded)["nominal"]["ground_link_id"] == "ground"
     assert json.loads(encoded)["configuration_id"] == "configuration/assembly-A"
     assert json.dumps(result.to_dict(), sort_keys=True) == encoded
 
@@ -202,6 +203,8 @@ def test_analysis_requires_explicit_ground_and_full_free_body_coordinate_set():
                              (tuple(1.0 for _ in range(8)),), "cfg", "fixture")
     with pytest.raises(InvalidModelError, match="ground_link_id"):
         estimate_nominal_mobility(model, MobilityFormulation.PLANAR, ground_link_id="")
+    with pytest.raises(InvalidModelError, match="Unknown ground_link_id"):
+        estimate_nominal_mobility(model, MobilityFormulation.PLANAR, ground_link_id="missing")
     with pytest.raises(InvalidModelError, match="coordinate count must match"):
         analyze_mechanism_mobility(
             model, MobilityFormulation.PLANAR, jac, ground_link_id="ground"
