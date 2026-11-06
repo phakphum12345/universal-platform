@@ -158,3 +158,88 @@ def test_result_schema_is_strict_and_tracks_serialized_contract():
                          "planar-region-boolean-result.schema.json").read_text(encoding="utf-8"))
     assert set(snapshot) == set(schema["required"])
     assert schema["additionalProperties"] is False
+
+
+@pytest.mark.parametrize(("operation", "expected_area", "expected_count"), [
+    (Operation.UNION, 4.0, 1),
+    (Operation.INTERSECTION, 4.0, 1),
+    (Operation.DIFFERENCE, 0.0, 0),
+    (Operation.SYMMETRIC_DIFFERENCE, 0.0, 0),
+])
+def test_equal_geometry_boolean_identity(operation, expected_area, expected_count):
+    first = rectangle("first", 0, 0, 2, 2)
+    same_geometry = region("same", ((2, 2), (2, 0), (0, 0), (0, 2)))
+    result = boolean_planar_regions(first, same_geometry, operation)
+    assert result.area == expected_area
+    assert len(result.regions) == expected_count
+
+
+def _geometry_signature(result):
+    return tuple(sorted(
+        (item.area_exact,
+         tuple((point.x, point.y) for point in item.outer_boundary),
+         tuple(tuple((point.x, point.y) for point in hole) for hole in item.holes))
+        for item in result.regions
+    ))
+
+
+def test_union_and_intersection_are_commutative_for_overlapping_oblique_regions():
+    first = region("first", ((0, 0), (6, 0), (4, 5), (0, 4)))
+    second = region("second", ((2, -1), (7, 2), (5, 6), (1, 3)))
+    for operation in (Operation.UNION, Operation.INTERSECTION):
+        ab = boolean_planar_regions(first, second, operation)
+        ba = boolean_planar_regions(second, first, operation)
+        assert _geometry_signature(ab) == _geometry_signature(ba)
+
+
+def test_difference_is_directional_for_nested_regions():
+    outer = rectangle("outer", 0, 0, 10, 10)
+    inner = rectangle("inner", 2, 2, 4, 4)
+    outer_minus_inner = boolean_planar_regions(outer, inner, Operation.DIFFERENCE)
+    inner_minus_outer = boolean_planar_regions(inner, outer, Operation.DIFFERENCE)
+    assert outer_minus_inner.area == 96.0
+    assert len(outer_minus_inner.regions[0].holes) == 1
+    assert inner_minus_outer.regions == ()
+
+
+def test_edge_contact_has_empty_intersection_and_dissolved_union():
+    left = rectangle("left", 0, 0, 2, 2)
+    right = rectangle("right", 2, 0, 4, 2)
+    intersection = boolean_planar_regions(left, right, Operation.INTERSECTION)
+    union = boolean_planar_regions(left, right, Operation.UNION)
+    assert intersection.regions == ()
+    assert len(union.regions) == 1
+    assert union.area == 8.0
+
+
+def test_union_preserves_multiple_holes_when_second_region_is_disjoint():
+    first = rectangle(
+        "plate", 0, 0, 12, 10,
+        holes=(
+            ((2, 2), (2, 4), (4, 4), (4, 2)),
+            ((7, 2), (7, 5), (10, 5), (10, 2)),
+        ),
+    )
+    second = rectangle("remote", 20, 0, 22, 2)
+    result = boolean_planar_regions(first, second, Operation.UNION)
+    assert len(result.regions) == 2
+    plate = next(item for item in result.regions if item.holes)
+    assert len(plate.holes) == 2
+    assert result.area == 106.0
+
+
+def test_pairwise_boolean_rejects_total_edge_budget_before_arrangement():
+    import math
+
+    def regular_polygon(region_id, offset):
+        points = tuple(
+            Vec2(offset + math.cos(2 * math.pi * index / 129),
+                 math.sin(2 * math.pi * index / 129))
+            for index in range(129)
+        )
+        return PlanarRegion(region_id, "part", "mm", points)
+
+    first = regular_polygon("first", 0.0)
+    second = regular_polygon("second", 4.0)
+    with pytest.raises(InvalidModelError, match="total edges"):
+        boolean_planar_regions(first, second, Operation.UNION)
