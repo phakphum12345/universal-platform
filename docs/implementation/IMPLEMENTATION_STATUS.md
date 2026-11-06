@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `1ead537afa34d2637fdb08f91b2d2bb823d411a0` (PR #66 straight extruded-profile triangle mesh squash merge).  
-**Exact post-merge CI:** PR #66 post-merge run #42221247498 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **511 passed in 1.20s**. PR #66 exact-head runs #42221102000 and #42221092727 also passed with 511 tests.  
+**Integration HEAD:** `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b` (PR #68 polygonal profile-hole mesh squash merge).  
+**Exact post-merge CI:** PR #68 post-merge run #42222360177 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **514 passed in 1.53s**. PR #68 exact-head runs #42222216690 and #42222207986 also passed with 514 tests.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -609,3 +609,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds deterministic ear-clipped cap triangulation and outward side walls for straight-edged, hole-free concave/convex `ExtrudedProfileSolid`; retains source SHA-256, local frame and unit.
 - The initial head `48b3124f89a3e97dc9ce529d811aa0ee2503107b` failed the CW profile orientation reference; the final head corrected side-wall winding to normalized CCW traversal and passed all tests.
 - Limitations: no profile holes or arcs, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean or neutral CAD interchange.
+
+
+## PR #68 — Polygonal through-hole extrusion mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/68
+- Base SHA: `f9d8f51b01fb41afec311b8b72ffd0e9231c631b`; exact corrected PR head SHA: `da5c8a292dacf8c300fcb48b9e92b506f1172bd8`.
+- Merge commit / integration HEAD: `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b`.
+- Exact PR workflow run #42222216690 and push run #42222207986: both required jobs PASS; **514 passed**.
+- Exact post-merge run #42222360177 on the merge SHA: both jobs PASS; **514 passed in 1.53s**.
+- Adds deterministic visible-bridge selection and ear clipping for straight polygonal extrusion regions with one or more strictly-contained holes; inner walls use CW hole boundaries to face the void.
+- First tested head had two inner-wall winding/volume failures; final exact head corrected orientation and added reversed-hole-winding regression coverage.
+- Limitations: curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
