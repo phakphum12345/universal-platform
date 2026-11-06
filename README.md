@@ -68,6 +68,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - Identify capability gaps and propose controlled self-improvements.
 
 ## Documentation map
+- [Documentation Index](DOCUMENTATION_INDEX.md)
 ### Product and planning
 - [Vision](VISION.md)
 - [Master Blueprint](MASTER_BLUEPRINT.md)
