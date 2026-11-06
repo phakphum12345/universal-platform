@@ -771,3 +771,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Limitations: points/lines only; no angle/tangent/equal/radius/symmetry constraints, arcs/splines, auto-inference, interactive drag solver, closed-loop region conversion, feature history or regeneration.
 - Main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 241 ahead / 0 behind at the PR #90 merge baseline. Local working tree remains UNKNOWN.
 - Contract: [Parametric Sketch Constraint Contract](../design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## PR #92–#93 — Sketch-to-region and feature regeneration (MERGED)
+
+- PR #92 merge SHA `ecc5b7acebdfd48ccf07e64c53f169caf268193a`; exact-head/push and post-merge CI passed 627 tests.
+- PR #92 converts converged closed straight-edge sketch loops to canonical PlanarRegion records, including disjoint components, holes and nested islands. Open/branching/duplicate/self-intersecting/touching topology fails closed.
+- PR #93 merge SHA `0983de4c8839070e2a27cd7b8e704f975d176abf`; exact-head run #42263173745 and post-merge #42263296016 passed both required jobs, 636 tests.
+- FeatureHistory v1.0 provides a deterministic DAG, strict snapshots, topological ordering, allow-listed SKETCH_PROFILE / PLANAR_BOOLEAN / EXTRUSION / MESH evaluators, per-feature SHA-256, and all-or-nothing failure behavior.
+- Verified end-to-end: parametric sketch → region → extrusion → watertight mesh; and two sketches → planar UNION → extrusion → watertight mesh.
+- Limitations: no persistent document store, incremental recompute, suppression/rollback/branch editing, GUI, arc/spline sketch conversion, B-rep, 3D Boolean or STEP/3MF. Main remains unchanged; no local working-tree claim.
+- Contract: [Feature History and Regeneration](../design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md).
