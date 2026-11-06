@@ -87,6 +87,8 @@ class ModuleManifest:
             raise InvalidModelError("version must be a semantic version (MAJOR.MINOR.PATCH)")
         if not isinstance(self.domain, str) or not self.domain.strip():
             raise InvalidModelError("domain must be a non-empty string")
+        if not isinstance(self.operations, tuple):
+            raise InvalidModelError("operations must be an immutable tuple")
         if not self.operations:
             raise InvalidModelError("a module must declare at least one operation")
         if any(not isinstance(item, ModuleOperation) for item in self.operations):
