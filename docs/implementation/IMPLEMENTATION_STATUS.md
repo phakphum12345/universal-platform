@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `20e34933087a7276d0acc08e0d17b872c3973949` (PR #77 mesh topology analysis implementation squash merge).
-**Exact post-merge CI:** PR #77 post-merge run #42230654227 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **533 passed in 1.98s**. Exact PR workflow #42230501005 and push workflow #42230490785 passed both jobs with 533 tests in 2.08s.  
+**Integration HEAD:** `502d49baf58e43938d2746859e10817badd43f6e` (PR #78 triangle-mesh self-intersection design contract).
+**Exact PR-head CI:** PR #78 workflow #42231152061 on head `08f6aade1d928b9d2e2d7a065aa448ef9065bed1`; `workflow-sanity` PASS and `python-tests` PASS; PR evidence records **533 passed in 2.15s**. Documentation-only marker step SKIPPED. **Post-merge CI for integration HEAD:** UNKNOWN (no workflow runs/status entries returned for `502d49baf58e43938d2746859e10817badd43f6e`).  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -697,3 +697,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Branch: `docs/mesh-triangle-intersection-contract`; base SHA: `20e34933087a7276d0acc08e0d17b872c3973949`.
 - Adds a separate contract for triangle-pair classification, conservative broad-phase candidate generation, exact represented-input predicates, adjacency exclusions, resource limits and independent reference tests.
 - No implementation or self-intersection PASS is claimed.
+
+
+## PR #78 — Triangle-mesh self-intersection contract (MERGED; DESIGN ONLY)
+
+- Integration branch HEAD: `502d49baf58e43938d2746859e10817badd43f6e`; PR #77 predecessor: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- Exact PR head: `08f6aade1d928b9d2e2d7a065aa448ef9065bed1`; PR #78 base SHA: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- PR workflow #42231152061: workflow-sanity PASS; python-tests PASS; PR evidence reports 533 tests passed. Documentation-only marker SKIPPED.
+- Reviews: 0; unresolved review threads: 0.
+- Adds only the separate MeshIntersectionAnalysis design contract. No self-intersection implementation or geometric PASS is claimed. `MeshTopologyAnalysis v1.0` remains backward compatible and self-intersection remains UNKNOWN.
+- Post-merge CI on integration HEAD `502d49baf58e43938d2746859e10817badd43f6e`: UNKNOWN; no status entries or workflow runs were returned.
+- Full capability gaps and next work packages: [Repository Audit 2026-11-06](../audit/REPOSITORY_AUDIT_2026-11-06.md).
