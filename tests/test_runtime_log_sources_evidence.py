@@ -121,3 +121,51 @@ def test_recovery_quarantines_before_resume_when_evidence_cannot_be_written(tmp_
     result = coordinator.recover_from_source("worker-9", "worker.log", log_source=FileLogSource(tmp_path), adapter=adapter, repair_executor=SandboxedRepair())
     assert result.state is ResourceState.QUARANTINED and not result.resumed
     assert "resume" not in adapter.calls and "rollback" in adapter.calls
+
+
+def test_evidence_store_hash_chain_detects_tampering(tmp_path):
+    store = JsonlRecoveryEvidenceStore(tmp_path)
+    store.append(make_record("chain-1"))
+    store.append(make_record("chain-2"))
+    count, legacy_count, head_hash = store.verify()
+    assert count == 2 and legacy_count == 0 and len(head_hash) == 64
+    lines = store.path.read_text(encoding="utf-8").splitlines()
+    first = json.loads(lines[0])
+    first["reason"] = "tampered"
+    lines[0] = json.dumps(first, sort_keys=True, separators=(",", ":"))
+    store.path.write_text(chr(10).join(lines) + chr(10), encoding="utf-8")
+    with pytest.raises(ValueError, match="hash-chain"):
+        store.verify()
+    with pytest.raises(ValueError, match="hash-chain"):
+        store.append(make_record("chain-3"))
+
+
+def test_evidence_store_serializes_multiple_store_instances(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+
+    stores = (JsonlRecoveryEvidenceStore(tmp_path), JsonlRecoveryEvidenceStore(tmp_path))
+    def append(index):
+        stores[index % 2].append(make_record(f"parallel-{index}"))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(append, range(32)))
+    count, legacy_count, head_hash = stores[0].verify()
+    assert count == 32 and legacy_count == 0 and len(head_hash) == 64
+    assert len(stores[0].path.read_text(encoding="utf-8").splitlines()) == 32
+
+
+def test_evidence_store_accepts_legacy_prefix_and_chains_new_records(tmp_path):
+    legacy = make_record("legacy").to_dict()
+    path = tmp_path / "recovery-evidence.jsonl"
+    path.write_text(json.dumps(legacy, sort_keys=True, separators=(",", ":")) + chr(10), encoding="utf-8")
+    store = JsonlRecoveryEvidenceStore(tmp_path)
+    assert store.verify()[0:2] == (1, 1)
+    store.append(make_record("new-after-legacy"))
+    count, legacy_count, head_hash = store.verify()
+    assert count == 2 and legacy_count == 1 and len(head_hash) == 64
+
+
+def test_evidence_store_enforces_total_store_size(tmp_path):
+    store = JsonlRecoveryEvidenceStore(tmp_path, max_record_bytes=512, max_store_bytes=512)
+    store.append(make_record("size-1"))
+    with pytest.raises(ValueError, match="store reached"):
+        store.append(make_record("size-2"))

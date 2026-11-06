@@ -5,6 +5,7 @@ from .catalog import (
     AdapterRegistry,
     AdapterReplacement,
     AdapterReplacementCoordinator,
+    RuntimeAdapterRouter,
 )
 
 __all__ = [
@@ -12,6 +13,7 @@ __all__ = [
     "AdapterRegistry",
     "AdapterReplacement",
     "AdapterReplacementCoordinator",
+    "RuntimeAdapterRouter",
     "RepairExecutor",
     "RuntimeAdapter",
 ]

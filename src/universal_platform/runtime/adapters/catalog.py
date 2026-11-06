@@ -123,12 +123,70 @@ class AdapterReplacement:
     license_id: str
 
 
+class RuntimeAdapterRouter:
+    """Atomic in-process route table bound to the ResourceRegistry identity."""
+
+    def __init__(self, resources: ResourceRegistry) -> None:
+        self._resources = resources
+        self._adapters: dict[str, RuntimeAdapter] = {}
+        self._lock = RLock()
+
+    @property
+    def resources(self) -> ResourceRegistry:
+        return self._resources
+
+    def bind_current(self, resource_id: str, adapter: RuntimeAdapter) -> None:
+        record = self._resources.get(resource_id)
+        if record.adapter_id != adapter.adapter_id or record.resource_kind != adapter.resource_kind:
+            raise ValueError("adapter does not match the registered resource identity")
+        if not set(record.required_capabilities).issubset(adapter.capabilities):
+            raise ValueError("adapter does not satisfy the registered resource capabilities")
+        with self._lock:
+            if resource_id in self._adapters:
+                raise ValueError(f"runtime adapter route already bound: {resource_id}")
+            self._adapters[resource_id] = adapter
+
+    def get_current(self, resource_id: str) -> RuntimeAdapter:
+        with self._lock:
+            try:
+                adapter = self._adapters[resource_id]
+            except KeyError as exc:
+                raise KeyError(f"no runtime adapter route for resource: {resource_id}") from exc
+            record = self._resources.get(resource_id)
+            if record.adapter_id != adapter.adapter_id:
+                raise RuntimeError("runtime adapter route is stale relative to ResourceRegistry")
+            return adapter
+
+    def replace_asleep(self, resource_id: str, adapter: RuntimeAdapter) -> RuntimeAdapter:
+        with self._lock:
+            try:
+                previous = self._adapters[resource_id]
+            except KeyError as exc:
+                raise KeyError(f"no runtime adapter route for resource: {resource_id}") from exc
+            record = self._resources.get(resource_id)
+            if record.state is not ResourceState.SLEEP:
+                raise RuntimeError("runtime adapter route replacement requires SLEEP state")
+            if record.adapter_id != previous.adapter_id:
+                raise RuntimeError("runtime adapter route is stale relative to ResourceRegistry")
+            self._resources.replace_adapter(
+                resource_id,
+                adapter_id=adapter.adapter_id,
+                adapter_kind=adapter.resource_kind,
+                adapter_capabilities=adapter.capabilities,
+            )
+            self._adapters[resource_id] = adapter
+            return previous
+
+
 class AdapterReplacementCoordinator:
     """Stages and validates a fallback while its resource is asleep."""
 
-    def __init__(self, resources: ResourceRegistry, adapters: AdapterRegistry) -> None:
+    def __init__(self, resources: ResourceRegistry, adapters: AdapterRegistry, *, router: RuntimeAdapterRouter | None = None) -> None:
+        if router is not None and router.resources is not resources:
+            raise ValueError("router and coordinator must share the same ResourceRegistry")
         self._resources = resources
         self._adapters = adapters
+        self._router = router
 
     def replace_asleep_resource(
         self,
@@ -154,12 +212,15 @@ class AdapterReplacementCoordinator:
             raise RuntimeError("replacement adapter health check failed")
         if not adapter.canary_check(resource_id):
             raise RuntimeError("replacement adapter canary check failed")
-        self._resources.replace_adapter(
-            resource_id,
-            adapter_id=adapter.adapter_id,
-            adapter_kind=adapter.resource_kind,
-            adapter_capabilities=adapter.capabilities,
-        )
+        if self._router is not None:
+            self._router.replace_asleep(resource_id, adapter)
+        else:
+            self._resources.replace_adapter(
+                resource_id,
+                adapter_id=adapter.adapter_id,
+                adapter_kind=adapter.resource_kind,
+                adapter_capabilities=adapter.capabilities,
+            )
         return AdapterReplacement(
             resource_id=resource_id,
             previous_adapter_id=resource.adapter_id,
