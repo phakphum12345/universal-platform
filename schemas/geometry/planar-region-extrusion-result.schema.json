@@ -52,7 +52,7 @@
           "type": "array",
           "minItems": 3,
           "items": {
-            "$ref": "primitive-geometry.schema.json#/$defs/Vec2"
+            "$ref": "primitive-geometry.schema.json#/$defs/profilePoint"
           }
         },
         "height": {
@@ -69,7 +69,7 @@
             "type": "array",
             "minItems": 3,
             "items": {
-              "$ref": "primitive-geometry.schema.json#/$defs/Vec2"
+              "$ref": "primitive-geometry.schema.json#/$defs/profilePoint"
             }
           }
         }
