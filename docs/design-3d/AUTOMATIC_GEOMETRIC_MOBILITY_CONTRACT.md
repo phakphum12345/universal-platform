@@ -1,6 +1,6 @@
 # Automatic Geometric Mobility Analysis Contract
 
-**Status:** Implemented and merged in PR #37 at `41d81818385dd82497840ce93ce5aac60e3216da`; PR-head runs #293/#294 and post-merge run #295 passed 265 tests each. SPATIAL formulation only.
+**Status:** SPATIAL geometric mobility implemented in PR #37. Explicit PLANAR plane-frame projection is a PR #56 candidate; it is not part of the integration baseline until exact-head and post-merge CI pass.
 
 ## Purpose
 
@@ -34,7 +34,7 @@ Build local mobility diagnostics from geometric joint residuals and the finite-d
 
 ## Formulation boundary
 
-The generated adapter currently supports SPATIAL only. PLANAR is rejected because no explicit plane-frame/coplanarity contract exists yet; a 3D snapshot is not silently projected into a plane.
+SPATIAL uses six pose-tangent variables per non-ground link. The PR #56 PLANAR candidate requires an explicit plane-to-world RigidTransform, verifies body origins and local +Z axes, validates joint anchors and coordinate axes, then projects the full world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link. It does not silently project an arbitrary 3D snapshot.
 
 ## Limitations
 
@@ -49,4 +49,4 @@ The generated adapter currently supports SPATIAL only. PLANAR is rejected becaus
 - Ground-link reversal preserves local mobility and removes the selected ground pose columns.
 - Combined body-pose and joint-coordinate variables are declared explicitly.
 - Legacy caller-supplied ConstraintJacobian usage remains compatible.
-- PLANAR requests fail closed until an explicit plane-frame contract is available.
+- PLANAR requests fail closed without an explicit plane_frame and coplanarity validation. The candidate PR #56 adds that explicit contract; exact-head CI is pending.
