@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current code baseline:** Initial engineering-core slice merged at `647956be574ffc0055d2613be5a7a4781d660542`.
+**Current code baseline:** PR #39 merged at `cd552e5fa96fa21ab21a437b0103b3a195542dbc` on `docs/phase-0-complete-requirements`.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -132,12 +132,12 @@ Introduces versioned, executable reference cases that validate implemented engin
 PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #297 (`42164123611`) and post-merge run #298 (`42164204886`) passed 285 tests each.
 
 
-## PR #39 — Offline module metadata registry (implementation candidate)
+## PR #39 — Offline module metadata registry (merged)
 
 - Branch: `feat/module-manifest-registry`.
 - Base integration SHA: `22c71b610b3af4e2707389f0b62e039135ef76a0`.
-- Initial PR head: `e7f7addfcb0eb49cc46862113c53d61ab7e69036`.
-- Code head tested: `8ed4d4f9778a264cf3676d1821807ebdc3943fda`; PR run #305 (`42166708892`) passed workflow-sanity and python-tests; 304 passed in 0.90s; documentation-only marker SKIPPED.
+- Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`; PR run #311 (`42167103639`) passed workflow-sanity and python-tests; 308 passed in 0.57s; documentation-only marker SKIPPED.
+- Squash merge: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`; post-merge run #312 (`42167199845`) passed both jobs; 308 passed in 0.85s.
 - Scope: immutable module manifests, operation declarations, explicit version/license/maturity/permissions, deterministic registry snapshots and dependency validation.
 - Boundary: metadata only; no dynamic loading, invocation, process isolation, permission enforcement or external/physical writes.
-- Final documentation-head CI and post-merge evidence: PENDING.
+- Status: MERGED; metadata registry only, not a plugin runtime.
