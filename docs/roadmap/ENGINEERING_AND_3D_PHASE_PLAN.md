@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current code baseline:** PR #39 merged at `cd552e5fa96fa21ab21a437b0103b3a195542dbc` on `docs/phase-0-complete-requirements`.
+**Current integration baseline:** PR #40 documentation reconciliation at `818a1150fe2536c53371a878b5f1cbf5524bed7d`; latest feature implementation PR #39 at `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -141,3 +141,15 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Scope: immutable module manifests, operation declarations, explicit version/license/maturity/permissions, deterministic registry snapshots and dependency validation.
 - Boundary: metadata only; no dynamic loading, invocation, process isolation, permission enforcement or external/physical writes.
 - Status: MERGED; metadata registry only, not a plugin runtime.
+
+
+## PR #40 — Module registry evidence reconciliation
+
+- Exact PR head `4216c89464d7941d4f4bb893f98d9bac750363bf`; run #315 (`42167437979`): 308 tests PASS.
+- Merge `818a1150fe2536c53371a878b5f1cbf5524bed7d`; post-merge run #316 (`42167521401`): 308 tests PASS.
+
+## PR #41 — Validated module request/response envelopes (implementation candidate)
+
+- Base SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Validates immutable request/response envelopes, JSON payloads, identifiers, schema versions, resource limits, status semantics and deterministic serialization.
+- Does not execute operations or enforce declared permissions. Exact-SHA CI pending.

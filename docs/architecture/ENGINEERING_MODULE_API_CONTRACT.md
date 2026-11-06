@@ -22,11 +22,11 @@ The actual transport and serialization format remain OPEN until a vertical slice
 
 ## 3. Request envelope
 
-Include request_id, task_id, module_id/version, operation, schema_version, inputs, units, coordinate_frames, assumptions, constraints, source_refs, requested_precision, resource_limits, permissions and cancellation context.
+The implemented Python ModuleRequest (PR #41) validates stable module/operation IDs, MAJOR.MINOR schema versions, a non-empty request ID, immutable assumptions/source references/permissions, finite non-negative resource limits, and recursively JSON-compatible input data. Resource-limit keys are stable identifiers; callers should use unit-bearing names where applicable (for example, memory_bytes or time_seconds). The envelope does not yet include task identity, typed input-unit maps, coordinate-frame maps, constraints, requested precision or cancellation context.
 
 ## 4. Response envelope
 
-Include request_id, status, outputs, units, model/solver versions, warnings, assumptions, uncertainty, limitations, source_lineage, execution_metadata, evidence_refs and error details.
+The implemented Python ModuleResponse (PR #41) validates request identity, operational status, JSON-compatible outputs, immutable warnings/assumptions/limitations/evidence references and machine-readable error codes. Operational status is ACCEPTED / REJECTED / RUNNING / COMPLETED / CANCELLED / ERROR; it is not an engineering evidence status. Model/solver versions, units, uncertainty, source lineage and execution metadata remain future extensions.
 
 ## 5. Status semantics
 
@@ -61,3 +61,10 @@ This is a metadata registry only. It does not load or invoke code, enforce permi
 - Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`; run #311 (`42167103639`): 308 tests passed.
 - Merge commit: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
 - Post-merge run #312 (`42167199845`) on the exact merge SHA: 308 tests passed.
+
+
+## Validated request/response envelope implementation (PR #41)
+
+ModuleRequest and ModuleResponse are immutable data-contract records. Nested JSON objects and arrays are detached and frozen on construction; `to_dict()` returns deterministic JSON-compatible snapshots. Non-finite numbers, unsupported Python objects, malformed identifiers/schema versions, invalid resource limits, duplicate tuple metadata and invalid status/error-code combinations fail closed.
+
+The envelopes do not load modules, execute operations, enforce permissions, or grant authority. Runtime invocation remains a separate reviewed work package.

@@ -125,3 +125,6 @@ PR #34 exact code/documentation head `c0a69866ceaf318b5e05ae4689ba018085e6363f` 
 ## PR #39 — Offline module metadata registry (merged)
 
 Adds immutable versioned module and operation declarations, deterministic registration/lookup/snapshots and dependency ordering. Invalid identifiers/versions, duplicate IDs, undeclared permissions, unsupported execution classifications, missing dependencies and cycles fail closed. The registry does not load or invoke module code. Final PR head `4c07fb980afa19a36f3696d5ceed7eb35105fcc3` passed run #311 (`42167103639`), 308 tests; merge `cd552e5fa96fa21ab21a437b0103b3a195542dbc`; post-merge run #312 (`42167199845`) passed 308 tests.
+
+
+| UEIC-API-001 | Validated module request/response envelopes | ENGINEERING_MODULE_API_CONTRACT; src/universal_platform/engineering/contracts.py | Immutable request/response records; stable identifiers, MAJOR.MINOR schema version, JSON-safe finite payloads, finite non-negative resource limits, explicit operational statuses, error-code validation and deterministic serialization (PR #41; exact-SHA CI pending). This does not implement module invocation. |
