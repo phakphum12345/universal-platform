@@ -1,7 +1,9 @@
-"""Immutable resource identity and lifecycle models."""
+"""Immutable resource identity, measurements and lifecycle models."""
 from __future__ import annotations
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from math import isfinite
 
 class ResourceState(str, Enum):
     ACTIVE = "ACTIVE"
@@ -44,3 +46,48 @@ class ResourceRecord:
             raise ValueError("adapter_id must be a non-empty string")
         return ResourceRecord(self.resource_id, self.resource_kind, adapter_id,
                               self.required_capabilities, self.state, self.generation + 1)
+
+@dataclass(frozen=True, slots=True)
+class ResourceMetric:
+    """A unit-bearing, non-negative resource measurement."""
+    name: str
+    value: float
+    unit: str
+
+    def __post_init__(self) -> None:
+        if not self.name.strip() or not self.unit.strip():
+            raise ValueError("metric name and unit must be non-empty")
+        if isinstance(self.value, bool) or not isinstance(self.value, (int, float)):
+            raise ValueError("metric value must be numeric")
+        if not isfinite(float(self.value)) or self.value < 0:
+            raise ValueError("metric value must be finite and non-negative")
+
+    def to_dict(self) -> dict[str, object]:
+        return {"name": self.name, "value": self.value, "unit": self.unit}
+
+@dataclass(frozen=True, slots=True)
+class ResourceSnapshot:
+    """Immutable, timestamped measurements for one registered resource."""
+    resource_id: str
+    sequence: int
+    captured_at: datetime
+    metrics: tuple[ResourceMetric, ...]
+
+    def __post_init__(self) -> None:
+        if not self.resource_id.strip():
+            raise ValueError("resource_id must be a non-empty string")
+        if self.sequence < 1:
+            raise ValueError("snapshot sequence must be positive")
+        if self.captured_at.tzinfo is None or self.captured_at.utcoffset() is None:
+            raise ValueError("captured_at must be timezone-aware")
+        names = [metric.name for metric in self.metrics]
+        if len(names) != len(set(names)):
+            raise ValueError("snapshot metric names must be unique")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "resource_id": self.resource_id,
+            "sequence": self.sequence,
+            "captured_at": self.captured_at.isoformat(),
+            "metrics": [metric.to_dict() for metric in sorted(self.metrics, key=lambda item: item.name)],
+        }
