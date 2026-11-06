@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 7aead53ac5af9dd3a82999c823a413db0e2f4ead (PR #24; mechanism adapter contract)  
-**Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 adds a narrow stable-ID planar 4R model adapter; pending merge. Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
+**Latest merged baseline:** 6198529d0e816898ad84e20efa153d54c6e0c61d (PR #25; stable-ID planar four-bar model adapter)  
+**Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added a narrow stable-ID planar 4R model adapter, merged at `6198529d0e816898ad84e20efa153d54c6e0c61d`. Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -162,8 +162,8 @@ Passing tests validate only the code and contracts present at the exact tested S
 - PR: https://github.com/phakphum12345/universal-platform/pull/25
 - Base: `docs/phase-0-complete-requirements` at `68b4d0dc12e36b7cfdea4c24666d77b067164bc8`.
 - Corrected tested PR head: `f3f4b2031ccad797fad3a803f77c43e5f14d95e8`.
-- GitHub Actions run #185 (run ID `42148548498`): `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **155 passed in 0.25s**. The documentation-only marker was SKIPPED, not PASS.
+- GitHub Actions run #188 (run ID `42148672902`) on exact PR head `7bf230bb73040565a1a143dd2846349d8220e4f4`: `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **155 passed in 0.26s**. The documentation-only marker was SKIPPED, not PASS.
 - Earlier run #181 failed due an escaped-newline syntax error in package exports; run #183 then exposed a test fixture using unsupported `dm`. Both were corrected; only run #185 is the current exact-head passing evidence.
 - Adds `PlanarFourBarModelSnapshot`, `PlanarFourBarAdapterResult` and `solve_planar_four_bar_model`. Length quantities are dimension-checked and normalized to SI metres; branch and stable model/link/joint IDs are explicit; result mapping and JSON snapshot are deterministic.
 - **Scope remains one planar four-link/four-revolute loop.** This is not a general mechanism-to-solver adapter, arbitrary assembly graph solver, multi-loop/3D solver or physical feasibility certification.
-- Post-merge evidence: pending; no merge commit exists yet.
+- - Merge commit: `6198529d0e816898ad84e20efa153d54c6e0c61d`. Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
