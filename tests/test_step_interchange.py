@@ -94,6 +94,41 @@ def test_step_import_rejects_wrong_plane_orientation_and_unit_prefix():
         import_step(unsupported)
 
 
+def test_step_import_rejects_representation_with_wrong_geometric_context():
+    content = export_step(make_mesh()).content
+    unit_match = re.search(rb"#([0-9]+)=\(LENGTH_UNIT", content)
+    representation_match = re.search(
+        rb"(FACETED_BREP_SHAPE_REPRESENTATION\('Universal Platform', \(#[0-9]+\), )#[0-9]+(\))",
+        content,
+    )
+    assert unit_match and representation_match
+    damaged = (
+        content[:representation_match.start()]
+        + representation_match.group(1) + b"#" + unit_match.group(1) + representation_match.group(2)
+        + content[representation_match.end():]
+    )
+    with pytest.raises(InvalidModelError, match="geometric context"):
+        import_step(damaged)
+
+
+def test_step_import_rejects_context_assigning_a_different_length_unit():
+    content = export_step(make_mesh()).content
+    context_match = re.search(
+        rb"(#([0-9]+)=\(GEOMETRIC_REPRESENTATION_CONTEXT\(3\) "
+        rb"GLOBAL_UNIT_ASSIGNED_CONTEXT\(\(#)([0-9]+)(\)\) REPRESENTATION_CONTEXT)",
+        content,
+    )
+    brep_match = re.search(rb"#([0-9]+)=FACETED_BREP\(", content)
+    assert context_match and brep_match
+    damaged = (
+        content[:context_match.start()]
+        + context_match.group(1) + brep_match.group(1) + context_match.group(5)
+        + content[context_match.end():]
+    )
+    with pytest.raises(InvalidModelError, match="assign the declared SI length unit"):
+        import_step(damaged)
+
+
 def test_step_import_preserves_source_digest_and_result_validation_summary():
     mesh = make_mesh("cm")
     artifact = export_step(mesh)
