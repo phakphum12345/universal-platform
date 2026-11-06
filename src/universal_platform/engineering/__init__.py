@@ -65,6 +65,10 @@ from .joint_constraints import (
     JointConstraintResidual,
     generate_joint_constraints,
 )
+from .geometric_loop_coordinate_solver import (
+    GeometricLoopCoordinateSolveResult, GeometricLoopCoordinateSolveStatus,
+    solve_geometric_loop_coordinates,
+)
 from .geometric_loop_closure import (
     GeometricLoopClosureResult, GeometricLoopClosureStatus,
     GeometricLoopResidualGroup, evaluate_geometric_loop_closure,
@@ -124,7 +128,9 @@ __all__ = [
     "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
     "solve_mechanism_loops", "BranchContinuityStatus", "DerivativeKinematicsResult",
     "MechanismKinematicsInput", "MechanismKinematicsResult",
-    "solve_mechanism_kinematics", "GeometricLoopClosureResult",
+    "solve_mechanism_kinematics", "GeometricLoopCoordinateSolveResult",
+    "GeometricLoopCoordinateSolveStatus", "solve_geometric_loop_coordinates",
+    "GeometricLoopClosureResult",
     "GeometricLoopClosureStatus", "GeometricLoopResidualGroup",
     "evaluate_geometric_loop_closure", "ConstraintJacobian", "MobilityAnalysisResult",
     "MobilityFormulation", "NominalMobilityEstimate", "SingularityStatus",

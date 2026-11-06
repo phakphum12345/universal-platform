@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged integration baseline:** `223740381b81fc06a292eb90ba0653b27cbe8e7a` (PR #35; geometry-aware loop-closure evaluation).  
-**Latest merged feature:** PR #35 squash merge `223740381b81fc06a292eb90ba0653b27cbe8e7a`; post-merge run #284 (ID `42161983634`) passed workflow-sanity and python-tests; **253 tests passed in 0.65s**. PR-head run #283 (ID `42161855276`) also passed both checks with 253 tests.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
+**Latest merged integration baseline before PR #36:** `85e9beed8cad59016bae73de63f3377492dfad82` (PR #35 and evidence follow-up).  
+**Latest merged feature:** PR #35 squash merge `223740381b81fc06a292eb90ba0653b27cbe8e7a`; post-merge run #284 (ID `42161983634`) passed workflow-sanity and python-tests; **253 tests passed in 0.65s**. Evidence follow-up `85e9beed8cad59016bae73de63f3377492dfad82` passed run #286 (ID `42162230095`); **253 tests passed in 0.62s**.  
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -304,3 +304,11 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR head `9c5b5f43aa6af44da59f7b33cfa5db3448fd4d44`: run #283 (ID `42161855276`) passed `workflow-sanity` and `python-tests`; **253 passed in 0.35s**. Documentation-only marker SKIPPED.
 - Squash merge commit: `223740381b81fc06a292eb90ba0653b27cbe8e7a`.
 - Post-merge run #284 (ID `42161983634`) on the exact merge SHA passed `workflow-sanity` and `python-tests`; **253 passed in 0.65s**.
+
+
+## PR #36 — Geometric loop coordinate solver (implementation candidate)
+
+- Adds bounded local nonlinear fitting of generalized-coordinate values against generated six-component joint residuals while body poses remain fixed caller inputs.
+- Includes every joint residual, including spanning-tree joints; normalizes residual rows by their declared tolerances and forwards coordinate bounds and characteristic scales.
+- Returns CONVERGED only when the solver and final geometric evaluation both pass; local failure remains NOT_CONVERGED and is not interpreted as UNREACHABLE.
+- Does not solve body poses, discover branches, prove global reachability or physical feasibility. Exact PR-head and post-merge evidence pending.
