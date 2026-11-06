@@ -1,10 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa` (PR #52 squash merge).  
-**Exact post-merge CI:** run #385 / ID `42191666816` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **425 passed in 0.87s**.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 203 commits ahead and 0 behind. This work has not been merged to `main`.  
-**Working-tree state:** UNKNOWN — this audit used the GitHub API; no local checkout/working tree was available to inspect.  
+**Integration base HEAD:** `1db066915c4993e544b386c0311e332874ef4aed` (PR #53 documentation reconciliation merge).  
+**Exact post-merge CI:** run #402 / ID `42192465566` on this SHA; `workflow-sanity` PASS, `python-tests` PASS; **425 passed in 0.83s**.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 204 commits ahead and 0 behind. This work has not been merged to `main`.  
+**Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
+**Spatial-joint reference gap:** source generates six-component residuals for all eight declared joint kinds, but existing Jacobian reference tests cover FIXED/REVOLUTE/PRISMATIC/HELICAL only and existing spatial-mobility references cover FIXED/REVOLUTE/PRISMATIC only. The separate 2D PLANAR mobility formulation remains intentionally unsupported without a plane-frame contract. Candidate PR #54 adds a versioned eight-family reference fixture and fills these test-coverage gaps; exact-head CI pending.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
