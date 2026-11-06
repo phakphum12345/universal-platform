@@ -11,7 +11,7 @@ def test_feature_history_schema_and_public_api_are_available():
     )
     schema = json.loads((Path(__file__).parents[1] / "schemas" / "geometry" /
                          "feature-history.schema.json").read_text(encoding="utf-8"))
-    history = feature_history_for_square()
+    history = PublicHistory("history", (PublicNode.create("mesh", PublicKind.MESH),), ("mesh",))
     assert set(history.to_dict()) == set(schema["required"])
     assert schema["additionalProperties"] is False
     assert PublicHistory is FeatureHistory
