@@ -1,35 +1,45 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** Analytic Box/Cylinder subset implemented under PR #48.
+**Status:** IMPLEMENTED — analytic Box/Cylinder and straight-sided polygon extrusion; through-hole support is introduced by PR #52 on the integration branch.
 
 ## 1. Model
 
 - `BoxSolid`: stable solid ID, frame ID, positive x/y/z dimensions and explicit length unit.
 - `CylinderSolid`: stable solid ID, frame ID, positive radius/height and explicit length unit.
+- `ExtrudedProfileSolid`: immutable simple 2D outer polygon in local XY, positive extrusion height along local +Z, and zero or more immutable through-hole loops.
+- `Vec2`: finite 2D profile vertex.
 - `PrimitiveGeometryModel`: versioned FrameGraph plus primitive solid collection.
 - `FramedBounds3`: axis-aligned bounds expressed in a named target frame and length unit.
 
 ## 2. Computation
 
-Volume and surface area are computed analytically and returned as SI-valued Quantity records with dimensional signatures. Box bounds transform all eight corners. Cylinder bounds use the transformed local cylinder axis and analytic radial/axial extents to produce a tight axis-aligned bounding box.
+Volume and surface area are computed analytically and returned as SI-valued Quantity records with dimensional signatures. Box bounds transform all eight corners. Cylinder bounds use the transformed local cylinder axis and analytic radial/axial extents. Extruded-profile bounds transform every outer-profile vertex at both extrusion planes.
+
+For an extruded profile, net area is outer area minus the sum of hole areas. Boundary perimeter includes the outer loop and every hole loop; therefore analytic surface area includes the inner through-hole walls. Volume is net profile area multiplied by extrusion height.
 
 All transforms in a connected FrameGraph use one length unit; solids must match that unit. No implicit conversion occurs.
 
-## 3. Validation
+## 3. Validation and compatibility
 
 - Stable unique solid IDs and declared frame IDs.
 - Positive finite dimensions and supported length units.
-- Strict v1.0 JSON snapshots and unknown-kind rejection.
-- Deterministic solid ordering.
-- Reference tests for SI volume/surface area and transformed bounds.
+- Outer and hole loops require at least three immutable finite Vec2 vertices, no duplicate vertices, no self-intersections and non-degenerate area.
+- Every hole must lie strictly inside the outer profile and cannot touch/intersect its boundary.
+- Hole loops cannot touch, intersect, overlap or nest.
+- The optional `holes` property is omitted when empty. Older v1.0 snapshots without `holes` remain readable and round-trip without adding the optional field.
+- Strict v1.0 JSON snapshots, JSON Schema coverage, deterministic solid ordering and reference-value tests.
+- Public package exports include `Vec2` and `ExtrudedProfileSolid`.
 
-## 4. Limitations
+## 4. Acceptance criteria for through-holes
 
-This is not a B-rep or mesh CAD kernel. It does not implement Boolean operations, sketches, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
+1. Single- and multiple-hole profiles produce the expected net area, perimeter, SI volume and surface area.
+2. Inner wall area is included in surface area.
+3. Invalid, touching, outside, overlapping and nested loops fail closed.
+4. Serialization is deterministic; empty holes remain omitted.
+5. Existing no-hole profile snapshots remain backward compatible.
+6. The public package-level imports resolve to the canonical primitive types.
+7. Existing Box/Cylinder and mechanism regression tests remain unchanged and pass.
 
+## 5. Limitations
 
-## 5. Simple polygon extrusion (PR #49)
-
-`ExtrudedProfileSolid` adds a 2D simple polygon profile in local XY, extruded along local +Z by a positive height. It validates immutable unique vertices, non-self-intersection and non-zero area. Volume is profile area × height; surface area is 2 × profile area + perimeter × height. Bounds transform all profile vertices at both extrusion planes.
-
-This supports straight-sided plates/brackets as a CAD-neutral analytic primitive. It does not support arcs/splines, holes, draft angles, Boolean features, sketch constraints, B-rep or mesh export.
+This remains an analytic straight-sided extrusion, not a B-rep or mesh CAD kernel. It does not implement arcs/splines, draft angles, Boolean operations, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
