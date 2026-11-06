@@ -1,6 +1,6 @@
 # Planar Four-Bar Loop-Closure and Mobility Contract
 
-**Status:** Initial planar 4R loop-closure adapter and Kutzbach mobility estimate implemented on a feature branch; exact-SHA CI pending.
+**Status:** Analytic planar 4R geometry utility is implemented; a stable-ID, unit-aware model snapshot adapter is implemented on `feat/planar-four-bar-model-adapter`; exact-SHA CI pending.
 
 ## Scope
 
@@ -53,3 +53,14 @@ No arbitrary topology, more than one loop, multi-loop coupling, 3D constraints, 
 ## Acceptance evidence
 
 Tests cover both branches, independent link-length closure, tangent boundary, unreachable outer/inner configurations, degenerate centers, invalid inputs and Kutzbach mobility examples for a four-bar, a triangle and a negative count requiring review. Passing tests validates only this planar 4R adapter and mobility estimate at the tested commit SHA.
+
+
+## Stable-ID model snapshot adapter (PR #25)
+
+The additive `planar_four_bar_adapter` API accepts an immutable `PlanarFourBarModelSnapshot` containing a model ID/revision, four distinct link IDs, four distinct revolute-joint IDs, four length-valued `Quantity` inputs, a radian input angle, an explicit left/right branch and a length-valued tolerance. All lengths are dimension-checked and converted to SI metres before calling the existing analytic geometry utility.
+
+The result maps joint positions and link angles back to stable IDs and emits a deterministic schema-versioned dictionary with geometric residuals and a SIMULATION evidence record. The evidence PASS means only that the declared planar geometric closure calculation satisfied its numeric tolerance; it is not physical feasibility or engineering certification.
+
+Public entry point: `solve_planar_four_bar_model(snapshot)`. The original scalar API remains available for backward compatibility. This adapter does not consume arbitrary `Assembly` graphs, infer topology, invoke the general nonlinear solver, or support multiple loops/3D joints.
+
+Acceptance tests additionally cover mixed supported length units, dimension mismatch, raw-float rejection, duplicate identifiers, invalid branch/angle, explicit branch mapping, deterministic serialization and unreachable geometry.

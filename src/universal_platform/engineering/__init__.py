@@ -13,6 +13,11 @@ from .inverse_kinematics import (
     PlanarIKResult,
     solve_planar_two_link_inverse_kinematics,
 )
+from .planar_four_bar_adapter import (
+    PlanarFourBarModelSnapshot,
+    PlanarFourBarAdapterResult,
+    solve_planar_four_bar_model,
+)
 from .planar_mechanisms import (
     PlanarFourBarResult,
     PlanarMobilityEstimate,
@@ -42,6 +47,8 @@ __all__ = [
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
+    "PlanarFourBarModelSnapshot", "PlanarFourBarAdapterResult",
+    "solve_planar_four_bar_model",
     "estimate_planar_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
     "JacobianScaleStatus", "JacobianRankDiagnostics",
     "JacobianRankStatus", "NonlinearConstraint",
