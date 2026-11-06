@@ -513,3 +513,11 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Run #403 (`42193476702`) initially failed eight test assertions because the test expected the reduced mobility Jacobian width rather than the full generated Jacobian with six pose columns per link. The expectation was corrected; no code or test gates were weakened. The corrected exact head passed.
 - Scope: all eight joint families have deterministic six-row residual, Jacobian component/sign/pitch, local mobility/rank and ground-reversal reference coverage; nontrivial joint-frame placement composition is tested.
 - Limitations: one-joint local references only; no general global solver, dynamics or physical validation. 2D PLANAR mobility analysis remains deferred pending plane-frame contract.
+
+
+## PR #53 — Documentation index restoration and evidence reconciliation (merged)
+
+- Base SHA: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`.
+- Final head: `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`; run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
+- Merge: `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
+- Restores `DOCUMENTATION_INDEX.md`, reconciles PR #49/#52 evidence and documents the integration-vs-main branch boundary.
