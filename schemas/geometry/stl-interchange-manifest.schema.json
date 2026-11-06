@@ -21,20 +21,102 @@
     "max_coordinate_rounding_error"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
-    "format": {"const": "BINARY_STL"},
-    "coordinate_encoding": {"const": "IEEE754_BINARY32_LE"},
-    "normal_policy": {"const": "RECOMPUTED_FROM_QUANTIZED_FACETS"},
-    "solid_id": {"type": "string", "minLength": 1},
-    "source_kind": {"enum": ["BOX", "CYLINDER", "EXTRUDED_PROFILE"]},
-    "source_mesh_schema_version": {"const": "1.0"},
-    "source_geometry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "frame_id": {"type": "string", "minLength": 1},
-    "length_unit": {"type": "string", "minLength": 1},
-    "chordal_tolerance": {"type": ["number", "null"], "exclusiveMinimum": 0},
-    "stl_byte_length": {"type": "integer", "minimum": 284},
-    "facet_count": {"type": "integer", "minimum": 4, "maximum": 1000000},
-    "stl_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "max_coordinate_rounding_error": {"type": "number", "minimum": 0}
-  }
+    "schema_version": {
+      "const": "1.0"
+    },
+    "format": {
+      "const": "BINARY_STL"
+    },
+    "coordinate_encoding": {
+      "const": "IEEE754_BINARY32_LE"
+    },
+    "normal_policy": {
+      "const": "RECOMPUTED_FROM_QUANTIZED_FACETS"
+    },
+    "solid_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_kind": {
+      "enum": [
+        "BOX",
+        "CYLINDER",
+        "EXTRUDED_PROFILE"
+      ]
+    },
+    "source_mesh_schema_version": {
+      "const": "1.0"
+    },
+    "source_geometry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "length_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "chordal_tolerance": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": 0
+    },
+    "stl_byte_length": {
+      "type": "integer",
+      "minimum": 284
+    },
+    "facet_count": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 1000000
+    },
+    "stl_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "max_coordinate_rounding_error": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source_kind": {
+            "const": "BOX"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "chordal_tolerance": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source_kind": {
+            "const": "CYLINDER"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "chordal_tolerance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    }
+  ]
 }
