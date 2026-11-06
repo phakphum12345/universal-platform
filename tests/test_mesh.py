@@ -220,13 +220,40 @@ def test_profile_tessellation_handles_collinear_boundary_vertices():
     assert result.surface_area == pytest.approx(22.0)
 
 
-def test_profile_tessellation_rejects_holes_and_curved_edges():
+def test_profile_tessellation_supports_one_through_hole():
     outer = (Vec2(0, 0), Vec2(4, 0), Vec2(4, 4), Vec2(0, 4))
     hole = (Vec2(1, 1), Vec2(1, 2), Vec2(2, 2), Vec2(2, 1))
-    with_hole = ExtrudedProfileSolid("profile.hole", "world", outer, 1.0, "m", (hole,))
-    with pytest.raises(InvalidModelError):
-        tessellate_extruded_profile(with_hole)
+    solid = ExtrudedProfileSolid("profile.hole", "world", outer, 2.0, "m", (hole,))
+    mesh = tessellate_extruded_profile(solid)
+    result = validate_triangle_mesh(mesh)
 
+    assert result.valid
+    assert result.watertight
+    assert result.consistently_oriented
+    assert result.boundary_edge_count == 0
+    assert result.nonmanifold_edge_count == 0
+    assert result.winding_conflict_count == 0
+    assert result.signed_volume == pytest.approx(30.0)
+    assert result.surface_area == pytest.approx(70.0)
+    assert mesh.vertex_count if hasattr(mesh, "vertex_count") else len(mesh.vertices) == 16
+
+
+def test_profile_tessellation_supports_multiple_disjoint_holes():
+    outer = (Vec2(0, 0), Vec2(10, 0), Vec2(10, 10), Vec2(0, 10))
+    hole1 = (Vec2(1, 1), Vec2(1, 2), Vec2(2, 2), Vec2(2, 1))
+    hole2 = (Vec2(6, 6), Vec2(6, 8), Vec2(8, 8), Vec2(8, 6))
+    solid = ExtrudedProfileSolid("profile.multihole", "world", outer, 1.0, "m", (hole1, hole2))
+    mesh = tessellate_extruded_profile(solid)
+    result = validate_triangle_mesh(mesh)
+
+    assert result.valid
+    assert result.watertight
+    assert result.consistently_oriented
+    assert result.signed_volume == pytest.approx(95.0)
+    assert result.surface_area == pytest.approx(242.0)
+
+
+def test_profile_tessellation_rejects_curved_edges():
     curved = ExtrudedProfileSolid(
         "profile.curved", "world",
         (Vec2(0, 0), Vec2(2, 0), Vec2(0, 2)), 1.0, "m",
