@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 23ca284ca95be223d4a426c344a48bc21afc1953 (PR #18; Phase 2 plan)  
-**Latest merged implementation:** Configurable Jacobian strategies (PR #19), merged at `9676bdb00f3ffb1c8a2b0929fd27481b47368d43`; PR #18 established the Phase 2 reliability plan.  
+**Latest merged baseline:** 6651b5985391679daba15abb6bdf2f78b9ff894b (PR #20; rank diagnostics)  
+**Latest merged implementation:** Jacobian rank and system-shape diagnostics (PR #20), merged at `6651b5985391679daba15abb6bdf2f78b9ff894b`; PR #19 added configurable Jacobian strategies and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -13,6 +13,7 @@
 - Small dense linear solver with partial pivoting and residual calculation.
 - Bounded Levenberg–Marquardt solver for scalar nonlinear equality residuals, with forward finite differences as the default, opt-in central differences and validated analytic Jacobian callbacks; residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
 - Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
+- Threshold-dependent numerical Jacobian rank diagnostics using modified Gram–Schmidt with column pivoting; reports rank, maximum rank, threshold, matrix shape and FULL_RANK / RANK_DEFICIENT / INDETERMINATE. This is an estimate, not a proof.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
@@ -26,15 +27,15 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #20 — Jacobian rank and system-shape diagnostics (under review)
+## PR #20 — Jacobian rank and system-shape diagnostics
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/20
-- Candidate branch: `feat/phase-2-rank-diagnostics`.
-- Adds a dependency-free modified Gram–Schmidt rank estimate with column pivoting over the scaled Jacobian.
-- Reports estimated rank, maximum possible rank, relative threshold, matrix dimensions, system shape (UNDERDETERMINED / SQUARE / OVERDETERMINED), and FULL_RANK / RANK_DEFICIENT / INDETERMINATE.
-- Rank diagnostics remain separate from residual convergence and are `None` when no Jacobian was required at the initial point.
-- Tests cover full rank, duplicate rows, underdetermined full-row-rank systems, near-dependence threshold sensitivity, zero columns, invalid tolerance and non-finite matrices.
-- **Evidence status:** implementation candidate only; CI and merge status pending. Rank is a numerical estimate, not a mathematical proof or physical-feasibility determination.
+- Base: `docs/phase-0-complete-requirements` at `0e2f45f6a2f151c55b0e05e882467def9659095e`.
+- Tested PR head: `43dbe1cb76eff112b6c4ea4bd348cd72f596da69`.
+- GitHub Actions run #131 (run ID `42144874541`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **127 passed in 0.28s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `6651b5985391679daba15abb6bdf2f78b9ff894b`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- The rank estimator is threshold-dependent modified Gram–Schmidt with column pivoting over the scaled Jacobian. It reports system shape separately from estimated rank and does not prove exact mathematical rank, uniqueness, identifiability or physical feasibility.
 
 ## PR #19 — Jacobian strategies and evaluation diagnostics
 
