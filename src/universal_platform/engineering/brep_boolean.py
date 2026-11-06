@@ -172,7 +172,8 @@ def _box_bounds(solid: BRepSolid) -> _BoxBounds:
         if len(planes) != 1:
             raise InvalidModelError("BRep Boolean input contains a non-axis-aligned face")
         axis, value = planes[0]
-        if value not in (xs[0], xs[1]) if axis == 0 else value not in (ys[0], ys[1]) if axis == 1 else value not in (zs[0], zs[1]):
+        limits = (xs, ys, zs)[axis]
+        if value not in (limits[0], limits[-1]):
             raise InvalidModelError("BRep Boolean face is not on a box boundary plane")
         plane_counts[(axis, value)] = plane_counts.get((axis, value), 0) + 1
     expected_planes = {(0, value) for value in xs} | {(1, value) for value in ys} | {(2, value) for value in zs}
@@ -299,8 +300,11 @@ def boolean_axis_aligned_brep_solids(
             occupied.add((i, j, k))
     source_ids = tuple(item.solid_id for item in solids)
     source_digests = tuple(item.source_geometry_sha256 for item in solids)
-    digest_ids = source_ids if operation is BRepBooleanOperation.DIFFERENCE else tuple(sorted(source_ids))
-    digest_sources = source_digests if operation is BRepBooleanOperation.DIFFERENCE else tuple(sorted(source_digests))
+    source_pairs = tuple(zip(source_ids, source_digests))
+    if operation is not BRepBooleanOperation.DIFFERENCE:
+        source_pairs = tuple(sorted(source_pairs))
+    digest_ids = tuple(pair[0] for pair in source_pairs)
+    digest_sources = tuple(pair[1] for pair in source_pairs)
     components: list[BRepSolid] = []
     for index, cells in enumerate(_components(occupied)):
         component_payload = {
