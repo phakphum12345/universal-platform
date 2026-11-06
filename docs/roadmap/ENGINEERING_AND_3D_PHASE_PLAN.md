@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #45 merged at `59b47c6730a0ab9f5d9512733e400483ecdb3eec`; prior evidence reconciliations are recorded below.
+**Current integration baseline:** PR #46 merged at `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; prior evidence reconciliations are recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -190,8 +190,15 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - FrameGraph unit equality is required; no implicit unit conversion. Exact-SHA CI pending.
 
 
-## PR #46 — Hardware schematic connectivity model (implementation candidate)
+## PR #46 — Hardware schematic connectivity model (merged)
 
 - Base SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
 - Adds a versioned normalized component/pin/net graph and deterministic connectivity validation.
 - Rendering, electrical rule checking, circuit simulation and driver binding are separate future work. Exact-SHA CI pending.
+
+
+## PR #47 — Hardware driver interface bindings (implementation candidate)
+
+- Base SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Declares protocols/signals and validates schematic pin bindings against driver interfaces and optional module operation metadata.
+- No driver code execution, device communication or actuation. Exact-SHA CI pending.

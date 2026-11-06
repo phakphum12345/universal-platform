@@ -143,3 +143,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | HWR-SCHEM-001 | Normalized hardware schematic connectivity model | HARDWARE_SCHEMATIC_NETLIST_CONTRACT; schemas/hardware/schematic.schema.json | SchematicModel v1.0 stable component/pin/net IDs, reference designators, pin electrical types, terminal endpoint checks, one-net-per-pin, NO_CONNECT enforcement and deterministic serialization (PR #46; exact-SHA CI pending). Rendering, ERC, circuit simulation and driver binding remain NOT IMPLEMENTED. |
+
+
+| HWR-DRIVER-001 | Hardware driver interface and pin binding contracts | DRIVER_INTERFACE_CONTRACT; src/universal_platform/hardware/driver.py | Versioned driver/protocol/signal metadata, stable module/operation references, explicit pin bindings, schematic endpoint checks, direction compatibility and optional registry operation validation (PR #47; exact-SHA CI pending). Driver execution and physical I/O remain NOT IMPLEMENTED. |

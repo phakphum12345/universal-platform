@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `59b47c6730a0ab9f5d9512733e400483ecdb3eec` (PR #45; frame-bound spatial values). **Latest merged feature baseline:** `59b47c6730a0ab9f5d9512733e400483ecdb3eec` (PR #45).
-**Latest merged feature:** PR #45 squash merge `59b47c6730a0ab9f5d9512733e400483ecdb3eec`; exact PR-head run #335 (`42170469268`) passed workflow-sanity and python-tests; **387 tests passed in 0.71s**. Post-merge run #336 (`42170545630`) on the exact merge SHA passed both jobs; **387 tests passed in 0.72s**. PR #39–#44 evidence remains recorded below.
+**Latest integration branch head:** `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb` (PR #46; normalized hardware schematic model). **Latest merged feature baseline:** `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb` (PR #46).
+**Latest merged feature:** PR #46 squash merge `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; exact PR-head run #341 (`42171427481`) passed workflow-sanity and python-tests; **395 tests passed in 0.51s**. Post-merge run #342 (`42171498370`) on the exact merge SHA passed both jobs; **395 tests passed in 0.53s**. PR #39–#45 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -431,9 +431,26 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Scope: frame-bound spatial points and displacement vectors with explicit frame and length-unit semantics.
 
 
-## PR #46 — Hardware schematic connectivity model (implementation candidate)
+## PR #46 — Hardware schematic connectivity model (merged)
 
 - Base integration SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
 - Adds a normalized, offline SchematicModel for components, pins, electrical pin types, nets and terminal references; strict schema and topology validation.
 - Does not render schematics, perform electrical rule checking, simulate circuits or map components to drivers.
+- Final PR head: `2975a54d5d12e1bead98457e8ad89cd8620ae39e`; PR run #341 (`42171427481`): both jobs PASS; 395 passed in 0.51s.
+- Squash merge: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; post-merge run #342 (`42171498370`): both jobs PASS; 395 passed in 0.53s.
+
+
+## PR #46 — Hardware schematic connectivity model (merged)
+
+- Base integration SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
+- Final PR head `2975a54d5d12e1bead98457e8ad89cd8620ae39e`; run #341 (`42171427481`): workflow-sanity PASS; python-tests PASS; **395 passed in 0.51s**.
+- Squash merge `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; post-merge run #342 (`42171498370`) on exact merge SHA: both jobs PASS; **395 passed in 0.53s**.
+- Scope: normalized component/pin/net connectivity metadata; no EDA rendering, ERC or circuit simulation.
+
+
+## PR #47 — Hardware driver interface bindings (implementation candidate)
+
+- Base integration SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Adds driver/protocol/signal declarations and explicit schematic-pin bindings with endpoint and direction compatibility checks.
+- Optional metadata validation against ModuleRegistry; no driver loading, bus configuration, firmware writes or hardware actuation.
 - Exact-SHA CI and post-merge evidence: PENDING.

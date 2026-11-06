@@ -2,7 +2,7 @@
 
 **Status:** PROPOSED  
 **Requirement:** HWR-005  
-**Implementation:** PARTIAL — normalized SchematicModel connectivity graph implemented in PR #46; schematic rendering and schematic-to-driver traceability remain NOT IMPLEMENTED / NOT VERIFIED
+**Implementation:** PARTIAL — normalized SchematicModel connectivity graph implemented in PR #46 and driver interface/pin binding metadata implemented in PR #47; schematic rendering and executable driver integration remain NOT IMPLEMENTED / NOT VERIFIED
 
 ## 1. Purpose
 
@@ -62,3 +62,8 @@ HWR-005 — Schematic/driver bidirectional traceability (PROPOSED). Supports HR-
 ## Implemented schematic data subset
 
 PR #46 adds normalized components, symbol IDs, pin identities/numbers/names/electrical types, nets and terminal references with deterministic JSON serialization. This does not yet provide EDA import/export, diagram rendering, electrical rule checking, or driver-interface binding.
+
+
+## Driver binding metadata
+
+PR #47 declares driver IDs, protocol, module/operation references, signal directions and schematic pin bindings. It validates metadata references and basic direction compatibility. It does not provide driver implementation code, bus configuration, firmware deployment, electrical-level validation or device I/O.

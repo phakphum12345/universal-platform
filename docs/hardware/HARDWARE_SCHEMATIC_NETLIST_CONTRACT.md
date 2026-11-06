@@ -37,3 +37,8 @@ This is a metadata/connectivity model only. It does not render a schematic, impo
 - Component ratings, power budgets, net classes and electrical constraints.
 - Driver/interface mapping with source and firmware-version provenance.
 - Reference circuit cases and independent simulation adapters.
+
+
+## Driver bindings
+
+DriverBindingModel (PR #47) can map declared driver signals to component pins and validate references/directions. It does not execute the driver or communicate with a board.
