@@ -390,9 +390,10 @@ def analyze_mesh_intersections(
     for current in ordered:
         active = [item for item in active if item[1] >= current[0]]
         for other in active:
-            if (other[3] < current[2] or current[3] < other[2]
-                    or other[5] < current[4] or current[5] < other[4]):
-                continue
+            # The x-interval sweep is deliberately a conservative superset:
+            # y/z separation is resolved by exact narrow-phase predicates.
+            # Counting every active pair makes the resource limit bound the
+            # broad-phase pair enumeration itself.
             pair = tuple(sorted((other[6], current[6])))
             candidates.append(pair)
             if len(candidates) > max_candidate_pairs:

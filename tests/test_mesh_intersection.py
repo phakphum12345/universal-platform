@@ -101,3 +101,73 @@ def test_pair_limit_rejects_boolean_and_out_of_range_values():
     for value in (True, 0, -1, 5_000_001):
         with pytest.raises(InvalidModelError):
             analyze_mesh_intersections(mesh, max_candidate_pairs=value)
+
+
+
+def _raw_pair_mesh(points, faces) -> TriangleMesh:
+    return TriangleMesh(
+        "pair.reference", "world", "m", "BOX", "0" * 64,
+        tuple(Vec3(*point) for point in points), tuple(tuple(face) for face in faces),
+    )
+
+
+def test_exact_narrow_phase_classifies_proper_crossing_and_coplanar_overlap():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    crossing = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (1, -1, -1), (1, 2, -1), (1, 0, 1)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    assert _pair_intersection(crossing, 0, 1) == "PROPER_INTERSECTION"
+
+    overlap = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (1, 0, 0), (3, 0, 0), (1, 2, 0)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    assert _pair_intersection(overlap, 0, 1) == "COPLANAR_OVERLAP"
+
+
+def test_exact_narrow_phase_distinguishes_unshared_contact_and_duplicate_facets():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    contact = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (2, 0, 0), (3, -1, 0), (3, 1, 0)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    assert _pair_intersection(contact, 0, 1) == "UNSHARED_CONTACT"
+
+    duplicate = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0),
+         (0, 2, 0), (2, 0, 0), (0, 0, 0)],
+        [(0, 1, 2), (3, 4, 5)],
+    )
+    assert _pair_intersection(duplicate, 0, 1) == "DUPLICATE_FACET"
+
+
+def test_expected_shared_edge_and_vertex_adjacency_are_not_false_positives():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    opposite_edge = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0), (1, -1, 0)],
+        [(0, 1, 2), (1, 0, 3)],
+    )
+    assert _pair_intersection(opposite_edge, 0, 1) is None
+
+    shared_vertex = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0), (2, 1, 0), (1, 2, 0)],
+        [(0, 1, 2), (0, 3, 4)],
+    )
+    assert _pair_intersection(shared_vertex, 0, 1) == "ADJACENT_VERTEX_CROSSING"
+
+
+def test_shared_edge_same_side_overlap_is_an_adjacent_foldover():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    foldover = _raw_pair_mesh(
+        [(0, 0, 0), (2, 0, 0), (0, 2, 0), (1, 1, 0)],
+        [(0, 1, 2), (1, 0, 3)],
+    )
+    assert _pair_intersection(foldover, 0, 1) == "ADJACENT_FOLDOVER"
