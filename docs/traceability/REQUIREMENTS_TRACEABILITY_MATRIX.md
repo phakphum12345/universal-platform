@@ -59,4 +59,4 @@ See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILIT
 Documented means represented in specifications. Implemented means source exists. PASS requires executed evidence tied to an exact SHA and reproducible procedure. SKIPPED and UNKNOWN are never PASS. No overall requirement is complete solely because it appears in a document.
 
 
-| CAD-PROFILE-002 | Through-hole loops in profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY | Candidate integration PR #52; implementation and acceptance tests on branch `fix/cad-profile-holes-integration`; exact-head CI pending. |
+| CAD-PROFILE-002 | Through-hole loops in profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY | IMPLEMENTED — PR #52 merged at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact-head and post-merge CI PASS, 425 tests each. |
