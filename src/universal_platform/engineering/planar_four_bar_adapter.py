@@ -142,7 +142,9 @@ def solve_planar_four_bar_model(
     lengths_m = tuple(value.in_unit("m") for value in quantities)
     if any(not isfinite(value) or value <= 0.0 for value in lengths_m):
         raise InvalidModelError("Four-bar lengths and tolerance must be finite and positive")
-    if (isinstance(snapshot.input_angle_rad, bool)\n            or not isinstance(snapshot.input_angle_rad, (int, float))\n            or not isfinite(snapshot.input_angle_rad)):
+    if (isinstance(snapshot.input_angle_rad, bool)
+            or not isinstance(snapshot.input_angle_rad, (int, float))
+            or not isfinite(snapshot.input_angle_rad)):
         raise InvalidModelError("Input angle must be finite radians")
     if snapshot.branch not in ("left", "right"):
         raise InvalidModelError("Branch must be 'left' or 'right'")
