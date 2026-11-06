@@ -28,10 +28,9 @@ Current modules include:
 - Normalized hardware schematic component/pin/net connectivity model (PR #46 merged; no renderer/ERC/simulation).
 - Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
 - Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
-- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 open; head `72459622e1852161b1d5e733a2b4106d2a91bff8`; PR workflow run #353 passed 416 tests on merge-ref `69eb7fec4c319fabed915ddf9287af16f5d9a39d`).
+- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 merged at `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; final head `38a800d033ebbba19e1120c8cd3a47ade4088526`, run #356 / `42178039043` PASS, 416 tests; post-merge run #381 / `42186896757` PASS, 416 tests).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
-- Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
 - Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
 - Normalized mechanism schema v1.2 with stable generalized-coordinate IDs and explicit per-joint coordinate ordering, units, axes, bounds and scales; missing parameterization coverage remains visible.
 - Automatic six-component joint pose-consistency residual generation from explicit body poses, placements and generalized coordinates for all eight declared joint families; this is not a general dynamics solver.
@@ -109,6 +108,8 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [3D Design Intelligence](docs/design-3d/3D_DESIGN_INTELLIGENCE.md)
 - [3D Tool Generation](docs/design-3d/3D_TOOL_GENERATION_ENGINE.md)
 - [3D Assembly and Kinematics](docs/design-3d/3D_ASSEMBLY_AND_KINEMATICS.md)
+- [Generalized Coordinate and Joint Parameterization](docs/design-3d/GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT.md)
+- [Spatial Joint Reference Validation](docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md)
 - [Assembly Tree Forward-Kinematics Contract](docs/design-3d/ASSEMBLY_TREE_FORWARD_KINEMATICS_CONTRACT.md)
 - [Planar Two-Link Inverse-Kinematics Contract](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md)
 - [Planar Four-Bar Loop-Closure Contract](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md)
@@ -143,4 +144,5 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 ### CAD-neutral geometry
 
 - Analytic Box/Cylinder primitives and straight-sided polygon profile extrusion with explicit units, SI properties, deterministic v1.0 serialization and frame-aware bounds (PRs #48–#49 merged on integration; not a B-rep/mesh CAD kernel).
-- Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52; exact PR-head and post-merge CI both passed (425 tests each).
+- Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
+- Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.

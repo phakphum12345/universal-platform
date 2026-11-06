@@ -1,11 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration base HEAD:** `1db066915c4993e544b386c0311e332874ef4aed` (PR #53 documentation reconciliation merge).  
-**Exact post-merge CI:** run #402 / ID `42192465566` on this SHA; `workflow-sanity` PASS, `python-tests` PASS; **425 passed in 0.83s**.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 204 commits ahead and 0 behind. This work has not been merged to `main`.  
+**Integration base HEAD:** `22bbf1714224095cfd652d6887130d26facef087` (PR #54 squash merge).  
+**Exact post-merge CI:** run #405 / ID `42193654653` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **452 passed in 1.33s**.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 205 commits ahead and 0 behind. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
-**Spatial-joint reference gap:** source generates six-component residuals for all eight declared joint kinds, but existing Jacobian reference tests cover FIXED/REVOLUTE/PRISMATIC/HELICAL only and existing spatial-mobility references cover FIXED/REVOLUTE/PRISMATIC only. The separate 2D PLANAR mobility formulation remains intentionally unsupported without a plane-frame contract. Candidate PR #54 adds a versioned eight-family reference fixture and fills these test-coverage gaps; exact-head CI pending.  
+**Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. The separate 2D PLANAR mobility formulation remains intentionally unsupported without a plane-frame contract.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -503,3 +503,21 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Fixes missing package-level imports for `Vec2` and `ExtrudedProfileSolid`; regression tests now import both from `universal_platform.engineering`.
 - Reviews: 0; unresolved threads: 0; mergeability clean before merge.
 - Limitations: straight-sided analytic extrusion only; no curved sketches, Boolean kernel, B-rep, mesh or physical/manufacturing validation.
+
+
+## PR #54 — Spatial joint reference validation (merged)
+
+- Base integration SHA: `1db066915c4993e544b386c0311e332874ef4aed`.
+- Final PR head: `3da8c733895baab939548e0ba2e81670ca0c6359`; run #404 (`42193562931`): workflow-sanity PASS; python-tests PASS; **452 passed in 1.35s**.
+- Squash merge: `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 (`42193654653`) on exact merge SHA: both jobs PASS; **452 passed in 1.33s**.
+- Run #403 (`42193476702`) initially failed eight test assertions because the test expected the reduced mobility Jacobian width rather than the full generated Jacobian with six pose columns per link. The expectation was corrected; no code or test gates were weakened. The corrected exact head passed.
+- Scope: all eight joint families have deterministic six-row residual, Jacobian component/sign/pitch, local mobility/rank and ground-reversal reference coverage; nontrivial joint-frame placement composition is tested.
+- Limitations: one-joint local references only; no general global solver, dynamics or physical validation. 2D PLANAR mobility analysis remains deferred pending plane-frame contract.
+
+
+## PR #53 — Documentation index restoration and evidence reconciliation (merged)
+
+- Base SHA: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`.
+- Final head: `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`; run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
+- Merge: `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
+- Restores `DOCUMENTATION_INDEX.md`, reconciles PR #49/#52 evidence and documents the integration-vs-main branch boundary.
