@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Faceted BRep Solid v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile",
+    "solid_id",
+    "frame_id",
+    "length_unit",
+    "source_geometry_sha256",
+    "vertices",
+    "edges",
+    "loops",
+    "faces",
+    "shell"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "profile": {
+      "const": "FACETED_TRIANGULAR_PLANAR_SHELL_V1"
+    },
+    "solid_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "length_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_geometry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "vertices": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/vertex"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "loops": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/loop"
+      }
+    },
+    "faces": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/face"
+      }
+    },
+    "shell": {
+      "$ref": "#/$defs/shell"
+    }
+  },
+  "$defs": {
+    "vertex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vertex_id",
+        "x",
+        "y",
+        "z"
+      ],
+      "properties": {
+        "vertex_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "start_vertex_id",
+        "end_vertex_id"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "start_vertex_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "end_vertex_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        }
+      }
+    },
+    "edgeUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "forward"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "forward": {
+          "type": "boolean"
+        }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "loop_id",
+        "edge_uses"
+      ],
+      "properties": {
+        "loop_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "edge_uses": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/edgeUse"
+          }
+        }
+      }
+    },
+    "face": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "face_id",
+        "outer_loop_id"
+      ],
+      "properties": {
+        "face_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "outer_loop_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        }
+      }
+    },
+    "shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shell_id",
+        "face_ids"
+      ],
+      "properties": {
+        "shell_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "face_ids": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+          }
+        }
+      }
+    }
+  }
+}

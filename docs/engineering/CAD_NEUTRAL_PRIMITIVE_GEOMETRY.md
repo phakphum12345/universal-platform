@@ -62,3 +62,10 @@ Non-circular/spline ExtrudedProfileSolid meshes, general mesh self-intersection,
 PR #84 adds pairwise exact-rational PlanarRegion Boolean operations; PR #87 adds multi-region set operations. PR #88 adds `extrude_planar_region(region, solid_id, height)`, preserving the region's source ID/digest, frame, length unit and hole loops in an existing `ExtrudedProfileSolid`. The solid can be passed to the existing `PrimitiveGeometryModel` and `tessellate_extruded_profile` APIs. Exact PR-head and post-merge checks passed 607 tests; tests cover a Boolean set → extrusion → watertight, consistently oriented triangle mesh.
 
 This adapter supports straight-edged PlanarRegion inputs only. It does not create feature history, parametric sketches, B-rep or 3D Boolean operations. Point-touching/branching planar Boolean output remains fail-closed; STEP/3MF and manufacturing validation remain unsupported.
+
+
+## 9. Faceted B-rep topology v1.0
+
+The new `BRepSolid` model represents one connected closed shell of triangular planar faces with explicit vertices, canonical edges, oriented edge uses, loops and shell membership. It validates closed two-face edge incidence, opposite edge-use directions, connected face adjacency, Euler characteristic/genus and positive signed volume using exact-rational predicates over represented binary64 coordinates. `brep_from_triangle_mesh` and `triangle_mesh_from_brep` provide a deterministic, validation-preserving mesh bridge.
+
+This is only a faceted triangular-shell topology profile. It does not provide curved surfaces, n-gon faces, face holes, multiple shells, geometric self-intersection proof, shell healing or 3D Boolean operations. See [Faceted B-rep Topology Contract](../design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md).
