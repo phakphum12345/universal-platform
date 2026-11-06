@@ -14,6 +14,7 @@ Provide a small, dependency-free local nonlinear equality solver that can be reu
 - Optional variable bounds are finite lower/upper endpoints; trial values are projected into the declared interval.
 - Solver options define iteration, finite-difference, step and damping limits, plus a Jacobian strategy. Forward finite differences remain the default; central differences and an analytic callback are opt-in.
 - An analytic Jacobian callback returns an `m × n` matrix in constraint order and variable order, containing derivatives of the original (unscaled) residuals. The solver validates its shape and finite values, then applies each residual scale internally.
+- A positive relative rank tolerance controls a dependency-free modified Gram–Schmidt estimate with column pivoting. The estimate is computed from the scaled Jacobian used by the solver; it is a numerical diagnostic, not a proof of mathematical rank. Its threshold sensitivity is tested using nearly dependent columns.
 - The caller owns units, coordinate frames and physical interpretation. Residuals from unlike dimensions must be normalized deliberately using documented scales.
 
 ## Algorithm
@@ -34,16 +35,17 @@ Provide a small, dependency-free local nonlinear equality solver that can be reu
 - Input/model evaluation errors raise SolverError; no missing/non-finite residual is silently treated as zero.
 - The result includes the iteration count, objective, termination reason, method and limitations.
 - Derivative strategy and residual/Jacobian/analytic-Jacobian evaluation counts are reported separately. Residual evaluation counts are scalar residual callback invocations.
+- When a Jacobian has been evaluated, the result reports estimated rank, threshold, matrix shape and whether the estimate is full rank, rank deficient or indeterminate. The matrix shape separately identifies underdetermined, square and overdetermined systems. If no Jacobian was needed, diagnostics are `None` (not computed).
 
 ## Explicit limitations
 
-This is a local numerical least-squares method, not a general symbolic or global solver. It does not currently implement inequality constraints, complementarity/contact, sparse matrices, automatic dimensional analysis, robust rank/conditioning estimates, continuation, branch enumeration, topology changes or automatic gauge fixing. Redundant or underdetermined systems may have non-unique solutions. Initial guesses, residual scaling, smoothness and bounds materially affect convergence.
+This is a local numerical least-squares method, not a general symbolic or global solver. It does not currently implement inequality constraints, complementarity/contact, sparse matrices, automatic dimensional analysis, condition estimates, continuation, branch enumeration, topology changes or automatic gauge fixing. Redundant or underdetermined systems may have non-unique solutions. Initial guesses, residual scaling, smoothness and bounds materially affect convergence.
 
 It does not by itself solve arbitrary CAD constraints, multi-loop assemblies, 3D mechanisms, dynamics or physical feasibility. Such integrations require adapter-specific residual definitions, independent reference cases and validation.
 
 ## Acceptance tests
 
-The test suite covers scalar and coupled nonlinear equations, a consistent overdetermined system, variable bounds, stationary unsatisfied equations, already-satisfied initial points, malformed contracts, non-finite residuals and callback failures. It also covers default forward differences, central differences, analytic Jacobian agreement, residual scaling, shape/finiteness validation, derivative callback failures and evaluation diagnostics.
+The test suite covers scalar and coupled nonlinear equations, a consistent overdetermined system, variable bounds, stationary unsatisfied equations, already-satisfied initial points, malformed contracts, non-finite residuals and callback failures. It also covers default forward differences, central differences, analytic Jacobian agreement, residual scaling, shape/finiteness validation, derivative callback failures, evaluation diagnostics, full-rank/duplicate-row/underdetermined rank fixtures, threshold validation and indeterminate rank handling.
 
 ## Safety boundary
 

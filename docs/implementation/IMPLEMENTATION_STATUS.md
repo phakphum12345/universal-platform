@@ -26,6 +26,16 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## PR #20 — Jacobian rank and system-shape diagnostics (under review)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/20
+- Candidate branch: `feat/phase-2-rank-diagnostics`.
+- Adds a dependency-free modified Gram–Schmidt rank estimate with column pivoting over the scaled Jacobian.
+- Reports estimated rank, maximum possible rank, relative threshold, matrix dimensions, system shape (UNDERDETERMINED / SQUARE / OVERDETERMINED), and FULL_RANK / RANK_DEFICIENT / INDETERMINATE.
+- Rank diagnostics remain separate from residual convergence and are `None` when no Jacobian was required at the initial point.
+- Tests cover full rank, duplicate rows, underdetermined full-row-rank systems, near-dependence threshold sensitivity, zero columns, invalid tolerance and non-finite matrices.
+- **Evidence status:** implementation candidate only; CI and merge status pending. Rank is a numerical estimate, not a mathematical proof or physical-feasibility determination.
+
 ## PR #19 — Jacobian strategies and evaluation diagnostics
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/19

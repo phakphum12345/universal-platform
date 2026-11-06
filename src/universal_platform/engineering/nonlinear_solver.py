@@ -30,6 +30,24 @@ class JacobianMethod(str, Enum):
     ANALYTIC = "analytic"
 
 
+class JacobianRankStatus(str, Enum):
+    FULL_RANK = "FULL_RANK"
+    RANK_DEFICIENT = "RANK_DEFICIENT"
+    INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True, slots=True)
+class JacobianRankDiagnostics:
+    estimated_rank: int | None
+    maximum_rank: int
+    row_count: int
+    column_count: int
+    threshold: float
+    status: JacobianRankStatus
+    system_shape: str
+    method: str = "modified-gram-schmidt-column-pivoting"
+
+
 @dataclass(frozen=True, slots=True)
 class NonlinearConstraint:
     """One scalar equality residual; zero means the equation is satisfied."""
@@ -54,6 +72,7 @@ class NonlinearSolverOptions:
     initial_damping: float = 1e-3
     maximum_damping: float = 1e12
     jacobian_method: JacobianMethod = JacobianMethod.FORWARD_FINITE_DIFFERENCE
+    rank_tolerance: float = 1e-10
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +96,7 @@ class NonlinearSolveResult:
     residual_evaluations: int = 0
     jacobian_evaluations: int = 0
     analytic_jacobian_evaluations: int = 0
+    jacobian_rank: JacobianRankDiagnostics | None = None
     limitations: tuple[str, ...] = (
         "Local solver; no global convergence or uniqueness guarantee",
         "Derivative accuracy depends on the selected strategy; finite differences are step-sensitive",
@@ -207,6 +227,71 @@ def _jacobian(
     return matrix
 
 
+def _estimate_jacobian_rank(
+    matrix: list[list[float]],
+    relative_tolerance: float,
+) -> JacobianRankDiagnostics:
+    row_count = len(matrix)
+    column_count = len(matrix[0]) if row_count else 0
+    maximum_rank = min(row_count, column_count)
+    if any(len(row) != column_count for row in matrix):
+        return JacobianRankDiagnostics(
+            None, maximum_rank, row_count, column_count, 0.0,
+            JacobianRankStatus.INDETERMINATE, "UNKNOWN",
+        )
+    if not all(isfinite(value) for row in matrix for value in row):
+        return JacobianRankDiagnostics(
+            None, maximum_rank, row_count, column_count, 0.0,
+            JacobianRankStatus.INDETERMINATE, _system_shape(row_count, column_count),
+        )
+
+    columns = [
+        [matrix[row][column] for row in range(row_count)]
+        for column in range(column_count)
+    ]
+    norms = [sum(value * value for value in column) ** 0.5 for column in columns]
+    reference_norm = max(norms, default=0.0)
+    threshold = relative_tolerance * reference_norm
+    rank = 0
+
+    while columns and rank < maximum_rank:
+        pivot = max(range(len(columns)), key=lambda index: sum(
+            value * value for value in columns[index]
+        ))
+        vector = columns.pop(pivot)
+        norm = sum(value * value for value in vector) ** 0.5
+        if norm <= threshold:
+            break
+        basis = [value / norm for value in vector]
+        rank += 1
+
+        # Re-orthogonalize once to reduce loss of orthogonality for nearly
+        # dependent columns while keeping the implementation dependency-free.
+        for candidate in columns:
+            for _ in range(2):
+                projection = sum(a * b for a, b in zip(basis, candidate))
+                for index in range(row_count):
+                    candidate[index] -= projection * basis[index]
+
+    status = (
+        JacobianRankStatus.FULL_RANK
+        if rank == maximum_rank
+        else JacobianRankStatus.RANK_DEFICIENT
+    )
+    return JacobianRankDiagnostics(
+        rank, maximum_rank, row_count, column_count, threshold, status,
+        _system_shape(row_count, column_count),
+    )
+
+
+def _system_shape(row_count: int, column_count: int) -> str:
+    if row_count < column_count:
+        return "UNDERDETERMINED"
+    if row_count > column_count:
+        return "OVERDETERMINED"
+    return "SQUARE"
+
+
 def _project_bounds(
     values: tuple[float, ...],
     variable_names: tuple[str, ...],
@@ -236,6 +321,7 @@ def _build_result(
     reason: str,
     stats: _EvaluationStats,
     jacobian_method: JacobianMethod,
+    jacobian_rank: JacobianRankDiagnostics | None,
 ) -> NonlinearSolveResult:
     residual_items = tuple(
         NonlinearConstraintResidual(
@@ -263,6 +349,7 @@ def _build_result(
         residual_evaluations=stats.residual_evaluations,
         jacobian_evaluations=stats.jacobian_evaluations,
         analytic_jacobian_evaluations=stats.analytic_jacobian_evaluations,
+        jacobian_rank=jacobian_rank,
     )
 
 
@@ -315,7 +402,9 @@ def solve_nonlinear_constraints(
             or not isfinite(settings.initial_damping)
             or settings.initial_damping <= 0.0
             or not isfinite(settings.maximum_damping)
-            or settings.maximum_damping <= settings.initial_damping):
+            or settings.maximum_damping <= settings.initial_damping
+            or not isfinite(settings.rank_tolerance)
+            or settings.rank_tolerance <= 0.0):
         raise SolverError("Solver step, tolerance and damping options must be finite and positive")
 
     for key, bound in bound_map.items():
@@ -352,12 +441,13 @@ def solve_nonlinear_constraints(
         return _build_result(
             NonlinearSolveStatus.CONVERGED, names, current, equations,
             residuals, 0, "initial_point_satisfies_all_constraints",
-            stats, settings.jacobian_method,
+            stats, settings.jacobian_method, None,
         )
 
     damping = settings.initial_damping
     reason = "maximum_iterations_reached"
     iterations = 0
+    rank_diagnostics: JacobianRankDiagnostics | None = None
 
     for iteration in range(1, settings.max_iterations + 1):
         iterations = iteration
@@ -365,6 +455,9 @@ def solve_nonlinear_constraints(
             equations, names, current, residuals,
             settings.finite_difference_step,
             settings.jacobian_method, jacobian, stats,
+        )
+        rank_diagnostics = _estimate_jacobian_rank(
+            jacobian_matrix, settings.rank_tolerance
         )
         row_count, column_count = len(equations), len(names)
         gradient = [
@@ -417,7 +510,7 @@ def solve_nonlinear_constraints(
                     NonlinearSolveStatus.CONVERGED, names, current, equations,
                     residuals, iterations,
                     "all_constraint_residuals_within_tolerance",
-                    stats, settings.jacobian_method,
+                    stats, settings.jacobian_method, rank_diagnostics,
                 )
         else:
             damping *= 10.0
@@ -427,5 +520,6 @@ def solve_nonlinear_constraints(
 
     return _build_result(
         NonlinearSolveStatus.NOT_CONVERGED, names, current, equations,
-        residuals, iterations, reason, stats, settings.jacobian_method
+        residuals, iterations, reason, stats, settings.jacobian_method,
+        rank_diagnostics,
     )
