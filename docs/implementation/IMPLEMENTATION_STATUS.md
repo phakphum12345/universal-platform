@@ -512,7 +512,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Squash merge: `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 (`42193654653`) on exact merge SHA: both jobs PASS; **452 passed in 1.33s**.
 - Run #403 (`42193476702`) initially failed eight test assertions because the test expected the reduced mobility Jacobian width rather than the full generated Jacobian with six pose columns per link. The expectation was corrected; no code or test gates were weakened. The corrected exact head passed.
 - Scope: all eight joint families have deterministic six-row residual, Jacobian component/sign/pitch, local mobility/rank and ground-reversal reference coverage; nontrivial joint-frame placement composition is tested.
-- Limitations: one-joint local references only; no general global solver, dynamics or physical validation. 2D PLANAR mobility analysis remains deferred pending plane-frame contract.
+- Limitations: one-joint local references only; no general global solver, dynamics or physical validation. 2D PLANAR mobility analysis remains a PR #56 candidate and is not integrated until exact-head CI passes.
 
 
 ## PR #53 — Documentation index restoration and evidence reconciliation (merged)
