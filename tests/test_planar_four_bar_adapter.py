@@ -45,6 +45,15 @@ def test_model_adapter_converts_mixed_length_units_to_si_and_maps_stable_ids():
     assert result.geometry.input_joint_y == pytest.approx(0.1)
     assert result.geometry.closure_error <= 1e-9
     assert result.evidence.status is EvidenceStatus.PASS
+    residuals = dict(result.residuals_m)
+    assert set(residuals) == {
+        "link/link/ground/length",
+        "link/link/input/length",
+        "link/link/coupler/length",
+        "link/link/output/length",
+    }
+    assert max(residuals.values()) == pytest.approx(result.geometry.closure_error)
+    assert max(residuals.values()) <= 1e-9
 
 
 @pytest.mark.parametrize("branch", ["left", "right"])
@@ -74,6 +83,7 @@ def test_model_adapter_serializes_deterministic_schema_and_provenance():
         ("output_ground_joint_id", "joint/A", "joint identifiers"),
         ("branch", "unknown", "Branch"),
         ("input_angle_rad", float("nan"), "angle"),
+        ("input_angle_rad", True, "angle"),
     ],
 )
 def test_model_adapter_rejects_invalid_identity_branch_and_angle(field, value, match):
