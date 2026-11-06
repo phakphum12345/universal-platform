@@ -63,3 +63,9 @@ Every phase requires acceptance criteria, reproducible tests, exact revision ide
 
 ## Cost policy
 Prefer existing hardware, local execution, free/open-source tools, and portable environments. Use hosted infrastructure only when a documented need justifies its cost and operational burden.
+
+## Engineering-core delivery ledger — 2026-11-06
+
+PRs #32–#34 are merged on `docs/phase-0-complete-requirements` with exact-SHA CI evidence. PR #35 adds geometry-aware loop-closure evaluation for caller-supplied configurations; it does not imply a general spatial solver.
+
+Next dependency sequence: PR #36 nonlinear configuration/solver integration; PR #37 integrated mobility and kinematics validation; PR #38 engineering regression and reference validation; PR #39 spatial-joint foundation. Subsequent repository-wide work remains governed by the capability inventory, requirement traceability, explicit owner decisions and per-module reference tests. A roadmap item is not complete merely because it is documented.
