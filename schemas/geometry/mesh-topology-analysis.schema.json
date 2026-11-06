@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MeshTopologyAnalysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "solid_id",
+    "frame_id",
+    "length_unit",
+    "source_geometry_sha256",
+    "mesh_snapshot_sha256",
+    "vertex_count",
+    "triangle_count",
+    "face_component_count",
+    "face_components",
+    "exact_duplicate_vertex_groups",
+    "near_coincident_vertex_groups",
+    "nonmanifold_vertex_indices",
+    "unused_vertex_indices",
+    "coincident_tolerance",
+    "diagnostic_status",
+    "self_intersection_status",
+    "issues"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "solid_id": {"type": "string", "minLength": 1},
+    "frame_id": {"type": "string", "minLength": 1},
+    "length_unit": {"type": "string", "minLength": 1},
+    "source_geometry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mesh_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "vertex_count": {"type": "integer", "minimum": 0},
+    "triangle_count": {"type": "integer", "minimum": 0},
+    "face_component_count": {"type": "integer", "minimum": 0},
+    "face_components": {
+      "type": "array",
+      "items": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}
+    },
+    "exact_duplicate_vertex_groups": {
+      "type": "array",
+      "items": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}
+    },
+    "near_coincident_vertex_groups": {
+      "type": "array",
+      "items": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}
+    },
+    "nonmanifold_vertex_indices": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
+    "unused_vertex_indices": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
+    "coincident_tolerance": {"type": "number", "minimum": 0},
+    "diagnostic_status": {"enum": ["ISSUES_FOUND", "NO_TOPOLOGY_ISSUES_FOUND"]},
+    "self_intersection_status": {"const": "UNKNOWN"},
+    "issues": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}
