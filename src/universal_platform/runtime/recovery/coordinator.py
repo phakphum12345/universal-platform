@@ -54,13 +54,18 @@ class RecoveryCoordinator:
             self._registry.transition(resource_id, ResourceState.ACTIVE)
             return RecoveryResult(resource_id, ResourceState.ACTIVE, True, True, len(events), "recovery validated")
         except Exception as exc:
+            rollback_failed = False
             try:
                 adapter.rollback(resource_id)
-            finally:
-                current = self._registry.get(resource_id)
-                if current.state is not ResourceState.QUARANTINED:
-                    self._registry.transition(resource_id, ResourceState.QUARANTINED)
-            return RecoveryResult(resource_id, ResourceState.QUARANTINED, False, False, len(events), f"recovery exception: {type(exc).__name__}")
+            except Exception:
+                rollback_failed = True
+            current = self._registry.get(resource_id)
+            if current.state is not ResourceState.QUARANTINED:
+                self._registry.transition(resource_id, ResourceState.QUARANTINED)
+            reason = f"recovery exception: {type(exc).__name__}"
+            if rollback_failed:
+                reason += "; rollback failed"
+            return RecoveryResult(resource_id, ResourceState.QUARANTINED, False, False, len(events), reason)
 
     def _quarantine(self, resource_id: str, event_count: int, reason: str) -> RecoveryResult:
         self._registry.transition(resource_id, ResourceState.QUARANTINED)
