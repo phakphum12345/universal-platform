@@ -28,6 +28,13 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## PR #22 — Nonlinear solver reliability regression matrix (under review)
+
+- Candidate branch: `test/phase-2-reliability-matrix`.
+- Adds a dedicated deterministic regression suite for consistent/inconsistent overdetermined systems, active lower/upper bounds, finite-difference step sensitivity, analytic-versus-central agreement, and original-unit residual acceptance after scaling.
+- Existing tests in `tests/test_nonlinear_solver.py` continue to cover Jacobian strategies, rank thresholds, zero columns, variable scaling and invalid callbacks.
+- **Evidence status:** test candidate only; CI and merge verification pending.
+
 ## PR #21 — Variable scaling and Jacobian scale-disparity indicator
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/21
