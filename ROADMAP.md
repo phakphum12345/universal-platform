@@ -139,3 +139,11 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Exact PR/push runs #42219983207 / #42219977049 passed both required jobs with 506 tests; exact post-merge run #42220119818 passed both jobs with **506 tests in 1.93s**.
 - Adds dependency-free deterministic BoxSolid/CylinderSolid tessellation, source SHA-256 provenance, local frame/unit, explicit cylinder chordal tolerance, versioned schema and structural mesh validation.
 - Scope remains Box/Cylinder only. Extruded-profile and hole meshing, arbitrary mesh self-intersection detection/repair, B-rep, 3D Boolean and STEP/STL/3MF interchange remain unsupported.
+
+
+## PR #66 — Straight extruded-profile triangle mesh (implementation candidate)
+
+- Extend the versioned TriangleMesh source kind to straight-edged, hole-free ExtrudedProfileSolid.
+- Use deterministic ear clipping for simple concave/convex profile caps and outward-oriented side walls; preserve local frame, length unit, stable solid ID and source SHA-256.
+- Acceptance includes concave L-section analytic volume/surface area, clockwise/counter-clockwise loops, collinear boundary vertices, watertight edge incidence and rejection of holes/arcs.
+- Through-hole and curved-profile meshing, 3D Boolean operations, general mesh self-intersection/repair and neutral CAD interchange remain separate future increments.
