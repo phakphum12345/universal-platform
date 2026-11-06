@@ -28,12 +28,16 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #22 — Nonlinear solver reliability regression matrix (under review)
+## PR #22 — Nonlinear solver reliability regression matrix
 
-- Candidate branch: `test/phase-2-reliability-matrix`.
-- Adds a dedicated deterministic regression suite for consistent/inconsistent overdetermined systems, active lower/upper bounds, finite-difference step sensitivity, analytic-versus-central agreement, and original-unit residual acceptance after scaling.
-- Existing tests in `tests/test_nonlinear_solver.py` continue to cover Jacobian strategies, rank thresholds, zero columns, variable scaling and invalid callbacks.
-- **Evidence status:** test candidate only; CI and merge verification pending.
+- PR: https://github.com/phakphum12345/universal-platform/pull/22
+- Base: `docs/phase-0-complete-requirements` at `4ed0fcd094606f21fdc704ed5e19fc1cda594e1e`.
+- Initial tested head `9a4e6520553dc1ab0bfe54c780340a1c428ee0d3`: run #146 failed (138 passed, 1 failed). The failure showed the test's step tolerance was too loose for the requested original-unit residual tolerance.
+- Corrected tested head: `265a7420edbb21da977dd357affaec61fa63f701`.
+- GitHub Actions run #147 (run ID `42145747842`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **139 passed in 0.18s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `1a3f05b5f99fa330cf0fd79e64f7ff3934211265`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds a dedicated deterministic reliability suite for consistent/inconsistent overdetermined systems, active lower/upper bounds, finite-difference step sensitivity, analytic/central agreement and original-unit residual acceptance.
 
 ## PR #21 — Variable scaling and Jacobian scale-disparity indicator
 
