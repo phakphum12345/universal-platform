@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** PR #58 adds circular-arc edges to analytic profile extrusion; PR #61 proposes dependency-free convex 2D profile Boolean operations v1.0. Existing Box/Cylinder and straight-sided extrusion remain backward-compatible. This remains an analytic primitive layer, not a B-rep/mesh CAD kernel.
+**Status:** PR #61 implements dependency-free convex 2D profile Boolean operations v1.0; PR #62 adds a general planar topology design contract only; PR #64 implements deterministic Box/Cylinder triangle tessellation and structural validation. This remains an analytic primitive layer plus a narrow mesh adapter, not a B-rep CAD kernel.
 
 ## 1. Model
 
@@ -48,3 +48,10 @@ Curved-profile topology checks use deterministic 1-degree arc tessellation; area
 ## 6. Convex 2D Boolean operations (PR #61 candidate)
 
 See [2D Convex Profile Boolean Topology Contract](../design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md). The new operation set accepts convex simple polygon loops and returns deterministic convex-cell decompositions for UNION, INTERSECTION and DIFFERENCE. It intentionally does not dissolve adjacent cells. Concave loops, arcs, holes, exact arithmetic and general planar arrangements remain unsupported.
+
+
+## 7. Deterministic primitive triangle meshes (PR #64)
+
+See [Deterministic Primitive Triangle Mesh Contract](../design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md). BoxSolid emits an exact 8-vertex/12-triangle closed surface. CylinderSolid emits deterministic polygonal rings and cap fans under an explicit radial chordal tolerance. Meshes retain source-local frame/unit and a SHA-256 source geometry digest; validation checks face indices, degenerate triangles, edge manifold counts, directed winding and positive signed volume.
+
+ExtrudedProfileSolid (including arcs and through-holes), general mesh self-intersection, mesh repair, B-rep, 3D Booleans and STEP/STL/3MF interchange remain unsupported.
