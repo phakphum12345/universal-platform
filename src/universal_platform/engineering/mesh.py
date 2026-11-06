@@ -1,4 +1,4 @@
-"""Deterministic, dependency-free triangle meshes for analytic Box/Cylinder solids.
+"""Deterministic, dependency-free triangle meshes for supported analytic primitives.
 
 Meshes are emitted in the source solid's local coordinate frame. This module
 provides tessellation and topological checks only; it is not a B-rep kernel,
@@ -14,7 +14,7 @@ from typing import Any, ClassVar, Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .primitive_geometry import BoxSolid, CylinderSolid
+from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid
 from .quantity import LENGTH, Quantity
 
 
@@ -24,7 +24,7 @@ def _finite(value: Any, label: str) -> float:
     return float(value)
 
 
-def _source_digest(solid: BoxSolid | CylinderSolid) -> str:
+def _source_digest(solid: BoxSolid | CylinderSolid | ExtrudedProfileSolid) -> str:
     payload = dumps(solid.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False)
     return sha256(payload.encode("utf-8")).hexdigest()
 
@@ -58,8 +58,8 @@ class TriangleMesh:
             if isinstance(exc, InvalidModelError):
                 raise
             raise InvalidModelError(f"unsupported mesh length_unit: {self.length_unit}") from exc
-        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER"}:
-            raise InvalidModelError("mesh source_kind must be BOX or CYLINDER")
+        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE"}:
+            raise InvalidModelError("mesh source_kind must be BOX, CYLINDER or EXTRUDED_PROFILE")
         if (not isinstance(self.source_geometry_sha256, str)
                 or len(self.source_geometry_sha256) != 64
                 or any(ch not in "0123456789abcdef" for ch in self.source_geometry_sha256)):
@@ -83,6 +83,8 @@ class TriangleMesh:
             raise InvalidModelError("exact box tessellation must not declare chordal_tolerance")
         if self.source_kind == "CYLINDER" and self.chordal_tolerance is None:
             raise InvalidModelError("cylinder tessellation requires an explicit chordal_tolerance")
+        if self.source_kind == "EXTRUDED_PROFILE" and self.chordal_tolerance is not None:
+            raise InvalidModelError("straight profile tessellation does not declare chordal_tolerance")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -281,4 +283,98 @@ def tessellate_cylinder(solid: CylinderSolid, chordal_tolerance: float) -> Trian
     return TriangleMesh(
         solid.solid_id, solid.frame_id, solid.length_unit, "CYLINDER", _source_digest(solid),
         vertices, tuple(faces), tolerance,
+    )
+
+def _profile_cross(a: Any, b: Any, c: Any) -> float:
+    return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x)
+
+
+def _profile_signed_area(points: tuple[Any, ...]) -> float:
+    origin = points[0]
+    return sum(
+        (points[i].x-origin.x)*(points[(i+1) % len(points)].y-origin.y)
+        - (points[(i+1) % len(points)].x-origin.x)*(points[i].y-origin.y)
+        for i in range(1, len(points)-1)
+    ) / 2.0
+
+
+def _inside_or_on_triangle(point: Any, a: Any, b: Any, c: Any, epsilon: float) -> bool:
+    return (
+        _profile_cross(a, b, point) >= -epsilon
+        and _profile_cross(b, c, point) >= -epsilon
+        and _profile_cross(c, a, point) >= -epsilon
+    )
+
+
+def _triangulate_simple_profile(points: tuple[Any, ...]) -> tuple[tuple[int, int, int], ...]:
+    """Deterministic ear clipping for validated straight-edged simple loops."""
+    if len(points) < 3:
+        raise InvalidModelError("profile triangulation requires at least three vertices")
+    scale = max(
+        max(point.x for point in points)-min(point.x for point in points),
+        max(point.y for point in points)-min(point.y for point in points),
+        1e-300,
+    )
+    epsilon = 1e-14 * scale * scale
+    area = _profile_signed_area(points)
+    if abs(area) <= epsilon:
+        raise InvalidModelError("profile triangulation rejects numerically degenerate area")
+    remaining = list(range(len(points)))
+    if area < 0:
+        remaining.reverse()
+    result: list[tuple[int, int, int]] = []
+    while len(remaining) > 3:
+        ear_found = False
+        for position, current in enumerate(remaining):
+            previous = remaining[position-1]
+            following = remaining[(position+1) % len(remaining)]
+            a, b, c = points[previous], points[current], points[following]
+            if _profile_cross(a, b, c) <= epsilon:
+                continue
+            if any(
+                _inside_or_on_triangle(points[index], a, b, c, epsilon)
+                for index in remaining if index not in {previous, current, following}
+            ):
+                continue
+            result.append((previous, current, following))
+            remaining.pop(position)
+            ear_found = True
+            break
+        if not ear_found:
+            raise InvalidModelError("profile triangulation could not find a non-degenerate ear")
+    a, b, c = (points[index] for index in remaining)
+    if _profile_cross(a, b, c) <= epsilon:
+        raise InvalidModelError("profile triangulation ended with a degenerate final triangle")
+    result.append(tuple(remaining))
+    return tuple(result)
+
+
+def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
+    """Tessellate a straight-edged, hole-free simple extrusion by deterministic ear clipping."""
+    if not isinstance(solid, ExtrudedProfileSolid):
+        raise InvalidModelError("tessellate_extruded_profile requires an ExtrudedProfileSolid")
+    if solid.holes:
+        raise InvalidModelError("profile mesh v1.0 does not yet support through-hole loops")
+    if solid.arc_sweeps_rad:
+        raise InvalidModelError("profile mesh v1.0 supports straight edges only")
+    points = solid.profile
+    cap_triangles = _triangulate_simple_profile(points)
+    count = len(points)
+    lower = tuple(Vec3(point.x, point.y, 0.0) for point in points)
+    upper = tuple(Vec3(point.x, point.y, solid.height) for point in points)
+    vertices = lower + upper
+    faces: list[tuple[int, int, int]] = []
+    for a, b, c in cap_triangles:
+        faces.append((c, b, a))
+        faces.append((a+count, b+count, c+count))
+    boundary_indices = list(range(count))
+    if _profile_signed_area(points) < 0:
+        boundary_indices.reverse()
+    for position, i in enumerate(boundary_indices):
+        j = boundary_indices[(position+1) % count]
+        faces.append((i, j, j+count))
+        faces.append((i, j+count, i+count))
+    return TriangleMesh(
+        solid.solid_id, solid.frame_id, solid.length_unit, "EXTRUDED_PROFILE",
+        _source_digest(solid), vertices, tuple(faces),
     )
