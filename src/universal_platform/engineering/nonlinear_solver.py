@@ -132,6 +132,56 @@ class NonlinearSolveResult:
             item.status == "PASS" for item in self.residuals
         )
 
+    def to_dict(self) -> dict[str, object]:
+        """Return a deterministic, JSON-compatible result snapshot.
+
+        The schema is versioned independently from the Python API. Missing
+        diagnostics are represented by null rather than inferred values.
+        """
+        rank = self.jacobian_rank
+        scale = self.jacobian_scale
+        return {
+            "schema_version": "1.0",
+            "status": self.status.value,
+            "variables": dict(self.variables),
+            "residuals": [
+                {
+                    "constraint_id": item.constraint_id,
+                    "value": item.value,
+                    "tolerance": item.tolerance,
+                    "status": item.status,
+                }
+                for item in self.residuals
+            ],
+            "iterations": self.iterations,
+            "objective": self.objective,
+            "termination_reason": self.termination_reason,
+            "method": self.method,
+            "jacobian_method": self.jacobian_method,
+            "residual_evaluations": self.residual_evaluations,
+            "jacobian_evaluations": self.jacobian_evaluations,
+            "analytic_jacobian_evaluations": self.analytic_jacobian_evaluations,
+            "jacobian_rank": None if rank is None else {
+                "estimated_rank": rank.estimated_rank,
+                "maximum_rank": rank.maximum_rank,
+                "row_count": rank.row_count,
+                "column_count": rank.column_count,
+                "threshold": rank.threshold,
+                "status": rank.status.value,
+                "system_shape": rank.system_shape,
+                "method": rank.method,
+            },
+            "jacobian_scale": None if scale is None else {
+                "column_norm_ratio": scale.column_norm_ratio,
+                "threshold": scale.threshold,
+                "status": scale.status.value,
+                "method": scale.method,
+            },
+            "variable_scales": dict(self.variable_scales),
+            "all_constraints_satisfied": self.all_constraints_satisfied,
+            "limitations": list(self.limitations),
+        }
+
 
 @dataclass(slots=True)
 class _EvaluationStats:
