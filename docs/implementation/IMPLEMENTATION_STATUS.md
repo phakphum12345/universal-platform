@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest verified integration baseline before PR #32:** 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5 (PR #31 and follow-up documentation corrections; schema v1.1).  
-**Latest merged feature:** PR #31 added explicit joint and geometry placements at 26c8d15dcf0e97e1dca1f13cc5da702e758b96d9; post-merge run #249 passed 212 tests. Integration documentation follow-up 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5 passed run #251 (workflow-sanity and python-tests; 212 tests).  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema, explicit placements, generalized coordinates and joint parameterization, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial solver or physical control is claimed.
+**Latest merged integration baseline:** e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598 (PR #32; schema v1.2 generalized coordinates and joint parameterization).  
+**Latest merged feature:** PR #32 squash merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258 (ID 42157428741) passed workflow-sanity and python-tests; 225 tests passed in 0.59s. PR #31 placement baseline and evidence are retained below.  
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
