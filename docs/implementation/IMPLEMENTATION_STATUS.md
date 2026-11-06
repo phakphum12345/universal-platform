@@ -2,7 +2,7 @@
 
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged baseline:** 23ca284ca95be223d4a426c344a48bc21afc1953 (PR #18; Phase 2 plan)  
-**Latest merged implementation:** Bounded nonlinear equality-constraint solver (PR #16). PR #18 merged the Phase 2 reliability plan; PR #19 proposes the first Jacobian strategy implementation and awaits CI verification.  
+**Latest merged implementation:** Configurable Jacobian strategies (PR #19), merged at `9676bdb00f3ffb1c8a2b0929fd27481b47368d43`; PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -11,7 +11,8 @@
 - Evidence/provenance records with FACT / ASSUMPTION / SIMULATION / UNKNOWN distinctions and PASS / FAIL / SKIPPED / UNKNOWN statuses.
 - Fail-closed safety gate that rejects physical execution actions.
 - Small dense linear solver with partial pivoting and residual calculation.
-- Bounded finite-difference Levenberg–Marquardt solver for scalar nonlinear equality residuals, with residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
+- Bounded Levenberg–Marquardt solver for scalar nonlinear equality residuals, with forward finite differences as the default, opt-in central differences and validated analytic Jacobian callbacks; residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
+- Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
@@ -25,17 +26,17 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #19 — Jacobian strategies and evaluation diagnostics (under review)
+## PR #19 — Jacobian strategies and evaluation diagnostics
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/19
-- Base branch: `docs/phase-0-complete-requirements` at `23ca284ca95be223d4a426c344a48bc21afc1953`.
-- Feature branch: `feat/phase-2-jacobian-engine`.
-- Candidate implementation adds forward finite differences as the unchanged default, opt-in central finite differences, and an opt-in analytic Jacobian callback.
-- Analytic matrices are validated for constraint-row/variable-column shape and finite numeric entries; callback derivatives are defined in original residual units and normalized by each constraint scale inside the solver.
-- Results expose the selected Jacobian method and scalar residual, Jacobian, and analytic-Jacobian evaluation counts.
-- Tests added for default compatibility, central differences, analytic solving, residual scaling, invalid shape, non-finite values, callback errors and strategy/callback consistency.
-- **Evidence status:** implementation and tests are proposed in PR #19; GitHub Actions and exact-head test results are pending. No CI PASS is claimed here.
-- **Limitations:** this remains a local dense Levenberg–Marquardt equality solver; no rank/conditioning proof, global convergence, uniqueness or physical-feasibility guarantee is added.
+- Base: `docs/phase-0-complete-requirements` at `23ca284ca95be223d4a426c344a48bc21afc1953`.
+- Tested PR head: `db18dc115a55a2ba2aa648e7665e2d111a52e572`.
+- GitHub Actions run #118 (run ID `42144312008`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **120 passed in 0.31s**. The documentation-only marker was SKIPPED, not PASS.
+- The PR job checked out synthetic merge candidate `5e246963da9a4722c121e5224b8a179aef48dfe2` for its test run.
+- Merge commit: `9676bdb00f3ffb1c8a2b0929fd27481b47368d43`; integration branch comparison reports identical at this SHA.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Added forward (default), central and analytic Jacobian strategies, analytic shape/finiteness/error validation, residual-scale normalization, and evaluation counters.
+- No rank/conditioning proof, global convergence, uniqueness or physical-feasibility guarantee is provided.
 
 ## PR #16 — Bounded nonlinear equality-constraint solver
 
