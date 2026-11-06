@@ -530,3 +530,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. CYLINDRICAL, HELICAL, SPHERICAL and UNIVERSAL fail closed in the PLANAR formulation.
 - Numerical stability: geometric-mobility default central finite-difference step is `1e-5` to reduce round-off amplification from composed frames; callers may explicitly supply another positive step. Rank tolerance was not relaxed.
 - Limitations: local mobility only; not a global mobility proof, general closed-loop configuration solver, dynamics, collision/contact, physical feasibility, certification or machine control.
+
+
+## PR #59 — Versioned schematic layout and deterministic SVG renderer (candidate)
+
+- Integration base: `docs/phase-0-complete-requirements` at `977f42bbcb0deedfbe2f013fbdf75bf99cfc4b84`.
+- Implementation commit: `6785cd685b9fb879ffea69eedcc04a56a2290f11`; branch: `feat/schematic-layout-svg-renderer`.
+- Scope: immutable `SchematicLayout` v1.0 with explicit millimetre page coordinates, stable IDs, symbol definitions (LINE/POLYLINE/RECTANGLE/CIRCLE), pin anchors, component placement/rotation, explicit net routes and strict JSON Schema.
+- Renderer: pure-Python deterministic SVG; validates component/symbol/pin references, page bounds and route endpoints; reports incomplete net connectivity separately and never labels an incomplete route as rendered.
+- Tests at implementation commit `6785cd6`: run `42201375975`, `workflow-sanity` PASS, `python-tests` PASS; **477 passed in 2.00s**. PR-triggered checks on the documentation-updated candidate must be recorded separately before merge.
+- PR #59: https://github.com/phakphum12345/universal-platform/pull/59; review submissions 0 and unresolved threads 0 at initial review.
+- Limitations: no automatic placement/autorouting, EDA import/export, ERC, SPICE/circuit simulation, power analysis, manufacturing validation, certification, physical validation or hardware actuation. SVG is a drawing artifact, not electrical proof.
