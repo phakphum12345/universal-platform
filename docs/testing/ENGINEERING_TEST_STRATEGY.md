@@ -169,7 +169,7 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 
 - PR #75 exact PR-head run #42228344477 passed 524 tests in 2.09s; exact post-merge run #42228462537 passed 524 tests in 2.20s.
 - The independent STL reader now checks quantized bounding boxes and signed volume from serialized facet records, plus NaN and inconsistent-normal rejection with recomputed payload digests.
-- PR #76 topology-analysis acceptance references are design-only: connected shells, vertex-link manifoldness, exact/near-coincident groups and unused vertices. Self-intersection remains explicitly UNKNOWN until its own implementation and adversarial reference corpus pass.
+- PR #77 exact PR and push runs #42230501005/#42230490785 passed 533 tests in 2.08s; exact post-merge run #42230654227 passed 533 tests in 1.98s. Connected shells, vertex-link manifoldness, exact/near-coincident groups, unused vertices, strict snapshots and resource ceilings are covered. Self-intersection remains explicitly UNKNOWN.
 
 
 ## Mesh topology analysis references (PR #77 implementation candidate)
@@ -180,3 +180,10 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Exact duplicate coordinates, unused vertices and explicit near-coincident tolerance are reported without welding or changing the input.
 - Result snapshots bind solid/frame/unit, source geometry digest, canonical mesh snapshot digest, counts and deterministic issue codes.
 - Self-intersection status remains UNKNOWN; no test may infer geometric intersection freedom from this analysis.
+
+
+## Triangle-mesh intersection references (PR #78 design only)
+
+- Test Box/Cylinder adjacency without false positives; disjoint shells; non-coplanar crossing; coplanar overlap; point/edge contact; duplicate facets; adjacent-edge foldover; and shared-vertex crossing.
+- Compare broad-phase candidates with an independent exact-rational oracle; adversarial cases cover scale, translation and near-coplanarity.
+- Resource-limit exhaustion must return UNKNOWN, never a no-intersection result.
