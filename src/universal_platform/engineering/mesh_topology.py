@@ -113,21 +113,27 @@ class MeshTopologyAnalysis:
         normalized_components = _groups(self.face_components, "face_components", minimum_group_length=1)
         if normalized_components != self.face_components:
             raise InvalidModelError("face_components must be normalized")
+        if any(index >= self.triangle_count for group in self.face_components for index in group):
+            raise InvalidModelError("face_components contains an out-of-range face index")
         for label, groups in (
             ("exact_duplicate_vertex_groups", self.exact_duplicate_vertex_groups),
             ("near_coincident_vertex_groups", self.near_coincident_vertex_groups),
         ):
             if not isinstance(groups, tuple) or _groups(groups, label, minimum_group_length=2) != groups:
                 raise InvalidModelError(f"{label} must be normalized immutable groups")
+            if any(index >= self.vertex_count for group in groups for index in group):
+                raise InvalidModelError(f"{label} contains an out-of-range vertex index")
         for label, values in (
             ("nonmanifold_vertex_indices", self.nonmanifold_vertex_indices),
             ("unused_vertex_indices", self.unused_vertex_indices),
         ):
             if not isinstance(values, tuple) or _integer_tuple(values, label) != values:
                 raise InvalidModelError(f"{label} must be normalized immutable indices")
+            if any(index >= self.vertex_count for index in values):
+                raise InvalidModelError(f"{label} contains an out-of-range vertex index")
         tolerance = _finite_nonnegative(self.coincident_tolerance, "coincident_tolerance")
         object.__setattr__(self, "coincident_tolerance", tolerance)
-        if self.diagnostic_status not in {"ISSUES_FOUND", "NO_TOPOLOGY_ISSUES_FOUND"}:
+        if not isinstance(self.diagnostic_status, str) or self.diagnostic_status not in {"ISSUES_FOUND", "NO_TOPOLOGY_ISSUES_FOUND"}:
             raise InvalidModelError("Unsupported mesh topology diagnostic_status")
         if self.self_intersection_status != "UNKNOWN":
             raise InvalidModelError("self_intersection_status must remain UNKNOWN in schema v1.0")
