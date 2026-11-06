@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** PR #58 adds circular-arc edges to analytic profile extrusion with versioned v1.1 snapshots; exact-head CI is the acceptance gate. Existing Box/Cylinder and straight-sided extrusion remain backward-compatible. This remains an analytic primitive layer, not a B-rep/mesh CAD kernel.
+**Status:** PR #58 adds circular-arc edges to analytic profile extrusion; PR #61 proposes dependency-free convex 2D profile Boolean operations v1.0. Existing Box/Cylinder and straight-sided extrusion remain backward-compatible. This remains an analytic primitive layer, not a B-rep/mesh CAD kernel.
 
 ## 1. Model
 
@@ -42,4 +42,9 @@ All transforms in a connected FrameGraph use one length unit; solids must match 
 
 ## 5. Limitations
 
-Curved-profile topology checks use deterministic 1-degree arc tessellation; area, perimeter and local arc bounds are analytic, but topology validation is not an exact B-rep operation. This is not a B-rep or mesh CAD kernel. It does not implement splines, draft angles, Boolean operations, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
+Curved-profile topology checks use deterministic 1-degree arc tessellation; area, perimeter and local arc bounds are analytic, but topology validation is not an exact B-rep operation. This is not a B-rep or mesh CAD kernel. It does not implement splines, draft angles, general concave/hole-bearing Boolean operations, 3D Boolean/B-rep operations, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
+
+
+## 6. Convex 2D Boolean operations (PR #61 candidate)
+
+See [2D Convex Profile Boolean Topology Contract](../design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md). The new operation set accepts convex simple polygon loops and returns deterministic convex-cell decompositions for UNION, INTERSECTION and DIFFERENCE. It intentionally does not dissolve adjacent cells. Concave loops, arcs, holes, exact arithmetic and general planar arrangements remain unsupported.

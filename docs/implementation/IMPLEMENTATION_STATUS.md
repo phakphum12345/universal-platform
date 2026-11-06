@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration base HEAD:** `2fd7b3144ed38491f11c6dfefa8bb793f1a2cc21` (PR #59 deterministic schematic SVG renderer squash merge).  
-**Exact post-merge CI:** PR #59 post-merge run #42205768788 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS. PR #59 final-head runs #42203797877 and #42203791191 also passed.  
+**Integration base HEAD:** `e641ca19b4f28bb2e2077cf475b371125ebf237a` (PR #60 static ERC squash merge).  
+**Exact post-merge CI:** PR #60 post-merge run #42206719188 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **485 passed in 1.38s**. PR #60 exact-head PR run #42206594529 and push run #42206646922 also passed with 485 tests.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -532,7 +532,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Limitations: local mobility only; not a global mobility proof, general closed-loop configuration solver, dynamics, collision/contact, physical feasibility, certification or machine control.
 
 
-## PR #59 — Versioned schematic layout and deterministic SVG renderer (candidate)
+## PR #59 — Versioned schematic layout and deterministic SVG renderer (merged)
 
 - Integration base: `docs/phase-0-complete-requirements` at `977f42bbcb0deedfbe2f013fbdf75bf99cfc4b84`.
 - Implementation commit: `6785cd685b9fb879ffea69eedcc04a56a2290f11`; branch: `feat/schematic-layout-svg-renderer`.
@@ -552,9 +552,17 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Limitations: no automatic placement/routing, EDA exchange, ERC (tracked separately by PR #60), circuit simulation, power analysis or physical verification.
 
 
-## PR #60 — Static electrical rule checking (candidate)
+## PR #60 — Static electrical rule checking (merged)
 
 - Adds pure offline ERC over validated SchematicModel v1.0; versioned result schema and ruleset v1.0.
 - Six rules cover unconnected pins, multiple push-pull outputs, multiple power outputs, power inputs without a declared source, power/signal-driver mixing and open-drain/collector source visibility.
 - Results include canonical input SHA-256, stable finding IDs, severity, object references, evidence, recommendations and limitations. Warnings produce FAIL; PASS means only no findings under this ruleset.
-- Tests and exact-head CI are pending. No electrical standards, voltage/current/thermal/timing verification, passive pull-up inference, simulation, physical validation or hardware actuation is claimed.
+- Exact PR-head run #42206594529 and push run #42206646922 passed both jobs with **485 tests**; merge `e641ca19b4f28bb2e2077cf475b371125ebf237a`; post-merge run #42206719188 passed both jobs with **485 tests**. No electrical standards, voltage/current/thermal/timing verification, passive pull-up inference, simulation, physical validation or hardware actuation is claimed.
+
+
+## PR #61 — Convex 2D profile Boolean operations (candidate)
+
+- Adds dependency-free UNION, INTERSECTION and DIFFERENCE over validated convex simple polygon loops.
+- Output is a deterministic convex-cell decomposition; adjacent cells are not dissolved. Result schema v1.0 records input IDs, operation, regions, area and region count.
+- Tests cover overlap, disjoint/touching, containment, orientation normalization, deterministic serialization, strict snapshot validation, invalid input rejection and public exports.
+- Exact-head CI pending. Concave inputs, holes, arcs, general planar arrangements, 3D B-rep and mesh Booleans remain NOT IMPLEMENTED.

@@ -119,6 +119,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md)
 - [CAD to Manufacturing](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md)
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md)
+- [2D Convex Profile Boolean Topology](docs/design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md)
 
 ### Hardware, laboratories, governance
 - [Device Intelligence](docs/hardware/DEVICE_INTELLIGENCE.md)
@@ -145,6 +146,6 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 
 ### CAD-neutral geometry
 
-- Analytic Box/Cylinder primitives and straight-sided polygon profile extrusion with explicit units, SI properties, deterministic v1.0 serialization and frame-aware bounds (PRs #48–#49 merged on integration; not a B-rep/mesh CAD kernel).
+- Analytic Box/Cylinder primitives, straight/curved profile extrusion, through-holes, and candidate convex 2D profile Boolean operations (PR #61 pending); still not a general B-rep/mesh CAD kernel.
 - Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
 - Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.
