@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 6651b5985391679daba15abb6bdf2f78b9ff894b (PR #20; rank diagnostics)  
-**Latest merged implementation:** Jacobian rank and system-shape diagnostics (PR #20), merged at `6651b5985391679daba15abb6bdf2f78b9ff894b`; PR #19 added configurable Jacobian strategies and PR #18 established the Phase 2 reliability plan.  
+**Latest merged baseline:** 0ce6774aac48d822ef4a0d373ada36af6e3e2d3c (PR #21; variable scaling)  
+**Latest merged implementation:** Variable scaling and Jacobian scale-disparity diagnostics (PR #21), merged at `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c`; PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -14,6 +14,7 @@
 - Bounded Levenberg–Marquardt solver for scalar nonlinear equality residuals, with forward finite differences as the default, opt-in central differences and validated analytic Jacobian callbacks; residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
 - Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
 - Threshold-dependent numerical Jacobian rank diagnostics using modified Gram–Schmidt with column pivoting; reports rank, maximum rank, threshold, matrix shape and FULL_RANK / RANK_DEFICIENT / INDETERMINATE. This is an estimate, not a proof.
+- Optional variable scaling in normalized LM coordinates, recorded in results; residual acceptance remains in original units. A column-norm ratio flags scale disparity but is not a matrix condition number.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
@@ -27,16 +28,16 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #21 — Variable scaling and Jacobian scale-disparity indicator (under review)
+## PR #21 — Variable scaling and Jacobian scale-disparity indicator
 
-- Candidate branch: `feat/phase-2-variable-scaling`.
-- Adds optional positive finite variable scales; omitted variables use 1.0.
-- LM steps are solved in normalized coordinates and mapped back to original variable values.
-- Rank estimation now uses the residual- and variable-scaled Jacobian.
-- Adds a column-norm ratio indicator with BALANCED / SCALE_DISPARITY / INDETERMINATE; it is not a condition number.
-- Result records effective variable scales and scale diagnostics.
-- Tests cover mixed-magnitude variables, balancing, unscaled disparity, unknown variable names and invalid scales.
-- **Evidence status:** candidate only; CI and merge verification pending. Residual acceptance remains in original units.
+- PR: https://github.com/phakphum12345/universal-platform/pull/21
+- Base: `docs/phase-0-complete-requirements` at `4f4865474adb76f59a78c6cf85725b3081d48f16`.
+- Tested PR head: `8f5c1ad54e42dd40f585c7860e37a6ac37b9dc78`.
+- GitHub Actions run #142 (run ID `42145350391`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **130 passed in 0.21s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds optional positive finite variable scales, normalized LM coordinates, scale metadata, and a column-norm ratio indicator. The indicator is not a formal condition number and does not identify every near-dependent system.
+- Residual acceptance and per-constraint PASS/FAIL remain evaluated in original residual units.
 
 ## PR #20 — Jacobian rank and system-shape diagnostics
 
