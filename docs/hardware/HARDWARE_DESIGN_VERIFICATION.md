@@ -88,9 +88,14 @@ HWR-006 — Offline hardware and driver design verification (PROPOSED). Supports
 
 ## Current implementation boundary
 
-PR #46 introduces a normalized SchematicModel v1.0 connectivity graph. Its structural checks (stable IDs, terminal resolution, pin uniqueness and NO_CONNECT handling) are not electrical rule checking. ERC, simulation, design-rule standards, component derating and physical verification remain NOT IMPLEMENTED / NOT VERIFIED.
+PR #46 introduces a normalized SchematicModel v1.0 connectivity graph. Its structural checks (stable IDs, terminal resolution, pin uniqueness and NO_CONNECT handling) are not electrical rule checking. PR #60 introduces a limited static ERC v1.0 ruleset for modeled pin-type conflicts and missing connections. Voltage/current-domain verification, standards profiles, component derating, simulation and physical verification remain NOT IMPLEMENTED / NOT VERIFIED.
 
 
 ## Driver interface status
 
 PR #47 adds metadata binding checks between schematic pins and declared driver signals. This is not firmware validation, electrical safety validation, bus communication testing or hardware-in-the-loop evidence. Those remain NOT IMPLEMENTED / NOT VERIFIED.
+
+
+## Static ERC v1.0 boundary
+
+The initial checker is documented in ELECTRICAL_RULE_CHECKING_CONTRACT.md. It reports deterministic findings only for the rules explicitly implemented. It does not infer undocumented voltage/current limits, passive pull-up networks, off-sheet power sources, standards compliance or physical correctness. A warning remains a FAIL requiring review; PASS is scoped only to the ruleset and exact input snapshot.
