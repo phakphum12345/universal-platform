@@ -19,6 +19,7 @@
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
+- Versioned normalized mechanism schema v1.0: stable-ID links, eight joint kinds, frame and geometry references, topology/reference validation, frame-cycle checks, axis/limit/unit validation. Joint schema capability is explicitly SCHEMA_ONLY; no general solver support is implied.
 - Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
 - Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
 - Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
@@ -28,6 +29,14 @@
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+
+## PR #27 — Joint/Link normalization (implementation)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/27
+- Adds `mechanism_model.py` with versioned `MechanismModel`, `LinkModel`, `JointModel`, `FrameReference`, `GeometryReference` and structural validation.
+- Schema joint kinds: FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL. Stable IDs, dangling references, frame-parent cycles, axis normalization, scalar limits and selected radian/metre conventions are validated.
+- Joint nominal DOF is bookkeeping only. All normalized joint records report `SCHEMA_ONLY`; the existing planar 4R adapter remains unchanged and is not generalized by this PR.
+- Acceptance tests: `tests/test_mechanism_model.py`; exact PR-head CI evidence is recorded after workflow completion. Post-merge CI must be checked separately.
 
 ## PR #24 — Mechanism constraint adapter contract (design only)
 
