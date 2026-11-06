@@ -366,6 +366,24 @@ def render_schematic_svg(schematic: SchematicModel, layout: SchematicLayout) -> 
         )
         if not all(_inside_page(_transform_point(point, placement), layout.page_width_mm, layout.page_height_mm) for point in corners):
             raise InvalidModelError(f"component {component.reference_designator} lies outside the schematic page")
+        for graphic in symbol.graphics:
+            if graphic.kind is SymbolGraphicKind.RECTANGLE:
+                a, b = graphic.points
+                local_graphic_points = (
+                    SchematicPoint(a.x_mm, a.y_mm), SchematicPoint(b.x_mm, a.y_mm),
+                    SchematicPoint(b.x_mm, b.y_mm), SchematicPoint(a.x_mm, b.y_mm),
+                )
+            else:
+                local_graphic_points = graphic.points
+            world_graphic_points = tuple(_transform_point(point, placement) for point in local_graphic_points)
+            if graphic.kind is SymbolGraphicKind.CIRCLE:
+                center = world_graphic_points[0]
+                radius = graphic.radius_mm or 0.0
+                if not (_inside_page(SchematicPoint(center.x_mm - radius, center.y_mm - radius), layout.page_width_mm, layout.page_height_mm)
+                        and _inside_page(SchematicPoint(center.x_mm + radius, center.y_mm + radius), layout.page_width_mm, layout.page_height_mm)):
+                    raise InvalidModelError(f"symbol graphic {graphic.graphic_id} lies outside the schematic page")
+            elif not all(_inside_page(point, layout.page_width_mm, layout.page_height_mm) for point in world_graphic_points):
+                raise InvalidModelError(f"symbol graphic {graphic.graphic_id} lies outside the schematic page")
         for pin in component.pins:
             position = _transform_point(symbol_pins[pin.number].local_position, placement)
             if not _inside_page(position, layout.page_width_mm, layout.page_height_mm):
@@ -374,6 +392,7 @@ def render_schematic_svg(schematic: SchematicModel, layout: SchematicLayout) -> 
 
     route_paths: list[tuple[NetRoute, tuple[SchematicPoint, ...]]] = []
     route_graphs: dict[str, dict[tuple[str, str], set[tuple[str, str]]]] = {net_id: {} for net_id in nets}
+    route_edges: dict[str, set[frozenset[tuple[str, str]]]] = {net_id: set() for net_id in nets}
     for route in layout.net_routes:
         net = nets.get(route.net_id)
         if net is None:
@@ -383,6 +402,10 @@ def render_schematic_svg(schematic: SchematicModel, layout: SchematicLayout) -> 
         end_key = (route.end_pin.component_id, route.end_pin.pin_id)
         if start_key not in terminals or end_key not in terminals:
             raise InvalidModelError(f"net route endpoints must be terminals of net {route.net_id}")
+        edge = frozenset((start_key, end_key))
+        if edge in route_edges[route.net_id]:
+            raise InvalidModelError(f"net {route.net_id} has a duplicate route edge")
+        route_edges[route.net_id].add(edge)
         if start_key not in pin_positions or end_key not in pin_positions:
             raise InvalidModelError("net route references an unknown placed pin")
         points = (pin_positions[start_key], *route.waypoints, pin_positions[end_key])
