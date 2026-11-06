@@ -284,3 +284,13 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Adds deterministic ear-clipped caps and outward side walls for straight-edged, hole-free concave/convex extruded profiles.
 - Initial CW side-wall winding failure was fixed on the final tested head; regression remains in the suite.
 - Profile holes/arcs, mesh repair, B-rep, 3D Boolean and neutral interchange remain out of scope.
+
+
+## PR #68 — Polygonal through-hole extrusion mesh (merged)
+
+- Base SHA: `f9d8f51b01fb41afec311b8b72ffd0e9231c631b`; exact corrected head `da5c8a292dacf8c300fcb48b9e92b506f1172bd8`.
+- Merge SHA: `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b`.
+- PR run #42222216690 and push run #42222207986 passed both jobs with 514 tests; post-merge run #42222360177 on exact merge SHA passed both jobs with 514 tests in 1.53s.
+- Adds deterministic bridge/ear-clipping caps and void-facing side walls for one or more straight polygonal holes.
+- Initial hole-wall winding/volume defect was fixed on the final exact head and covered by reversed-hole-winding regression.
+- Curved profile boundaries, general mesh repair/self-intersection, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
