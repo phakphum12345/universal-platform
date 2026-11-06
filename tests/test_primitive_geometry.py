@@ -282,7 +282,7 @@ def test_curved_profile_requires_stable_segment_ids_and_valid_sweeps():
     profile = (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1))
     with pytest.raises(InvalidModelError, match="segment IDs"):
         ExtrudedProfileSolid("solid.no-ids", "part", profile, 1, arc_sweeps_rad=(0, pi / 2, 0))
-    with pytest.raises(InvalidModelError, match=r"2\\*pi"):
+    with pytest.raises(InvalidModelError, match=r"2\*pi"):
         ExtrudedProfileSolid("solid.full-turn", "part", profile, 1,
                              arc_sweeps_rad=(0, 2 * pi, 0),
                              segment_ids=("edge.a", "edge.b", "edge.c"))
