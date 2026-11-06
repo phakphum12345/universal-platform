@@ -128,3 +128,12 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Verify clockwise and counter-clockwise input, collinear boundary vertices, deterministic serialization and source provenance.
 - Fail closed for through-hole and curved-edge profiles in this increment.
 - Continue Box/Cylinder regression tests and malformed index/open-boundary/degenerate/winding/tolerance/unit cases.
+
+
+## Polygonal through-hole profile mesh references (PR #68 candidate)
+
+- One rectangular hole in a 4×4 m outer profile, 2 m extrusion: net volume 30 m³, surface area 70 m².
+- Two disjoint rectangular holes in a 10×10 m outer profile, 1 m extrusion: net volume 95 m³, surface area 242 m².
+- Verify closed edge incidence, consistent outward/void-facing winding, positive signed volume, deterministic bridge/ear order and strict mesh round trips.
+- Hole and outer loops with reversed winding must normalize without changing geometric validity.
+- Curved outer/hole boundaries remain rejected; touching, crossing and nested invalid holes remain rejected by source profile validation.
