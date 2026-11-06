@@ -91,19 +91,35 @@ Documented means represented in specifications. Implemented means source exists.
 
 ## Runtime, resource and recovery sub-requirements
 
-These sub-requirements decompose the runtime and governance scope in the master command. Status below reflects open PR implementations, not merged integration capability.
+These sub-requirements decompose the runtime and governance scope in the master command. Status reflects code integrated on `docs/phase-0-complete-requirements` at `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; each row is still only a partial capability where limitations are stated.
 
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
-| RT-001 | Typed central resource registry and lifecycle transitions | PR #100; `runtime/resources/registry.py` | PARTIAL — process-local registry |
-| RT-002 | Unit-bearing resource snapshots and provider collection | PR #100, #106; `runtime/resources/collector.py` | PARTIAL — CPU count, supported memory, disk and Linux network only |
-| RT-003 | Resource quota allocation and expiring leases | PR #105; `runtime/resources/allocator.py` | PARTIAL — in-memory logical quota, no OS enforcement/distributed leases |
-| RT-004 | Bounded log analysis and component correlation | PR #100; `runtime/health/log_analyzer.py` | PARTIAL — bounded parser and explicit component IDs |
-| RT-005 | Permission-bounded file log ingestion | PR #101; `runtime/health/log_sources.py` | PARTIAL — configured-root UTF-8 files; no stream rotation/cursors |
-| RT-006 | Recovery evidence and evidence-before-resume | PR #101–#102; `runtime/evidence/recovery_records.py` and coordinator | PARTIAL — JSONL store with process-local lock |
-| RT-007 | Sleep/repair/validate/canary/quarantine lifecycle | PR #100–#102; `runtime/recovery/coordinator.py` | PARTIAL — contract/coordinator; repair executor must provide real sandbox |
-| RT-008 | Trusted-worker process supervision | PR #103; `runtime/supervisor.py` | PARTIAL — allow-list, timeout, cancellation and bounded output; not a sandbox |
-| RT-009 | Compatible fallback adapter discovery and replacement | PR #104; `runtime/adapters/catalog.py` | PARTIAL — license/capability/version/dependency checks; caller owns runtime routing |
-| RT-010 | OS-level sandbox, quotas, durable leases/evidence and restart/checkpoint | Future implementation gates | OPEN — not implemented or claimed |
+| RT-001 | Typed central resource registry and lifecycle transitions | PR #107; `runtime/resources/registry.py` | PARTIAL — in-process registry |
+| RT-002 | Unit-bearing resource snapshots and provider collection | PR #107; `runtime/resources/collector.py` | PARTIAL — CPU count, supported memory, disk and Linux network only |
+| RT-003 | Resource quota allocation and expiring leases | PR #107; `runtime/resources/allocator.py` | PARTIAL — logical in-memory quota; no OS enforcement/distributed leases |
+| RT-004 | Bounded log analysis and component correlation | PR #107; `runtime/health/log_analyzer.py` | PARTIAL — bounded parser and explicit component IDs |
+| RT-005 | Permission-bounded file log ingestion | PR #107; `runtime/health/log_sources.py` | PARTIAL — configured-root UTF-8 files; no stream rotation/cursors |
+| RT-006 | Recovery evidence and evidence-before-resume | PR #107, #113; `runtime/evidence/recovery_records.py` | PARTIAL — local cross-process lock and unkeyed SHA-256 chain; no signatures/external anchor |
+| RT-007 | Sleep/repair/validate/canary/quarantine lifecycle | PR #107; `runtime/recovery/coordinator.py` | PARTIAL — repair executor must provide a real sandbox and approval gate |
+| RT-008 | Trusted-worker process supervision | PR #107; `runtime/supervisor.py` | PARTIAL — allow-list, timeout, cancellation and bounded output; not a sandbox |
+| RT-009 | Compatible fallback adapter discovery and replacement | PR #107, #113; `runtime/adapters/catalog.py` | PARTIAL — policy checks and in-process routing; no cross-process task transfer |
+| RT-010 | OS sandbox, OS quotas, durable leases, checkpoints and restart | Future implementation gates | OPEN — not implemented or claimed |
+| RT-011 | Resource health monitoring | PR #113; `runtime/health/monitor.py` | PARTIAL — caller-configured thresholds; missing metrics remain UNKNOWN; no always-on monitor |
 
-Acceptance remains blocked until the required PR stack is reviewed and integrated, the remaining security/runtime gates are implemented, and the relevant integration/failure-injection tests pass.
+## Central physics solver sub-requirements
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| PHY-001 | Replaceable central solver registry with domain/method/version/license/dependency declarations | PR #110; `engineering/physics.py` | PARTIAL — trusted in-process solver adapters |
+| PHY-002 | Unit-aware analytical reference solvers | PR #110; axial stress, Ohm's law/DC power, linear thermal expansion | PARTIAL — three bounded formula families |
+| PHY-003 | General numerical/simulation/optimization solvers across fluid, electromagnetic, thermal, dynamic and material domains | Physics roadmap/contracts | OPEN — not implemented |
+| PHY-004 | Solver sandbox, convergence studies, uncertainty and independent validation | Solver/model contract | OPEN — required before high-consequence engineering claims |
+
+## STEP interchange sub-requirement
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-STEP-001 | Bounded STEP AP214 faceted BREP import/export | PR #99; STEP interchange module and tests | PARTIAL — one connected closed triangular shell; not a full STEP translator |
+
+Acceptance remains blocked until the remaining OPEN gates are implemented and relevant integration, security, failure-injection and domain-reference tests pass.
