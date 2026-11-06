@@ -189,3 +189,8 @@ The integration branch now includes versioned 2D `ParametricSketch` records, str
 ## Parametric CAD pipeline: sketch → region → feature history → mesh
 
 The integration branch now supports a bounded end-to-end parametric pipeline: 2D point/line sketches with eight geometric/dimensional constraints; conversion of converged closed loops into canonical planar regions with holes and nested islands; a deterministic feature DAG with allow-listed regeneration for sketch profiles, planar Boolean, extrusion and watertight mesh validation. PR #90 (618 tests), #91 docs (620), #92 (627) and #93 (636) passed their recorded CI gates; PR #93 post-merge run #42263296016 passed both jobs with 636 tests. See [Feature History and Regeneration Contract](docs/design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md) and [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## Planar Boolean point-contact topology (PR #95)
+
+Point-touching but otherwise disjoint material components now remain separate canonical PlanarRegion outputs using an exact-rational planar rotation-system boundary pairing rule. Edge-adjacent boundaries still dissolve into a single region. Ambiguous branching, unbalanced incidence and invalid hole topology still fail closed. PR #95 exact-head and post-merge CI both passed 639 tests. See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md).
