@@ -502,7 +502,7 @@ def analyze_geometric_mechanism_mobility(
     reference_constraint_rank: int | None = None,
     rank_tolerance: float = 1e-10,
     jacobian_method: JacobianMethod = JacobianMethod.CENTRAL_FINITE_DIFFERENCE,
-    finite_difference_step: float = 1e-6,
+    finite_difference_step: float = 1e-5,
     plane_frame: RigidTransform | None = None,
     plane_tolerance_m: float = 1e-8,
     angular_tolerance_rad: float = 1e-8,
@@ -512,6 +512,8 @@ def analyze_geometric_mechanism_mobility(
     SPATIAL uses six pose-tangent coordinates for each non-ground link.
     PLANAR requires an explicit plane-to-world RigidTransform and projects each
     non-ground link to two in-plane translations plus one plane-normal rotation.
+    The default 1e-5 finite-difference step limits round-off amplification in
+    frame-composed residuals; callers may still supply an explicit step.
     """
     if not isinstance(formulation, MobilityFormulation):
         raise InvalidModelError("formulation must be a MobilityFormulation")
