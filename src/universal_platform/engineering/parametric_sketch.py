@@ -174,6 +174,46 @@ class ParametricSketch:
             ],
         }
 
+    @classmethod
+    def from_dict(cls, value: Mapping[str, object]) -> "ParametricSketch":
+        required = {"schema_version", "sketch_id", "frame_id", "length_unit",
+                    "points", "segments", "constraints"}
+        if not isinstance(value, Mapping) or set(value) != required:
+            raise InvalidModelError("ParametricSketch snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION:
+            raise InvalidModelError("unsupported ParametricSketch schema_version")
+        raw_points, raw_segments, raw_constraints = value["points"], value["segments"], value["constraints"]
+        if not isinstance(raw_points, (list, tuple)) or not isinstance(raw_segments, (list, tuple)) or not isinstance(raw_constraints, (list, tuple)):
+            raise InvalidModelError("ParametricSketch points, segments and constraints must be arrays")
+        points = []
+        for raw in raw_points:
+            if not isinstance(raw, Mapping) or set(raw) != {"point_id", "x", "y"}:
+                raise InvalidModelError("ParametricSketch point requires exactly point_id, x and y")
+            points.append(SketchPoint(raw["point_id"], raw["x"], raw["y"]))
+        segments = []
+        for raw in raw_segments:
+            if not isinstance(raw, Mapping) or set(raw) != {"segment_id", "start_point_id", "end_point_id"}:
+                raise InvalidModelError("ParametricSketch segment has missing or unknown fields")
+            segments.append(SketchSegment(raw["segment_id"], raw["start_point_id"], raw["end_point_id"]))
+        constraints = []
+        for raw in raw_constraints:
+            if not isinstance(raw, Mapping) or set(raw) != {"constraint_id", "kind", "point_ids", "value", "tolerance"}:
+                raise InvalidModelError("ParametricSketch constraint has missing or unknown fields")
+            if not isinstance(raw["point_ids"], (list, tuple)):
+                raise InvalidModelError("ParametricSketch constraint point_ids must be an array")
+            try:
+                kind = SketchConstraintKind(raw["kind"])
+            except (TypeError, ValueError) as exc:
+                raise InvalidModelError("unsupported ParametricSketch constraint kind") from exc
+            constraints.append(SketchConstraint(
+                raw["constraint_id"], kind, tuple(raw["point_ids"]),
+                raw["value"], raw["tolerance"],
+            ))
+        return cls(
+            value["sketch_id"], value["frame_id"], value["length_unit"],
+            tuple(points), tuple(segments), tuple(constraints),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class ParametricSketchSolveResult:
