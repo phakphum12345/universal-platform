@@ -1,6 +1,6 @@
 # General Planar Region and Boolean Topology Contract
 
-**Status:** Design proposal for review. This document does not claim that general planar Boolean operations are implemented. The current production API remains convex-loop-only in `profile_boolean.py`.
+**Status:** Partially implemented. PR #84 adds a bounded pairwise PlanarRegion v1.0 Boolean engine. The full general topology scope in this contract remains open.
 
 ## 1. Purpose and boundary
 
@@ -93,3 +93,9 @@ The selected kernel, if any, must sit behind a replaceable platform adapter. The
 ## 9. Explicit non-claims
 
 This proposal is not implementation evidence and does not establish general CAD readiness. It does not provide 3D solids, B-rep validity, mesh generation, STEP/STL exchange, physical behavior, manufacturing suitability, standards compliance, or certification.
+
+## 10. Implemented bounded slice — PR #84
+
+The current pairwise API is `boolean_planar_regions(first, second, operation)` with UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE. It uses exact rational predicates over represented binary64 input coordinates, deterministic segment splitting/side classification/cycle construction, multiple components and holes, and reports binary64 coordinate/area rounding error. Result schema: `schemas/geometry/planar-region-boolean-result.schema.json`.
+
+The operation accepts at most 256 total boundary edges (32,640 pair checks), requires identical frame and length unit, performs no snapping/quantization/repair, and fails closed on point-touching or branching output. Exact PR-head and post-merge CI both passed 580 tests. This is a pairwise bounded slice, not completion of the full contract: region-set aggregation, complete point-contact topology semantics, arcs/splines, B-rep and 3D Boolean remain open.
