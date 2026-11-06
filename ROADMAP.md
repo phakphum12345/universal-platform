@@ -94,3 +94,12 @@ PR #38 — Cross-discipline engineering reference validation — add versioned r
 
 
 PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; exact PR-head run #297 and post-merge run #298 passed 285 tests.
+
+
+## Hardware schematic rendering increment — PR #59 candidate
+
+- Add a separate versioned layout contract rather than overloading the normalized connectivity graph.
+- Implement supplied symbol geometry, explicit page-space millimetres, component placement/rotation, pin anchors and explicit routes.
+- Render deterministic offline SVG and distinguish completely routed nets from incomplete ones.
+- PR #59 implementation commit `6785cd685b9fb879ffea69eedcc04a56a2290f11`; exact commit run `42201375975`: both required jobs PASS; 477 tests.
+- Remaining hardware roadmap: symbol/library import and EDA exchange; electrical rule checking; power-domain and component-rating validation; circuit simulation; BOM/footprint reconciliation. These remain separate requirements and are not implied by SVG rendering.
