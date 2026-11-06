@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 0ce6774aac48d822ef4a0d373ada36af6e3e2d3c (PR #21; variable scaling)  
-**Latest merged implementation:** Variable scaling and Jacobian scale-disparity diagnostics (PR #21), merged at `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c`; PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
+**Latest merged baseline:** 870a3f634d7a7fbd47e838f85aff4dc2f1b76162 (PR #23; versioned solver result schema)  
+**Latest merged implementation:** Versioned nonlinear solver result schema (PR #23), merged at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -15,6 +15,7 @@
 - Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
 - Threshold-dependent numerical Jacobian rank diagnostics using modified Gram–Schmidt with column pivoting; reports rank, maximum rank, threshold, matrix shape and FULL_RANK / RANK_DEFICIENT / INDETERMINATE. This is an estimate, not a proof.
 - Optional variable scaling in normalized LM coordinates, recorded in results; residual acceptance remains in original units. A column-norm ratio flags scale disparity but is not a matrix condition number.
+- Versioned JSON-compatible solver result snapshots via `NonlinearSolveResult.to_dict()`; not-computed rank/scale diagnostics are represented as null.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
@@ -28,13 +29,16 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## PR #23 — Versioned solver result serialization (under review)
+## PR #23 — Versioned nonlinear solver result schema
 
-- Candidate branch: `feat/phase-2-solver-result-schema`.
-- Adds `NonlinearSolveResult.to_dict()` with a versioned JSON-compatible schema for status, variables, residuals, iteration/objective, derivative method, evaluation counts, rank/scale diagnostics, effective variable scales, limitations and aggregate constraint result.
-- Diagnostics not computed are serialized as null; no values are fabricated.
-- Tests cover deterministic sorted JSON encoding, schema version, full diagnostics and uncomputed diagnostics.
-- **Evidence status:** implementation candidate only; CI and merge verification pending.
+- PR: https://github.com/phakphum12345/universal-platform/pull/23
+- Base: `docs/phase-0-complete-requirements` at `b561247ff933ea3d5d9fa6c32d4224341e5f2be1`.
+- Tested PR head: `207d38d9959764756c703625e13d4122b82e0151`.
+- GitHub Actions run #159 (run ID `42146051451`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **141 passed in 0.23s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds `NonlinearSolveResult.to_dict()` with schema version 1.0, ordered variables/residuals, status, iteration and objective data, derivative/evaluation diagnostics, rank/scale metadata, limitations and explicit nulls for diagnostics not computed.
+- This is a Python result snapshot, not a full evidence ledger, signed record or cross-language API.
 
 ## PR #22 — Nonlinear solver reliability regression matrix
 
