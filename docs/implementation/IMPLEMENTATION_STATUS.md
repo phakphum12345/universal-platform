@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 0b1370460dd37afc685d5b7f2ec64cdeb77659b8 (PR #28; deterministic general loop topology and explicit residual-to-solver bridge)  
+**Latest merged baseline before PR #31:** b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb (PR #30; integrated mechanism position, mobility, velocity and acceleration pipeline)  
 **Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
-**Scope:** Dependency-light engineering core, normalized stable-ID mechanism schema, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema, rigid transforms and frame graph, rooted-tree forward kinematics, narrow planar 2R/4R solvers, general loop topology, caller-driven mobility/kinematics integration; explicit joint/geometry placements are proposed in PR #31.
 
 ## Implemented in the merged baseline
 
@@ -235,3 +235,28 @@ Passing tests validate only the code and contracts present at the exact tested S
 
 - PR #30 final tested PR head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (run ID `42153688904`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.42s**. Initial run #237 on `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` failed only in a slotted-dataclass test fixture (202 passed, 1 failed); corrected with `dataclasses.replace`.
 - Squash merge commit: `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`. Post-merge push run #243 (run ID `42153753500`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.51s**. Documentation-only marker SKIPPED, not PASS.
+
+## PR #29 — Nominal and local mechanism mobility diagnostics
+
+- Adds separate PLANAR/SPATIAL nominal mobility estimates and configuration-specific local mobility from caller-supplied constraint Jacobians.
+- Separates redundant rows, negative nominal DOF and possible singularity; singularity remains UNKNOWN without a regular-rank reference.
+- Final PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (`42152768589`): workflow-sanity PASS; python-tests PASS, 196 passed.
+- Merge `a20e83314abb735448c6ebebf755b8b50cf7635e`; post-merge run #234 (`42152843277`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 196 passed.
+
+## PR #30 — Integrated mechanism kinematics pipeline
+
+- Connects normalized topology, explicit loop residuals, mobility diagnostics, velocity and acceleration equality solves.
+- Position residuals, constraint Jacobian and derivative bias vectors remain caller-supplied; the pipeline does not generate them from geometry.
+- Final tested PR head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`42153688904`): workflow-sanity PASS; python-tests PASS, 203 passed.
+- Merge `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`; post-merge run #243 (`42153753500`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 203 passed.
+
+## PR #31 — Joint and geometry placement contracts
+
+- Adds schema v1.1 `JointFramePlacement` and `GeometryPlacement` records, reusing the existing `RigidTransform` convention.
+- Joint placement maps parent link body frame → joint frame → child link body frame. Geometry placement maps a geometry-local frame into the declared geometry reference frame.
+- Placement translations are metres; no implicit unit conversion or placement inference occurs.
+- Legacy schema v1.0 topology-only models remain valid; placement records require schema v1.1.
+- Missing placement IDs are reported as coverage gaps rather than assumed identity.
+- Regression tests cover valid placement chains, missing coverage, legacy compatibility, schema rejection, duplicate/dangling IDs, frame endpoint/ownership mismatch, units and deterministic snapshots.
+- Branch `feat/joint-geometry-placement-contract`; base SHA `213b07e1ea362bf3fe6b460d5495bd505b2232e4`. CI evidence pending exact final PR head.
+- Explicit non-goals: CAD inference, automatic joint residual equations, automatic Jacobians, time-derivative bias generation, general spatial solving, dynamics or physical validation.

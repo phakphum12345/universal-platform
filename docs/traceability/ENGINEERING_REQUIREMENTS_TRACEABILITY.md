@@ -62,3 +62,16 @@ PR #28 adds deterministic fundamental-cycle topology for normalized mechanism gr
 PR #30 initial exact-head run #237 (`42153434281`, head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e)): workflow-sanity PASS; python-tests FAIL, 202 passed / 1 failed. The failure log shows the test fixture accessed `__dict__` on a slotted dataclass; corrected using `dataclasses.replace`.
 
 PR #30 final tested head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`42153688904`): workflow-sanity PASS; python-tests PASS, 203 passed in 0.42s. Initial fixture-only failure on `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` (202 passed, 1 failed) was corrected with `dataclasses.replace`. Squash merge `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`; post-merge push run #243 (`42153753500`) on the exact merge SHA: workflow-sanity PASS; python-tests PASS, 203 passed in 0.51s.
+
+## CAD-003E — Explicit joint and geometry placement (PR #31)
+
+- Adds stable-ID `JointFramePlacement` and `GeometryPlacement` records to mechanism schema v1.1.
+- Joint placement frame chain is parent-link body frame → joint frame → child-link body frame. Geometry placement is geometry-local frame → GeometryReference frame.
+- Placement translations use metres; unit conversion is explicit and external. Transform endpoints are validated exactly using the existing rigid-transform contract.
+- Schema v1.0 remains readable without placement records. Missing placements are reported explicitly and are never treated as identity transforms.
+- PR #31 branch `feat/joint-geometry-placement-contract`, base `213b07e1ea362bf3fe6b460d5495bd505b2232e4`; final CI evidence pending.
+- Not included: automatic constraint equations, Jacobians, CAD inference, dynamics or physical feasibility.
+
+## PR #30 exact merge evidence reconciliation
+
+PR #30 final tested head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`42153688904`): workflow-sanity PASS and python-tests PASS (203 passed). Squash merge `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb); post-merge run #243 (`42153753500`) on the exact merge SHA: workflow-sanity PASS and python-tests PASS (203 passed). Earlier fixture-only failure on initial head was corrected and remains historical evidence.
