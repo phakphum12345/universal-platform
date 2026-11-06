@@ -269,4 +269,4 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Existing schema v1.0/v1.1 topology and placement records remain readable. New coordinate records require v1.2; legacy scalar fields are not silently migrated.
 - Missing parameterization coverage is reported for non-fixed joints. No automatic solver-variable generation, geometric residual/Jacobian generation or physical feasibility is claimed.
 - PR branch: feat/generalized-coordinate-joint-parameterization; base SHA: 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5.
-- Exact PR validation and merge evidence will be appended after CI completes.
+- Initial exact PR head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed pull_request run #255 (ID `42157210760`): `workflow-sanity` PASS; `python-tests` PASS; **225 passed in 0.54s**. The documentation-only marker was SKIPPED. The PR head is mergeable, with no review submissions or unresolved review threads at this inspection. Final documentation-head validation and post-merge evidence remain pending.

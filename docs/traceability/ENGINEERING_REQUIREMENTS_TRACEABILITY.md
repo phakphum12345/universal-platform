@@ -87,3 +87,6 @@ PR #31 tested head `1807a623c11655c2d80662cb0a75ca093a3e39f7`; push run #247 (`4
 ## PR #32 — Generalized coordinates and joint parameterization
 
 Schema v1.2 introduces stable-ID independent generalized coordinates and ordered per-joint parameterizations for all eight declared joint kinds. Validation checks dimensional units, normalized axes, limits, scales, ownership and family-specific metadata. Legacy topology/placement models remain valid without automatic coordinate migration. The schema remains separate from solver capability: automatic joint equations, Jacobians and derivative generation are not included.
+
+
+PR #32 initial tested head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed run #255 (`42157210760`): workflow-sanity PASS; python-tests PASS, 225 passed in 0.54s. Documentation-only marker SKIPPED. Final docs-head CI and post-merge evidence remain pending.
