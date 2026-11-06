@@ -13,6 +13,7 @@ from math import hypot, isfinite
 from typing import ClassVar, Mapping
 
 from .errors import InvalidModelError, SolverError
+from .quantity import LENGTH, Quantity
 from .nonlinear_solver import (
     NonlinearConstraint,
     NonlinearSolveResult,
@@ -119,6 +120,13 @@ class ParametricSketch:
         if any(not isinstance(value, str) or not value.strip()
                for value in (self.sketch_id, self.frame_id, self.length_unit)):
             raise InvalidModelError("sketch_id, frame_id and length_unit are required")
+        try:
+            if Quantity.of(1.0, self.length_unit).dimension != LENGTH:
+                raise InvalidModelError("sketch length_unit must have length dimension")
+        except InvalidModelError:
+            raise
+        except Exception as exc:
+            raise InvalidModelError(f"unsupported sketch length_unit: {self.length_unit}") from exc
         if not isinstance(self.points, tuple) or not self.points or any(
             not isinstance(item, SketchPoint) for item in self.points
         ):
