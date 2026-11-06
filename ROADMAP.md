@@ -347,16 +347,25 @@ See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POI
 See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Runtime resource and recovery delivery ledger — 2026-11-07
+## Current integration status — 2026-11-07 (post-PR #113)
 
-The following feature stack is open and has exact-head CI evidence; it is **not merged** into the integration branch or `main`:
+Integration HEAD `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Integration is 253 ahead / 0 behind. Latest post-merge workflow #42279521637 passed workflow-sanity and python-tests with 732 tests. The current recursive tree contains 268 files, 102 Markdown, 143 Python, 19 schemas and 71 test files. Local working tree is UNKNOWN.
 
-- PR #100 — typed resource registry, metrics/snapshots, bounded log analysis and recovery lifecycle contract.
-- PR #101 — bounded UTF-8 file-log source and append-only JSONL recovery evidence.
-- PR #102 — log-source/coordinator/evidence integration with evidence-before-resume behavior.
-- PR #103 — allow-listed trusted-worker process supervision, bounded output, timeout and cancellation.
-- PR #104 — policy-gated adapter discovery and asleep-only replacement candidate validation.
-- PR #105 — in-process resource quota allocation and expiring leases.
-- PR #106 — provider-driven resource snapshots and available local CPU-count, memory, disk and Linux network metrics.
+### Integrated increments
+- PR #99 — bounded STEP AP214 Faceted BREP triangle-shell import/export; exact-head and post-merge CI passed 664 tests.
+- PR #107 — integrated runtime resource/recovery foundation from the dependency stack #100–#106; exact-head 697, post-merge 717 tests.
+- PR #110 — central PhysicsSolverRegistry with three bounded analytical adapters; exact-head 672 tests. Its source is included in later post-merge 717/732 suites.
+- PR #113 — runtime adapter router, local cross-process evidence locking/hash chain and threshold health monitor; exact-head and post-merge CI passed 732 tests.
 
-These slices do not complete Phase 5. Remaining gates include real OS/container sandboxing, OS resource enforcement, durable/distributed leases and evidence, process-tree containment on Windows, checkpoints/heartbeats/restart policy, automatic runtime routing, broader telemetry providers, and integration with permissions/module governance. Continue to treat unsupported capabilities as OPEN or UNKNOWN, never PASS.
+### Remaining work packages — continue in dependency order
+1. CAD Boolean: deterministic handling for ambiguous branching/coincident outgoing edges, with exact reference corpus and fail-closed limits.
+2. Parametric sketch: extend beyond eight point/line constraints; add arcs/splines, robust convergence/reference cases and explicit constraint diagnostics.
+3. Feature history: persistent revisioned documents, incremental recompute/cache invalidation, suppression and edit/branch history.
+4. B-rep and 3D Boolean: define topology/precision/validity contracts, then implement bounded operations with independent exact/reference tests. STEP AP214 faceted interchange is not a B-rep kernel.
+5. CAD generator: connect sketch/feature/solid/mesh pipeline to API, interactive UI, revisioned persistence and export workflows.
+6. Hardware EDA: library and native interchange, datasheet constraints, pin/footprint mapping, BOM lifecycle and circuit simulation.
+7. Physics: add validated solver families by domain/method, dimensional/conservation/reference checks, numerical convergence and uncertainty evidence.
+8. Runtime security: OS/container sandbox, OS quotas, Windows process-tree containment, checkpoint/heartbeat/restart, durable distributed state and signed/remote evidence.
+9. Platform integration: permissions/approval, secure module runtime, API/CLI/UI, durable storage, audit and end-to-end operational tests.
+
+Unsupported capabilities remain OPEN or UNKNOWN, never PASS. No physical actuation, firmware writes, manufacturing, certification or deployment is implied. See [post-PR #113 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).

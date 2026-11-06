@@ -3,13 +3,16 @@
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
 ## Current status
-- Stage: Phase 0 requirements baseline with active, incremental engineering-core implementation
-- Implementation: Initial Python engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, analytic planar two-link inverse kinematics and a narrow planar four-bar loop-closure adapter; broader UEIC/CAD/CAE capabilities remain incomplete
-- Principles: Local-first, cost-aware, evidence-driven, modular, secure
-- Hardware boundary: Analysis and simulation only; no physical control
-- Integration: Existing projects remain independent until assessed and explicitly approved
-- Driver generation: Existing capability to be inventoried and reused; no duplicate generator is planned
-- Engineering design: Owner-approved scope; specifications remain proposed and unimplemented
+- Stage: Active incremental implementation on the integration branch; repository is not complete.
+- Integration HEAD: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (253 commits ahead / 0 behind `main`).
+- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
+- Latest post-merge CI: PR #113 merge workflow #42279521637 — workflow-sanity PASS, python-tests PASS, 732 passed.
+- Current inventory: 268 files, 102 Markdown, 143 Python, 19 schemas, 71 Python test files.
+- Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
+- Principles: Local-first, cost-aware, evidence-driven, modular, secure.
+- Hardware boundary: Analysis and simulation only; no physical control.
+- Remaining scope: general B-rep/3D Boolean, complete CAD generator workflow, broader EDA/circuit simulation, multi-method physics, OS sandboxing and durable API/CLI/UI integration remain incomplete.
+- Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
 
@@ -201,8 +204,6 @@ Point-touching but otherwise disjoint material components now remain separate ca
 The integration branch now exports and imports a bounded single-object 3MF Core profile for validated watertight triangle meshes. It preserves source geometry digest, solid/frame IDs and supported units, uses deterministic ZIP/XML output, and rejects unsafe or unsupported package structures. PR #97 exact-head and post-merge CI both passed 650 tests. This does not implement full 3MF assemblies/extensions or STEP. See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Runtime resource and recovery workstream (OPEN PRs #100–#106)
+## Runtime resource and recovery (integrated foundation)
 
-A separate, dependency-stacked runtime workstream is under development on feature branches based on the integration branch. It currently adds a typed ResourceRegistry, log analysis and bounded file-log ingestion, recovery evidence, coordinator integration, a trusted-worker OS process supervisor, policy-gated adapter fallback selection, in-memory resource leases, and adapter-driven host metric snapshots.
-
-The work is **not merged** into the integration branch or `main`. PRs #100–#106 remain open and must be reviewed/merged in dependency order. Exact-head CI evidence is recorded in each PR. The current implementation is deliberately partial: process supervision is not a sandbox; leases are process-local; adapter routing remains caller-owned; CPU utilization/GPU metrics and platform-specific quotas are not claimed. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) for the precise boundaries.
+PR #107 integrates the bounded runtime foundation: resource registry, bounded logs, recovery lifecycle/evidence, trusted-worker process supervision, adapter catalog, in-memory quotas/leases and local metrics. PR #113 adds in-process adapter routing, local cross-process evidence locking with an unkeyed SHA-256 hash chain, and threshold-based health monitoring. Exact PR #113 head and post-merge CI passed 732 tests. These are partial runtime primitives, not a production self-healing platform or security sandbox. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) and [post-PR #113 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
