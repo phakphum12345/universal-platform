@@ -1,6 +1,6 @@
 # Engineering and 3D Requirements Traceability
 
-**Status:** PROPOSED mapping baseline with one narrow executable kinematics slice; not implementation evidence for the broader requirements.
+**Status:** Proposed mapping baseline with one narrow executable kinematics slice verified by PR #12; not implementation evidence for broader requirements.
 
 | ID | Requirement | Primary specification | Acceptance evidence |
 |---|---|---|---|
@@ -13,7 +13,7 @@
 | CAD-001 | Parametric 3D design | 3D_DESIGN_INTELLIGENCE | Rebuild and export tests |
 | CAD-002 | Generate tools and fixtures | 3D_TOOL_GENERATION_ENGINE | Requirement-to-model acceptance cases |
 | CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS | Joint, DOF and motion tests |
-| CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both elbow branches, workspace boundaries, limits and forward-reconstruction residual tests; exact-SHA CI |
+| CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both branches, workspace boundaries, limits, residual tests and exact-SHA CI; PR #12 merged |
 | CAD-004 | Engineering simulation | 3D_ENGINEERING_SIMULATION | Benchmarks and convergence evidence |
 | CAD-005 | Structural/civil design support | STRUCTURAL_AND_CIVIL_DESIGN | Code-basis and independent review evidence |
 | CAD-006 | CAD-to-manufacturing preparation | CAD_TO_MANUFACTURING_PIPELINE | Export, drawing and BOM reconciliation |
@@ -24,7 +24,9 @@
 
 ## Status
 
-CAD-003A is a narrowly scoped initial implementation on a feature branch and remains PENDING CI until checks pass on the exact PR head SHA. It does not close CAD-003 as a whole. All other listed requirements remain PROPOSED / NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
+CAD-003A is IMPLEMENTED as a narrow analytic 2R planar serial-arm adapter and merged in PR #12 at 0379c8613c7668a56b681a91d01882c66f1c812c. PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056 passed PR run #82 and push run #81; merge commit passed post-merge push run #83. The documentation-only marker was SKIPPED in each run, not PASS.
+
+CAD-003A does not close general CAD-003. All other listed requirements remain PROPOSED / NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
 
 ## Evidence and governance gates
 
