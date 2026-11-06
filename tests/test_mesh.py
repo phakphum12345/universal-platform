@@ -311,3 +311,32 @@ def test_curved_profile_mesh_round_trips_chordal_tolerance():
     assert restored == mesh
     assert restored.chordal_tolerance == 0.02
     assert validate_triangle_mesh(restored).valid
+
+
+def test_profile_hole_arc_tessellation_is_closed_and_respects_area_bound():
+    outer = (Vec2(0, 0), Vec2(12, 0), Vec2(12, 12), Vec2(0, 12))
+    # Clockwise hole: the first edge bows inward into the void with a +2 rad sweep.
+    hole = (Vec2(3, 3), Vec2(3, 7), Vec2(7, 7), Vec2(7, 3))
+    solid = ExtrudedProfileSolid(
+        "profile.hole.arc", "profile.frame", outer, 2.0, "mm", (hole,),
+        hole_arc_sweeps_rad=((2.0, 0.0, 0.0, 0.0),),
+        hole_segment_ids=(("hole.arc.left", "hole.top", "hole.right", "hole.bottom"),),
+    )
+
+    mesh = tessellate_extruded_profile(solid, chordal_tolerance=0.02)
+    result = validate_triangle_mesh(mesh)
+    restored = TriangleMesh.from_dict(mesh.to_dict())
+
+    assert result.valid
+    assert result.watertight
+    assert result.consistently_oriented
+    assert result.boundary_edge_count == 0
+    assert result.nonmanifold_edge_count == 0
+    assert result.winding_conflict_count == 0
+    assert result.signed_volume > 0
+    assert result.signed_volume == pytest.approx(solid.area * solid.height, abs=solid.perimeter * 0.02 * solid.height)
+    assert mesh.chordal_tolerance == 0.02
+    assert restored == mesh
+    assert tessellate_extruded_profile(solid, chordal_tolerance=0.02).to_dict() == mesh.to_dict()
+    for point in hole:
+        assert any(vertex.x == point.x and vertex.y == point.y and vertex.z == 0.0 for vertex in mesh.vertices)
