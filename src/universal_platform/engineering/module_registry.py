@@ -27,11 +27,13 @@ def _require_identifier(value: str, label: str) -> None:
 
 
 def _require_unique(values: tuple[str, ...], label: str) -> None:
-    if len(values) != len(set(values)):
-        raise InvalidModelError(f"{label} must not contain duplicates")
+    if not isinstance(values, tuple):
+        raise InvalidModelError(f"{label} must be an immutable tuple")
     for value in values:
         if not isinstance(value, str) or not value.strip():
             raise InvalidModelError(f"{label} entries must be non-empty strings")
+    if len(values) != len(set(values)):
+        raise InvalidModelError(f"{label} must not contain duplicates")
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,12 +48,12 @@ class ModuleOperation:
 
     def __post_init__(self) -> None:
         _require_identifier(self.operation_id, "operation_id")
-        if not _SCHEMA_VERSION.fullmatch(self.input_schema_version):
+        if not isinstance(self.input_schema_version, str) or not _SCHEMA_VERSION.fullmatch(self.input_schema_version):
             raise InvalidModelError("input_schema_version must use MAJOR.MINOR")
-        if not _SCHEMA_VERSION.fullmatch(self.output_schema_version):
+        if not isinstance(self.output_schema_version, str) or not _SCHEMA_VERSION.fullmatch(self.output_schema_version):
             raise InvalidModelError("output_schema_version must use MAJOR.MINOR")
         _require_unique(self.required_permissions, "required_permissions")
-        if self.execution_kind not in _EXECUTION_KINDS:
+        if not isinstance(self.execution_kind, str) or self.execution_kind not in _EXECUTION_KINDS:
             raise InvalidModelError(
                 "execution_kind must be ANALYSIS, CALCULATION, SIMULATION, or EXTERNAL_READ"
             )
@@ -99,7 +101,7 @@ class ModuleManifest:
             _require_identifier(dependency, "dependency module_id")
         if not isinstance(self.license_id, str) or not self.license_id.strip():
             raise InvalidModelError("license_id must be explicit; use NOASSERTION when unknown")
-        if self.maturity not in _MATURITY:
+        if not isinstance(self.maturity, str) or self.maturity not in _MATURITY:
             raise InvalidModelError(f"maturity must be one of {sorted(_MATURITY)}")
         declared = set(self.permissions)
         for operation in self.operations:
@@ -146,6 +148,7 @@ class ModuleRegistry:
         self._modules[manifest.module_id] = manifest
 
     def get(self, module_id: str) -> ModuleManifest:
+        _require_identifier(module_id, "module_id")
         try:
             return self._modules[module_id]
         except KeyError as exc:
@@ -155,6 +158,7 @@ class ModuleRegistry:
         return tuple(self._modules[key] for key in sorted(self._modules))
 
     def resolve_operation(self, module_id: str, operation_id: str) -> ModuleOperation:
+        _require_identifier(operation_id, "operation_id")
         manifest = self.get(module_id)
         for operation in manifest.operations:
             if operation.operation_id == operation_id:

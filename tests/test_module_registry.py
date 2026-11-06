@@ -49,6 +49,9 @@ def test_manifest_accepts_explicit_version_license_and_operation_contract():
         {"dependencies": ("bad id",)},
         {"dependencies": ("org.physics.mechanics",)},
         {"permissions": ()},
+        {"operations": [ModuleOperation("calculate")]},
+        {"dependencies": ["org.domain.base"]},
+        {"permissions": ["engineering.calculate"]},
     ],
 )
 def test_manifest_rejects_invalid_metadata(changes):
@@ -61,6 +64,12 @@ def test_operation_rejects_unsupported_execution_kind_and_bad_schema_version():
         ModuleOperation("run", execution_kind="PHYSICAL_CONTROL")
     with pytest.raises(InvalidModelError):
         ModuleOperation("run", input_schema_version="v1")
+    with pytest.raises(InvalidModelError):
+        ModuleOperation("run", input_schema_version=None)
+    with pytest.raises(InvalidModelError):
+        ModuleOperation("run", execution_kind=[])
+    with pytest.raises(InvalidModelError):
+        ModuleOperation("run", required_permissions=["engineering.calculate"])
 
 
 def test_manifest_rejects_duplicate_operations_and_undeclared_permissions():
@@ -81,6 +90,8 @@ def test_registry_rejects_duplicate_ids_and_unknown_lookups():
         registry.register(item)
     with pytest.raises(InvalidModelError, match="unknown module"):
         registry.get("org.missing.module")
+    with pytest.raises(InvalidModelError, match="stable lowercase identifier"):
+        registry.get([])
     with pytest.raises(InvalidModelError, match="unknown operation"):
         registry.resolve_operation(item.module_id, "missing")
 
@@ -132,3 +143,12 @@ def test_snapshot_is_json_compatible_and_insertion_order_independent():
     assert [item["module_id"] for item in first.snapshot()["modules"]] == [
         "org.domain.a", "org.domain.b"
     ]
+
+
+def test_manifest_rejects_mutable_operation_permission_and_dependency_collections():
+    with pytest.raises(InvalidModelError, match="immutable tuple"):
+        manifest(operations=[ModuleOperation("calculate")])
+    with pytest.raises(InvalidModelError, match="immutable tuple"):
+        manifest(permissions=["engineering.calculate"])
+    with pytest.raises(InvalidModelError, match="immutable tuple"):
+        manifest(dependencies=["org.domain.base"])
