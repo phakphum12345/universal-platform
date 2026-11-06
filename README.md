@@ -24,7 +24,8 @@ Current modules include:
 - Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 merged).
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
-- Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 under review).
+- Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
+- Normalized hardware schematic component/pin/net connectivity model (PR #46 under review; no renderer/ERC/simulation).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
@@ -120,6 +121,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [Driver Architecture Intelligence](docs/hardware/DRIVER_ARCHITECTURE_INTELLIGENCE.md)
 - [Driver Refactoring Engine](docs/hardware/DRIVER_REFACTORING_ENGINE.md)
 - [Schematic/Driver Traceability](docs/hardware/SCHEMATIC_DRIVER_TRACEABILITY.md)
+- [Hardware Schematic Netlist Contract](docs/hardware/HARDWARE_SCHEMATIC_NETLIST_CONTRACT.md)
 - [Hardware Design Verification](docs/hardware/HARDWARE_DESIGN_VERIFICATION.md)
 - [Virtual Lab and Simulation](docs/laboratories/VIRTUAL_LAB_AND_SIMULATION.md)
 - [Engineering Safety and Approval](docs/governance/ENGINEERING_SAFETY_AND_APPROVAL.md)
