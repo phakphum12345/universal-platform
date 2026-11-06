@@ -306,3 +306,14 @@ def test_schema_v1_0_rejects_curved_profile_extension():
     )
     with pytest.raises(InvalidModelError, match="schema version"):
         PrimitiveGeometryModel(graph_with_frame("part"), (solid,), "1.0")
+
+def test_schema_v10_rejects_curved_segment_metadata_even_without_arc_sweeps():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid
+    solid = ExtrudedProfileSolid(
+        "solid.legacy-ids", "part",
+        (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1)), 1,
+    )
+    snapshot = PrimitiveGeometryModel(graph_with_frame("part"), (solid,)).to_dict()
+    snapshot["solids"][0]["segment_ids"] = ["edge.a", "edge.b", "edge.c"]
+    with pytest.raises(InvalidModelError, match="schema version 1.0"):
+        PrimitiveGeometryModel.from_dict(snapshot)
