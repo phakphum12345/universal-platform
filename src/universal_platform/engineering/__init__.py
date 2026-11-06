@@ -22,6 +22,11 @@ from .profile_boolean import ProfileBooleanOperation, ProfileBooleanResult, Prof
 from .step import STEPArtifact, STEPImportResult, export_step, import_step
 from .three_mf import ThreeMFArtifact, ThreeMFImportResult, export_3mf, import_3mf
 from .mesh import TriangleMesh, MeshValidationResult, tessellate_box, tessellate_cylinder, tessellate_extruded_profile, validate_triangle_mesh
+from .brep import (
+    BRepVertex, BRepEdge, BRepEdgeUse, BRepLoop, BRepFace, BRepShell,
+    BRepValidationResult, BRepSolid, validate_brep_solid,
+    brep_from_triangle_mesh, triangle_mesh_from_brep,
+)
 from .stl_interchange import BinarySTLArtifact, STLInterchangeManifest, export_binary_stl, validate_binary_stl_artifact
 from .mesh_topology import MeshTopologyAnalysis, analyze_mesh_topology
 from .mesh_intersection import MeshIntersection, MeshIntersectionAnalysis, analyze_mesh_intersections
@@ -145,6 +150,9 @@ __all__ = [
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "ExtrudedProfileSolid", "FramedBounds3", "PrimitiveGeometryModel", "Vec2", "TriangleMesh", "MeshValidationResult", "tessellate_box", "tessellate_cylinder", "tessellate_extruded_profile", "validate_triangle_mesh", "ProfileBooleanOperation", "ProfileBooleanResult", "ProfileLoop", "boolean_profiles", "JointPlacement",
+    "BRepVertex", "BRepEdge", "BRepEdgeUse", "BRepLoop", "BRepFace", "BRepShell",
+    "BRepValidationResult", "BRepSolid", "validate_brep_solid",
+    "brep_from_triangle_mesh", "triangle_mesh_from_brep",
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
