@@ -69,8 +69,8 @@ def test_coincident_constraint_contributes_two_coordinate_equations():
     )
     result = solve_parametric_sketch(sketch)
     assert result.converged
-    assert result.points[0].x == pytest.approx(result.points[1].x)
-    assert result.points[0].y == pytest.approx(result.points[1].y)
+    assert result.points[0].x == pytest.approx(result.points[1].x, abs=1e-8)
+    assert result.points[0].y == pytest.approx(result.points[1].y, abs=1e-8)
 
 
 def test_distance_constraint_solves_euclidean_length():
