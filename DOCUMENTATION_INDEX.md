@@ -170,3 +170,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Repository Audit post-PR #113](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md) — current exact integration/main SHAs, tree inventory, PR #99/#107/#110/#113 evidence and remaining CAD/EDA/physics/runtime gates.
 - [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md) — central solver registry boundary, built-in analytical solvers and unimplemented domain families.
 - [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — current registry, recovery, trusted process supervision, adapter routing, evidence integrity, resource health and security limits.
+
+
+- [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v1.0 closed triangular planar shell topology, exact validation invariants, mesh bridge and explicit limitations.
+- [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
