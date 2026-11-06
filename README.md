@@ -20,6 +20,7 @@ Current modules include:
 - Evidence and provenance contracts with explicit evidence kinds and statuses.
 - A fail-closed safety gate for offline engineering workflows.
 - A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
+- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).

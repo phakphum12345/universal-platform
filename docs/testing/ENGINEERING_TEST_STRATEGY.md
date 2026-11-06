@@ -4,7 +4,7 @@
 
 ## Test levels
 1. Unit: deterministic functions, dimensions, validation and error behavior.
-2. Contract: module manifests, request/response schemas, version compatibility and permissions.
+2. Contract: module manifests, request/response schemas, version compatibility, JSON-safe serialization, immutable nested payloads, resource-limit validation and permission declarations.
 3. Reference: analytical cases with independently derived expected values and justified tolerances.
 4. Property/fuzz: invariants, boundary values, malformed input and non-finite values.
 5. Adapter integration: supported CAD/solver/data tools, pinned versions and isolated environments.
@@ -28,3 +28,8 @@ PASS only when the required test ran and met its criterion. FAIL when it ran and
 
 ## Release criteria
 No critical FAIL or UNKNOWN; skipped tests have approved rationale; supported-platform matrix is explicit; test fixtures and expected values are reviewed; rollback and limitations are documented. Engineering correctness requires domain review beyond software CI.
+
+
+## Implemented contract coverage
+
+PR #39 tests metadata manifest/registry validation, dependency ordering and deterministic snapshots. PR #41 adds request/response envelope validation for identifiers, schema versions, finite numeric values, JSON compatibility, immutable nested payloads, resource limits, operational status semantics and error-code consistency. Runtime invocation and permission enforcement remain unimplemented.
