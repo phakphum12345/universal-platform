@@ -14,7 +14,7 @@ Provide a small, dependency-free local nonlinear equality solver that can be reu
 - Optional variable bounds are finite lower/upper endpoints; trial values are projected into the declared interval.
 - Solver options define iteration, finite-difference, step and damping limits, plus a Jacobian strategy. Forward finite differences remain the default; central differences and an analytic callback are opt-in.
 - An analytic Jacobian callback returns an `m × n` matrix in constraint order and variable order, containing derivatives of the original (unscaled) residuals. The solver validates its shape and finite values, then applies each residual scale internally.
-- A positive relative rank tolerance controls a dependency-free modified Gram–Schmidt estimate with column pivoting. The estimate is computed from the scaled Jacobian used by the solver; it is a numerical diagnostic, not a proof of mathematical rank.
+- A positive relative rank tolerance controls a dependency-free modified Gram–Schmidt estimate with column pivoting. The estimate is computed from the scaled Jacobian used by the solver; it is a numerical diagnostic, not a proof of mathematical rank. Its threshold sensitivity is tested using nearly dependent columns.
 - The caller owns units, coordinate frames and physical interpretation. Residuals from unlike dimensions must be normalized deliberately using documented scales.
 
 ## Algorithm
