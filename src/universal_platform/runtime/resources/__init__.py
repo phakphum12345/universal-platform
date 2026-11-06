@@ -1,4 +1,4 @@
-"""Typed runtime resource registry."""
-from .models import ResourceRecord, ResourceState
+"""Typed runtime resource registry and measurement snapshots."""
+from .models import ResourceMetric, ResourceRecord, ResourceSnapshot, ResourceState
 from .registry import ResourceRegistry
-__all__ = ["ResourceRecord", "ResourceRegistry", "ResourceState"]
+__all__ = ["ResourceMetric", "ResourceRecord", "ResourceRegistry", "ResourceSnapshot", "ResourceState"]
