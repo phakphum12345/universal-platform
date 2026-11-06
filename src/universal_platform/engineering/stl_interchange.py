@@ -97,6 +97,10 @@ class STLInterchangeManifest:
             if tolerance <= 0:
                 raise InvalidModelError("STL manifest chordal_tolerance must be positive")
             object.__setattr__(self, "chordal_tolerance", tolerance)
+        if self.source_kind == "BOX" and self.chordal_tolerance is not None:
+            raise InvalidModelError("box STL manifest must not declare chordal_tolerance")
+        if self.source_kind == "CYLINDER" and self.chordal_tolerance is None:
+            raise InvalidModelError("cylinder STL manifest requires chordal_tolerance")
         if isinstance(self.stl_byte_length, bool) or not isinstance(self.stl_byte_length, int):
             raise InvalidModelError("STL manifest stl_byte_length must be an integer")
         if isinstance(self.facet_count, bool) or not isinstance(self.facet_count, int):
