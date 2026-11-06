@@ -21,6 +21,7 @@ Current modules include:
 - A fail-closed safety gate for offline engineering workflows.
 - A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
 - Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
+- Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 under review).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).

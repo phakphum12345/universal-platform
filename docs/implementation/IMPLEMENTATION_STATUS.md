@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `818a1150fe2536c53371a878b5f1cbf5524bed7d` (PR #40; documentation/evidence reconciliation). **Latest merged feature baseline:** `cd552e5fa96fa21ab21a437b0103b3a195542dbc` (PR #39; validated offline module metadata registry).
-**Latest merged feature:** PR #39 squash merge `cd552e5fa96fa21ab21a437b0103b3a195542dbc`; exact PR-head run #311 (`42167103639`) passed workflow-sanity and python-tests; **308 tests passed in 0.57s**. Post-merge run #312 (`42167199845`) on the exact merge SHA passed both jobs; **308 tests passed in 0.85s**. PR #38 evidence remains recorded below.
+**Latest integration branch head:** `a9053b02312d1319fa13f0079465fb3fc92afafd` (PR #41; validated module request/response envelopes). **Latest merged feature baseline:** `a9053b02312d1319fa13f0079465fb3fc92afafd` (PR #41).
+**Latest merged feature:** PR #41 squash merge `a9053b02312d1319fa13f0079465fb3fc92afafd`; exact PR-head run #319 (`42168026105`) passed workflow-sanity and python-tests; **338 tests passed in 0.94s**. Post-merge run #320 (`42168116830`) on the exact merge SHA passed both jobs; **338 tests passed in 0.81s**. PR #39 and #40 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -363,9 +363,18 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Documentation reconciliation only; no runtime capability was added.
 
 
-## PR #41 — Validated module request/response envelopes (implementation candidate)
+## PR #41 — Validated module request/response envelopes (merged)
 
 - Base integration SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
 - Adds immutable, JSON-compatible ModuleRequest/ModuleResponse envelopes with identifier/schema validation, finite resource limits, explicit operational statuses, and deterministic snapshots.
-- Exact PR-head CI and post-merge evidence: PENDING.
+- Final PR head: `f669efefd7d96c9ef6041af0d9095111638ee789`; PR run #319 (`42168026105`): both jobs PASS; 338 passed in 0.94s.
+- Squash merge: `a9053b02312d1319fa13f0079465fb3fc92afafd`; post-merge run #320 (`42168116830`): both jobs PASS; 338 passed in 0.81s.
 - Boundary: data contracts only; no module execution, permission enforcement or runtime plugin loading.
+
+
+## PR #41 — Validated module request/response envelopes (merged)
+
+- Base integration SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Final PR head `f669efefd7d96c9ef6041af0d9095111638ee789`; run #319 (`42168026105`): workflow-sanity PASS; python-tests PASS; **338 passed in 0.94s**.
+- Squash merge `a9053b02312d1319fa13f0079465fb3fc92afafd`; post-merge run #320 (`42168116830`) on exact merge SHA: both jobs PASS; **338 passed in 0.81s**.
+- Runtime invocation, permission enforcement, sandboxing, typed unit/frame maps and cancellation remain NOT IMPLEMENTED.

@@ -6,7 +6,7 @@ not communicate with or control physical devices.
 from .quantity import Quantity, DIMENSIONLESS, LENGTH, MASS, TIME, CURRENT, TEMPERATURE
 from .module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
 from .contracts import ModuleRequest, ModuleResponse
-from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef
+from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef, EvidenceGateResult, evaluate_evidence_gate
 from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
 from .frame_graph import FrameGraph
@@ -111,7 +111,7 @@ __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
     "ModuleManifest", "ModuleOperation", "ModuleRegistry", "ModuleRequest", "ModuleResponse",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
-    "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
+    "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "JointPlacement",
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",

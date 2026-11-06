@@ -34,3 +34,10 @@ FACT, INFERENCE, ASSUMPTION, HYPOTHESIS, ESTIMATE, SIMULATION, MEASUREMENT and U
 - [ ] Uncertainty type and method are declared.
 - [ ] Derived quantities retain lineage.
 - [ ] Unsupported precision is not displayed.
+
+
+## Implemented evidence record and gate subset (PR #42)
+
+SourceRef and EvidenceRecord are immutable, validated and JSON-serializable. Content hashes use SHA-256; evidence timestamps must be timezone-aware ISO-8601; nested metadata is detached/frozen and rejects non-finite or non-JSON values.
+
+The conservative evidence gate treats all supplied records as required and uses FAIL > UNKNOWN > SKIPPED > PASS precedence. An empty evidence set is UNKNOWN. This is software evidence aggregation only, not engineering certification or physical validation.

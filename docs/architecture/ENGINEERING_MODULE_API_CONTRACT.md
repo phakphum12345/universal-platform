@@ -68,3 +68,10 @@ This is a metadata registry only. It does not load or invoke code, enforce permi
 ModuleRequest and ModuleResponse are immutable data-contract records. Nested JSON objects and arrays are detached and frozen on construction; `to_dict()` returns deterministic JSON-compatible snapshots. Non-finite numbers, unsupported Python objects, malformed identifiers/schema versions, invalid resource limits, duplicate tuple metadata and invalid status/error-code combinations fail closed.
 
 The envelopes do not load modules, execute operations, enforce permissions, or grant authority. Runtime invocation remains a separate reviewed work package.
+
+
+## Evidence and provenance contract
+
+The evidence model is implemented in `provenance.py`. SourceRef validates optional SHA-256 content hashes and preserves revision, locator and license. EvidenceRecord validates evidence kind/status, non-empty statements, unique source locators, timezone-aware ISO-8601 timestamps and JSON-safe immutable metadata. Its `to_dict()` method returns a deterministic JSON-compatible snapshot.
+
+`evaluate_evidence_gate()` treats every supplied record as required. FAIL takes precedence over UNKNOWN, which takes precedence over SKIPPED; PASS is returned only when at least one record exists and every record is PASS. An empty set is UNKNOWN. This aggregate does not infer physical validity or certification.
