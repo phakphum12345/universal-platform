@@ -197,16 +197,23 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Exact PR workflow #42228344477 passed both jobs with **524 tests in 2.09s**; exact post-merge run #42228462537 passed both jobs with **524 tests in 2.20s**.
 - Independent reader now computes quantized bounds and signed volume directly from serialized facet records using a coordinate-error-derived volume bound; corrupt NaN coordinates and inconsistent normals are rejected even with recomputed payload digests.
 
-## PR #76 — Mesh geometric topology analysis contract (DESIGN ONLY)
+## PR #76 — Mesh geometric topology analysis contract (MERGED)
 
-- Adds `MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md` for face-connected shell analysis, vertex-link manifoldness, unused vertices, exact duplicate coordinates and optional explicit near-coincident tolerance.
-- Keeps the existing structural validator backward compatible and separate from the new diagnostic result.
-- Requires deterministic component/group ordering, explicit units/tolerance, no automatic welding/repair, and `self_intersection_status=UNKNOWN` until a robust geometric intersection implementation is independently validated.
-- No topology-analysis API or implementation is claimed in this PR.
+- PR #76 merged at `ff486f8ae4569ca8122f0294f55d18b21b32d10c`; exact PR head `526a2cb0632154e52596e3322a107ee8dddc4d4d`; base `a8a7e6b28650a90665a465e7373d8ad6582f7832`.
+- Exact PR workflow #42229095708 and push workflow #42229046675 passed both required jobs with **524 tests in 2.25s**; exact post-merge run #42229207672 passed both jobs with **524 tests in 1.60s**.
+- Defines additive diagnostics for edge-connected components, vertex-link manifoldness, unused vertices, exact/near-coincident coordinates and explicit UNKNOWN self-intersection status.
+
+## PR #77 — Mesh geometric topology analysis implementation (IMPLEMENTATION CANDIDATE)
+
+- Adds `MeshTopologyAnalysis` v1.0 and `analyze_mesh_topology` without changing `validate_triangle_mesh`.
+- Records solid/frame/unit identity, source and canonical mesh SHA-256, counts, connected face components, exact/near-coincident groups, non-manifold vertex fans, unused vertices and stable issue codes.
+- Near-coincident grouping uses explicit source-unit tolerance, deterministic 3D buckets and a 5,000,000 neighbor-comparison ceiling; no welding/snap/repair.
+- `self_intersection_status` remains UNKNOWN; geometric triangle-triangle testing is a separate future gate.
+- Exact-head and post-merge CI evidence pending.
 
 ## Next repository increments
 
-1. Implement the additive mesh topology analysis API defined by PR #76; then design and implement triangle-triangle self-intersection separately.
+1. Complete PR #77 mesh topology diagnostics; then design and implement triangle-triangle self-intersection separately.
 2. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
 3. Neutral CAD interchange (external STL import and STEP/3MF) with independent external-tool reopen validation.
 4. Parametric sketch constraints, solver diagnostics and versioned feature history with deterministic recomputation.
