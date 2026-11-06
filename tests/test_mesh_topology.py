@@ -9,12 +9,12 @@ import pytest
 from universal_platform.engineering import (
     BoxSolid,
     MeshTopologyAnalysis,
-    Vec3,
     analyze_mesh_topology,
     tessellate_box,
     validate_triangle_mesh,
 )
 from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh
 
 
