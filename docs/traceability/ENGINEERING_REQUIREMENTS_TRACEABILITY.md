@@ -192,3 +192,12 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | CAD-PLANAR-REGION-001 | Validated planar region input with outer boundary and holes | CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT; docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md; docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md; schemas/geometry/planar-region.schema.json; src/universal_platform/engineering/planar_region.py; tests/test_planar_region.py | IMPLEMENTED by PR #82 at merge `114bf8dd84831d7d4080922ed7069cadda380ba3`; exact PR workflow #42240159979 and push workflow #42240149518 passed with 563 tests; exact post-merge workflow #42240292055 passed with 563 tests in 2.47s. Provides separate PlanarRegion v1.0 with exact represented-binary64 rational predicates, canonical CCW outer/CW holes, strict simple-loop and non-touching hole validation, explicit frame/unit, canonical digest, strict schema and 2,048-edge bound. Boolean operations remain PLANNED and are not claimed. |
+
+
+## B-rep and 3D Boolean acceptance evidence — PR #117/#118
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-BREP-001 | Closed faceted B-rep topology and deterministic mesh bridge | PR #117 merge `2dbddba4899246c1c75a169224154b9d8ec21402`; exact-head and post-merge CI passed 742 tests. `BRepSolid` v1.0 validates triangular planar single-shell topology, oriented edge uses, closed two-face incidence, connectedness, Euler/genus and positive signed volume. | No n-gons, face inner loops, multiple shells, shell healing, arbitrary curved surfaces or proof of geometric self-intersection freedom. |
+| CAD-BREP-BOOLEAN-001 | Bounded 3D Boolean operations over axis-aligned box B-reps | PR #118 merge `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; exact-head and post-merge workflow #42282428283 passed 755 tests in 2.83s. Supports UNION, INTERSECTION, first-minus-rest DIFFERENCE and odd/even SYMMETRIC_DIFFERENCE over 2–16 validated boxes, with 32,768 maximum grid cells and deterministic closed output components. | Not a general CSG/B-rep kernel. Point/edge contacts remain separate components; fully enclosed cavities, arbitrary faceted solids, rotated boxes, cylinders and curved surfaces fail closed. |
+
