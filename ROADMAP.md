@@ -345,3 +345,18 @@ See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POI
 - Full 3MF assemblies, transforms, materials, colors, textures, extensions and unknown-part preservation remain unsupported. STEP import/export remains OPEN.
 
 See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
+
+
+## Runtime resource and recovery delivery ledger — 2026-11-07
+
+The following feature stack is open and has exact-head CI evidence; it is **not merged** into the integration branch or `main`:
+
+- PR #100 — typed resource registry, metrics/snapshots, bounded log analysis and recovery lifecycle contract.
+- PR #101 — bounded UTF-8 file-log source and append-only JSONL recovery evidence.
+- PR #102 — log-source/coordinator/evidence integration with evidence-before-resume behavior.
+- PR #103 — allow-listed trusted-worker process supervision, bounded output, timeout and cancellation.
+- PR #104 — policy-gated adapter discovery and asleep-only replacement candidate validation.
+- PR #105 — in-process resource quota allocation and expiring leases.
+- PR #106 — provider-driven resource snapshots and available local CPU-count, memory, disk and Linux network metrics.
+
+These slices do not complete Phase 5. Remaining gates include real OS/container sandboxing, OS resource enforcement, durable/distributed leases and evidence, process-tree containment on Windows, checkpoints/heartbeats/restart policy, automatic runtime routing, broader telemetry providers, and integration with permissions/module governance. Continue to treat unsupported capabilities as OPEN or UNKNOWN, never PASS.

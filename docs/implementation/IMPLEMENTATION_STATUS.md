@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model).
+**Historical implementation snapshot HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model). The currently observed integration branch tip is `afcb151e29ff9a8cb5a8e871400910a0fe950c57`; default `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 **Exact post-merge CI:** PR #82 merge SHA `114bf8dd84831d7d4080922ed7069cadda380ba3`; workflow #42240292055: workflow-sanity PASS and python-tests PASS; **563 passed in 2.47s**. Documentation-only marker step SKIPPED.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
@@ -801,3 +801,33 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Parser validates OPC parts/relationship/content type, paths, duplicate entries, compression/size bounds, XML DTD/entities, model structure, units and triangle indices.
 - Full 3MF feature support and STEP import/export remain OPEN. No B-rep or manufacturing/certification claim.
 - Contract: [3MF Core Mesh Interchange](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
+
+
+## Runtime Resource and Recovery Workstream — OPEN PRs #100–#106
+
+**Branch relationship:** PR #100 targets `docs/phase-0-complete-requirements`; PRs #101–#106 are stacked in dependency order. None of these PRs is merged as of this status update. Their feature branches are not part of the integration baseline or `main`.
+
+| PR | Scope | Exact tested head | CI result | Maturity |
+|---|---|---|---|---|
+| #100 | Resource registry, metrics, log analysis, recovery lifecycle | `b672c7bf0f509990be3a172ec6085ccb2be1e9c8` | PASS — 662 tests | PARTIAL; in-memory contracts, no process supervisor |
+| #101 | Bounded file-log ingestion and JSONL evidence | `177567feb2cc5a855a9cdf10ba5d9286399375e3` | PASS — 667 tests | PARTIAL; process-local evidence lock |
+| #102 | Recovery coordinator integration with logs/evidence | `25f82f272b653f5be2164cd9e41d6e3eca1ab526` | PASS — 669 tests | PARTIAL; sandbox and durable evidence remain open |
+| #103 | Allow-listed trusted-worker process supervision | `ff4e96452364355855403d2fcbe9aca57eb50cfb` | PASS — 677 tests | PARTIAL; not a security sandbox |
+| #104 | Adapter discovery and policy-gated replacement | `dff96a6a3a8c1ead4be3dae64f6457b68edce9c1` | PASS — 685 tests | PARTIAL; runtime routing remains caller-owned |
+| #105 | Resource quotas and expiring leases | `c74c6d4ddda060e08a3aaf04453a0e4d4741caa7` | PASS — 691 tests | PARTIAL; in-memory, process-local |
+| #106 | Resource snapshot collector and local metrics | `2a56c5ee9a068a48efa38da769f8c8b6a45950d2` | PASS — 697 tests | PARTIAL; provider/platform dependent |
+
+All listed CI counts are from the Python test job on the stated exact head; workflow-sanity also passed. Documentation-only conditional steps that were skipped are not counted as passes.
+
+### Runtime gates still OPEN
+
+- OS/container sandbox for untrusted worker and repair code; process isolation alone is not sufficient.
+- OS-level CPU, memory, disk and network quotas; GPU telemetry and CPU utilization providers.
+- Durable resource leases and multi-process/distributed allocation coordination.
+- Durable, multi-process and tamper-evident recovery evidence.
+- Process checkpoints, restore, heartbeat, restart policy and full integration with ResourceRegistry/RecoveryCoordinator.
+- Runtime adapter routing/switchover, canary traffic management and rollback of a live adapter.
+- Permission, approval, module-registry and audit-governance integration.
+- Stream log ingestion, rotation, cursors, retention and cross-source correlation.
+
+See [Runtime Resource Adapter and Recovery](../architecture/RESOURCE_ADAPTER_RECOVERY.md) for the implementation boundary and tests.
