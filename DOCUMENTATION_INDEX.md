@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `502d49baf58e43938d2746859e10817badd43f6e` (PR #78 merge); exact PR-head workflow #42231152061 passed workflow-sanity and python-tests (533 tests reported); post-merge CI for this integration SHA is UNKNOWN. PRs #49, #52, #54, #56, #59–#77 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files; tree response was not truncated. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `cb91c7c49406fd02324be6b30d5570e821b4d503` (PR #80 merge); exact PR workflow #42238370626 passed workflow-sanity and python-tests with 550 tests; push workflow #42238360081 passed both jobs; post-merge CI for this integration SHA is UNKNOWN. PRs #49, #52, #54, #56, #59–#77 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files; tree response was not truncated. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 
@@ -64,7 +64,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Deterministic Primitive Triangle Mesh Contract](docs/design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md) — implemented Box/Cylinder and straight/arc profile tessellation, including polygonal holes, with structural validation scope.
 - [Binary STL Interchange](docs/design-3d/STL_INTERCHANGE_CONTRACT.md) — implemented binary export and metadata sidecar; arbitrary import remains open.
 - [Mesh Geometric Topology Analysis](docs/design-3d/MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) — implemented diagnostic layer; self-intersection remains open.
-- [Mesh Triangle Intersection](docs/design-3d/MESH_TRIANGLE_INTERSECTION_CONTRACT.md) — design contract; geometric intersection implementation pending.
+- [Mesh Triangle Intersection](docs/design-3d/MESH_TRIANGLE_INTERSECTION_CONTRACT.md) — implemented additive exact-rational intersection analysis; topology v1.0 remains backward compatible.
 - [3D Motion and Mechanism Reference Cases](docs/design-3d/3D_MOTION_AND_MECHANISM_REFERENCE_CASES.md) — deterministic mechanism fixtures.
 - [CAD to Manufacturing Pipeline](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md) — proposed manufacturing artifact workflow.
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md) — proposed structural/civil engineering scope.
@@ -130,4 +130,5 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 5. Check relative links after documentation changes; report any link not verifiable from the pinned tree as UNKNOWN.
 
 
-- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — current PR #78 baseline, implemented capability evidence, unverified gaps and next gated work.
+- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
+- [Repository Audit post-PR #80](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md) — current integration SHA, PR #80 evidence, maturity boundaries and remaining gated work.

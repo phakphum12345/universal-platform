@@ -239,3 +239,16 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Subsequent gated work: general planar topology/Boolean operations; B-rep and neutral CAD import/export; parametric sketch and feature history; EDA interchange and electrical/circuit validation; domain-validated physics adapters; secure module runtime; then end-to-end API/CLI/UI integration.
 - This is a proposed dependency sequence, not evidence that these features already exist. Each item remains PLANNED until source, tests and exact-SHA evidence are inspected.
 - See [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) for scope, evidence and limitations.
+
+
+## PR #80 — Triangle-mesh self-intersection analysis (IMPLEMENTED)
+
+- Merged at `cb91c7c49406fd02324be6b30d5570e821b4d503`; exact PR head `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181`.
+- Exact PR workflow #42238370626 passed workflow-sanity and python-tests with 550 tests; push workflow #42238360081 passed both required jobs.
+- Adds `MeshIntersectionAnalysis v1.0` and `analyze_mesh_intersections`, with deterministic conservative sweep, exact rational predicates, stable classifications, source digests, strict schema and fail-closed resource limits.
+- `MeshTopologyAnalysis v1.0` remains unchanged; its `self_intersection_status` remains UNKNOWN. Intersection results are a separate analysis.
+- Post-merge CI on the integration SHA is UNKNOWN; do not mark this evidence PASS.
+
+## Next gated increment
+
+General planar-region Boolean topology beyond convex loops is next, but implementation must wait for an explicit precision policy and independent adversarial reference corpus. Then proceed to B-rep/3D Boolean, CAD interchange, parametric sketch/feature history, EDA/electrical simulation, validated physics adapters, secure module runtime, and cross-domain API/CLI/UI integration. See [post-PR #80 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md).

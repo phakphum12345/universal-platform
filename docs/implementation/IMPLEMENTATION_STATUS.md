@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `502d49baf58e43938d2746859e10817badd43f6e` (PR #78 triangle-mesh self-intersection design contract).
-**Exact PR-head CI:** PR #78 workflow #42231152061 on head `08f6aade1d928b9d2e2d7a065aa448ef9065bed1`; `workflow-sanity` PASS and `python-tests` PASS; PR evidence records **533 passed in 2.15s**. Documentation-only marker step SKIPPED. **Post-merge CI for integration HEAD:** UNKNOWN (no workflow runs/status entries returned for `502d49baf58e43938d2746859e10817badd43f6e`).  
+**Integration HEAD:** `cb91c7c49406fd02324be6b30d5570e821b4d503` (PR #80 exact triangle-mesh intersection analysis).
+**Exact PR-head CI:** PR #80 workflow #42238370626 on head `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181`; `workflow-sanity` PASS and `python-tests` PASS; **550 passed in 2.63s**. Push workflow #42238360081 passed both jobs; documentation-only marker step SKIPPED. **Post-merge CI for integration HEAD:** UNKNOWN (no workflow runs/status entries returned for `cb91c7c49406fd02324be6b30d5570e821b4d503`).  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -708,3 +708,16 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds only the separate MeshIntersectionAnalysis design contract. No self-intersection implementation or geometric PASS is claimed. `MeshTopologyAnalysis v1.0` remains backward compatible and self-intersection remains UNKNOWN.
 - Post-merge CI on integration HEAD `502d49baf58e43938d2746859e10817badd43f6e`: UNKNOWN; no status entries or workflow runs were returned.
 - Full capability gaps and next work packages: [Repository Audit 2026-11-06](../audit/REPOSITORY_AUDIT_2026-11-06.md).
+
+
+## PR #80 — Exact triangle-mesh intersection analysis (MERGED)
+
+- Base integration SHA: `f0d52ecf8dee44c4984badf3fb0e902f3f47b57f`.
+- Exact PR head: `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181`; merge SHA / integration HEAD: `cb91c7c49406fd02324be6b30d5570e821b4d503`.
+- PR workflow #42238370626: workflow-sanity PASS; python-tests PASS; **550 passed in 2.63s**. Push workflow #42238360081 passed both jobs. Documentation-only marker step SKIPPED.
+- Reviews: 0; unresolved review threads: 0.
+- Adds `MeshIntersectionAnalysis v1.0`, `analyze_mesh_intersections`, schema, exact rational narrow-phase predicates over binary64 inputs, deterministic conservative sweep, stable pair classifications, strict provenance-bound snapshots and resource-limit UNKNOWN behavior.
+- Structural validation is a precondition. Input mesh is not mutated. No welding, snapping, repair, B-rep, Boolean, collision, manufacturing, physical or certification claim is made.
+- `MeshTopologyAnalysis v1.0` remains backward compatible and keeps `self_intersection_status=UNKNOWN`; the new intersection result is independent.
+- Post-merge CI for `cb91c7c49406fd02324be6b30d5570e821b4d503`: UNKNOWN; no run/status evidence was returned.
+- Next work is general planar-region Boolean topology after a precision-policy decision and independent adversarial references. Full gaps: [post-PR #80 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md).
