@@ -88,7 +88,7 @@ PR #49 adds simple polygon validation (duplicate vertices, self-intersections an
 Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`42191597715`) passed both jobs with 425 tests in 0.78s; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`, post-merge run #385 (`42191666816`) passed both jobs with 425 tests in 0.87s.
 
 
-## Spatial joint reference validation (candidate PR #54)
+## Spatial joint reference validation (PR #54 — merged; exact head and post-merge CI PASS, 452 tests each)
 
 - A versioned JSON fixture enumerates all eight declared joint families and their independent coordinates, units, axes, nominal local DOF and expected zero-configuration Jacobian entries.
 - Verify six deterministic residual rows and units for every family.
@@ -97,3 +97,6 @@ Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`421
 - Verify nontrivial parent-to-joint and joint-to-child transforms with translation and rotation.
 - Keep the separate 2D PLANAR mobility formulation SKIPPED/unsupported until a plane-frame/coplanarity contract exists; a PLANAR joint kind remains valid in the SPATIAL rigid-body formulation.
 - Acceptance contract: docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md. Exact-head CI pending.
+
+
+Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`42193562931`): 452 passed in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`, post-merge run #405 (`42193654653`): 452 passed in 1.33s. Initial run #403 failed due a test expectation that confused full and reduced Jacobian widths; the assertion was corrected and the latest head passed.
