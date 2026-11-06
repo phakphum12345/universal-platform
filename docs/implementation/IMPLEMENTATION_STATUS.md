@@ -232,3 +232,5 @@ Passing tests validate only the code and contracts present at the exact tested S
 
 
 - PR #30 initial push run #237 (run ID `42153434281`) on head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e`: `workflow-sanity` PASS; `python-tests` FAIL (202 passed, 1 failed). The log identifies a test-fixture defect: the test accessed `MechanismKinematicsInput.__dict__`, but the dataclass uses slots. Production code was not implicated by this failure; the fixture is corrected with `dataclasses.replace` in the next head.
+
+- PR #30 corrected head `385122e4e2d1abb1678c9bdc08f2fbfcf290bdc0`; run #240 (run ID `42153561436`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.47s**. The initial run #237 fixture failure (202 passed, 1 failed) is retained above; no production-code failure was identified in that log.

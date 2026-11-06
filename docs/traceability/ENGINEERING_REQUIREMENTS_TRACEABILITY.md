@@ -60,3 +60,5 @@ PR #28 adds deterministic fundamental-cycle topology for normalized mechanism gr
 
 
 PR #30 initial exact-head run #237 (`42153434281`, head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e)): workflow-sanity PASS; python-tests FAIL, 202 passed / 1 failed. The failure log shows the test fixture accessed `__dict__` on a slotted dataclass; corrected using `dataclasses.replace`.
+
+PR #30 corrected exact head `385122e4e2d1abb1678c9bdc08f2fbfcf290bdc0`; run #240 (`42153561436`): workflow-sanity PASS; python-tests PASS, 203 passed in 0.47s. The earlier fixture-only failure on initial head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` (202 passed, 1 failed) is retained as historical evidence.
