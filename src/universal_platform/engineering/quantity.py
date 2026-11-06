@@ -6,6 +6,7 @@ Values are stored in SI base units; source unit is retained for traceability.
 from __future__ import annotations
 from dataclasses import dataclass
 from math import isfinite
+from typing import Any, ClassVar, Mapping
 from .errors import DimensionMismatchError, EngineeringError
 
 Dimension = tuple[int, int, int, int, int]
@@ -39,23 +40,62 @@ class Quantity:
     dimension: Dimension
     source_unit: str = "1"
 
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
+
     def __post_init__(self) -> None:
-        if not isfinite(self.si_value):
+        if isinstance(self.si_value, bool) or not isinstance(self.si_value, (int, float)):
+            raise EngineeringError("Quantity value must be numeric")
+        if not isfinite(float(self.si_value)):
             raise EngineeringError("Quantity value must be finite")
-        if len(self.dimension) != 5 or any(not isinstance(x, int) for x in self.dimension):
-            raise EngineeringError("Dimension must contain five integer exponents")
-        if self.source_unit not in _UNITS:
+        object.__setattr__(self, "si_value", float(self.si_value))
+        if not isinstance(self.dimension, tuple) or len(self.dimension) != 5 or any(
+            isinstance(x, bool) or not isinstance(x, int) for x in self.dimension
+        ):
+            raise EngineeringError("Dimension must be an immutable tuple of five integer exponents")
+        if not isinstance(self.source_unit, str) or self.source_unit not in _UNITS:
             raise EngineeringError(f"Unsupported unit: {self.source_unit}")
 
     @classmethod
     def of(cls, value: float, unit: str) -> "Quantity":
-        if unit not in _UNITS:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise EngineeringError("Quantity input must be numeric")
+        if not isinstance(unit, str) or unit not in _UNITS:
             raise EngineeringError(f"Unsupported unit: {unit}")
         factor, dimension = _UNITS[unit]
         return cls(float(value) * factor, dimension, unit)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Return a deterministic v1.0 SI-value snapshot with source-unit lineage."""
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "si_value": self.si_value,
+            "dimension": list(self.dimension),
+            "source_unit": self.source_unit,
+        }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, Any]) -> "Quantity":
+        """Restore a strict v1.0 quantity snapshot."""
+        expected = {"schema_version", "si_value", "dimension", "source_unit"}
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise EngineeringError("Quantity snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION:
+            raise EngineeringError("Unsupported Quantity schema_version")
+        raw_value = value["si_value"]
+        if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+            raise EngineeringError("Quantity si_value must be numeric")
+        raw_dimension = value["dimension"]
+        if not isinstance(raw_dimension, (list, tuple)) or len(raw_dimension) != 5:
+            raise EngineeringError("Quantity dimension must contain five integer exponents")
+        if any(isinstance(item, bool) or not isinstance(item, int) for item in raw_dimension):
+            raise EngineeringError("Quantity dimension exponents must be integers")
+        source_unit = value["source_unit"]
+        if not isinstance(source_unit, str) or source_unit not in _UNITS:
+            raise EngineeringError(f"Unsupported unit: {source_unit}")
+        return cls(float(raw_value), tuple(raw_dimension), source_unit)
+
     def in_unit(self, unit: str) -> float:
-        if unit not in _UNITS:
+        if not isinstance(unit, str) or unit not in _UNITS:
             raise EngineeringError(f"Unsupported unit: {unit}")
         factor, dimension = _UNITS[unit]
         if dimension != self.dimension:

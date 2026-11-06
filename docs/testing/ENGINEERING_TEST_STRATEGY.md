@@ -43,3 +43,8 @@ PR #42 adds source metadata and SHA-256 checks, timezone validation, immutable e
 ## Coordinate-frame exchange validation
 
 PR #43 adds JSON round-trip and deterministic-order tests for RigidTransform/FrameGraph, explicit length-unit checks, schema-version/field validation, graph topology validation, cycle and duplicate detection, and rejection of mixed-unit composition.
+
+
+## Quantity interchange validation
+
+PR #44 adds Quantity v1.0 JSON round-trip, SI-value/dimension/source-unit preservation, malformed schema/version rejection, non-finite numeric rejection, immutable dimension checks and JSON Schema shape validation.

@@ -46,3 +46,8 @@ The conservative evidence gate treats all supplied records as required and uses 
 ## Implemented coordinate-frame exchange subset (PR #43)
 
 RigidTransform and FrameGraph provide deterministic v1.0 serialization with explicit length units. A FrameGraph currently enforces one length unit across all edges; it does not perform implicit mixed-unit conversion. This does not replace typed uncertainty propagation or full frame-aware quantity algebra.
+
+
+## Versioned Quantity interchange (PR #44)
+
+Quantity v1.0 snapshots serialize the SI base value, five integer dimension exponents and source-unit lineage. The supported unit catalogue is intentionally limited and versioned; a source unit is retained for traceability while arithmetic may produce a composite SI dimension. The JSON Schema rejects unknown fields and invalid dimension shapes; runtime validation rejects non-finite values.
