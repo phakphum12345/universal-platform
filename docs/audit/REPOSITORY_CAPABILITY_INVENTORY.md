@@ -1,4 +1,4 @@
-> **Historical audit notice (2026-11-06):** This file contains an earlier targeted audit and must not be treated as the current repository baseline. It predates the executable engineering-core, mechanism, CAD mesh/STL, and hardware schematic increments. Use [Repository Audit post-PR #81](REPOSITORY_AUDIT_2026-11-06_POST_PR81.md) and the Implementation Status ledger for the current pinned baseline.
+> **Historical audit notice (2026-11-06):** This file contains an earlier targeted audit and must not be treated as the current repository baseline. It predates the executable engineering-core, mechanism, CAD mesh/STL, and hardware schematic increments. Use [Repository Audit post-PR #82](REPOSITORY_AUDIT_2026-11-06_POST_PR82.md) and the Implementation Status ledger for the current pinned baseline.
 
 # Repository Capability Inventory — UEIC and 3D Engineering
 
