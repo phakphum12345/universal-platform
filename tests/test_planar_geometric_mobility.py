@@ -1,5 +1,7 @@
 import copy
+import json
 from dataclasses import replace
+from pathlib import Path
 from math import cos, sin
 
 import pytest
@@ -24,7 +26,11 @@ from universal_platform.engineering.mechanism_mobility import (
 )
 from universal_platform.engineering.transforms import RigidTransform
 
-from test_spatial_joint_reference_suite import reference_cases
+FIXTURE = Path(__file__).parent / "fixtures" / "spatial_joint_reference_cases.json"
+
+
+def reference_cases():
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]
 
 
 PLANAR_KINDS = {"FIXED", "REVOLUTE", "PRISMATIC", "PLANAR"}
@@ -193,7 +199,7 @@ def test_planar_mobility_rejects_out_of_plane_body_origin_and_tilt():
     poses["link/child"] = RigidTransform(
         "frame/child", "world", rotation_x(0.1),
     )
-    with pytest.raises(InvalidModelError, match="local \+Z aligned"):
+    with pytest.raises(InvalidModelError, match=r"local \+Z aligned"):
         analyze_geometric_mechanism_mobility(
             model, MobilityFormulation.PLANAR, poses, values,
             ground_link_id="link/parent", configuration_id="planar/tilted-body",
