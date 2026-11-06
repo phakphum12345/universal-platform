@@ -189,8 +189,11 @@ class ProfileBooleanResult:
         result = cls(cls.SCHEMA_VERSION, operation, value["first_profile_id"],
                      value["second_profile_id"], tuple(regions))
         if (isinstance(value["area"], bool) or not isinstance(value["area"], (int, float))
-                or abs(float(value["area"]) - result.area) > 1e-10 * max(result.area, 1.0)):
+                or not isfinite(float(value["area"]))
+                or abs(float(value["area"]) - result.area) > 1e-10 * max(result.area, 1e-300)):
             raise InvalidModelError("ProfileBooleanResult area does not match its regions")
+        if isinstance(value["region_count"], bool) or not isinstance(value["region_count"], int):
+            raise InvalidModelError("ProfileBooleanResult region_count must be an integer")
         if value["region_count"] != len(result.regions):
             raise InvalidModelError("ProfileBooleanResult region_count does not match its regions")
         if not isinstance(value["limitations"], (list, tuple)) or any(not isinstance(item, str) for item in value["limitations"]):
