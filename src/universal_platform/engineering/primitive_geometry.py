@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
-from math import acos, atan2, ceil, cos, isfinite, pi, sin, sqrt, tan
+from math import atan2, ceil, cos, isfinite, pi, sin, sqrt, tan
 from typing import Any, ClassVar
 import re
 
@@ -290,6 +290,9 @@ class ExtrudedProfileSolid:
         _validate_profile_loop(self.profile, outer_sweeps, "extruded outer profile")
         if not isinstance(self.holes, tuple):
             raise InvalidModelError("extruded profile holes must be an immutable tuple of loops")
+        for index, hole in enumerate(self.holes):
+            if not isinstance(hole, tuple) or len(hole) < 3 or any(not isinstance(point, Vec2) for point in hole):
+                raise InvalidModelError(f"extruded profile hole {index} requires at least three immutable Vec2 points")
         if not isinstance(self.hole_arc_sweeps_rad, tuple):
             raise InvalidModelError("hole_arc_sweeps_rad must be an immutable tuple")
         if self.hole_arc_sweeps_rad and len(self.hole_arc_sweeps_rad) != len(self.holes):
@@ -307,11 +310,9 @@ class ExtrudedProfileSolid:
             raise InvalidModelError("hole segment IDs are required for every curved hole edge")
         if self.hole_segment_ids:
             for i, ids in enumerate(self.hole_segment_ids):
-                _validate_segment_ids(ids, len(self.holes[i]), f"hole {i} segment_ids", any(hole_sweeps[i]))
+                _validate_segment_ids(ids, len(self.holes[i]), f"hole {i} segment_ids", any_curved_hole)
         outer_samples = _profile_loop_samples(self.profile, outer_sweeps)
         for index, hole in enumerate(self.holes):
-            if not isinstance(hole, tuple) or len(hole) < 3 or any(not isinstance(point, Vec2) for point in hole):
-                raise InvalidModelError(f"extruded profile hole {index} requires at least three immutable Vec2 points")
             _validate_profile_loop(hole, hole_sweeps[index], f"extruded profile hole {index}")
             hole_samples = _profile_loop_samples(hole, hole_sweeps[index])
             if _loops_intersect(outer_samples, hole_samples) or not all(_point_in_polygon(point, outer_samples) for point in hole_samples):
@@ -486,6 +487,11 @@ class PrimitiveGeometryModel:
         raw_solids = value["solids"]
         if not isinstance(raw_solids, (list, tuple)):
             raise InvalidModelError("solids must be an array")
+        if value["schema_version"] == cls.LEGACY_SCHEMA_VERSION and any(
+            isinstance(raw, Mapping) and ("arc_sweeps_rad" in raw or "hole_arc_sweeps_rad" in raw)
+            for raw in raw_solids
+        ):
+            raise InvalidModelError("PrimitiveGeometryModel schema version 1.0 does not support curved profile fields")
         graph = FrameGraph.from_dict(value["frame_graph"])
         solids: list[SolidPrimitive] = []
         for raw in raw_solids:
