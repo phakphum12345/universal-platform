@@ -52,6 +52,12 @@ from .mechanism_mobility import (
     analyze_mechanism_mobility,
     estimate_nominal_mobility,
 )
+from .joint_jacobian import (
+    JointConstraintJacobian,
+    JointConstraintJacobianColumn,
+    JointConstraintVariable,
+    build_joint_constraint_jacobian,
+)
 from .joint_constraints import (
     GeneratedJointConstraintSet,
     JointConstraintDefinition,
@@ -108,6 +114,8 @@ __all__ = [
     "validate_mechanism_model", "GeneratedJointConstraintSet",
     "JointConstraintDefinition", "JointConstraintEvaluation",
     "JointConstraintResidual", "generate_joint_constraints",
+    "JointConstraintJacobian", "JointConstraintJacobianColumn",
+    "JointConstraintVariable", "build_joint_constraint_jacobian",
     "LoopClosureConstraint", "LoopClosureResult",
     "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
     "solve_mechanism_loops", "BranchContinuityStatus", "DerivativeKinematicsResult",

@@ -3,7 +3,7 @@
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged integration baseline:** e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598 (PR #32; schema v1.2 generalized coordinates and joint parameterization).  
 **Latest merged feature:** PR #32 squash merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258 (ID 42157428741) passed workflow-sanity and python-tests; 225 tests passed in 0.59s. PR #31 placement baseline and evidence are retained below.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -282,3 +282,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Initial PR head `6c25ec2ffdd368605dc90ff67b29bc4abeaeea8b`: run #263 (`42158183347`) exposed a fixture mismatch (237 passed, 1 failed); the PRISMATIC fixture declared a Z joint axis while its coordinate used X. Production validation correctly rejected it. Fixture corrected in `be3b27627d0c71a2b3d232da93f7e37cd2729798`; run #265 (`42158275371`) passed 238 tests.
 - Expanded test head `e701a149592778ae8aab036d79baf49091a03012`: run #267 (`42158394515`) exposed an extrinsic Euler composition-order defect (240 passed, 1 failed). Corrected implementation in `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff` and added explicit regression coverage.
 - Corrected code head `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff`: push run #268 (`42158471339`) and PR run #269 (`42158477297`) both passed workflow-sanity and python-tests; 241 passed (0.60s / 0.35s). Documentation-only marker SKIPPED. Final documentation-head and post-merge evidence pending.
+
+
+## PR #34 — Automatic joint constraint Jacobian (implementation in review)
+
+- Adds deterministic finite-difference Jacobian construction for generated joint residuals with columns for stable-ID generalized coordinates and body-pose tangent variables.
+- Translation pose variables use world-frame metres; rotation variables use world-frame left perturbations at fixed body origins in radians. Matrix entries retain the row-residual-unit / column-variable-unit convention.
+- Supports forward and central finite differences, coordinate characteristic scales, bound-aware one-sided fallback and BOUND_LOCKED columns for coordinates fixed at both bounds.
+- Does not claim symbolic/exact derivatives, solver convergence, rank proof or physical validation. Jacobian rank remains a separate numerical diagnostic.
+- PR branch: feat/automatic-joint-constraint-jacobian; base SHA: 74a5fed138d9dc2bdf543da9263397c095de7514.
+- Exact PR validation and merge evidence pending.
