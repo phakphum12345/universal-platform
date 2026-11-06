@@ -122,7 +122,7 @@ def test_step_import_rejects_context_assigning_a_different_length_unit():
     assert context_match and brep_match
     damaged = (
         content[:context_match.start()]
-        + context_match.group(1) + brep_match.group(1) + context_match.group(5)
+        + context_match.group(1) + brep_match.group(1) + context_match.group(4)
         + content[context_match.end():]
     )
     with pytest.raises(InvalidModelError, match="assign the declared SI length unit"):
