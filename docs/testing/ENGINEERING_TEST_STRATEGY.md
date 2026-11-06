@@ -170,3 +170,13 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - PR #75 exact PR-head run #42228344477 passed 524 tests in 2.09s; exact post-merge run #42228462537 passed 524 tests in 2.20s.
 - The independent STL reader now checks quantized bounding boxes and signed volume from serialized facet records, plus NaN and inconsistent-normal rejection with recomputed payload digests.
 - PR #76 topology-analysis acceptance references are design-only: connected shells, vertex-link manifoldness, exact/near-coincident groups and unused vertices. Self-intersection remains explicitly UNKNOWN until its own implementation and adversarial reference corpus pass.
+
+
+## Mesh topology analysis references (PR #77 implementation candidate)
+
+- A single closed Box reports one edge-connected face component, no duplicate/coincident groups, no unused vertices and no non-manifold vertex fan.
+- Two disjoint closed boxes report two face components.
+- Two closed shells sharing only one indexed vertex report a non-manifold vertex link even while edge-incidence validation remains structurally valid.
+- Exact duplicate coordinates, unused vertices and explicit near-coincident tolerance are reported without welding or changing the input.
+- Result snapshots bind solid/frame/unit, source geometry digest, canonical mesh snapshot digest, counts and deterministic issue codes.
+- Self-intersection status remains UNKNOWN; no test may infer geometric intersection freedom from this analysis.
