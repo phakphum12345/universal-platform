@@ -35,7 +35,6 @@
   },
   "allOf": [
     {"if": {"properties": {"source_kind": {"const": "BOX"}}}, "then": {"properties": {"chordal_tolerance": {"type": "null"}}}},
-    {"if": {"properties": {"source_kind": {"const": "CYLINDER"}}}, "then": {"properties": {"chordal_tolerance": {"type": "number", "exclusiveMinimum": 0}}}},
-    {"if": {"properties": {"source_kind": {"const": "EXTRUDED_PROFILE"}}}, "then": {"properties": {"chordal_tolerance": {"type": "null"}}}}
+    {"if": {"properties": {"source_kind": {"const": "CYLINDER"}}}, "then": {"properties": {"chordal_tolerance": {"type": "number", "exclusiveMinimum": 0}}}}
   ]
 }
