@@ -6,6 +6,10 @@
 
 Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed resource leases are not implemented.
 
+## Resource health monitoring
+
+ResourceHealthMonitor evaluates the latest recorded snapshot against explicit unit-bearing threshold rules. It reports HEALTHY, SUSPECT or UNKNOWN; missing metrics and unit mismatches remain UNKNOWN rather than silently passing. A triggered threshold moves an ACTIVE resource to SUSPECT, which can then enter the recovery lifecycle. The monitor does not automatically sleep, repair or reactivate resources; recovery still requires a log source, a compatible runtime adapter and a separately approved/sandboxed repair executor. Thresholds are caller-configured and are not universal safety limits.
+
 ## Resource snapshot collection
 
 ResourceSnapshotCollector registers a metric provider per resource, collects unit-bearing measurements, assigns monotonically increasing per-resource sequence numbers and records immutable snapshots in ResourceRegistry. Collection is serialized within the collector to prevent duplicate sequence publication. LocalSystemResourceProvider uses the Python standard library to report logical CPU count, supported POSIX memory totals, configured-path disk usage and Linux network byte counters when available. It intentionally omits GPU and CPU utilization when no trustworthy provider is present. Platform-specific metrics remain adapter responsibilities.
@@ -54,6 +58,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 - ResourceAllocator tests cover quota enforcement, unit matching, expiry, release and concurrent reservations without overcommit.
 - Recovery evidence tests cover cross-process file-lock semantics across independent store instances, SHA-256 chain verification, tamper detection, legacy-prefix anchoring and bounded store size.
 - ResourceSnapshotCollector tests cover provider registration, real local disk/network sampling, unit-bearing snapshots, monotonic sequence assignment and concurrent collection.
+- ResourceHealthMonitor tests cover critical/warning thresholds, missing/wrong-unit UNKNOWN findings, latest-snapshot enforcement and no automatic reactivation.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
