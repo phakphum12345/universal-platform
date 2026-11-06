@@ -25,7 +25,7 @@
 
 ## Status
 
-The first reusable nonlinear numerical core is implemented in PR #16. It uses finite-difference Levenberg–Marquardt least squares for scalar equality residuals, optional projected bounds and per-equation tolerances. PR head 26730dba8ea3199e9576fa071a7207ed6c59c38d passed PR run #98 and push run #97; merge commit 77dd2de9b49773fe24324cb9732b7db5e2623ecf passed post-merge push run #99. Documentation-only markers were SKIPPED, not PASS. This does not close general mechanism-level constraint solving.
+The first reusable nonlinear numerical core is implemented in PR #16. PR #19 proposes forward/central finite-difference and analytic Jacobian strategies plus evaluation diagnostics; its CI evidence is pending and it is not yet merged. It uses finite-difference Levenberg–Marquardt least squares for scalar equality residuals, optional projected bounds and per-equation tolerances. PR head 26730dba8ea3199e9576fa071a7207ed6c59c38d passed PR run #98 and push run #97; merge commit 77dd2de9b49773fe24324cb9732b7db5e2623ecf passed post-merge push run #99. Documentation-only markers were SKIPPED, not PASS. This does not close general mechanism-level constraint solving.
 
 CAD-003A is IMPLEMENTED as a narrow analytic planar 2R inverse-kinematics adapter and merged in PR #12. CAD-003B is IMPLEMENTED as a narrow planar 4R circle-intersection loop closure and Kutzbach/Gruebler mobility estimate, merged in PR #14 at c33ef005896b71aa2ff0721efb87245781526ca7. PR head 31e104bf476aaccb751dac2329ab6d16455650b0 passed PR run #90 and push run #89; merge commit passed post-merge push run #91. Documentation-only markers were SKIPPED, not PASS.
 

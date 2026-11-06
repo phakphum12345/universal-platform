@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 77dd2de9b49773fe24324cb9732b7db5e2623ecf (PR #16)  
-**Latest feature:** Bounded nonlinear equality-constraint solver (PR #16), merged and verified on the exact PR head and merge commit.  
+**Latest merged baseline:** 23ca284ca95be223d4a426c344a48bc21afc1953 (PR #18; Phase 2 plan)  
+**Latest merged implementation:** Bounded nonlinear equality-constraint solver (PR #16). PR #18 merged the Phase 2 reliability plan; PR #19 proposes the first Jacobian strategy implementation and awaits CI verification.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, planar 2R inverse kinematics, planar 4R loop closure and a narrow local nonlinear least-squares solver.
 
 ## Implemented in the merged baseline
@@ -24,6 +24,18 @@
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+
+## PR #19 — Jacobian strategies and evaluation diagnostics (under review)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/19
+- Base branch: `docs/phase-0-complete-requirements` at `23ca284ca95be223d4a426c344a48bc21afc1953`.
+- Feature branch: `feat/phase-2-jacobian-engine`.
+- Candidate implementation adds forward finite differences as the unchanged default, opt-in central finite differences, and an opt-in analytic Jacobian callback.
+- Analytic matrices are validated for constraint-row/variable-column shape and finite numeric entries; callback derivatives are defined in original residual units and normalized by each constraint scale inside the solver.
+- Results expose the selected Jacobian method and scalar residual, Jacobian, and analytic-Jacobian evaluation counts.
+- Tests added for default compatibility, central differences, analytic solving, residual scaling, invalid shape, non-finite values, callback errors and strategy/callback consistency.
+- **Evidence status:** implementation and tests are proposed in PR #19; GitHub Actions and exact-head test results are pending. No CI PASS is claimed here.
+- **Limitations:** this remains a local dense Levenberg–Marquardt equality solver; no rank/conditioning proof, global convergence, uniqueness or physical-feasibility guarantee is added.
 
 ## PR #16 — Bounded nonlinear equality-constraint solver
 
