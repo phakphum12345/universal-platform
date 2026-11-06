@@ -6,6 +6,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
 - Integration HEAD: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (265 commits ahead / 0 behind `main`).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
+- Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Latest post-merge CI: PR #118 merge workflow #42282428283 — workflow-sanity PASS, python-tests PASS, 755 passed in 2.83s (exact merge SHA `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`).
 - Current inventory: 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files (recursive tree at the post-PR #118 integration SHA).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
