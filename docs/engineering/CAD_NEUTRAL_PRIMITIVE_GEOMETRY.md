@@ -45,12 +45,12 @@ All transforms in a connected FrameGraph use one length unit; solids must match 
 Curved-profile topology checks use deterministic 1-degree arc tessellation; area, perimeter and local arc bounds are analytic, but topology validation is not an exact B-rep operation. This is not a B-rep or mesh CAD kernel. It does not implement splines, draft angles, general concave/hole-bearing Boolean operations, 3D Boolean/B-rep operations, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
 
 
-## 6. Convex 2D Boolean operations (PR #61 candidate)
+## 6. Convex 2D Boolean operations (PR #61 merged)
 
 See [2D Convex Profile Boolean Topology Contract](../design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md). The new operation set accepts convex simple polygon loops and returns deterministic convex-cell decompositions for UNION, INTERSECTION and DIFFERENCE. It intentionally does not dissolve adjacent cells. Concave loops, arcs, holes, exact arithmetic and general planar arrangements remain unsupported.
 
 
-## 7. Deterministic primitive triangle meshes (PR #64)
+## 7. Deterministic primitive triangle meshes (PR #64 merged)
 
 See [Deterministic Primitive Triangle Mesh Contract](../design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md). BoxSolid emits an exact 8-vertex/12-triangle closed surface. CylinderSolid emits deterministic polygonal rings and cap fans under an explicit radial chordal tolerance. Meshes retain source-local frame/unit and a SHA-256 source geometry digest; validation checks face indices, degenerate triangles, edge manifold counts, directed winding and positive signed volume.
 
