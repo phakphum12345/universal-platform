@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriangleMesh",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "solid_id", "frame_id", "length_unit", "source_kind", "source_geometry_sha256", "chordal_tolerance", "vertices", "triangles"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "solid_id": {"type": "string", "minLength": 1},
+    "frame_id": {"type": "string", "minLength": 1},
+    "length_unit": {"type": "string", "minLength": 1},
+    "source_kind": {"enum": ["BOX", "CYLINDER"]},
+    "source_geometry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "chordal_tolerance": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "vertices": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["x", "y", "z"],
+        "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "z": {"type": "number"}}
+      }
+    },
+    "triangles": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "array",
+        "prefixItems": [{"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 0}],
+        "minItems": 3,
+        "maxItems": 3
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"source_kind": {"const": "BOX"}}}, "then": {"properties": {"chordal_tolerance": {"type": "null"}}}},
+    {"if": {"properties": {"source_kind": {"const": "CYLINDER"}}}, "then": {"properties": {"chordal_tolerance": {"type": "number", "exclusiveMinimum": 0}}}}
+  ]
+}
