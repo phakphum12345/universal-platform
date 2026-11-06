@@ -15,6 +15,7 @@ from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, F
 from .profile_boolean import ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles
 from .mesh import TriangleMesh, MeshValidationResult, tessellate_box, tessellate_cylinder, tessellate_extruded_profile, validate_triangle_mesh
 from .stl_interchange import BinarySTLArtifact, STLInterchangeManifest, export_binary_stl, validate_binary_stl_artifact
+from .mesh_topology import MeshTopologyAnalysis, analyze_mesh_topology
 from .kinematics import JointPlacement, solve_tree_forward_kinematics
 from .inverse_kinematics import (
     PlanarIKResult,
@@ -148,5 +149,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact",
+    "solve_nonlinear_constraints", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology",
 ]
