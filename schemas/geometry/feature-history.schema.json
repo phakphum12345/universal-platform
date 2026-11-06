@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FeatureHistory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "history_id",
+    "nodes",
+    "output_feature_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "history_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "output_feature_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_id",
+        "kind",
+        "input_feature_ids",
+        "parameters"
+      ],
+      "properties": {
+        "feature_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "kind": {
+          "enum": [
+            "SKETCH_PROFILE",
+            "PLANAR_BOOLEAN",
+            "EXTRUSION",
+            "MESH"
+          ]
+        },
+        "input_feature_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "SKETCH_PROFILE"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_feature_ids": {
+                "maxItems": 0
+              },
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "sketch"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "sketch": {
+                    "$ref": "parametric-sketch.schema.json"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "PLANAR_BOOLEAN"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_feature_ids": {
+                "minItems": 2
+              },
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "operation"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "operation": {
+                    "enum": [
+                      "UNION",
+                      "INTERSECTION",
+                      "DIFFERENCE",
+                      "SYMMETRIC_DIFFERENCE"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "EXTRUSION"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_feature_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "solid_id",
+                  "height"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "solid_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "region_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "MESH"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "input_feature_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "parameters": {
+                "type": "object",
+                "maxProperties": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
