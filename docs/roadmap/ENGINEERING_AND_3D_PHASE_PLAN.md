@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #43 merged at `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; prior evidence reconciliations are recorded below.
+**Current integration baseline:** PR #44 merged at `40edecde06b966327ea09d84d911e8959f698b71`; prior evidence reconciliations are recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -175,8 +175,16 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Merge `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; post-merge run #328 (`42169547658`): 366 tests PASS.
 
 
-## PR #44 — Versioned Quantity exchange (implementation candidate)
+## PR #44 — Versioned Quantity exchange (merged)
 
 - Base SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
 - Quantity v1.0 snapshots carry SI value, five dimension exponents and source-unit lineage; JSON Schema and strict round-trip validation are added.
-- Exact-SHA CI pending.
+- Final PR head `130f37216afbcc753e2311bdee114b2e5a0289f2`; run #331 (`42169954337`): 377 tests PASS.
+- Merge `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`): 377 tests PASS.
+
+
+## PR #45 — Frame-bound spatial values (implementation candidate)
+
+- Base SHA: `40edecde06b966327ea09d84d911e8959f698b71`.
+- Introduces frame-bound points/vectors and safe FrameGraph conversion. Points receive translation; vectors do not.
+- FrameGraph unit equality is required; no implicit unit conversion. Exact-SHA CI pending.

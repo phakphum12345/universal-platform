@@ -23,7 +23,8 @@ Current modules include:
 - Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
 - Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 merged).
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
-- Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 under review).
+- Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
+- Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 under review).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).

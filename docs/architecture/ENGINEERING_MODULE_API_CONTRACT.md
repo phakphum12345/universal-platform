@@ -80,3 +80,8 @@ The evidence model is implemented in `provenance.py`. SourceRef validates option
 ## Coordinate-frame interchange (PR #43)
 
 RigidTransform and FrameGraph use versioned v1.0 JSON-compatible snapshots. Transform records identify source/destination frames, a proper 3×3 rotation and translation with an explicit length unit. FrameGraph snapshots sort frame IDs and edges deterministically and reject duplicate IDs, undeclared edge endpoints, multiple parents, cycles and mixed length units. This forest is a coordinate utility, not an assembly constraint solver. Mixed-unit graphs require explicit conversion and are not supported implicitly.
+
+
+## Frame-bound spatial values (PR #45)
+
+FramedPoint3 and FramedVector3 bind Vec3 values to a stable frame ID and explicit length unit. Their v1.0 JSON snapshots distinguish POINT from VECTOR. Conversion uses FrameGraph and requires matching length units. Points apply rotation and translation; displacement vectors apply rotation only. These types represent spatial coordinates/displacements, not arbitrary force or velocity vectors.

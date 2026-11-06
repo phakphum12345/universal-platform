@@ -48,3 +48,8 @@ PR #43 adds JSON round-trip and deterministic-order tests for RigidTransform/Fra
 ## Quantity interchange validation
 
 PR #44 adds Quantity v1.0 JSON round-trip, SI-value/dimension/source-unit preservation, malformed schema/version rejection, non-finite numeric rejection, immutable dimension checks and JSON Schema shape validation.
+
+
+## Frame-bound spatial value validation
+
+PR #45 tests strict v1.0 serialization, POINT/VECTOR distinction, frame identity, explicit units, correct translation-versus-rotation behavior, unknown/disconnected frames and unit mismatch rejection.
