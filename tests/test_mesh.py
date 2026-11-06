@@ -7,7 +7,8 @@ import json
 
 import pytest
 
-from universal_platform.engineering import BoxSolid, CylinderSolid, Vec3
+from universal_platform.engineering import BoxSolid, CylinderSolid
+from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.mesh import (
     TriangleMesh,
