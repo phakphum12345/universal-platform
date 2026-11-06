@@ -57,4 +57,4 @@ PR #48 introduces versioned BoxSolid and CylinderSolid records, explicit units, 
 
 ## Profile extrusion
 
-PR #49 adds a straight extrusion of a simple 2D polygon in a named frame. The implementation computes polygon area/perimeter, prism volume/surface area and transformed AABBs. Curved boundaries, holes and Boolean operations are not implemented.
+PR #49 adds a straight extrusion of a simple 2D polygon in a named frame. The implementation computes polygon area/perimeter, prism volume/surface area and transformed AABBs. PR #50 extends the profile with optional through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible snapshots. Curved boundaries, draft features and Boolean operations remain unsupported.

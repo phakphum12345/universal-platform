@@ -90,3 +90,29 @@ PR #38 — Cross-discipline engineering reference validation — add versioned r
 
 
 PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; exact PR-head run #297 and post-merge run #298 passed 285 tests.
+
+
+## Current implementation and review snapshot — 2026-11-06
+
+The phase sequence above remains a proposed product roadmap; it is not a claim that the full phases are complete. The repository has an incrementally implemented Python engineering core. Use [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md), and the [Documentation Index](DOCUMENTATION_INDEX.md) as the evidence-backed current references.
+
+### Confirmed merged baseline
+
+- PR #48 is the latest merged CAD feature in the current integration lineage: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`. Its exact PR-head and post-merge workflow runs passed 412 tests each.
+- The integration branch is `docs/phase-0-complete-requirements`; repository default branch `main` is a separate older branch. This documentation effort does not update or merge `main`.
+
+### Open stacked CAD review candidates
+
+| PR | Scope | Head SHA | State | CI evidence |
+|---|---|---|---|---|
+| [#49](https://github.com/phakphum12345/universal-platform/pull/49) | Straight-sided polygon profile extrusion | `38a800d033ebbba19e1120c8cd3a47ade4088526` | OPEN; mergeable | Exact current-head CI UNKNOWN; earlier synthetic-merge-ref evidence is not exact-head PASS |
+| [#50](https://github.com/phakphum12345/universal-platform/pull/50) | Through-holes in extruded profiles; stacked on #49 | `9507b9fab758465763c60d02f8da83d7d8131d2d` | OPEN; mergeable | No exact-head workflow run/status returned; UNKNOWN |
+
+Neither candidate is merged. PR #50 does not replace or merge PR #49. Curved sketch boundaries, draft features, Boolean operations, B-rep/mesh kernels and CAD interchange/export remain future work.
+
+### Next evidence gates
+
+1. Obtain exact-head CI for PR #49 and PR #50 and review all changed-file checks.
+2. Reconcile any failures before expanding the CAD surface.
+3. After those prerequisites, plan curved profile primitives as a separate, explicitly scoped increment; do not imply spline/arc support from polygon support.
+4. Continue keeping source implementation, schemas, tests, traceability and documentation status synchronized.

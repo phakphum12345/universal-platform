@@ -51,6 +51,59 @@ class Vec2:
                for v in (self.x, self.y)):
             raise InvalidModelError("2D profile coordinates must be finite numeric values")
 
+def _polygon_signed_area(points: tuple[Vec2, ...]) -> float:
+    origin = points[0]
+    return sum(
+        (points[i].x-origin.x)*(points[(i+1)%len(points)].y-origin.y) -
+        (points[(i+1)%len(points)].x-origin.x)*(points[i].y-origin.y)
+        for i in range(1, len(points)-1)
+    ) / 2.0
+
+
+def _validate_simple_loop(points: tuple[Vec2, ...], label: str) -> None:
+    if not isinstance(points, tuple) or len(points) < 3:
+        raise InvalidModelError(f"{label} requires at least three immutable Vec2 points")
+    if any(not isinstance(point, Vec2) for point in points):
+        raise InvalidModelError(f"{label} points must be Vec2 records")
+    keys = tuple((point.x, point.y) for point in points)
+    if len(keys) != len(set(keys)):
+        raise InvalidModelError(f"{label} cannot contain duplicate vertices")
+    count = len(points)
+    for i in range(count):
+        a, b = points[i], points[(i+1) % count]
+        for j in range(i+1, count):
+            if j == i+1 or (i == 0 and j == count-1):
+                continue
+            if _segments_intersect(a, b, points[j], points[(j+1) % count]):
+                raise InvalidModelError(f"{label} must be a simple non-self-intersecting polygon")
+    scale = max(
+        max(point.x for point in points) - min(point.x for point in points),
+        max(point.y for point in points) - min(point.y for point in points),
+    )
+    if scale <= 0 or abs(_polygon_signed_area(points)) <= 1e-12 * scale**2:
+        raise InvalidModelError(f"{label} area must be positive")
+
+
+def _point_in_polygon(point: Vec2, polygon: tuple[Vec2, ...]) -> bool:
+    inside = False
+    previous = polygon[-1]
+    for current in polygon:
+        if (current.y > point.y) != (previous.y > point.y):
+            crossing_x = (previous.x-current.x) * (point.y-current.y) / (previous.y-current.y) + current.x
+            if point.x < crossing_x:
+                inside = not inside
+        previous = current
+    return inside
+
+
+def _loops_intersect(first: tuple[Vec2, ...], second: tuple[Vec2, ...]) -> bool:
+    return any(
+        _segments_intersect(first[i], first[(i+1) % len(first)],
+                            second[j], second[(j+1) % len(second)])
+        for i in range(len(first)) for j in range(len(second))
+    )
+
+
 
 def _cross2(a: Vec2, b: Vec2, c: Vec2) -> float:
     return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x)
@@ -84,33 +137,30 @@ class ExtrudedProfileSolid:
     profile: tuple[Vec2, ...]
     height: float
     length_unit: str = "m"
+    holes: tuple[tuple[Vec2, ...], ...] = ()
 
     KIND: ClassVar[str] = "EXTRUDED_PROFILE"
 
     def __post_init__(self) -> None:
         _validate_identity(self.solid_id, self.frame_id, self.length_unit)
-        if not isinstance(self.profile, tuple) or len(self.profile) < 3:
-            raise InvalidModelError("extruded profile requires at least three immutable Vec2 points")
-        if any(not isinstance(point, Vec2) for point in self.profile):
-            raise InvalidModelError("extruded profile points must be Vec2 records")
-        keys = tuple((point.x, point.y) for point in self.profile)
-        if len(keys) != len(set(keys)):
-            raise InvalidModelError("extruded profile cannot contain duplicate vertices")
-        count = len(self.profile)
-        for i in range(count):
-            a, b = self.profile[i], self.profile[(i+1) % count]
-            for j in range(i+1, count):
-                if j == i+1 or (i == 0 and j == count-1):
-                    continue
-                d, e = self.profile[j], self.profile[(j+1) % count]
-                if _segments_intersect(a,b,d,e):
-                    raise InvalidModelError("extruded profile must be a simple non-self-intersecting polygon")
+        _validate_simple_loop(self.profile, "extruded outer profile")
+        if not isinstance(self.holes, tuple):
+            raise InvalidModelError("extruded profile holes must be an immutable tuple of loops")
+        for index, hole in enumerate(self.holes):
+            _validate_simple_loop(hole, f"extruded profile hole {index}")
+            if _loops_intersect(self.profile, hole) or not all(_point_in_polygon(point, self.profile) for point in hole):
+                raise InvalidModelError("extruded profile holes must lie strictly inside the outer profile without touching it")
+        for i, first in enumerate(self.holes):
+            for second in self.holes[i+1:]:
+                if (_loops_intersect(first, second) or _point_in_polygon(first[0], second)
+                        or _point_in_polygon(second[0], first)):
+                    raise InvalidModelError("extruded profile holes must not intersect, overlap or nest")
         scale = max(
             max(point.x for point in self.profile) - min(point.x for point in self.profile),
             max(point.y for point in self.profile) - min(point.y for point in self.profile),
         )
-        if scale <= 0 or self.area <= 1e-12 * scale**2:
-            raise InvalidModelError("extruded profile area must be positive")
+        if self.area <= 1e-12 * scale**2:
+            raise InvalidModelError("extruded profile net area must be positive")
         height = _number(self.height, "extrusion height")
         if height <= 0:
             raise InvalidModelError("extrusion height must be positive")
@@ -118,19 +168,15 @@ class ExtrudedProfileSolid:
 
     @property
     def area(self) -> float:
-        origin = self.profile[0]
-        return abs(sum(
-            (self.profile[i].x-origin.x)*(self.profile[(i+1)%len(self.profile)].y-origin.y) -
-            (self.profile[(i+1)%len(self.profile)].x-origin.x)*(self.profile[i].y-origin.y)
-            for i in range(1, len(self.profile)-1)
-        )) / 2.0
+        return abs(_polygon_signed_area(self.profile)) - sum(abs(_polygon_signed_area(hole)) for hole in self.holes)
 
     @property
     def perimeter(self) -> float:
+        loops = (self.profile, *self.holes)
         return sum(
-            sqrt((self.profile[(i+1)%len(self.profile)].x-self.profile[i].x)**2 +
-                 (self.profile[(i+1)%len(self.profile)].y-self.profile[i].y)**2)
-            for i in range(len(self.profile))
+            sqrt((loop[(i+1)%len(loop)].x-loop[i].x)**2 +
+                 (loop[(i+1)%len(loop)].y-loop[i].y)**2)
+            for loop in loops for i in range(len(loop))
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -138,6 +184,7 @@ class ExtrudedProfileSolid:
             "kind": self.KIND, "solid_id": self.solid_id, "frame_id": self.frame_id,
             "profile": [{"x": point.x, "y": point.y} for point in self.profile],
             "height": self.height, "unit": self.length_unit,
+            **({"holes": [[{"x": point.x, "y": point.y} for point in hole] for hole in self.holes]} if self.holes else {}),
         }
 
 
@@ -280,7 +327,8 @@ class PrimitiveGeometryModel:
                     raw["unit"],
                 ))
             elif kind == ExtrudedProfileSolid.KIND:
-                if set(raw) != {"kind", "solid_id", "frame_id", "profile", "height", "unit"}:
+                required = {"kind", "solid_id", "frame_id", "profile", "height", "unit"}
+                if not required.issubset(raw) or set(raw) - (required | {"holes"}):
                     raise InvalidModelError("ExtrudedProfileSolid snapshot has missing or unknown fields")
                 raw_profile = raw["profile"]
                 if not isinstance(raw_profile, (list, tuple)):
@@ -290,9 +338,22 @@ class PrimitiveGeometryModel:
                     if not isinstance(point, Mapping) or set(point) != {"x", "y"}:
                         raise InvalidModelError("profile point requires x and y")
                     points.append(Vec2(_number(point["x"], "profile x"), _number(point["y"], "profile y")))
+                raw_holes = raw.get("holes", [])
+                if not isinstance(raw_holes, (list, tuple)):
+                    raise InvalidModelError("extruded profile holes must be an array of loops")
+                holes = []
+                for raw_hole in raw_holes:
+                    if not isinstance(raw_hole, (list, tuple)):
+                        raise InvalidModelError("extruded profile hole must be an array")
+                    hole_points = []
+                    for point in raw_hole:
+                        if not isinstance(point, Mapping) or set(point) != {"x", "y"}:
+                            raise InvalidModelError("profile hole point requires x and y")
+                        hole_points.append(Vec2(_number(point["x"], "hole x"), _number(point["y"], "hole y")))
+                    holes.append(tuple(hole_points))
                 solids.append(ExtrudedProfileSolid(
                     raw["solid_id"], raw["frame_id"], tuple(points),
-                    _number(raw["height"], "extrusion height"), raw["unit"],
+                    _number(raw["height"], "extrusion height"), raw["unit"], tuple(holes),
                 ))
             else:
                 raise InvalidModelError(f"Unsupported primitive solid kind: {kind}")

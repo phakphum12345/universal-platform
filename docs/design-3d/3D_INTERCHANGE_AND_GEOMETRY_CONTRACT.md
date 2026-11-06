@@ -42,3 +42,12 @@ No format is selected by this document. Evaluate tool support, license, version,
 - Export/import tests use fixtures and documented tolerances.
 - Source models remain immutable.
 - A valid file is not described as structurally safe or manufacturing-ready without separate checks.
+
+
+## Current analytic geometry implementation boundary — 2026-11-06
+
+- PR #48 (merged) provides analytic Box/Cylinder primitives, SI properties and frame-aware bounds.
+- PR #49 (open review candidate; head `38a800d033ebbba19e1120c8cd3a47ade4088526`) adds straight-sided polygon profile extrusion.
+- PR #50 (open review candidate; head `9507b9fab758465763c60d02f8da83d7d8131d2d`), stacked on PR #49, adds optional through-hole loops and backward-compatible snapshots.
+- Exact-head CI for PR #49 and PR #50 is UNKNOWN at this audit. Neither PR is merged.
+- Curves/splines, draft, Boolean features, B-rep/mesh kernels and STEP/STL/3MF interchange are not established by these analytic primitives.

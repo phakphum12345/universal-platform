@@ -73,3 +73,8 @@ PR #48 adds reference-value tests for Box/Cylinder SI volume and surface area, l
 ## Profile extrusion validation
 
 PR #49 adds simple polygon validation (duplicate vertices, self-intersections and degenerate area), SI volume/surface area references, concave profile coverage, strict JSON round-trip and transformed extrusion bounds.
+
+
+## Through-hole profile extrusion validation
+
+PR #50 adds reference-value coverage for net area, total boundary perimeter, extrusion volume and surface area including inner hole walls; multiple disjoint holes; rejection of touching, outside, nested and overlapping holes; and backward-compatible deserialization of snapshots without the optional `holes` field. These tests are present in the PR diff; until the exact PR-head workflow is observed, their CI execution status remains UNKNOWN.

@@ -94,4 +94,4 @@ The engineering package exports BoxSolid, CylinderSolid, FramedBounds3 and Primi
 
 ## Profile extrusion (PR #49)
 
-The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profiles are immutable simple polygons extruded along local +Z with explicit height/unit. The model rejects self-intersection and degenerate area.
+The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profiles are immutable simple polygons extruded along local +Z with explicit height/unit. PR #50 adds optional strictly-contained through-hole loops, rejects invalid/intersecting/nested loop topology, and includes hole boundaries in analytic properties. Curved boundaries and general CAD-kernel operations remain unsupported.

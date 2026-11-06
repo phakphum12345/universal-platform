@@ -3,13 +3,13 @@
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
 ## Current status
-- Stage: Phase 0 requirements baseline with active, incremental engineering-core implementation
-- Implementation: Initial Python engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, analytic planar two-link inverse kinematics and a narrow planar four-bar loop-closure adapter; broader UEIC/CAD/CAE capabilities remain incomplete
+- Stage: requirements baseline with an incrementally implemented engineering core; the broader Universal Platform remains incomplete
+- Implementation: Python engineering core with quantities, provenance, solvers, coordinate/frame contracts, mechanism analysis, hardware schematic/driver metadata, and analytic CAD primitives; see the evidence-backed implementation ledger below
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure
 - Hardware boundary: Analysis and simulation only; no physical control
 - Integration: Existing projects remain independent until assessed and explicitly approved
 - Driver generation: Existing capability to be inventoried and reused; no duplicate generator is planned
-- Engineering design: Owner-approved scope; specifications remain proposed and unimplemented
+- Engineering design: Owner-approved broad scope; only explicitly listed analytic/contract slices are implemented, while full CAD/CAE and manufacturing workflows remain unimplemented
 
 ## Initial implementation (active development)
 
@@ -28,7 +28,7 @@ Current modules include:
 - Normalized hardware schematic component/pin/net connectivity model (PR #46 merged; no renderer/ERC/simulation).
 - Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
 - Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
-- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 open; head `72459622e1852161b1d5e733a2b4106d2a91bff8`; PR workflow run #353 passed 416 tests on merge-ref `69eb7fec4c319fabed915ddf9287af16f5d9a39d`).
+- Straight-sided polygon profile extrusion (PR #49, open; head `38a800d033ebbba19e1120c8cd3a47ade4088526`) and optional through-holes with topology validation and backward-compatible snapshots (PR #50, open; head `9507b9fab758465763c60d02f8da83d7d8131d2d`). Exact-head CI for these current heads is UNKNOWN; no passing result is claimed.
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
@@ -68,6 +68,8 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - Identify capability gaps and propose controlled self-improvements.
 
 ## Documentation map
+- [Complete Documentation Index](DOCUMENTATION_INDEX.md) — inventory of all Markdown files and their roles.
+
 ### Product and planning
 - [Vision](VISION.md)
 - [Master Blueprint](MASTER_BLUEPRINT.md)
@@ -141,7 +143,8 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 
 ### CAD-neutral geometry
 
-- Analytic Box/Cylinder primitive solids with explicit units, SI volume/surface area, frame-aware bounds and versioned serialization (PR #48 under review; not a B-rep/mesh CAD kernel).
+- Analytic Box/Cylinder primitive solids with explicit units, SI volume/surface area, frame-aware bounds and versioned serialization (PR #48 merged; not a B-rep/mesh CAD kernel).
+- Simple polygon profile extrusion with deterministic geometry and analytic properties (PR #49 open; exact-head CI UNKNOWN).
+- Optional through-hole loops with strict containment/topology checks and analytic inner-wall properties (PR #50 open, stacked on PR #49; exact-head CI UNKNOWN).
 
-
-- Simple polygon profile extrusion with deterministic geometry and analytic properties (PR #49 under review; no curved sketch or B-rep kernel).
+PR #49 and PR #50 are open, mergeable review candidates. They are not merged into `main`; no mainline merge is implied.
