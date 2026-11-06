@@ -24,6 +24,19 @@ from .planar_mechanisms import (
     estimate_planar_mobility,
     solve_planar_four_bar_loop,
 )
+from .mechanism_model import (
+    SCHEMA_VERSION as MECHANISM_SCHEMA_VERSION,
+    FrameReference,
+    GeometryKind,
+    GeometryReference,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
+    ModelValidationResult,
+    SolverCapability,
+    validate_mechanism_model,
+)
 from .nonlinear_solver import (
     JacobianMethod,
     JacobianScaleDiagnostics,
@@ -48,11 +61,13 @@ __all__ = [
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
     "PlanarFourBarModelSnapshot", "PlanarFourBarAdapterResult",
-    "solve_planar_four_bar_model",
-    "estimate_planar_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
-    "JacobianScaleStatus", "JacobianRankDiagnostics",
-    "JacobianRankStatus", "NonlinearConstraint",
-    "NonlinearConstraintResidual", "NonlinearSolveResult",
+    "solve_planar_four_bar_model", "estimate_planar_mobility",
+    "MECHANISM_SCHEMA_VERSION", "FrameReference", "GeometryKind",
+    "GeometryReference", "JointKind", "JointModel", "LinkModel",
+    "MechanismModel", "ModelValidationResult", "SolverCapability",
+    "validate_mechanism_model", "JacobianMethod", "JacobianScaleDiagnostics",
+    "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
+    "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
     "solve_nonlinear_constraints",
 ]
