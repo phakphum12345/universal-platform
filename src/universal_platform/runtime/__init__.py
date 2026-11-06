@@ -1,4 +1,13 @@
-"""Governed runtime resource management and recovery primitives."""
+"""Governed runtime resource management, supervision and recovery primitives."""
 from .resources.registry import ResourceRegistry
 from .resources.models import ResourceRecord, ResourceState
-__all__ = ["ResourceRecord", "ResourceRegistry", "ResourceState"]
+from .supervisor import PythonProcessSupervisor, WorkerResult, WorkerSpec
+
+__all__ = [
+    "PythonProcessSupervisor",
+    "ResourceRecord",
+    "ResourceRegistry",
+    "ResourceState",
+    "WorkerResult",
+    "WorkerSpec",
+]
