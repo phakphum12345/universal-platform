@@ -40,3 +40,11 @@ Neither narrow slice closes general CAD-003. All other listed requirements remai
 
 
 PR #28 adds deterministic fundamental-cycle topology for normalized mechanism graphs and a caller-supplied residual bridge to the existing nonlinear equality solver. Final PR head `ebd545ef4a47770b13878d5261966c50a5807939` passed run #220 (`workflow-sanity` PASS; `python-tests` PASS, 181 tests); documentation-only marker SKIPPED. It merged at `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`; post-merge push run #221 passed on that exact merge SHA (`workflow-sanity` PASS; `python-tests` PASS, 181 tests). Automatic joint-equation generation, spatial geometry solving, mobility proof and singularity classification remain unimplemented.
+
+
+## CAD-003C — Mobility / degrees-of-freedom diagnostics (PR #29)
+
+- Adds separate nominal PLANAR/SPATIAL joint-count estimates and local configuration-specific mobility from a caller-supplied constraint Jacobian.
+- Reports estimated rank, redundant constraint rows, negative nominal DOF and possible singularity as separate fields. Singularity remains UNKNOWN without an explicit regular-configuration reference rank.
+- Tests cover planar 4R nominal and local mobility, spatial revolute-pair nominal mobility, unsupported planar joint kinds, redundant rows, rank drop, negative nominal count, validation and versioned provenance snapshots.
+- This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Exact-SHA CI evidence is pending.
