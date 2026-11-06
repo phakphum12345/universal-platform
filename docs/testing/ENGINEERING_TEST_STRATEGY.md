@@ -165,3 +165,8 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - PR #74 exact PR workflow #42227530004 passed 523 tests in 1.61s; exact push workflow #42227459289 passed 523 tests in 1.12s; post-merge run #42227796004 passed 523 tests in 1.31s.
 - PR #75 adds a test-only independent metric pass: calculate bounding box and signed volume from parsed facet records, compare quantized bounds exactly and compare volume within a bound derived from the source surface area, coordinate quantization error and mesh scale.
 - PR #75 also mutates valid payloads to include NaN coordinates and inconsistent normals, recomputes the payload digest, and verifies the production validator still rejects the records.
+
+
+- PR #75 exact PR-head run #42228344477 passed 524 tests in 2.09s; exact post-merge run #42228462537 passed 524 tests in 2.20s.
+- The independent STL reader now checks quantized bounding boxes and signed volume from serialized facet records, plus NaN and inconsistent-normal rejection with recomputed payload digests.
+- PR #76 topology-analysis acceptance references are design-only: connected shells, vertex-link manifoldness, exact/near-coincident groups and unused vertices. Self-intersection remains explicitly UNKNOWN until its own implementation and adversarial reference corpus pass.
