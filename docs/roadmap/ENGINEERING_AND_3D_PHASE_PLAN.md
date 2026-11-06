@@ -236,3 +236,11 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Adds `SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md`, a versioned eight-family fixture, all-family Jacobian and local-mobility references, ground-link reversal, and nontrivial joint-frame placement composition.
 - Run #403 / `42193476702` initially failed eight test assertions due to a full-vs-reduced Jacobian width expectation; corrected on the final head without weakening tests.
 - This is a local reference suite, not proof of arbitrary mechanism feasibility or physical correctness.
+
+
+## PR #53 — Documentation index restoration and evidence reconciliation (merged)
+
+- Base SHA `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; final head `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`.
+- PR run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
+- Merge `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
+- Restores the documentation index to the integration branch and reconciles the CAD implementation status and exact evidence.
