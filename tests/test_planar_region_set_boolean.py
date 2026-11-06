@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.planar_boolean import PlanarRegionBooleanOperation as Operation
+from universal_platform.engineering.planar_boolean import PlanarRegionBooleanOperation as Operation, _stitch
 from universal_platform.engineering.planar_region import PlanarRegion
 from universal_platform.engineering.planar_region_set_boolean import (
     PlanarRegionSetBooleanResult,
@@ -107,3 +107,54 @@ def test_set_boolean_snapshot_round_trip_and_strict_schema():
                          "planar-region-set-boolean-result.schema.json").read_text(encoding="utf-8"))
     assert set(snapshot) == set(schema["required"])
     assert schema["additionalProperties"] is False
+
+
+
+def test_six_way_point_contact_preserves_all_components_and_is_permutation_stable():
+    sectors = (
+        PlanarRegion("sector-a", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (3, 0), (2, 1)))),
+        PlanarRegion("sector-b", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (2, 2), (1, 3)))),
+        PlanarRegion("sector-c", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (-1, 3), (-2, 2)))),
+        PlanarRegion("sector-d", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (-2, 1), (-3, 0)))),
+        PlanarRegion("sector-e", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (-2, -2), (-1, -3)))),
+        PlanarRegion("sector-f", "part", "mm", tuple(Vec2(x, y) for x, y in ((0, 0), (1, -3), (2, -2)))),
+    )
+    forward = boolean_planar_region_set(sectors, Operation.UNION)
+    reverse = boolean_planar_region_set(tuple(reversed(sectors)), Operation.UNION)
+    signature = lambda result: sorted(
+        (region.area_exact, tuple((p.x, p.y) for p in region.outer_boundary))
+        for region in result.regions
+    )
+    assert len(forward.regions) == 6
+    assert forward.area == 12.0
+    assert signature(forward) == signature(reverse)
+
+
+def test_region_set_result_limitations_match_point_contact_and_branching_behavior():
+    result = boolean_planar_region_set((
+        region("a", 0, 0, 1, 1),
+        region("b", 1, 1, 2, 2),
+    ), Operation.UNION)
+    limitations = result.to_dict()["limitations"]
+    assert "Unambiguous point-only contacts remain separate output components; ambiguous branching, coincident outgoing directions and invalid hole topology fail closed." in limitations
+    restored = PlanarRegionSetBooleanResult.from_dict(result.to_dict())
+    assert restored.to_dict() == result.to_dict()
+
+
+def test_stitch_rejects_coincident_outgoing_branching_fail_closed():
+    origin = (0, 0)
+    first = (2, 0)
+    second = (3, 0)
+    upper = (1, 2)
+    lower = (1, -2)
+    directed = {
+        (origin, first), (first, upper), (upper, origin),
+        (origin, second), (second, lower), (lower, origin),
+    }
+    with pytest.raises(InvalidModelError, match="coincident outgoing branches"):
+        _stitch(directed)
+
+
+def test_stitch_rejects_unbalanced_boundary_incidence_fail_closed():
+    with pytest.raises(InvalidModelError, match="unbalanced boundary incidence"):
+        _stitch({((0, 0), (1, 0))})
