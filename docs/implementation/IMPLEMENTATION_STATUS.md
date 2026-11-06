@@ -190,3 +190,17 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds explicit ground, input-crank, coupler and output-rocker length residuals mapped to stable link IDs; checks the mapped residual set against the declared SI tolerance; rejects boolean input angles.
 - Merge commit: `129a5f7867147b32d5582695b68d365db2b0c497`.
 - Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+
+
+## PR #28 — General mechanism loop topology and explicit closure residual bridge
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/28
+- Base integration branch: `docs/phase-0-complete-requirements` at `6e57ff1ae1c33560f0bc9d1a2fec46ef4fd3404f`.
+- Adds deterministic spanning-forest and fundamental-cycle analysis over normalized stable-ID links and joints. Reports connected components, tree edges, loop-closing edges and ordered cycle paths; handles disconnected components, isolated links and parallel joints.
+- Adds caller-supplied scalar residual records associated with every loop-closing edge and bridges them to the existing nonlinear equality solver. Each closing edge must be covered; residual IDs, tolerance and scale flow into the existing solver.
+- Status semantics: CONVERGED only when supplied residuals pass; UNDERCONSTRAINED only when the solver diagnostics explicitly show an underdetermined Jacobian with estimated rank below variable count; otherwise UNKNOWN. SINGULAR and UNREACHABLE are not inferred from local solver failure.
+- Exact tested PR head: `5318f93d1964e81e3dfc11c7a11fd0061e0d47b2`.
+- GitHub Actions PR run #218 (run ID `42150595977`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.41s**. Documentation-only marker SKIPPED, not PASS.
+- Initial push run #216 (run ID `42150470866`) failed at the first test head `a4e41c9ce33586bb15e74d5a5dc664169706ac9e` (179 passed, 2 failed). Both were test-fixture expectation defects; corrected on the exact tested head above. The earlier failure is retained as evidence, not overwritten.
+- Merge status: PR remains open; no merge or post-merge CI claim is made.
+- Explicit limits: normalized JointModel does not contain enough complete placement/coordinate/geometry information to generate general joint equations. This PR provides topology and an explicit residual bridge, not automatic arbitrary-mechanism or spatial geometry solving.
