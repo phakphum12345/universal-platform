@@ -297,3 +297,17 @@ def test_profile_hole_winding_is_normalized_and_deterministic():
     assert validate_triangle_mesh(ccw_mesh).signed_volume == pytest.approx(30.0)
     assert validate_triangle_mesh(ccw_mesh).surface_area == pytest.approx(70.0)
     assert tessellate_extruded_profile(cw_solid).to_dict() == cw_mesh.to_dict()
+
+
+def test_curved_profile_mesh_round_trips_chordal_tolerance():
+    curved = ExtrudedProfileSolid(
+        "profile.curved.roundtrip", "world",
+        (Vec2(0, 0), Vec2(2, 0), Vec2(0, 2)), 1.0, "m",
+        arc_sweeps_rad=(0.5, 0.0, 0.0),
+        segment_ids=("edge.arc", "edge.line1", "edge.line2"),
+    )
+    mesh = tessellate_extruded_profile(curved, chordal_tolerance=0.02)
+    restored = TriangleMesh.from_dict(mesh.to_dict())
+    assert restored == mesh
+    assert restored.chordal_tolerance == 0.02
+    assert validate_triangle_mesh(restored).valid
