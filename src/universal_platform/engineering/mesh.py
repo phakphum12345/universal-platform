@@ -367,8 +367,11 @@ def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
     for a, b, c in cap_triangles:
         faces.append((c, b, a))
         faces.append((a+count, b+count, c+count))
-    for i in range(count):
-        j = (i+1) % count
+    boundary_indices = list(range(count))
+    if _profile_signed_area(points) < 0:
+        boundary_indices.reverse()
+    for position, i in enumerate(boundary_indices):
+        j = boundary_indices[(position+1) % count]
         faces.append((i, j, j+count))
         faces.append((i, j+count, i+count))
     return TriangleMesh(
