@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged integration baseline before PR #36:** `85e9beed8cad59016bae73de63f3377492dfad82` (PR #35 and evidence follow-up).  
-**Latest merged feature:** PR #35 squash merge `223740381b81fc06a292eb90ba0653b27cbe8e7a`; post-merge run #284 (ID `42161983634`) passed workflow-sanity and python-tests; **253 tests passed in 0.65s**. Evidence follow-up `85e9beed8cad59016bae73de63f3377492dfad82` passed run #286 (ID `42162230095`); **253 tests passed in 0.62s**.  
+**Latest merged integration baseline:** `d7b740fc98d396c130f1c17b3c6487b30b599c2c` (PR #36; bounded geometric loop coordinate solver).  
+**Latest merged feature:** PR #36 squash merge `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; post-merge run #290 (ID `42162667016`) passed workflow-sanity and python-tests; **258 tests passed in 0.59s**. PR-head push run #288 (ID `42162588094`) and PR run #289 (ID `42162600490`) each passed with 258 tests.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline

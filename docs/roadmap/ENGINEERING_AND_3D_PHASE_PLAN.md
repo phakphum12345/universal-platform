@@ -111,3 +111,6 @@ PR #35 is merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`. Exact PR head `9
 ## PR #36 — Geometric loop coordinate fitting
 
 Adds a bounded local solver adapter that adjusts only generalized-coordinate values against all generated joint pose-consistency residuals while body poses are held fixed. It forwards explicit coordinate bounds and scales, normalizes residuals by declared tolerances, and preserves NOT_CONVERGED for failed local solves. This is not a general body-pose configuration solver.
+
+
+PR #36 merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`. Exact PR head `d00bd6e5631fa4a0101f1c4d5a7c9e1f811cd2f1` passed push run #288 (`42162588094`) and PR run #289 (`42162600490`), 258 tests each. Post-merge run #290 (`42162667016`) on the exact merge SHA passed 258 tests. The scope remains local generalized-coordinate fitting for fixed body poses.

@@ -1,6 +1,6 @@
 # Geometric Loop Coordinate Solver Contract
 
-**Status:** Implementation candidate in PR #36; fixed body poses, generalized-coordinate variables only.
+**Status:** Implemented and merged in PR #36 at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; PR-head runs #288/#289 and post-merge run #290 passed 258 tests each. Fixed body poses, generalized-coordinate variables only.
 
 ## Purpose
 
