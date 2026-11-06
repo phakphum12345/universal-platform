@@ -1,4 +1,5 @@
 from dataclasses import replace
+import re
 
 import pytest
 
@@ -74,7 +75,12 @@ def test_step_import_rejects_unsupported_entity_and_invalid_poly_loop_reference(
     content = export_step(make_mesh()).content
     with pytest.raises(InvalidModelError, match="unsupported entity"):
         import_step(content.replace(b"ENDSEC;\nEND-ISO", b"#999999=SPHERE('',#1,1.0);\nENDSEC;\nEND-ISO"))
-    damaged = content.replace(b"POLY_LOOP('',(#1,#2,#3))", b"POLY_LOOP('',(#1,#2,#999999))", 1)
+    loop_match = re.search(rb"(POLY_LOOP\('',\(#[0-9]+,#[0-9]+,)#[0-9]+(\)\))", content)
+    assert loop_match
+    damaged = (
+        content[:loop_match.start()] + loop_match.group(1) + b"#999999" + loop_match.group(2)
+        + content[loop_match.end():]
+    )
     with pytest.raises(InvalidModelError, match="missing Cartesian point"):
         import_step(damaged)
 
