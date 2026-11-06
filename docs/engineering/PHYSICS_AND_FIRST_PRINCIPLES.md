@@ -1,6 +1,6 @@
 # Physics and First-Principles Modeling
 
-**Architecture:** PROPOSED  
+**Architecture:** PARTIAL — central adapter registry and three bounded analytical solvers  
 **Scope:** reusable physics methods across engineering modules
 
 ## 1. Purpose
@@ -44,9 +44,17 @@ Use dimensional consistency, conservation checks, limiting cases, analytical ref
 
 A correct equation with incorrect inputs or boundary conditions can produce misleading output. Material data, environmental conditions and geometry must be sourced. Safety-critical designs require applicable codes and qualified review. This document does not authorize physical experiments or operation.
 
-## 7. Acceptance criteria
+## 7. Initial implementation boundary
 
-- [ ] Model assumptions and validity ranges are explicit.
+A central `PhysicsSolverRegistry` now provides typed domain/method declarations, versioned solver descriptors, explicit license allow-lists, dependency checks, deterministic discovery and evidence-producing dispatch. The first built-in adapters cover axial stress, ideal lumped DC Ohm's law/power, and linear thermal expansion. Problems require a declared validity range and can carry assumptions, boundary conditions and source references; results include limitations and provenance evidence.
+
+This is an initial analytical slice, not a general physics engine. Fluid mechanics, electromagnetics, thermodynamics, nonlinear material behavior, general kinematics/dynamics, FEA/CFD, optimization, uncertainty propagation and independent solver cross-checks are not implemented by this registry. Third-party solver code is not sandboxed by this in-process registry. A PASS records successful execution of the bounded calculation, not design certification or physical validation.
+
+## 8. Acceptance criteria
+
+- [x] Model assumptions and validity ranges are explicit for the initial central solver request contract.
+- [x] A central solver registry dispatches by declared domain and method with license/dependency gates.
+- [ ] Add validated reference cases for every supported physics domain and solver family.
 - [ ] Units and dimensions are checked.
 - [ ] Conservation laws and boundary conditions are recorded.
 - [ ] Reference cases and convergence checks are defined where relevant.
