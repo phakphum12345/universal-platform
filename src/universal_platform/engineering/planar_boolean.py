@@ -13,10 +13,10 @@ from enum import Enum
 from fractions import Fraction
 from hashlib import sha256
 from json import dumps
-from typing import ClassVar
+from typing import ClassVar, Mapping
 
 from .errors import InvalidModelError
-from .planar_region import PlanarRegion, _point, _signed_area2
+from .planar_region import PlanarRegion, _point
 from .primitive_geometry import Vec2
 
 _Point = tuple[Fraction, Fraction]
@@ -249,6 +249,71 @@ class PlanarRegionBooleanResult:
                 "No manufacturing, physical validation or certification is implied."
             ],
         }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, object]) -> "PlanarRegionBooleanResult":
+        required = {
+            "schema_version", "algorithm_version", "operation", "first_region_id",
+            "second_region_id", "first_region_sha256", "second_region_sha256",
+            "frame_id", "length_unit", "regions", "region_count",
+            "segment_pair_count", "area", "max_coordinate_rounding_error",
+            "area_rounding_error", "limitations",
+        }
+        if not isinstance(value, Mapping) or set(value) != required:
+            raise InvalidModelError("PlanarRegionBooleanResult snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION or value["algorithm_version"] != cls.ALGORITHM_VERSION:
+            raise InvalidModelError("unsupported PlanarRegionBooleanResult version")
+        try:
+            operation = PlanarRegionBooleanOperation(value["operation"])
+        except (TypeError, ValueError) as exc:
+            raise InvalidModelError("unsupported PlanarRegionBooleanResult operation") from exc
+        for key in ("first_region_id", "second_region_id", "frame_id", "length_unit"):
+            if not isinstance(value[key], str) or not value[key].strip():
+                raise InvalidModelError(f"{key} must be a non-empty string")
+        for key in ("first_region_sha256", "second_region_sha256"):
+            digest = value[key]
+            if not isinstance(digest, str) or len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+                raise InvalidModelError(f"{key} must be a lowercase SHA-256 digest")
+        raw_regions = value["regions"]
+        if not isinstance(raw_regions, (list, tuple)):
+            raise InvalidModelError("regions must be an array")
+        regions = tuple(PlanarRegion.from_dict(item) for item in raw_regions)
+        if any(region.frame_id != value["frame_id"] or region.length_unit != value["length_unit"]
+               for region in regions):
+            raise InvalidModelError("result region frame/unit does not match its envelope")
+        if isinstance(value["region_count"], bool) or value["region_count"] != len(regions):
+            raise InvalidModelError("region_count does not match regions")
+        pair_count = value["segment_pair_count"]
+        if isinstance(pair_count, bool) or not isinstance(pair_count, int) or not 0 <= pair_count <= _MAX_EDGE_PAIRS:
+            raise InvalidModelError("segment_pair_count is outside the supported resource bound")
+        for key in ("area", "max_coordinate_rounding_error", "area_rounding_error"):
+            metric = value[key]
+            if isinstance(metric, bool) or not isinstance(metric, (int, float)) or not __import__("math").isfinite(float(metric)) or metric < 0:
+                raise InvalidModelError(f"{key} must be a finite non-negative number")
+        if float(value["area"]) != sum(region.area for region in regions):
+            raise InvalidModelError("area does not match the serialized output regions")
+        limitations = [
+            "Point-touching or branching output boundaries fail closed.",
+            "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
+            "Generated intersections are rounded to binary64 and error is reported.",
+            "Resource limits reject the operation; no partial result is returned.",
+            "No manufacturing, physical validation or certification is implied."
+        ]
+        if value["limitations"] != limitations:
+            raise InvalidModelError("result limitations do not match the versioned contract")
+        return cls(
+            operation=operation,
+            first_region_id=value["first_region_id"],
+            second_region_id=value["second_region_id"],
+            first_region_sha256=value["first_region_sha256"],
+            second_region_sha256=value["second_region_sha256"],
+            frame_id=value["frame_id"],
+            length_unit=value["length_unit"],
+            regions=regions,
+            segment_pair_count=pair_count,
+            max_coordinate_rounding_error=float(value["max_coordinate_rounding_error"]),
+            area_rounding_error=float(value["area_rounding_error"]),
+        )
 
 
 def boolean_planar_regions(
