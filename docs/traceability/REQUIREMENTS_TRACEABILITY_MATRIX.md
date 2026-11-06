@@ -19,10 +19,16 @@
 | R-013 | Shared multidisciplinary engineering core | UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE | Initial foundation implemented; full UEIC orchestration proposed |
 | R-014 | 3D design, tools, machines, mechanisms, structures and products | 3D_DESIGN_INTELLIGENCE; 3D_TOOL_GENERATION_ENGINE | Specification; only analytic primitives, nominal joint contracts and narrow tree/planar kinematics slices implemented |
 | R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | EFI/OpenCore candidate partially inspected; generic source UNKNOWN |
+| R-016 | Evidence-backed CAD-neutral geometry increments | CAD_NEUTRAL_PRIMITIVE_GEOMETRY; ENGINEERING_REQUIREMENTS_TRACEABILITY | Box/Cylinder primitives are merged; polygon extrusion (PR #49) and through-holes (PR #50) are open stacked candidates with exact-head CI UNKNOWN; no general CAD kernel is claimed |
 
 ## Engineering and 3D sub-requirements
 
-See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with acceptance evidence. CAD-003A and CAD-003B track the initial planar 2R inverse-kinematics and 4R loop-closure slices separately; neither closes general CAD-003.
+See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with acceptance evidence. CAD profile extrusion and through-hole coverage are distinct increments; PR #50 extends PR #49 but remains unmerged. CAD-003A and CAD-003B track the initial planar 2R inverse-kinematics and 4R loop-closure slices separately; neither closes general CAD-003.
+
+## Documentation navigation
+
+- [Complete Documentation Index](../../DOCUMENTATION_INDEX.md) lists every Markdown artifact and its role.
+- [Implementation Status](../implementation/IMPLEMENTATION_STATUS.md) is the current source-of-truth for merged versus open implementation evidence.
 
 ## Audit and planning artifacts
 
