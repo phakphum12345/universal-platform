@@ -93,10 +93,10 @@ def test_four_components_touching_at_one_point_remain_four_canonical_regions():
     from universal_platform.engineering.planar_region_set_boolean import boolean_planar_region_set
 
     regions = (
-        rectangle("southwest", -1, -1, 0, 0),
-        rectangle("southeast", 0, -1, 1, 0),
-        rectangle("northwest", -1, 0, 0, 1),
-        rectangle("northeast", 0, 0, 1, 1),
+        region("west", ((0, 0), (-2, -1), (-2, 1))),
+        region("east", ((0, 0), (2, -1), (2, 1))),
+        region("north", ((0, 0), (-1, 2), (1, 2))),
+        region("south", ((0, 0), (1, -2), (-1, -2))),
     )
     result = boolean_planar_region_set(regions, Operation.UNION)
     assert len(result.regions) == 4
