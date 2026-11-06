@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged integration baseline:** `d7b740fc98d396c130f1c17b3c6487b30b599c2c` (PR #36; bounded geometric loop coordinate solver).  
-**Latest merged feature:** PR #36 squash merge `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; post-merge run #290 (ID `42162667016`) passed workflow-sanity and python-tests; **258 tests passed in 0.59s**. PR-head push run #288 (ID `42162588094`) and PR run #289 (ID `42162600490`) each passed with 258 tests.  
+**Latest merged integration baseline:** `587bd503dad3f6d4f66c99fe08e39e20a65c5265` (PR #38; cross-discipline reference validation pack). Latest documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 passed 285 tests.
+**Latest merged feature:** PR #38 squash merge `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; exact PR-head run #297 (`42164123611`) passed 285 tests; post-merge run #298 (`42164204886`) on the exact merge SHA passed workflow-sanity and python-tests; **285 tests passed in 0.81s**. Documentation/evidence follow-up `b9aba3d82396494c005accf948fa9e992473044d` passed run #299 (`42164335487`); **285 tests passed in 0.82s**.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -272,7 +272,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Initial exact PR head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed pull_request run #255 (ID `42157210760`): `workflow-sanity` PASS; `python-tests` PASS; **225 passed in 0.54s**. The documentation-only marker was SKIPPED. The PR head is mergeable, with no review submissions or unresolved review threads at this inspection. Final documentation-head validation and post-merge evidence remain pending.
 
 
-## PR #33 — Automatic joint constraint generation (implementation in review)
+## PR #33 — Automatic joint constraint generation (merged)
 
 - Adds deterministic six-component pose-consistency residual definitions for each normalized joint: translation x/y/z in metres and rotation-log x/y/z in radians.
 - Uses explicit parent/joint/child placements, caller-supplied body-to-world rigid poses and exact generalized-coordinate values. Generates expected joint motion for FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL families.
@@ -284,7 +284,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Corrected code head `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff`: push run #268 (`42158471339`) and PR run #269 (`42158477297`) both passed workflow-sanity and python-tests; 241 passed (0.60s / 0.35s). Documentation-only marker SKIPPED. Final documentation-head and post-merge evidence pending.
 
 
-## PR #34 — Automatic joint constraint Jacobian (implementation in review)
+## PR #34 — Automatic joint constraint Jacobian (merged)
 
 - Adds deterministic finite-difference Jacobian construction for generated joint residuals with columns for stable-ID generalized coordinates and body-pose tangent variables.
 - Translation pose variables use world-frame metres; rotation variables use world-frame left perturbations at fixed body origins in radians. Matrix entries retain the row-residual-unit / column-variable-unit convention.
@@ -294,7 +294,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f`: push run #276 (`42159087591`) and PR run #277 (`42159114452`) both passed workflow-sanity and python-tests; **248 passed** (0.51s / 0.35s). Documentation-only marker SKIPPED. Mergeability/review/thread inspection and post-merge evidence pending.
 
 
-## PR #35 — Geometry-aware loop-closure evaluation (implementation candidate)
+## PR #35 — Geometry-aware loop-closure evaluation (merged)
 
 - Connects deterministic fundamental-cycle topology with automatic six-component joint pose-consistency residuals.
 - Evaluates and retains every joint residual, then groups the six residuals associated with each loop-closing joint; spanning-tree failures remain visible and prevent an overall PASS.
@@ -306,7 +306,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Post-merge run #284 (ID `42161983634`) on the exact merge SHA passed `workflow-sanity` and `python-tests`; **253 passed in 0.65s**.
 
 
-## PR #36 — Geometric loop coordinate solver (implementation candidate)
+## PR #36 — Geometric loop coordinate solver (merged)
 
 - Adds bounded local nonlinear fitting of generalized-coordinate values against generated six-component joint residuals while body poses remain fixed caller inputs.
 - Includes every joint residual, including spanning-tree joints; normalizes residual rows by their declared tolerances and forwards coordinate bounds and characteristic scales.
@@ -314,7 +314,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Does not solve body poses, discover branches, prove global reachability or physical feasibility. Exact PR-head and post-merge evidence pending.
 
 
-## PR #37 — Generated spatial Jacobian mobility (implementation candidate)
+## PR #37 — Generated spatial Jacobian mobility (merged)
 
 - Builds on PR #33 generated joint pose-consistency residuals and PR #34 finite-difference Jacobians.
 - Selects six body-pose tangent variables per non-ground link plus every independent generalized joint coordinate; ground pose variables are excluded.
@@ -327,8 +327,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Post-merge run #295 (`42163519632`) on the exact merge SHA passed both checks; **265 passed in 0.78s**.
 
 
-## PR #38 — Cross-discipline engineering reference validation (implementation candidate)
+## PR #38 — Cross-discipline engineering reference validation (merged)
 
 - Adds a versioned JSON registry of independently derived reference cases with stable IDs, operation names, explicit inputs, expected outputs, tolerances and reference equations.
 - Exercises dimensional conversion, mechanics, DC electrical, thermal expansion, analytic geometry, rigid transforms, linear algebra, static algebraic simulation, planar inverse kinematics, four-bar closure, material records, assembly metadata, constraints and the physical-execution safety gate.
 - The pack validates implemented analytical contracts only; illustrative material values are not certified allowables, and the static solver is not FEA.
+
+
+- Exact PR head: `bfe0857bb1844c2f022dfcdc2890853ad8570d1f`.
+- PR run #297 (ID `42164123611`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
+- Squash merge: `587bd503dad3f6d4f66c99fe08e39e20a65c5265`.
+- Post-merge run #298 (ID `42164204886`) on exact merge SHA: workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
+- Documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 (ID `42164335487`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.82s.
