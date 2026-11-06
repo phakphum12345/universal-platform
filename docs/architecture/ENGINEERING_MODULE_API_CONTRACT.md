@@ -47,3 +47,10 @@ Contracts are versioned. Breaking changes require a new major schema version, mi
 - [ ] Errors and cancellation are explicit.
 - [ ] Result lineage is preserved.
 - [ ] Completion and verification are separate.
+
+
+## 6. Implemented metadata registry subset (PR #39)
+
+The implementation adds immutable `ModuleManifest` and `ModuleOperation` records plus an in-memory `ModuleRegistry`. It validates stable IDs, semantic module versions, MAJOR.MINOR operation schema versions, explicit license/maturity, operation permission subsets and a restricted execution classification. Dependency ordering is deterministic and fails closed for missing dependencies or cycles. Snapshots are JSON-compatible and sorted.
+
+This is a metadata registry only. It does not load or invoke code, enforce permissions, isolate processes, or provide a runtime plugin system.

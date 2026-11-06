@@ -339,3 +339,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Squash merge: `587bd503dad3f6d4f66c99fe08e39e20a65c5265`.
 - Post-merge run #298 (ID `42164204886`) on exact merge SHA: workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
 - Documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 (ID `42164335487`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.82s.
+
+
+## PR #39 — Offline module metadata registry (implementation candidate)
+
+- Base integration branch: `docs/phase-0-complete-requirements`, exact base SHA `22c71b610b3af4e2707389f0b62e039135ef76a0`.
+- Code head tested by PR Actions: `8ed4d4f9778a264cf3676d1821807ebdc3943fda`.
+- PR run #305 (ID `42166708892`): `workflow-sanity` PASS; `python-tests` PASS; **304 passed in 0.90s**. Documentation-only marker SKIPPED.
+- Scope: immutable module manifests/operations, metadata-only registry, deterministic snapshots and dependency ordering.
+- Boundary: no dynamic loading/invocation, sandboxing, permission enforcement, physical control, firmware writes or external writes.
+- PR #39 final documentation-head CI and post-merge evidence: PENDING.
