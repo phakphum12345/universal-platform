@@ -488,3 +488,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds a simple-polygon 2D profile extrusion solid with self-intersection/degeneracy checks, analytic area/perimeter/volume/surface area and transformed bounds.
 - Does not implement curved sketches, holes, arbitrary Boolean features, B-rep or mesh output.
 - Exact-SHA CI and post-merge evidence: PENDING.
+
+
+## PR #50 — Extruded profile through-holes (implementation candidate)
+
+- Stacked on PR #49 head `38a800d033ebbba19e1120c8cd3a47ade4088526`; target is PR #49 branch, not `main`.
+- Adds zero or more immutable through-hole loops to `ExtrudedProfileSolid`.
+- Validates simple loops, strict containment within the outer profile, and rejects touching, intersecting, overlapping or nested holes.
+- Net area subtracts hole areas; perimeter includes every boundary; analytic volume and surface area include through-hole walls.
+- Adds optional `holes` schema property and preserves deserialization of older snapshots without that field.
+- Adds public package exports and reference/invalid-topology/round-trip tests.
+- Exact-head CI: PENDING. No local test execution is claimed.
+- Boundary: still analytic straight extrusion only; no B-rep, mesh, curved sketches, draft, Boolean or CAD-kernel integration.
