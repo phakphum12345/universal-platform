@@ -214,13 +214,5 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 6. Additional validated physics/solver adapters with independent domain reference cases.
 7. Module runtime invocation, permissions, sandboxing, quotas, cancellation and audit only after threat model and isolation contracts are implemented and tested.
 
-<!-- remaining legacy phase checklist retained below -->
 
-1. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
-2. General mesh validation beyond indexed edge topology: geometric self-intersection detection, disconnected-shell semantics, duplicate/coincident vertex diagnostics and safe repair policy (repair remains opt-in).
-3. Neutral CAD interchange (STEP/STL/3MF) with explicit units/frames, provenance, export/import contracts and independent reopen validation using a separately selected toolchain.
-4. Parametric sketch constraints, solver diagnostics and versioned feature history with deterministic recomputation.
-5. Hardware EDA symbol/library exchange, BOM/footprint reconciliation, datasheet-backed electrical limits and circuit simulation.
-6. Additional validated physics/solver adapters with independent domain reference cases.
-7. Module runtime invocation, permissions, sandboxing, quotas, cancellation and audit only after threat model and isolation contracts are implemented and tested.
 
