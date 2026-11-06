@@ -133,10 +133,9 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 
 
 
-## PR #64 — Deterministic primitive triangle mesh (implementation candidate)
+## PR #64 — Deterministic primitive triangle mesh (MERGED)
 
-- Adds dependency-free deterministic tessellation for analytic BoxSolid and CylinderSolid only.
-- Preserves source solid ID, local frame, length unit and canonical source SHA-256; cylinder requires an explicit radial chordal tolerance and has a 100,000-segment resource ceiling.
-- Structural validation reports degenerate/index errors, boundary/nonmanifold edges, winding conflicts, signed volume and surface area.
-- Explicitly does not tessellate ExtrudedProfileSolid, arcs, through-holes or arbitrary surfaces; no mesh self-intersection repair, B-rep, Boolean or interchange is implied.
-- Acceptance: analytic box reference metrics, cylinder chordal-error bound, closed consistently oriented mesh topology, strict round trip, malformed mesh regressions, public exports and complete repository CI.
+- PR #64 merged at `f0bfd8ad9958af9bfe678e923d52726b12eee73a`; exact head `8fe9db48cd07a66ea39d61e386ee8f362b968104`.
+- Exact PR/push runs #42219983207 / #42219977049 passed both required jobs with 506 tests; exact post-merge run #42220119818 passed both jobs with **506 tests in 1.93s**.
+- Adds dependency-free deterministic BoxSolid/CylinderSolid tessellation, source SHA-256 provenance, local frame/unit, explicit cylinder chordal tolerance, versioned schema and structural mesh validation.
+- Scope remains Box/Cylinder only. Extruded-profile and hole meshing, arbitrary mesh self-intersection detection/repair, B-rep, 3D Boolean and STEP/STL/3MF interchange remain unsupported.
