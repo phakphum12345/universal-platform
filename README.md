@@ -26,7 +26,9 @@ Current modules include:
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
 - Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
 - Normalized hardware schematic component/pin/net connectivity model (PR #46 merged; no renderer/ERC/simulation).
-- Hardware driver interface declarations and schematic pin bindings (PR #47 under review; metadata only).
+- Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
+- Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
+- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 open; head `72459622e1852161b1d5e733a2b4106d2a91bff8`; PR workflow run #353 passed 416 tests on merge-ref `69eb7fec4c319fabed915ddf9287af16f5d9a39d`).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
@@ -140,3 +142,6 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 ### CAD-neutral geometry
 
 - Analytic Box/Cylinder primitive solids with explicit units, SI volume/surface area, frame-aware bounds and versioned serialization (PR #48 under review; not a B-rep/mesh CAD kernel).
+
+
+- Simple polygon profile extrusion with deterministic geometry and analytic properties (PR #49 under review; no curved sketch or B-rep kernel).

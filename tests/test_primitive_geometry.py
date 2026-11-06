@@ -105,3 +105,56 @@ def test_snapshot_rejects_unknown_schema_and_solid_kind():
     data["solids"][0]["kind"]="MESH"
     with pytest.raises(InvalidModelError,match="Unsupported primitive"):
         PrimitiveGeometryModel.from_dict(data)
+
+
+
+def test_extruded_profile_volume_surface_area_and_round_trip():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    profile = (Vec2(0, 0), Vec2(2, 0), Vec2(2, 1), Vec2(0, 1))
+    solid = ExtrudedProfileSolid("solid.extrude", "part", profile, 3, "mm")
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(model.to_dict())))
+    assert restored.to_dict() == model.to_dict()
+    assert model.volume("solid.extrude").si_value == pytest.approx(6e-9)
+    assert model.volume("solid.extrude").in_unit("m3") == pytest.approx(6e-9)
+    assert model.surface_area("solid.extrude").si_value == pytest.approx(22e-6)
+    assert model.surface_area("solid.extrude").in_unit("m2") == pytest.approx(22e-6)
+
+
+def test_extruded_concave_profile_area_and_local_bounds():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    profile = (Vec2(0, 0), Vec2(2, 0), Vec2(2, 1), Vec2(1, 1), Vec2(1, 2), Vec2(0, 2))
+    solid = ExtrudedProfileSolid("solid.l-bracket", "part", profile, 2, "mm")
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    assert solid.area == pytest.approx(3)
+    assert solid.perimeter == pytest.approx(8)
+    bounds = model.bounding_box("solid.l-bracket", "part").bounds
+    assert bounds.minimum == Vec3(0, 0, 0)
+    assert bounds.maximum == Vec3(2, 2, 2)
+
+
+def test_extruded_profile_bounds_transform_vertices_to_world():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    graph = FrameGraph()
+    graph.add_transform(RigidTransform("part", "world", RZ90, Vec3(10, 20, 0), "mm"))
+    profile = (Vec2(0, 0), Vec2(2, 0), Vec2(2, 1), Vec2(0, 1))
+    model = PrimitiveGeometryModel(graph, (ExtrudedProfileSolid("solid.plate", "part", profile, 3, "mm"),))
+    bounds = model.bounding_box("solid.plate", "world").bounds
+    assert bounds.minimum == Vec3(9, 20, 0)
+    assert bounds.maximum == Vec3(10, 22, 3)
+
+
+def test_extruded_profile_rejects_self_intersection_degenerate_and_duplicate_vertices():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    with pytest.raises(InvalidModelError, match="self-intersecting"):
+        ExtrudedProfileSolid("solid.bad", "part",
+            (Vec2(0, 0), Vec2(2, 2), Vec2(0, 2), Vec2(2, 0)), 1)
+    with pytest.raises(InvalidModelError, match="area must be positive"):
+        ExtrudedProfileSolid("solid.flat", "part",
+            (Vec2(0, 0), Vec2(1, 1), Vec2(2, 2)), 1)
+    with pytest.raises(InvalidModelError, match="duplicate vertices"):
+        ExtrudedProfileSolid("solid.duplicate", "part",
+            (Vec2(0, 0), Vec2(1, 0), Vec2(1, 0), Vec2(0, 1)), 1)
+    with pytest.raises(InvalidModelError, match="height must be positive"):
+        ExtrudedProfileSolid("solid.height", "part",
+            (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1)), 0)

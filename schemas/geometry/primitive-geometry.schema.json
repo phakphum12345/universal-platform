@@ -3,8 +3,8 @@
   "title":"CAD-neutral Primitive Geometry Model","type":"object","additionalProperties":false,
   "required":["schema_version","frame_graph","solids"],
   "properties":{"schema_version":{"const":"1.0"},
-    "frame_graph":{"$ref":"../geometry/coordinate-frame-graph.schema.json"},
-    "solids":{"type":"array","items":{"oneOf":[{"$ref":"#/$defs/box"},{"$ref":"#/$defs/cylinder"}]}}},
+    "frame_graph":{"$ref":"coordinate-frame-graph.schema.json"},
+    "solids":{"type":"array","items":{"oneOf":[{"$ref":"#/$defs/box"},{"$ref":"#/$defs/cylinder"},{"$ref":"#/$defs/extrudedProfile"}]}}},
   "$defs":{
     "box":{"type":"object","additionalProperties":false,"required":["kind","solid_id","frame_id","dimensions"],
       "properties":{"kind":{"const":"BOX"},"solid_id":{"type":"string","minLength":1},"frame_id":{"type":"string","minLength":1},
@@ -14,6 +14,13 @@
     "cylinder":{"type":"object","additionalProperties":false,"required":["kind","solid_id","frame_id","radius","height","unit"],
       "properties":{"kind":{"const":"CYLINDER"},"solid_id":{"type":"string","minLength":1},"frame_id":{"type":"string","minLength":1},
         "radius":{"type":"number","exclusiveMinimum":0},"height":{"type":"number","exclusiveMinimum":0},
-        "unit":{"enum":["m","mm","cm","km","in"]}}}
+        "unit":{"enum":["m","mm","cm","km","in"]}}},
+    "profilePoint":{"type":"object","additionalProperties":false,"required":["x","y"],
+      "properties":{"x":{"type":"number"},"y":{"type":"number"}}},
+    "extrudedProfile":{"type":"object","additionalProperties":false,
+      "required":["kind","solid_id","frame_id","profile","height","unit"],
+      "properties":{"kind":{"const":"EXTRUDED_PROFILE"},"solid_id":{"type":"string","minLength":1},
+        "frame_id":{"type":"string","minLength":1},"profile":{"type":"array","minItems":3,"items":{"$ref":"#/$defs/profilePoint"}},
+        "height":{"type":"number","exclusiveMinimum":0},"unit":{"enum":["m","mm","cm","km","in"]}}}
   }
 }

@@ -90,3 +90,8 @@ FramedPoint3 and FramedVector3 bind Vec3 values to a stable frame ID and explici
 ## CAD-neutral primitive geometry (PR #48)
 
 The engineering package exports BoxSolid, CylinderSolid, FramedBounds3 and PrimitiveGeometryModel. The model uses FrameGraph to transform bounds and Quantity to report SI volume/surface area. It is a primitive analytic layer, not a CAD kernel.
+
+
+## Profile extrusion (PR #49)
+
+The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profiles are immutable simple polygons extruded along local +Z with explicit height/unit. The model rejects self-intersection and degenerate area.
