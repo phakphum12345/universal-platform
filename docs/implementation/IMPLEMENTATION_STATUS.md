@@ -750,3 +750,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - New API: `PlanarRegionBooleanOperation`, `PlanarRegionBooleanResult`, `boolean_planar_regions`; pairwise operations UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE. Supports multiple output components and holes, exact rational arrangement decisions over represented binary64 inputs, deterministic cycles, output rounding-error metrics and strict snapshot validation.
 - Limits: 256 total input boundary edges / 32,640 pair checks; same frame/unit required; point-touching or branching output fails closed. No implicit conversion, snapping, quantization or repair. Existing convex ProfileLoop v1.0 contract unchanged.
 - Still not implemented: general region-set aggregation, robust point-contact traversal, arcs/splines, parametric sketch constraints, feature history, B-rep/3D Booleans, STEP/3MF round-trip, physical/manufacturing validation. No local working-tree test is claimed.
+
+
+## PR #86–#88 — Planar Boolean to 3D solid pipeline (MERGED)
+
+- PR #86 expanded exact/analytic reference coverage; corrected PR-head and post-merge CI passed 592 tests.
+- PR #87 added multi-region set Boolean operations with one rational arrangement; PR/push and post-merge CI passed 600 tests.
+- PR #88 added `extrude_planar_region`, preserving source ID/SHA, frame/unit and holes; PR/push and post-merge CI passed 607 tests. Full Boolean → extrusion → triangle mesh path validates as closed, watertight and consistently oriented.
+- Current integration HEAD: `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Limits remain: 256-edge Boolean bound; point-touching/branching output fails closed; straight-edged PlanarRegion extrusion only; no B-rep, 3D Boolean, feature history, sketch constraints, STEP/3MF or manufacturing claims.

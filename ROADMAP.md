@@ -282,3 +282,18 @@ Implement union, intersection, difference and symmetric difference for PlanarReg
 - Adds pairwise UNION / INTERSECTION / DIFFERENCE / SYMMETRIC_DIFFERENCE for PlanarRegion v1.0, exact rational arrangement predicates, multiple components/holes, deterministic cycles, binary64 coordinate and area rounding-error reporting, strict result schema and snapshot import validation.
 - Limits: 256 total input edges; point-touching/branching output fails closed; frames/units must match; no implicit conversion, snap, repair, B-rep, 3D Boolean or arcs/splines. Existing convex ProfileLoop v1.0 remains unchanged.
 - Next: broaden independent rational/adversarial references; specify point-contact traversal semantics; design pairwise result aggregation/region-set API; then continue sketch/feature history, B-rep/interchange, EDA/circuit simulation, multiphysics adapters and secure runtime. See [post-PR #84 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md).
+
+
+## PR #86 — Planar Boolean reference corpus (MERGED)
+
+Exact corrected PR-head #42251459190 passed 592 tests; post-merge #42251569128 passed 592 tests. Adds equal-geometry identities, oblique polygon commutativity, directional difference, edge contact, multi-hole preservation and edge-budget tests.
+
+## PR #87 — Multi-region PlanarRegion Boolean (MERGED)
+
+Merge SHA `316e0d6c3166470bc839d3c880a38720bd854577`. PR/push workflows #42251905120 / #42251876359 passed 600 tests each; post-merge #42252022902 passed 600. Adds one-arrangement multi-region UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE, result schema and snapshot validation.
+
+## PR #88 — PlanarRegion to 3D extrusion adapter (MERGED)
+
+Merge SHA `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; PR/push workflows #42252525813 / #42252493832 passed 607 tests each; post-merge #42252619167 passed 607. Adds source-digest-preserving extrusion from PlanarRegion to ExtrudedProfileSolid and verifies Boolean → extrusion → watertight mesh.
+
+Next CAD gates: deterministic point-contact topology, parametric sketch constraints, feature history/regeneration, B-rep/3D Booleans and STEP/3MF. Hardware EDA, circuit simulation, validated multiphysics and secure runtime remain separate open workstreams. See [post-PR #88 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md).

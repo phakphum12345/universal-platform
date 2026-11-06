@@ -174,3 +174,8 @@ Integration HEAD `114bf8dd84831d7d4080922ed7069cadda380ba3`. PR #82 PlanarRegion
 ## Current verified integration baseline (post-PR #84)
 
 Integration HEAD: `1b75e2dab5b64d2d089e410bba02187d28772193`. PR #84 adds a bounded pairwise exact-rational PlanarRegion Boolean API for UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE, including disconnected components and holes. Exact PR-head workflow #42250468895 passed both required jobs with **580 tests in 2.14s**; exact post-merge workflow #42250583756 passed both required jobs with **580 tests in 2.96s**. The integration branch is 235 commits ahead and 0 behind `main` (`96e75010716226037893155b9fd4b13410fb0d6f`). Tree: 208 files, 95 Markdown, 94 Python, 15 JSON schemas and 48 test files. Point-touching/branching outputs fail closed; this is not a general CAD/B-rep kernel. See [post-PR #84 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md).
+
+
+## Current verified integration baseline (post-PR #88)
+
+Integration HEAD `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 239 ahead / 0 behind. PRs #84–#88 are merged into integration only. The CAD vertical slice now supports pairwise and multi-region PlanarRegion Booleans, extrusion to an analytic solid, and validated watertight triangle meshing. PR #88 exact-head and push CI passed 607 tests each; post-merge workflow #42252619167 passed both required jobs with 607 tests. Tree: 216 files, 96 Markdown, 99 Python, 17 schemas, 51 test files. B-rep/3D Boolean, feature history, sketch constraints and STEP/3MF remain open. See [post-PR #88 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md).
