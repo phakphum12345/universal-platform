@@ -15,6 +15,7 @@ from typing import Any, ClassVar, Mapping
 from .errors import InvalidModelError
 from .geometry import Vec3
 from .primitive_geometry import BoxSolid, CylinderSolid
+from .quantity import LENGTH, Quantity
 
 
 def _finite(value: Any, label: str) -> float:
@@ -50,7 +51,14 @@ class TriangleMesh:
             raise InvalidModelError("mesh frame_id is required")
         if not isinstance(self.length_unit, str) or not self.length_unit:
             raise InvalidModelError("mesh length_unit is required")
-        if self.source_kind not in {"BOX", "CYLINDER"}:
+        try:
+            if Quantity.of(1.0, self.length_unit).dimension != LENGTH:
+                raise InvalidModelError("mesh length_unit must have length dimension")
+        except Exception as exc:
+            if isinstance(exc, InvalidModelError):
+                raise
+            raise InvalidModelError(f"unsupported mesh length_unit: {self.length_unit}") from exc
+        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER"}:
             raise InvalidModelError("mesh source_kind must be BOX or CYLINDER")
         if (not isinstance(self.source_geometry_sha256, str)
                 or len(self.source_geometry_sha256) != 64
