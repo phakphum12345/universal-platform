@@ -127,3 +127,6 @@ PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `6492
 ## PR #38 — Cross-discipline reference validation pack
 
 Introduces versioned, executable reference cases that validate implemented engineering primitives against independent closed-form results. Cases include stable IDs, operation identifiers, explicit input units, expected outputs, numerical tolerances and formula/source notes. The pack does not promote illustrative material inputs to design allowables or algebraic simulation to FEA.
+
+
+PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #297 (`42164123611`) and post-merge run #298 (`42164204886`) passed 285 tests each.

@@ -1,6 +1,6 @@
 # Engineering Reference Validation Pack
 
-**Status:** Implementation candidate in PR #38.
+**Status:** Implemented and merged in PR #38 at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; PR-head run #297 and post-merge run #298 passed 285 tests each.
 
 ## Purpose
 
@@ -40,3 +40,11 @@ Each case carries its own absolute/relative tolerance. Expected values are indep
 - Static linear-system solving is algebraic verification, not finite-element analysis.
 - Analytic mechanism examples do not establish manufacturing, dynamic or physical feasibility.
 - This pack does not validate CAD B-rep, mesh generation, schematic netlists, hardware drivers, toolpath generation or production release; those remain explicit capability gaps for later roadmap work.
+
+
+## PR #38 evidence
+
+- Exact PR head: `bfe0857bb1844c2f022dfcdc2890853ad8570d1f`.
+- PR run #297 (`42164123611`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
+- Squash merge: `587bd503dad3f6d4f66c99fe08e39e20a65c5265`.
+- Post-merge run #298 (`42164204886`) on exact merge SHA: workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
