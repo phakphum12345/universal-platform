@@ -3,6 +3,7 @@
 **Integration branch:** `docs/phase-0-complete-requirements`  
 **Current integration HEAD:** `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (post-PR #118).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 265 ahead / 0 behind).  
+**Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
 **Latest post-merge CI:** PR #118 workflow #42282428283 on `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` — workflow-sanity PASS; python-tests PASS; **755 passed in 2.83s**.  
 **Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
 **Open PRs:** 0 at post-PR #118 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
