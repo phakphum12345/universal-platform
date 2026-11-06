@@ -684,13 +684,6 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR run #42229095708 passed both required jobs with 524 tests in 2.25s; exact post-merge run #42229207672 passed both jobs with **524 tests in 1.60s**.
 - Design contract only; no topology-analysis implementation was introduced by #76.
 
-## PR #77 — Mesh geometric topology analysis implementation (IMPLEMENTATION CANDIDATE)
-
-- Branch: `feat/mesh-topology-analysis`; base SHA: `ff486f8ae4569ca8122f0294f55d18b21b32d10c`.
-- Adds `MeshTopologyAnalysis` v1.0 and `analyze_mesh_topology`; source mesh identity/frame/unit/digests, edge-connected face components, vertex-link manifoldness, duplicate/near-coincident groups, unused vertices and strict schema.
-- Self-intersection remains UNKNOWN. Exact-head and post-merge CI evidence pending.
-
-
 ## PR #77 — Mesh geometric topology analysis implementation (MERGED)
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/77
