@@ -791,3 +791,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact-rational planar rotation-system pairing preserves point-touching material components as separate simple regions; edge-adjacent rectangles still merge.
 - Four-way point-contact and two-component point-contact references pass. Ambiguous branching, invalid hole contact and repeated-vertex cycles remain fail-closed.
 - This closes the prior blanket point-touch limitation only for the tested deterministic cases; it does not implement general B-rep or 3D Boolean.
+
+
+## PR #97 — 3MF Core Mesh Interchange (MERGED)
+
+- Merge SHA: `9b415f7c6be0f537feb67cbe86a911dc0ef5f662`.
+- Exact PR-head #42265918058 and post-merge #42266044427 passed both required jobs, 650 tests.
+- Added deterministic 3MF Core one-object mesh export/import for validated watertight triangle solids; preserves solid/frame IDs, unit and source geometry digest; imported mesh kind is `IMPORTED_3MF`.
+- Parser validates OPC parts/relationship/content type, paths, duplicate entries, compression/size bounds, XML DTD/entities, model structure, units and triangle indices.
+- Full 3MF feature support and STEP import/export remain OPEN. No B-rep or manufacturing/certification claim.
+- Contract: [3MF Core Mesh Interchange](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).

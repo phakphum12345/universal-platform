@@ -194,3 +194,8 @@ The integration branch now supports a bounded end-to-end parametric pipeline: 2D
 ## Planar Boolean point-contact topology (PR #95)
 
 Point-touching but otherwise disjoint material components now remain separate canonical PlanarRegion outputs using an exact-rational planar rotation-system boundary pairing rule. Edge-adjacent boundaries still dissolve into a single region. Ambiguous branching, unbalanced incidence and invalid hole topology still fail closed. PR #95 exact-head and post-merge CI both passed 639 tests. See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md).
+
+
+## 3MF Core mesh interchange (PR #97)
+
+The integration branch now exports and imports a bounded single-object 3MF Core profile for validated watertight triangle meshes. It preserves source geometry digest, solid/frame IDs and supported units, uses deterministic ZIP/XML output, and rejects unsafe or unsupported package structures. PR #97 exact-head and post-merge CI both passed 650 tests. This does not implement full 3MF assemblies/extensions or STEP. See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).

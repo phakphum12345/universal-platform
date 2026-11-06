@@ -84,3 +84,6 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | CAD-PLANAR-TOPOLOGY-TOUCH-001 | Deterministic planar Boolean output for point-touching components without figure-eight boundaries | [CAD Boolean Point-Contact Topology Contract](../design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md) | IMPLEMENTED — PR #95 merged at `2eea0bdc9226c8ec3b3d5458e3902ee01b8314f0`; exact-head and post-merge CI PASS, 639 tests. Ambiguous branching and invalid hole topology remain fail-closed. |
+
+
+| CAD-3MF-MESH-001 | Bounded 3MF Core import/export for validated watertight triangle meshes with source provenance | [3MF Core Mesh Interchange Contract](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md); `export_3mf` / `import_3mf` | IMPLEMENTED — PR #97 merged at `9b415f7c6be0f537feb67cbe86a911dc0ef5f662`; exact-head and post-merge CI PASS, 650 tests. One untransformed mesh object only; full 3MF and STEP remain OPEN. |
