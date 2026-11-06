@@ -13,6 +13,12 @@ from .inverse_kinematics import (
     PlanarIKResult,
     solve_planar_two_link_inverse_kinematics,
 )
+from .planar_mechanisms import (
+    PlanarFourBarResult,
+    PlanarMobilityEstimate,
+    estimate_planar_mobility,
+    solve_planar_four_bar_loop,
+)
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
@@ -20,5 +26,7 @@ __all__ = [
     "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "JointPlacement",
     "solve_tree_forward_kinematics", "PlanarIKResult",
-    "solve_planar_two_link_inverse_kinematics",
+    "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
+    "PlanarMobilityEstimate", "solve_planar_four_bar_loop",
+    "estimate_planar_mobility",
 ]

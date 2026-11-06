@@ -1,6 +1,6 @@
 # Engineering and 3D Requirements Traceability
 
-**Status:** Proposed mapping baseline with one narrow executable kinematics slice verified by PR #12; not implementation evidence for broader requirements.
+**Status:** Proposed mapping baseline with narrow executable planar kinematics slices; general engineering requirements remain open.
 
 | ID | Requirement | Primary specification | Acceptance evidence |
 |---|---|---|---|
@@ -14,6 +14,7 @@
 | CAD-002 | Generate tools and fixtures | 3D_TOOL_GENERATION_ENGINE | Requirement-to-model acceptance cases |
 | CAD-003 | Assembly and kinematics | 3D_ASSEMBLY_AND_KINEMATICS | Joint, DOF and motion tests |
 | CAD-003A | Planar two-link inverse kinematics | PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT | Both branches, workspace boundaries, limits, residual tests and exact-SHA CI; PR #12 merged |
+| CAD-003B | Planar four-bar loop closure and mobility estimate | PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT | Left/right branches, circle reachability, closure residuals, tangent case and Kutzbach count; exact-SHA CI pending |
 | CAD-004 | Engineering simulation | 3D_ENGINEERING_SIMULATION | Benchmarks and convergence evidence |
 | CAD-005 | Structural/civil design support | STRUCTURAL_AND_CIVIL_DESIGN | Code-basis and independent review evidence |
 | CAD-006 | CAD-to-manufacturing preparation | CAD_TO_MANUFACTURING_PIPELINE | Export, drawing and BOM reconciliation |
@@ -24,13 +25,13 @@
 
 ## Status
 
-CAD-003A is IMPLEMENTED as a narrow analytic 2R planar serial-arm adapter and merged in PR #12 at 0379c8613c7668a56b681a91d01882c66f1c812c. PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056 passed PR run #82 and push run #81; merge commit passed post-merge push run #83. The documentation-only marker was SKIPPED in each run, not PASS.
+CAD-003A is IMPLEMENTED as a narrow analytic planar 2R inverse-kinematics adapter and merged in PR #12. CAD-003B is an initial planar 4R circle-intersection loop closure plus a Kutzbach/Gruebler mobility estimate on a feature branch; it remains PENDING CI until the exact PR head SHA passes.
 
-CAD-003A does not close general CAD-003. All other listed requirements remain PROPOSED / NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
+Neither narrow slice closes general CAD-003. All other listed requirements remain PROPOSED / NOT IMPLEMENTED / NOT VERIFIED until source and test evidence exists. Existing HWR-001..HWR-006 remain separately defined in docs/hardware/.
 
 ## Evidence and governance gates
 
 - Documentation coverage is not implementation evidence.
 - Implemented means source exists; PASS requires executed evidence tied to an exact SHA and reproducible procedure.
 - SKIPPED and UNKNOWN are never PASS.
-- A narrow analytic 2R test suite does not certify arbitrary mechanisms or physical feasibility.
+- A narrow planar four-bar test suite does not certify arbitrary mechanisms or physical feasibility.
