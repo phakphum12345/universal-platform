@@ -13,8 +13,8 @@ from math import acos, ceil, cos, isfinite, pi, sin, sqrt
 from typing import Any, ClassVar, Mapping
 
 from .errors import InvalidModelError
-from .geometry import Vec2, Vec3
-from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, _arc_geometry
+from .geometry import Vec3
+from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, Vec2, _arc_geometry
 from .quantity import LENGTH, Quantity
 
 
