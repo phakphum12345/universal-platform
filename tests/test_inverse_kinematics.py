@@ -59,7 +59,7 @@ def test_rejects_unreachable_target_for_unequal_links(target):
 
 def test_rejects_shoulder_limit_violation():
     with pytest.raises(SolverError, match="Shoulder angle"):
-        solve(2.0, 1.0, shoulder_limits=(0.0, 0.1))
+        solve(2.0, 1.0, shoulder_limits=(0.1, 0.2))
 
 
 def test_rejects_elbow_limit_violation():

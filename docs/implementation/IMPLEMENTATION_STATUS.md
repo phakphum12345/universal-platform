@@ -2,7 +2,7 @@
 
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged baseline:** 06334b68e7ce084e99df70a7651face34d3a3ec0 (PR #11)  
-**Current feature work:** feat/planar-two-link-inverse-kinematics — implementation pending PR CI evidence.  
+**Current feature work:** feat/planar-two-link-inverse-kinematics — PR #12; corrected test revision pending CI.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics and a narrow analytic planar 2R inverse-kinematics adapter.
 
 ## Implemented in the merged baseline
@@ -25,7 +25,9 @@
 
 The feature branch adds an analytic 2R planar serial-arm inverse-kinematics adapter using the law of cosines. It supports both elbow branches, explicit joint limits, finite-input validation, reachability checks, singular workspace boundaries and independent forward reconstruction with a Cartesian residual tolerance.
 
-This is deliberately not a general inverse-kinematics or assembly constraint solver. Its implementation status remains PENDING CI until the exact PR head SHA has passing workflow evidence. The docs and tests do not imply broader capability.
+Run #80 on initial PR head 95938cc6f86753d8c3ffc682aa0e45d435ffe86e failed: workflow-sanity PASS; python-tests FAIL with 83 passed and 1 failed. The failing test, test_rejects_shoulder_limit_violation, expected a rejection for a 0.0–0.1 radian interval even though the computed shoulder angle was inside that interval. This was a faulty test expectation, not evidence of a solver defect. The test interval was corrected to 0.1–0.2 radians. The corrected revision must pass CI on its exact head SHA before this slice is treated as verified.
+
+This is deliberately not a general inverse-kinematics or assembly constraint solver. The docs and tests do not imply broader capability.
 
 ## PR #10 and #11 evidence baseline
 
