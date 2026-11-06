@@ -14,7 +14,7 @@ from typing import Any, ClassVar, Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid
+from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, _arc_geometry
 from .quantity import LENGTH, Quantity
 
 
@@ -83,8 +83,6 @@ class TriangleMesh:
             raise InvalidModelError("exact box tessellation must not declare chordal_tolerance")
         if self.source_kind == "CYLINDER" and self.chordal_tolerance is None:
             raise InvalidModelError("cylinder tessellation requires an explicit chordal_tolerance")
-        if self.source_kind == "EXTRUDED_PROFILE" and self.chordal_tolerance is not None:
-            raise InvalidModelError("straight profile tessellation does not declare chordal_tolerance")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -505,13 +503,54 @@ def _triangulate_profile_region(
     return _triangulate_bridged_nodes(nodes)
 
 
-def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
-    """Tessellate straight-edged concave/convex extrusions, including polygonal holes."""
+def _sample_profile_loop(
+    points: tuple[Any, ...], sweeps: tuple[float, ...], chordal_tolerance: float | None
+) -> tuple[Any, ...]:
+    if not any(sweeps):
+        return points
+    if chordal_tolerance is None:
+        raise InvalidModelError("curved profile tessellation requires an explicit chordal_tolerance")
+    sampled = []
+    for index, sweep in enumerate(sweeps):
+        start, end = points[index], points[(index+1) % len(points)]
+        if sweep == 0.0:
+            sampled.append(start)
+            continue
+        cx, cy, radius, start_angle = _arc_geometry(start, end, sweep)
+        ratio = min(chordal_tolerance / radius, 1.0)
+        half_angle = acos(1.0-ratio)
+        if half_angle <= 0.0:
+            raise InvalidModelError("profile chordal_tolerance is below floating-point resolution")
+        segments = max(1, ceil(abs(sweep)/(2.0*half_angle)))
+        if segments > 100000:
+            raise InvalidModelError("profile arc tessellation exceeds the 100000-segment resource limit")
+        sampled.append(start)
+        for step in range(1, segments):
+            angle = start_angle + sweep*step/segments
+            sampled.append(Vec2(cx+radius*cos(angle), cy+radius*sin(angle)))
+    return tuple(sampled)
+
+
+def tessellate_extruded_profile(
+    solid: ExtrudedProfileSolid, chordal_tolerance: float | None = None
+) -> TriangleMesh:
+    """Tessellate straight or circular-arc extrusions with explicit arc chordal error."""
     if not isinstance(solid, ExtrudedProfileSolid):
         raise InvalidModelError("tessellate_extruded_profile requires an ExtrudedProfileSolid")
-    if solid.arc_sweeps_rad or solid.hole_arc_sweeps_rad:
-        raise InvalidModelError("profile mesh v1.0 supports straight edges only")
-    loops = (solid.profile,) + solid.holes
+    has_curves = bool(solid.arc_sweeps_rad or solid.hole_arc_sweeps_rad)
+    tolerance = None if chordal_tolerance is None else _finite(chordal_tolerance, "chordal_tolerance")
+    if has_curves and (tolerance is None or tolerance <= 0):
+        raise InvalidModelError("curved profile tessellation requires a positive chordal_tolerance")
+    if not has_curves and tolerance is not None:
+        raise InvalidModelError("straight profile tessellation does not accept chordal_tolerance")
+    source_loops = (solid.profile,) + solid.holes
+    source_sweeps = (solid.arc_sweeps_rad or (0.0,)*len(solid.profile),) + (
+        solid.hole_arc_sweeps_rad or tuple((0.0,)*len(hole) for hole in solid.holes)
+    )
+    loops = tuple(
+        _sample_profile_loop(loop, sweeps, tolerance)
+        for loop, sweeps in zip(source_loops, source_sweeps)
+    )
     offsets = []
     vertices_2d = []
     for loop in loops:
@@ -519,9 +558,9 @@ def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
         vertices_2d.extend(loop)
     offsets_tuple = tuple(offsets[1:])
     cap_triangles = (
-        _triangulate_simple_profile(solid.profile)
+        _triangulate_simple_profile(loops[0])
         if not solid.holes
-        else _triangulate_profile_region(solid.profile, solid.holes, offsets_tuple)
+        else _triangulate_profile_region(loops[0], loops[1:], offsets_tuple)
     )
     total = len(vertices_2d)
     lower = tuple(Vec3(point.x, point.y, 0.0) for point in vertices_2d)
@@ -542,17 +581,20 @@ def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
         for position, local_i in enumerate(boundary_indices):
             local_j = boundary_indices[(position+1) % len(boundary_indices)]
             i, j = offset+local_i, offset+local_j
-            # Outer rings are CCW and hole rings CW; the same face order
-            # points away from the solid on both kinds of boundary.
             faces.append((i, j, j+total))
             faces.append((i, j+total, i+total))
     triangle_area = sum(
         abs(_profile_cross(vertices_2d[a], vertices_2d[b], vertices_2d[c]))/2.0
         for a, b, c in cap_triangles
     )
-    if abs(triangle_area-solid.area) > 1e-10 * max(solid.area, 1e-300):
-        raise InvalidModelError("profile triangulation area does not match the source region")
+    area_error_bound = (
+        1e-10*max(solid.area, 1e-300)
+        if tolerance is None
+        else max(1e-10*max(solid.area, 1e-300), solid.perimeter*tolerance)
+    )
+    if abs(triangle_area-solid.area) > area_error_bound:
+        raise InvalidModelError("profile triangulation area exceeds the chordal-tolerance error bound")
     return TriangleMesh(
         solid.solid_id, solid.frame_id, solid.length_unit, "EXTRUDED_PROFILE",
-        _source_digest(solid), vertices, tuple(faces),
+        _source_digest(solid), vertices, tuple(faces), tolerance,
     )
