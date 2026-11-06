@@ -1,8 +1,20 @@
 # Implementation Status — UEIC Foundation
 
+## Repository status vocabulary
+
+Use these maturity labels consistently across implementation records:
+
+- **IMPLEMENTED** — the stated behavior exists in source code; scope must remain narrow and named.
+- **PARTIAL** — some required behavior exists, but acceptance coverage or capability scope is incomplete.
+- **PLANNED** — specified or proposed; implementation is not established.
+- **BLOCKED** — a required prerequisite, dependency, or owner decision prevents valid progress.
+- **UNKNOWN** — evidence is insufficient to classify the implementation.
+
+Keep maturity separate from execution evidence: PASS, FAIL, SKIPPED and UNKNOWN describe checks. A PR being open, mergeable, or documented does not make it merged or tested.
+
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest integration branch head:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48; CAD-neutral analytic primitive geometry). **Latest merged feature baseline:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48).
-**Latest merged feature:** PR #48 squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; exact PR-head run #349 (`42172938440`) passed workflow-sanity and python-tests; **412 tests passed in 1.07s**. Post-merge run #350 (`42173099340`) on the exact merge SHA passed both jobs; **412 tests passed in 0.62s**. PR #39–#47 evidence remains recorded below.
+**Latest merged feature:** PR #48 squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; exact PR-head run #349 (`42172938440`) passed workflow-sanity and python-tests; **412 tests passed in 1.07s**. Post-merge run #350 (`42173099340`) on the exact merge SHA passed both jobs; **412 tests passed in 0.62s**. PR #39–#48 evidence remains recorded below. PRs #49 and #50 are open, stacked CAD review candidates; neither is part of the merged baseline.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -482,21 +494,25 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Scope: Box/Cylinder analytic primitives, SI properties and frame-aware bounds.
 
 
-## PR #49 — Profile extrusion primitive (implementation candidate)
+## PR #49 — Profile extrusion primitive (open review candidate)
 
+- PR: https://github.com/phakphum12345/universal-platform/pull/49
 - Base integration SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
+- Current head SHA: `38a800d033ebbba19e1120c8cd3a47ade4088526`.
 - Adds a simple-polygon 2D profile extrusion solid with self-intersection/degeneracy checks, analytic area/perimeter/volume/surface area and transformed bounds.
-- Does not implement curved sketches, holes, arbitrary Boolean features, B-rep or mesh output.
-- Exact-SHA CI and post-merge evidence: PENDING.
+- PR #49 alone does not implement curved sketches, through-holes, arbitrary Boolean features, B-rep or mesh output. Through-holes are added by the dependent PR #50 below.
+- GitHub state at audit: OPEN, mergeable, not merged. Exact current-head CI and post-merge evidence: UNKNOWN; no current-head run/status was returned. An earlier workflow on a synthetic merge ref is not exact-head evidence.
 
 
-## PR #50 — Extruded profile through-holes (implementation candidate)
+## PR #50 — Extruded profile through-holes (open review candidate)
 
-- Stacked on PR #49 head `38a800d033ebbba19e1120c8cd3a47ade4088526`; target is PR #49 branch, not `main`.
+- PR: https://github.com/phakphum12345/universal-platform/pull/50
+- Current head SHA: `9507b9fab758465763c60d02f8da83d7d8131d2d`.
+- Stacked on PR #49 head `38a800d033ebbba19e1120c8cd3a47ade4088526`; base branch is `feat/extruded-profile-solid`, not `main`.
 - Adds zero or more immutable through-hole loops to `ExtrudedProfileSolid`.
 - Validates simple loops, strict containment within the outer profile, and rejects touching, intersecting, overlapping or nested holes.
 - Net area subtracts hole areas; perimeter includes every boundary; analytic volume and surface area include through-hole walls.
 - Adds optional `holes` schema property and preserves deserialization of older snapshots without that field.
 - Adds public package exports and reference/invalid-topology/round-trip tests.
-- Exact-head CI: PENDING. No local test execution is claimed.
+- GitHub state at audit: OPEN, mergeable, not merged. Exact-head workflow runs and commit statuses returned empty; CI = UNKNOWN. No local test execution is claimed.
 - Boundary: still analytic straight extrusion only; no B-rep, mesh, curved sketches, draft, Boolean or CAD-kernel integration.
