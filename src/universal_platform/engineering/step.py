@@ -381,7 +381,9 @@ def import_step(content: bytes) -> STEPImportResult:
         raise InvalidModelError("STEP profile requires one length unit and one geometric context")
     unit_id, unit_prefix = unit_instances[0]
     context_id, assigned_unit_id = context_instances[0]
-    if unit_prefix not in _PREFIX_UNIT or assigned_unit_id != unit_id:
+    if unit_prefix not in _PREFIX_UNIT:
+        raise InvalidModelError("STEP profile has an unsupported or missing SI length unit")
+    if assigned_unit_id != unit_id:
         raise InvalidModelError("STEP geometric context must assign the declared SI length unit")
     length_unit = _PREFIX_UNIT[unit_prefix]
 
