@@ -6,6 +6,10 @@
 
 Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed leases are not implemented.
 
+## Resource snapshot collection
+
+ResourceSnapshotCollector registers a metric provider per resource, collects unit-bearing measurements, assigns monotonically increasing per-resource sequence numbers and records immutable snapshots in ResourceRegistry. Collection is serialized within the collector to prevent duplicate sequence publication. LocalSystemResourceProvider uses the Python standard library to report logical CPU count, supported POSIX memory totals, configured-path disk usage and Linux network byte counters when available. It intentionally omits GPU and CPU utilization when no trustworthy provider is present. Platform-specific metrics remain adapter responsibilities.
+
 ## Resource quota allocation and leases
 
 ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. Leases can be released explicitly or reclaimed when a later operation observes their expiry. The implementation is process-local; it does not discover host capacity, enforce OS-level CPU/memory limits, coordinate multiple processes/machines or persist leases across restarts.
@@ -48,6 +52,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 
 - Resource registry, metrics/snapshots and lifecycle transitions have focused tests.
 - ResourceAllocator tests cover quota enforcement, unit matching, expiry, release and concurrent reservations without overcommit.
+- ResourceSnapshotCollector tests cover provider registration, real local disk/network sampling, unit-bearing snapshots, monotonic sequence assignment and concurrent collection.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
