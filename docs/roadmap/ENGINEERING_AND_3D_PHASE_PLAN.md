@@ -103,3 +103,6 @@ PR #34 merged at `b8ff9e505005261bddfe246f29dd2a21d744a174`. Final PR head `405b
 ## PR #35 — Geometry-aware loop-closure evaluation
 
 Connects deterministic graph topology with generated geometric joint residuals to evaluate caller-supplied configurations. All joint residuals are retained, each fundamental cycle's closing-edge residuals are grouped, and any failed represented joint relation prevents an overall PASS. This is evaluation-only; nonlinear configuration search and solver coupling remain separate follow-on work.
+
+
+PR #35 is merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`. Exact PR head `9c5b5f43aa6af44da59f7b33cfa5db3448fd4d44` passed run #283 (`42161855276`) with 253 tests; post-merge run #284 (`42161983634`) on the exact merge SHA passed 253 tests. The implemented scope is geometric evaluation of supplied configurations only.

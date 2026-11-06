@@ -69,3 +69,6 @@ Prefer existing hardware, local execution, free/open-source tools, and portable 
 PRs #32–#34 are merged on `docs/phase-0-complete-requirements` with exact-SHA CI evidence. PR #35 adds geometry-aware loop-closure evaluation for caller-supplied configurations; it does not imply a general spatial solver.
 
 Next dependency sequence: PR #36 nonlinear configuration/solver integration; PR #37 integrated mobility and kinematics validation; PR #38 engineering regression and reference validation; PR #39 spatial-joint foundation. Subsequent repository-wide work remains governed by the capability inventory, requirement traceability, explicit owner decisions and per-module reference tests. A roadmap item is not complete merely because it is documented.
+
+
+PR #35 — Geometry-aware loop-closure evaluation — merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`; exact PR-head run #283 and post-merge run #284 passed 253 tests each. This validates supplied configurations only and does not imply nonlinear configuration search or physical feasibility.

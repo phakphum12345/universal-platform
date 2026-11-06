@@ -1,6 +1,6 @@
 # Geometry-aware Mechanism Loop-Closure Evaluation Contract
 
-**Status:** Implemented in PR #35; evaluates supplied configurations only.
+**Status:** Implemented and merged in PR #35 at `223740381b81fc06a292eb90ba0653b27cbe8e7a`; PR-head run #283 and post-merge run #284 passed 253 tests each. Evaluates supplied configurations only.
 
 ## Purpose
 
