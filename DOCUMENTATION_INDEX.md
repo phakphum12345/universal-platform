@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `8aba562a1df6c0691c855f95ef16a9ba94089556` (PR #71 merge); post-merge run `42225830931` passed workflow-sanity and python-tests, 516 tests in 1.45s. PRs #49, #52, #54, #56, #59–#71 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 185 files, 87 Markdown documents, 41 source files, 10 JSON schemas, 43 test/fixture files; tree response was not truncated. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `6cdfffc8d9fffadb7162977c77efd54445bb9471` (PR #72 merge); post-merge run `42226282668` passed workflow-sanity and python-tests, 516 tests in 2.03s. PRs #49, #52, #54, #56, #59–#72 are integrated on `docs/phase-0-complete-requirements`. Latest recursive tree audit at this SHA: 185 files, 87 Markdown documents, 41 source files, 10 JSON schemas, 43 test/fixture files; tree response was not truncated. PR #73 adds a design-only STL interchange contract on a separate branch. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 
@@ -62,6 +62,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [3D Interchange and Geometry Contract](docs/design-3d/3D_INTERCHANGE_AND_GEOMETRY_CONTRACT.md) — geometry metadata and neutral exchange.
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md) — geometry, assembly and engineering validation layers.
 - [Deterministic Primitive Triangle Mesh Contract](docs/design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md) — implemented Box/Cylinder and straight/arc profile tessellation, including polygonal holes, with structural validation scope.
+- [Binary STL Interchange](docs/design-3d/STL_INTERCHANGE_CONTRACT.md) — staged export/sidecar design contract; implementation not yet available.
 - [3D Motion and Mechanism Reference Cases](docs/design-3d/3D_MOTION_AND_MECHANISM_REFERENCE_CASES.md) — deterministic mechanism fixtures.
 - [CAD to Manufacturing Pipeline](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md) — proposed manufacturing artifact workflow.
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md) — proposed structural/civil engineering scope.

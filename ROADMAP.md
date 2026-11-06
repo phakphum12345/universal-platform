@@ -175,6 +175,14 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds a regression for a curved polygonal hole: watertight edge incidence, consistent winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict round trip.
 - This closes the missing hole-arc reference in the PR #70 implementation; it does not broaden support to non-circular curves or general mesh repair.
 
+## PR #73 — Binary STL interchange contract (DESIGN ONLY)
+
+- Adds `STL_INTERCHANGE_CONTRACT.md` for deterministic binary STL export with a mandatory metadata sidecar.
+- Defines explicit frame/unit/provenance/tolerance fields, SHA-256 binding, IEEE-754 binary32 quantization, resource limits, strict byte layout and fail-closed behavior.
+- First implementation increment is export-only with an independent test-only binary reader; arbitrary external STL import and external CAD application reopen remain separate gates.
+- No STL implementation, STEP/3MF support, third-party runtime dependency or CAD toolchain selection is claimed.
+- Implementation gate: add versioned manifest schema, deterministic exporter, quantization/error checks, independent parser references and exact-SHA CI; retain TECH-002 as OPEN until external interoperability is evaluated.
+
 ## Next repository increments
 
 1. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
