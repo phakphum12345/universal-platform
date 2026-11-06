@@ -1,0 +1,312 @@
+"""Deterministic feature DAG and bounded CAD regeneration pipeline.
+
+Only built-in, allow-listed operations are evaluated. No user Python, plugins,
+shell commands, network access or physical device actions are executed.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+from hashlib import sha256
+from json import dumps, loads
+from typing import ClassVar, Mapping
+import re
+
+from .errors import InvalidModelError, SolverError
+from .mesh import tessellate_extruded_profile, validate_triangle_mesh
+from .nonlinear_solver import NonlinearSolverOptions
+from .parametric_sketch import ParametricSketch, solve_parametric_sketch
+from .planar_boolean import PlanarRegionBooleanOperation
+from .planar_region_extrusion import PlanarRegionExtrusionResult, extrude_planar_region
+from .planar_region_set_boolean import PlanarRegionSetBooleanResult, boolean_planar_region_set
+from .sketch_region import SketchRegionConversionResult, sketch_to_planar_regions
+
+_FEATURE_ID = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
+
+
+class FeatureKind(str, Enum):
+    SKETCH_PROFILE = "SKETCH_PROFILE"
+    PLANAR_BOOLEAN = "PLANAR_BOOLEAN"
+    EXTRUSION = "EXTRUSION"
+    MESH = "MESH"
+
+
+class RegenerationStatus(str, Enum):
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureNode:
+    feature_id: str
+    kind: FeatureKind
+    input_feature_ids: tuple[str, ...] = ()
+    parameters_json: str = "{}"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.feature_id, str) or not _FEATURE_ID.fullmatch(self.feature_id):
+            raise InvalidModelError("feature_id must be a stable lowercase identifier")
+        if not isinstance(self.kind, FeatureKind):
+            raise InvalidModelError("feature kind is unsupported")
+        if not isinstance(self.input_feature_ids, tuple) or any(
+            not isinstance(item, str) or not _FEATURE_ID.fullmatch(item)
+            for item in self.input_feature_ids
+        ):
+            raise InvalidModelError("input_feature_ids must be an immutable tuple of feature identifiers")
+        if len(set(self.input_feature_ids)) != len(self.input_feature_ids):
+            raise InvalidModelError("feature input references must be unique")
+        if self.feature_id in self.input_feature_ids:
+            raise InvalidModelError("feature cannot depend on itself")
+        if not isinstance(self.parameters_json, str):
+            raise InvalidModelError("feature parameters must be canonical JSON text")
+        try:
+            raw = loads(self.parameters_json)
+        except Exception as exc:
+            raise InvalidModelError("feature parameters_json must contain valid JSON") from exc
+        if not isinstance(raw, dict):
+            raise InvalidModelError("feature parameters must be a JSON object")
+        canonical = dumps(raw, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        object.__setattr__(self, "parameters_json", canonical)
+
+    @classmethod
+    def create(
+        cls,
+        feature_id: str,
+        kind: FeatureKind,
+        input_feature_ids: tuple[str, ...] = (),
+        parameters: Mapping[str, object] | None = None,
+    ) -> "FeatureNode":
+        try:
+            encoded = dumps(dict(parameters or {}), sort_keys=True, separators=(",", ":"), allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise InvalidModelError("feature parameters must be finite JSON-compatible values") from exc
+        return cls(feature_id, kind, input_feature_ids, encoded)
+
+    @property
+    def parameters(self) -> dict[str, object]:
+        return loads(self.parameters_json)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "feature_id": self.feature_id,
+            "kind": self.kind.value,
+            "input_feature_ids": list(self.input_feature_ids),
+            "parameters": self.parameters,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistory:
+    history_id: str
+    nodes: tuple[FeatureNode, ...]
+    output_feature_ids: tuple[str, ...]
+
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.history_id, str) or not _FEATURE_ID.fullmatch(self.history_id):
+            raise InvalidModelError("history_id must be a stable lowercase identifier")
+        if not isinstance(self.nodes, tuple) or not self.nodes or any(
+            not isinstance(node, FeatureNode) for node in self.nodes
+        ):
+            raise InvalidModelError("feature history requires an immutable non-empty node tuple")
+        if not isinstance(self.output_feature_ids, tuple) or not self.output_feature_ids:
+            raise InvalidModelError("feature history requires at least one output feature")
+        ids = [node.feature_id for node in self.nodes]
+        if len(ids) != len(set(ids)):
+            raise InvalidModelError("feature identifiers must be unique")
+        known = set(ids)
+        for node in self.nodes:
+            if any(item not in known for item in node.input_feature_ids):
+                raise InvalidModelError(f"feature {node.feature_id!r} references a missing dependency")
+        if any(item not in known for item in self.output_feature_ids):
+            raise InvalidModelError("feature history output references a missing feature")
+        if len(set(self.output_feature_ids)) != len(self.output_feature_ids):
+            raise InvalidModelError("feature history output identifiers must be unique")
+        self.topological_order()
+
+    def topological_order(self) -> tuple[str, ...]:
+        dependencies = {node.feature_id: set(node.input_feature_ids) for node in self.nodes}
+        order: list[str] = []
+        while dependencies:
+            ready = sorted(key for key, value in dependencies.items() if not value)
+            if not ready:
+                raise InvalidModelError("feature dependency graph contains a cycle")
+            for feature_id in ready:
+                order.append(feature_id)
+                dependencies.pop(feature_id)
+            for value in dependencies.values():
+                value.difference_update(ready)
+        return tuple(order)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "history_id": self.history_id,
+            "nodes": [node.to_dict() for node in self.nodes],
+            "output_feature_ids": list(self.output_feature_ids),
+        }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, object]) -> "FeatureHistory":
+        required = {"schema_version", "history_id", "nodes", "output_feature_ids"}
+        if not isinstance(value, Mapping) or set(value) != required:
+            raise InvalidModelError("FeatureHistory snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION:
+            raise InvalidModelError("unsupported FeatureHistory schema_version")
+        if not isinstance(value["nodes"], (list, tuple)) or not isinstance(value["output_feature_ids"], (list, tuple)):
+            raise InvalidModelError("FeatureHistory nodes and output_feature_ids must be arrays")
+        nodes = []
+        for raw in value["nodes"]:
+            if not isinstance(raw, Mapping) or set(raw) != {"feature_id", "kind", "input_feature_ids", "parameters"}:
+                raise InvalidModelError("FeatureNode snapshot has missing or unknown fields")
+            if not isinstance(raw["input_feature_ids"], (list, tuple)) or not isinstance(raw["parameters"], Mapping):
+                raise InvalidModelError("FeatureNode inputs and parameters have invalid types")
+            try:
+                kind = FeatureKind(raw["kind"])
+            except (TypeError, ValueError) as exc:
+                raise InvalidModelError("unsupported feature kind") from exc
+            nodes.append(FeatureNode.create(
+                raw["feature_id"], kind, tuple(raw["input_feature_ids"]), raw["parameters"]
+            ))
+        return cls(value["history_id"], tuple(nodes), tuple(value["output_feature_ids"]))
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureArtifact:
+    feature_id: str
+    kind: FeatureKind
+    content_sha256: str
+    payload_json: str
+    value: object
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "feature_id": self.feature_id,
+            "kind": self.kind.value,
+            "content_sha256": self.content_sha256,
+            "payload": loads(self.payload_json),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureRegenerationResult:
+    history_id: str
+    status: RegenerationStatus
+    execution_order: tuple[str, ...]
+    artifacts: tuple[FeatureArtifact, ...]
+    failed_feature_id: str | None = None
+    error: str | None = None
+
+    @property
+    def successful(self) -> bool:
+        return self.status is RegenerationStatus.SUCCESS
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": "1.0",
+            "history_id": self.history_id,
+            "status": self.status.value,
+            "execution_order": list(self.execution_order),
+            "artifacts": [item.to_dict() for item in self.artifacts],
+            "failed_feature_id": self.failed_feature_id,
+            "error": self.error,
+            "limitations": [
+                "Only built-in allow-listed SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH operations execute",
+                "No user code, plugin, shell, network or physical device execution",
+                "No persistent document store, incremental recompute cache, suppression or branch/merge history",
+                "Geometry remains bounded by the source PlanarRegion and mesh kernel limitations",
+            ],
+        }
+
+
+def _make_artifact(feature_id: str, kind: FeatureKind, value: object, payload: dict[str, object]) -> FeatureArtifact:
+    payload_json = dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    digest = sha256(payload_json.encode("utf-8")).hexdigest()
+    return FeatureArtifact(feature_id, kind, digest, payload_json, value)
+
+
+def _regions_from_artifact(artifact: FeatureArtifact) -> tuple:
+    if isinstance(artifact.value, (SketchRegionConversionResult, PlanarRegionSetBooleanResult)):
+        return artifact.value.regions
+    raise InvalidModelError("feature dependency does not produce planar regions")
+
+
+def regenerate_feature_history(
+    history: FeatureHistory,
+    *,
+    solver_options: NonlinearSolverOptions | None = None,
+) -> FeatureRegenerationResult:
+    """Recompute the entire feature DAG in deterministic topological order.
+
+    Any expected feature/model/solver failure aborts the run and discards all
+    partial artifacts from the returned result.
+    """
+    if not isinstance(history, FeatureHistory):
+        raise InvalidModelError("regenerate_feature_history requires a FeatureHistory")
+    by_id = {node.feature_id: node for node in history.nodes}
+    computed: dict[str, FeatureArtifact] = {}
+    completed: list[str] = []
+    for feature_id in history.topological_order():
+        node = by_id[feature_id]
+        parameters = node.parameters
+        inputs = [computed[item] for item in node.input_feature_ids]
+        try:
+            if node.kind is FeatureKind.SKETCH_PROFILE:
+                if inputs or set(parameters) != {"sketch"} or not isinstance(parameters["sketch"], Mapping):
+                    raise InvalidModelError("SKETCH_PROFILE requires no inputs and exactly one sketch snapshot")
+                sketch = ParametricSketch.from_dict(parameters["sketch"])
+                solved = solve_parametric_sketch(sketch, options=solver_options)
+                if not solved.converged:
+                    raise SolverError("sketch constraints did not converge")
+                value = sketch_to_planar_regions(sketch, solved)
+                payload = value.to_dict()
+            elif node.kind is FeatureKind.PLANAR_BOOLEAN:
+                if len(inputs) < 2 or set(parameters) != {"operation"}:
+                    raise InvalidModelError("PLANAR_BOOLEAN requires at least two region inputs and operation")
+                try:
+                    operation = PlanarRegionBooleanOperation(parameters["operation"])
+                except (TypeError, ValueError) as exc:
+                    raise InvalidModelError("unsupported planar Boolean operation") from exc
+                regions = tuple(region for artifact in inputs for region in _regions_from_artifact(artifact))
+                value = boolean_planar_region_set(regions, operation)
+                payload = value.to_dict()
+            elif node.kind is FeatureKind.EXTRUSION:
+                if len(inputs) != 1 or set(parameters) - {"solid_id", "height", "region_index"} or not {
+                    "solid_id", "height"
+                }.issubset(parameters):
+                    raise InvalidModelError("EXTRUSION requires one region input, solid_id and height")
+                if not isinstance(parameters["solid_id"], str) or not parameters["solid_id"]:
+                    raise InvalidModelError("EXTRUSION solid_id must be non-empty")
+                region_index = parameters.get("region_index", 0)
+                if isinstance(region_index, bool) or not isinstance(region_index, int) or region_index < 0:
+                    raise InvalidModelError("EXTRUSION region_index must be a non-negative integer")
+                regions = _regions_from_artifact(inputs[0])
+                if region_index >= len(regions):
+                    raise InvalidModelError("EXTRUSION region_index is outside the input region set")
+                value = extrude_planar_region(regions[region_index], parameters["solid_id"], parameters["height"])
+                payload = value.to_dict()
+            elif node.kind is FeatureKind.MESH:
+                if len(inputs) != 1 or parameters:
+                    raise InvalidModelError("MESH requires one extrusion input and no parameters")
+                if not isinstance(inputs[0].value, PlanarRegionExtrusionResult):
+                    raise InvalidModelError("MESH input must be an EXTRUSION feature")
+                mesh = tessellate_extruded_profile(inputs[0].value.solid)
+                validation = validate_triangle_mesh(mesh)
+                if not (validation.valid and validation.watertight and validation.consistently_oriented):
+                    raise InvalidModelError("generated mesh failed closed/watertight/orientation validation")
+                value = (mesh, validation)
+                payload = {"mesh": mesh.to_dict(), "validation": validation.to_dict()}
+            else:
+                raise InvalidModelError("feature kind is not executable")
+            computed[feature_id] = _make_artifact(feature_id, node.kind, value, payload)
+            completed.append(feature_id)
+        except (InvalidModelError, SolverError, TypeError, ValueError, KeyError) as exc:
+            return FeatureRegenerationResult(
+                history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
+                feature_id, str(exc),
+            )
+    return FeatureRegenerationResult(
+        history.history_id, RegenerationStatus.SUCCESS, tuple(completed),
+        tuple(computed[item] for item in history.topological_order()),
+    )
