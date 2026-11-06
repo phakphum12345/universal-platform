@@ -153,7 +153,7 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - The curved-hole reference checks closed/manifold topology, consistent winding, positive volume, a conservative chordal-area error bound, exact source endpoint retention, deterministic output and strict snapshot round trip.
 
 
-## Binary STL export references (PR #73 design candidate)
+## Binary STL export references (PR #74 implementation candidate)
 
 - Require a valid source TriangleMesh and reject non-finite/overflowing float32 coordinates, quantized degenerate facets and facet counts above the documented resource limit.
 - Verify deterministic 80-byte header, little-endian facet count, 50-byte facet records, zero attribute bytes and exact payload length.
