@@ -3,7 +3,7 @@
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged integration baseline:** `d7b740fc98d396c130f1c17b3c6487b30b599c2c` (PR #36; bounded geometric loop coordinate solver).  
 **Latest merged feature:** PR #36 squash merge `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; post-merge run #290 (ID `42162667016`) passed workflow-sanity and python-tests; **258 tests passed in 0.59s**. PR-head push run #288 (ID `42162588094`) and PR run #289 (ID `42162600490`) each passed with 258 tests.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -325,3 +325,10 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3`: push run #293 (`42163424217`) and PR run #294 (`42163431321`) passed `workflow-sanity` and `python-tests`; **265 passed** on both (0.56s / 0.41s). Documentation-only marker SKIPPED.
 - Squash merge commit: `41d81818385dd82497840ce93ce5aac60e3216da`.
 - Post-merge run #295 (`42163519632`) on the exact merge SHA passed both checks; **265 passed in 0.78s**.
+
+
+## PR #38 — Cross-discipline engineering reference validation (implementation candidate)
+
+- Adds a versioned JSON registry of independently derived reference cases with stable IDs, operation names, explicit inputs, expected outputs, tolerances and reference equations.
+- Exercises dimensional conversion, mechanics, DC electrical, thermal expansion, analytic geometry, rigid transforms, linear algebra, static algebraic simulation, planar inverse kinematics, four-bar closure, material records, assembly metadata, constraints and the physical-execution safety gate.
+- The pack validates implemented analytical contracts only; illustrative material values are not certified allowables, and the static solver is not FEA.

@@ -117,3 +117,6 @@ PR #34 exact code/documentation head `c0a69866ceaf318b5e05ae4689ba018085e6363f` 
 
 
 | CAD-003I | Generated spatial local mobility | AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT; AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT; MECHANISM_MOBILITY_CONTRACT | Finite-difference Jacobian columns combine non-ground spatial body-pose tangent variables and independent joint coordinates; ground pose excluded; local mobility is total variables minus estimated rank (PR #37; final PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3`; runs #293/#294: 265 tests PASS; squash merge `41d81818385dd82497840ce93ce5aac60e3216da`; post-merge run #295 on exact merge SHA: 265 tests PASS). PLANAR auto-mobility remains deferred pending explicit plane-frame contract |
+
+
+| VAL-REF-001 | Cross-discipline reference validation | ENGINEERING_REFERENCE_VALIDATION_PACK; tests/reference_cases/engineering_reference_cases.json | Versioned case registry with unique stable IDs, formulas, explicit tolerances and executable reference checks across quantity, mechanics, electrical, thermal, geometry, transforms, linear algebra, simulation, kinematics, materials, assembly, constraints and safety (PR #38; exact-SHA evidence pending) |
