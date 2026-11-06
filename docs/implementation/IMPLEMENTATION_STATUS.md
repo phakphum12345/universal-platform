@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline before PR #31:** b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb (PR #30; integrated mechanism position, mobility, velocity and acceleration pipeline)  
+**Latest merged baseline:** 26c8d15dcf0e97e1dca1f13cc5da702e758b96d9 (PR #31; explicit joint and geometry placements, schema v1.1)  
 **Latest merged work:** Mechanism constraint adapter design contract (PR #24), merged at `7aead53ac5af9dd3a82999c823a413db0e2f4ead`. PR #25 added the stable-ID planar 4R model adapter (merge `6198529d0e816898ad84e20efa153d54c6e0c61d`); PR #26 completed all four stable-ID link residuals and strict angle validation (merge `129a5f7867147b32d5582695b68d365db2b0c497`). Latest solver implementation remains PR #23 at `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`; PR #21 added variable scaling, PR #20 added rank diagnostics, PR #19 added configurable Jacobian strategies, and PR #18 established the Phase 2 reliability plan.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema, rigid transforms and frame graph, rooted-tree forward kinematics, narrow planar 2R/4R solvers, general loop topology, caller-driven mobility/kinematics integration; explicit joint/geometry placements are proposed in PR #31.
 
@@ -258,5 +258,5 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Legacy schema v1.0 topology-only models remain valid; placement records require schema v1.1.
 - Missing placement IDs are reported as coverage gaps rather than assumed identity.
 - Regression tests cover valid placement chains, missing coverage, legacy compatibility, schema rejection, duplicate/dangling IDs, frame endpoint/ownership mismatch, units and deterministic snapshots.
-- Branch `feat/joint-geometry-placement-contract`; base SHA `213b07e1ea362bf3fe6b460d5495bd505b2232e4`. CI evidence pending exact final PR head.
+- Branch `feat/joint-geometry-placement-contract`; base SHA `213b07e1ea362bf3fe6b460d5495bd505b2232e4`; tested PR head `1807a623c11655c2d80662cb0a75ca093a3e39f7`. Push run #247 (`42155058023`) and PR run #248 (`42155131491`) on that exact head: workflow-sanity PASS; python-tests PASS, 212 passed (0.40s / 0.43s). Squash merge `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge run #249 (`42155225252`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 212 passed in 0.50s. Documentation-only marker SKIPPED, not PASS.
 - Explicit non-goals: CAD inference, automatic joint residual equations, automatic Jacobians, time-derivative bias generation, general spatial solving, dynamics or physical validation.

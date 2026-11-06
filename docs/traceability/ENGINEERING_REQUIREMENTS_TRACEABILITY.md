@@ -69,9 +69,14 @@ PR #30 final tested head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`
 - Joint placement frame chain is parent-link body frame → joint frame → child-link body frame. Geometry placement is geometry-local frame → GeometryReference frame.
 - Placement translations use metres; unit conversion is explicit and external. Transform endpoints are validated exactly using the existing rigid-transform contract.
 - Schema v1.0 remains readable without placement records. Missing placements are reported explicitly and are never treated as identity transforms.
-- PR #31 branch `feat/joint-geometry-placement-contract`, base `213b07e1ea362bf3fe6b460d5495bd505b2232e4`; final CI evidence pending.
+- PR #31 branch `feat/joint-geometry-placement-contract`, base `213b07e1ea362bf3fe6b460d5495bd505b2232e4`, tested PR head `1807a623c11655c2d80662cb0a75ca093a3e39f7`; push run #247 and PR run #248 passed workflow-sanity and python-tests (212 passed). Squash merge `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge run #249 on exact merge SHA passed workflow-sanity and python-tests (212 passed in 0.50s). Documentation-only marker SKIPPED.
 - Not included: automatic constraint equations, Jacobians, CAD inference, dynamics or physical feasibility.
 
 ## PR #30 exact merge evidence reconciliation
 
 PR #30 final tested head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`42153688904`): workflow-sanity PASS and python-tests PASS (203 passed). Squash merge `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb); post-merge run #243 (`42153753500`) on the exact merge SHA: workflow-sanity PASS and python-tests PASS (203 passed). Earlier fixture-only failure on initial head was corrected and remains historical evidence.
+
+
+## PR #31 exact merge evidence
+
+PR #31 tested head `1807a623c11655c2d80662cb0a75ca093a3e39f7`; push run #247 (`42155058023`) and pull_request run #248 (`42155131491`) both passed workflow-sanity and python-tests (212 passed). Squash merge commit `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge push run #249 (`42155225252`) on that exact merge SHA passed workflow-sanity and python-tests (212 passed in 0.50s). Documentation-only marker SKIPPED, not PASS.
