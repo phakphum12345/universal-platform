@@ -33,7 +33,7 @@ def test_planar_region_area_uses_exact_rational_binary64_predicates():
         ((7, 2), (7, 5), (10-1, 5), (10-1, 2)),
     ))
     assert region.area_exact == Fraction(68, 1)
-    assert region.area == 74.0
+    assert region.area == 68.0
     assert region.boundary_edge_count == 12
     assert len(region.canonical_sha256) == 64
 
@@ -41,9 +41,9 @@ def test_planar_region_area_uses_exact_rational_binary64_predicates():
 def test_planar_region_accepts_disjoint_multiple_holes():
     region = _region(holes=(
         ((2, 2), (2, 4), (4, 4), (4, 2)),
-        ((7, 2), (7, 5), (10, 5), (10, 2)),
+        ((7, 2), (7, 5), (9, 5), (9, 2)),
     ))
-    assert region.area_exact == Fraction(67, 1)
+    assert region.area_exact == Fraction(70, 1)
 
 
 @pytest.mark.parametrize("outer", [
