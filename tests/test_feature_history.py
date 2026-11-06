@@ -112,7 +112,7 @@ def test_feature_history_rejects_missing_dependencies_duplicate_ids_and_cycles()
         ), ("a",))
     with pytest.raises(InvalidModelError, match="unique"):
         FeatureHistory("bad", (
-            FeatureNode.create("same", FeatureKind.MESH, ("other",)),
+            FeatureNode.create("same", FeatureKind.MESH, ()),
             FeatureNode.create("same", FeatureKind.MESH, ()),
         ), ("same",))
 
