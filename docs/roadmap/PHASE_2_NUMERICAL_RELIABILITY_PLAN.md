@@ -137,7 +137,7 @@ Acceptance:
 **Goal:** Define the seam between generic numerical solving and mechanism-specific residual construction.
 
 Deliverables:
-- Specify an adapter contract that maps a mechanism model snapshot into ordered variables, scalar residuals, units/scales, tolerances, bounds, and source references.
+- Specify an adapter contract that maps a mechanism model snapshot into ordered variables, scalar residuals, units/scales, tolerances, bounds, and source references. A proposed contract is documented in `docs/engineering/MECHANISM_CONSTRAINT_ADAPTER_CONTRACT.md` (PR #24); it is not an implementation.
 - Define stable variable/constraint identifiers and deterministic ordering.
 - Define how joint, link, frame, loop-closure, and fixed-reference constraints are translated to residuals.
 - Define validation of model topology and coordinate-frame consistency before numerical solving.

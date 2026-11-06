@@ -29,6 +29,13 @@
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
+## PR #24 — Mechanism constraint adapter contract (under review)
+
+- Candidate branch: `docs/phase-2-mechanism-adapter-contract`.
+- Adds `docs/engineering/MECHANISM_CONSTRAINT_ADAPTER_CONTRACT.md` specifying proposed input snapshot, normalized problem fields, stable identifiers, residual conventions, validation gates, gauge/redundancy/branch/singularity handling, result mapping and future acceptance tests.
+- Updates the solver/model contract and Phase 2 WP-2.6 references.
+- **Evidence status:** documentation/design proposal only; no general mechanism adapter implementation is claimed. CI and merge status pending.
+
 ## PR #23 — Versioned nonlinear solver result schema
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/23
