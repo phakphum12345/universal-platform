@@ -1,10 +1,10 @@
 # Generalized Coordinate and Joint Parameterization Contract
 
-**Status:** Implemented schema v1.2 structural contract. Automatic geometric joint equations, Jacobians and time derivatives remain separate follow-on work.
+**Status:** Implemented schema v1.2 structural contract. PR #33 adds generated six-component pose-consistency residuals for all eight declared joint kinds; PR #34 adds finite-difference Jacobians; PR #37 adds SPATIAL local mobility analysis for supplied configurations. PR #54 adds missing all-family Jacobian/mobility reference coverage. General time derivatives and a general mechanism solver remain unimplemented.
 
 ## Purpose
 
-Give every independent mechanism degree of freedom a stable identity, explicit physical kind/unit, local axis, bounds and numerical scale. Map those generalized coordinates to a specific normalized joint in a deterministic order. This is a model/schema contract; it does not imply that the solver can evaluate every joint.
+Give every independent mechanism degree of freedom a stable identity, explicit physical kind/unit, local axis, bounds and numerical scale. Map those generalized coordinates to a specific normalized joint in a deterministic order. This is a model/schema contract used by the generated joint residual and finite-difference Jacobian layers. It does not imply a general global mechanism solver or physical feasibility.
 
 ## Records
 
@@ -26,7 +26,7 @@ Give every independent mechanism degree of freedom a stable identity, explicit p
 | PLANAR | TRANSLATIONAL, TRANSLATIONAL, ROTATIONAL | Axes form a right-handed orthonormal basis |
 | UNIVERSAL | ROTATIONAL × 2 | Axes must not be parallel |
 
-Spherical conventions: EULER_INTRINSIC_XYZ, EULER_INTRINSIC_ZYX, EULER_EXTRINSIC_XYZ and EULER_EXTRINSIC_ZYX. This records a convention only; it does not implement orientation composition or remove Euler singularities.
+Spherical conventions: EULER_INTRINSIC_XYZ, EULER_INTRINSIC_ZYX, EULER_EXTRINSIC_XYZ and EULER_EXTRINSIC_ZYX. The generated joint residual builder applies the declared sequence when composing spherical-joint orientation. Euler singularities are not removed; no quaternion parameterization is claimed.
 
 ## Validation and determinism
 
@@ -47,7 +47,7 @@ Spherical conventions: EULER_INTRINSIC_XYZ, EULER_INTRINSIC_ZYX, EULER_EXTRINSIC
 
 ## Explicit non-goals
 
-- No automatic residual equation or Jacobian generation.
-- No automatic conversion of generalized coordinates into solver variables.
-- No branch discovery, symbolic differentiation, dynamics, contact/collision, physical feasibility, machine control or certification.
+- No symbolic differentiation, exact analytic Jacobian or general time-derivative engine.
+- No general global configuration search, branch discovery, arbitrary loop solver or uniqueness proof.
+- No dynamics, contact/collision, physical feasibility, machine control or certification.
 - Coordinate scales are normalization metadata, not a claim of a well-conditioned system.
