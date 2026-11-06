@@ -14,7 +14,7 @@ from typing import Any, ClassVar, Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .primitive_geometry import BoxSolid, CylinderSolid
+from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid
 from .quantity import LENGTH, Quantity
 
 
@@ -24,7 +24,7 @@ def _finite(value: Any, label: str) -> float:
     return float(value)
 
 
-def _source_digest(solid: BoxSolid | CylinderSolid) -> str:
+def _source_digest(solid: BoxSolid | CylinderSolid | ExtrudedProfileSolid) -> str:
     payload = dumps(solid.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False)
     return sha256(payload.encode("utf-8")).hexdigest()
 
@@ -58,8 +58,8 @@ class TriangleMesh:
             if isinstance(exc, InvalidModelError):
                 raise
             raise InvalidModelError(f"unsupported mesh length_unit: {self.length_unit}") from exc
-        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER"}:
-            raise InvalidModelError("mesh source_kind must be BOX or CYLINDER")
+        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE"}:
+            raise InvalidModelError("mesh source_kind must be BOX, CYLINDER or EXTRUDED_PROFILE")
         if (not isinstance(self.source_geometry_sha256, str)
                 or len(self.source_geometry_sha256) != 64
                 or any(ch not in "0123456789abcdef" for ch in self.source_geometry_sha256)):
@@ -83,6 +83,8 @@ class TriangleMesh:
             raise InvalidModelError("exact box tessellation must not declare chordal_tolerance")
         if self.source_kind == "CYLINDER" and self.chordal_tolerance is None:
             raise InvalidModelError("cylinder tessellation requires an explicit chordal_tolerance")
+        if self.source_kind == "EXTRUDED_PROFILE" and self.chordal_tolerance is not None:
+            raise InvalidModelError("straight profile tessellation does not declare chordal_tolerance")
 
     def to_dict(self) -> dict[str, Any]:
         return {
