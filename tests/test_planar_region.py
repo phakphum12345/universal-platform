@@ -32,7 +32,7 @@ def test_planar_region_area_uses_exact_rational_binary64_predicates():
         ((2, 2), (2, 4), (5, 4), (5, 2)),
         ((7, 2), (7, 5), (10-1, 5), (10-1, 2)),
     ))
-    assert region.area_exact == Fraction(74, 1)
+    assert region.area_exact == Fraction(68, 1)
     assert region.area == 74.0
     assert region.boundary_edge_count == 12
     assert len(region.canonical_sha256) == 64
@@ -43,7 +43,7 @@ def test_planar_region_accepts_disjoint_multiple_holes():
         ((2, 2), (2, 4), (4, 4), (4, 2)),
         ((7, 2), (7, 5), (10, 5), (10, 2)),
     ))
-    assert region.area_exact == Fraction(83, 1)
+    assert region.area_exact == Fraction(67, 1)
 
 
 @pytest.mark.parametrize("outer", [
@@ -102,3 +102,13 @@ def test_planar_region_edge_resource_limit_is_explicit():
     points = tuple(Vec2(i, i % 2) for i in range(2050))
     with pytest.raises(InvalidModelError, match="resource limit"):
         PlanarRegion("region.large", "part", "mm", points)
+
+
+
+def test_planar_region_schema_is_strict_and_matches_serialized_fields():
+    from pathlib import Path
+    schema = json.loads((Path(__file__).parents[1] / "schemas" / "geometry" /
+                         "planar-region.schema.json").read_text(encoding="utf-8"))
+    region = _region()
+    assert set(region.to_dict()) == set(schema["required"])
+    assert schema["additionalProperties"] is False

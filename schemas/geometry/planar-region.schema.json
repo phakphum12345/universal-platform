@@ -11,7 +11,7 @@
     "length_unit":{"type":"string","minLength":1},
     "precision_policy":{"const":"binary64-exact-rational-v1"},
     "outer_boundary":{"$ref":"#/$defs/boundary"},
-    "holes":{"type":"array","items":{"$ref":"#/$defs/boundary"}},
+    "holes":{"type":"array","items":{"$ref":"#/$defs/boundary"}}
   },
   "$defs":{
     "point":{"type":"object","additionalProperties":false,"required":["x","y"],"properties":{"x":{"type":"number"},"y":{"type":"number"}}},
