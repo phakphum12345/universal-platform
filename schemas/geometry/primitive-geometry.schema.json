@@ -10,7 +10,10 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "frame_graph": {
       "$ref": "coordinate-frame-graph.schema.json"
@@ -32,6 +35,52 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.0"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "properties": {
+          "solids": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "arc_sweeps_rad"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "hole_arc_sweeps_rad"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "segment_ids"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "hole_segment_ids"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "box": {
       "type": "object",
@@ -197,6 +246,42 @@
             "minItems": 3,
             "items": {
               "$ref": "#/$defs/profilePoint"
+            }
+          }
+        },
+        "arc_sweeps_rad": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "segment_ids": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+          }
+        },
+        "hole_arc_sweeps_rad": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "hole_segment_ids": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
             }
           }
         }

@@ -51,7 +51,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Mechanism Constraint Adapter Contract](docs/engineering/MECHANISM_CONSTRAINT_ADAPTER_CONTRACT.md) — proposed general adapter boundary.
 - [Engineering Failure Modes](docs/engineering/ENGINEERING_FAILURE_MODES.md) — error taxonomy and failure semantics.
 - [Engineering Reference Cases](docs/engineering/ENGINEERING_REFERENCE_CASES.md) — reference-case design catalogue.
-- [CAD-neutral Primitive Geometry](docs/engineering/CAD_NEUTRAL_PRIMITIVE_GEOMETRY.md) — implemented analytic primitives and profile extrusion boundaries.
+- [CAD-neutral Primitive Geometry](docs/engineering/CAD_NEUTRAL_PRIMITIVE_GEOMETRY.md) — analytic primitives, straight/curved profile extrusion and known CAD-kernel boundaries.
 
 ## 3D design, geometry, mechanisms and manufacturing
 
