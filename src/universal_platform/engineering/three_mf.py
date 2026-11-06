@@ -210,12 +210,15 @@ def import_3mf(content: bytes) -> ThreeMFImportResult:
     content_types = _parse_xml(parts["[Content_Types].xml"], "content-types")
     if content_types.tag != f"{{{_CT_NS}}}Types":
         raise InvalidModelError("3MF Content_Types root is invalid")
-    overrides = [
-        item for item in content_types.findall(f"{{{_CT_NS}}}Override")
-        if item.attrib.get("PartName") == "/3D/3dmodel.model"
-    ]
-    if len(overrides) != 1 or overrides[0].attrib.get("ContentType") != _MODEL_CONTENT_TYPE:
-        raise InvalidModelError("3MF model part content type is missing or unsupported")
+    overrides = content_types.findall(f"{{{_CT_NS}}}Override")
+    defaults = content_types.findall(f"{{{_CT_NS}}}Default")
+    if (len(overrides) != 1 or len(defaults) != 1
+            or overrides[0].attrib != {"PartName": "/3D/3dmodel.model", "ContentType": _MODEL_CONTENT_TYPE}
+            or defaults[0].attrib != {
+                "Extension": "rels",
+                "ContentType": "application/vnd.openxmlformats-package.relationships+xml",
+            }):
+        raise InvalidModelError("3MF package content types are missing or unsupported")
 
     relationships = _parse_xml(parts["_rels/.rels"], "relationships")
     if relationships.tag != f"{{{_REL_NS}}}Relationships":
@@ -227,6 +230,8 @@ def import_3mf(content: bytes) -> ThreeMFImportResult:
     root = _parse_xml(parts["3D/3dmodel.model"], "model")
     if root.tag != f"{{{_CORE_NS}}}model":
         raise InvalidModelError("3MF model root namespace is unsupported")
+    if set(root.attrib) - {"unit", "{http://www.w3.org/XML/1998/namespace}lang"}:
+        raise InvalidModelError("3MF model has unsupported root attributes")
     unit_name = root.attrib.get("unit", "millimeter")
     length_unit = _UNIT_FROM_3MF.get(unit_name)
     if length_unit is None:
@@ -243,27 +248,39 @@ def import_3mf(content: bytes) -> ThreeMFImportResult:
     builds = [item for item in children if item.tag == f"{{{_CORE_NS}}}build"]
     if len(resources) != 1 or len(builds) != 1:
         raise InvalidModelError("3MF model requires exactly one resources and one build element")
+    if children.index(resources[0]) > children.index(builds[0]):
+        raise InvalidModelError("3MF resources must be defined before build items")
     if any(item.tag not in {f"{{{_CORE_NS}}}metadata", f"{{{_CORE_NS}}}resources", f"{{{_CORE_NS}}}build"} for item in children):
         raise InvalidModelError("3MF model contains unsupported extension elements")
 
     objects = resources[0].findall(f"{{{_CORE_NS}}}object")
-    if len(objects) != 1:
-        raise InvalidModelError("3MF import supports exactly one mesh object")
+    if len(objects) != 1 or len(list(resources[0])) != 1:
+        raise InvalidModelError("3MF import supports exactly one mesh object and no other resources")
     obj = objects[0]
+    if set(obj.attrib) - {"id", "type"}:
+        raise InvalidModelError("3MF object has unsupported attributes")
     object_id = obj.attrib.get("id")
     if obj.attrib.get("type", "model") != "model":
         raise InvalidModelError("3MF object type must be model")
     if len(list(obj)) != 1 or list(obj)[0].tag != f"{{{_CORE_NS}}}mesh":
         raise InvalidModelError("3MF object must contain exactly one mesh and no components")
     items = builds[0].findall(f"{{{_CORE_NS}}}item")
-    if len(items) != 1 or items[0].attrib.get("objectid") != object_id or "transform" in items[0].attrib:
+    if (len(items) != 1 or len(list(builds[0])) != 1
+            or items[0].attrib != {"objectid": object_id}):
         raise InvalidModelError("3MF build must contain one untransformed item for the mesh object")
 
     mesh_node = list(obj)[0]
     vertices_nodes = mesh_node.findall(f"{{{_CORE_NS}}}vertices")
     triangles_nodes = mesh_node.findall(f"{{{_CORE_NS}}}triangles")
-    if len(vertices_nodes) != 1 or len(triangles_nodes) != 1:
+    if (len(vertices_nodes) != 1 or len(triangles_nodes) != 1
+            or len(list(mesh_node)) != 2
+            or set(child.tag for child in list(mesh_node)) != {
+                f"{{{_CORE_NS}}}vertices", f"{{{_CORE_NS}}}triangles"
+            }):
         raise InvalidModelError("3MF mesh requires exactly one vertices and triangles element")
+    if (any(child.tag != f"{{{_CORE_NS}}}vertex" for child in list(vertices_nodes[0]))
+            or any(child.tag != f"{{{_CORE_NS}}}triangle" for child in list(triangles_nodes[0]))):
+        raise InvalidModelError("3MF mesh contains unsupported vertex or triangle elements")
     raw_vertices = vertices_nodes[0].findall(f"{{{_CORE_NS}}}vertex")
     raw_triangles = triangles_nodes[0].findall(f"{{{_CORE_NS}}}triangle")
     if not raw_vertices or len(raw_vertices) > _MAX_VERTICES:
