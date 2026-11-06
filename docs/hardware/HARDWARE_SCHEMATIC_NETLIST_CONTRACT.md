@@ -1,6 +1,6 @@
 # Hardware Schematic Netlist Contract
 
-**Status:** Normalized connectivity model v1.0 implemented under PR #46. PR #59 adds a deterministic symbol/layout SVG renderer; electrical rule checking and circuit simulation remain open.
+**Status:** Normalized connectivity model v1.0 implemented under PR #46. PR #59 adds a deterministic symbol/layout SVG renderer; PR #60 adds a conservative static ERC ruleset v1.0; circuit simulation and richer electrical constraints remain open.
 
 ## 1. Purpose
 
@@ -27,7 +27,7 @@ Represent an offline hardware schematic as a stable, versioned connectivity grap
 
 ## 4. Safety and scope
 
-This is a metadata/connectivity model only. It does not render a schematic, import/export EDA formats, perform electrical rule checking, run SPICE/circuit simulation, select components, verify electrical ratings, bind firmware drivers, or operate hardware. Structural PASS is not electrical correctness or physical validation.
+This is a metadata/connectivity model only. It does not import/export EDA formats, run SPICE/circuit simulation, select components, verify electrical ratings, bind firmware drivers, or operate hardware. ERC v1.0 is a separate static pin-type lint pass and does not establish electrical correctness. Structural PASS is not electrical correctness or physical validation.
 
 ## 5. Rendering implementation boundary
 
@@ -36,7 +36,7 @@ PR #59 introduces a separate versioned SchematicLayout with reusable symbol defi
 ## 6. Future work
 
 - EDA symbol/library import and stable external object references.
-- Electrical rule checking with versioned standards and reviewable waivers.
+- Extend ERC with voltage/current domains, datasheet-backed constraints, standards profiles and reviewable waivers.
 - Component ratings, power budgets, net classes and electrical constraints.
 - Driver/interface mapping with source and firmware-version provenance.
 - Reference circuit cases and independent simulation adapters.
@@ -45,3 +45,8 @@ PR #59 introduces a separate versioned SchematicLayout with reusable symbol defi
 ## Driver bindings
 
 DriverBindingModel (PR #47) can map declared driver signals to component pins and validate references/directions. It does not execute the driver or communicate with a board.
+
+
+## Electrical rule checking
+
+See [Electrical Rule Checking Contract](ELECTRICAL_RULE_CHECKING_CONTRACT.md). PR #60 adds deterministic offline checks for unconnected pins, multiple push-pull outputs, multiple declared power sources, power inputs without a declared source, power/signal-driver conflicts, and open-drain/open-collector nets without a declared power source. The result includes ruleset version, canonical input SHA-256, stable findings, evidence references, severity and limitations. Warnings produce FAIL pending review. Voltage/current/thermal/timing analysis, standards, datasheet constraints, passive pull-up inference, waivers and simulation remain outside v1.0.
