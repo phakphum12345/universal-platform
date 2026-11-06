@@ -1,9 +1,9 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration base HEAD:** `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4` (PR #56 planar plane-frame mobility squash merge).  
-**Exact post-merge CI:** run #461 / ID `42197156442` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **462 passed in 1.43s**.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 207 commits ahead and 0 behind. This work has not been merged to `main`.  
+**Integration base HEAD:** `2fd7b3144ed38491f11c6dfefa8bb793f1a2cc21` (PR #59 deterministic schematic SVG renderer squash merge).  
+**Exact post-merge CI:** PR #59 post-merge run #42205768788 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS. PR #59 final-head runs #42203797877 and #42203791191 also passed.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
@@ -541,3 +541,20 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Tests at implementation commit `6785cd6`: run `42201375975`, `workflow-sanity` PASS, `python-tests` PASS; **477 passed in 2.00s**. PR-triggered checks on the documentation-updated candidate must be recorded separately before merge.
 - PR #59: https://github.com/phakphum12345/universal-platform/pull/59; review submissions 0 and unresolved threads 0 at initial review.
 - Limitations: no automatic placement/autorouting, EDA import/export, ERC, SPICE/circuit simulation, power analysis, manufacturing validation, certification, physical validation or hardware actuation. SVG is a drawing artifact, not electrical proof.
+
+
+## PR #59 — Versioned schematic layout and deterministic SVG renderer (merged)
+
+- Base integration SHA: `977f42bbcb0deedfbe2f013fbdf75bf99cfc4b84`.
+- Final PR head: `70003c5ec985fe487471bd68996cfb60e501f7a7`; PR push run #42203791191 and PR run #42203797877 passed both required jobs.
+- Merge commit: `2fd7b3144ed38491f11c6dfefa8bb793f1a2cc21`; post-merge run #42205768788 passed `workflow-sanity` and `python-tests`.
+- Scope: SchematicLayout v1.0, explicit page units, symbols, placements, pin anchors, routes and deterministic offline SVG with incomplete-net reporting.
+- Limitations: no automatic placement/routing, EDA exchange, ERC (tracked separately by PR #60), circuit simulation, power analysis or physical verification.
+
+
+## PR #60 — Static electrical rule checking (candidate)
+
+- Adds pure offline ERC over validated SchematicModel v1.0; versioned result schema and ruleset v1.0.
+- Six rules cover unconnected pins, multiple push-pull outputs, multiple power outputs, power inputs without a declared source, power/signal-driver mixing and open-drain/collector source visibility.
+- Results include canonical input SHA-256, stable finding IDs, severity, object references, evidence, recommendations and limitations. Warnings produce FAIL; PASS means only no findings under this ruleset.
+- Tests and exact-head CI are pending. No electrical standards, voltage/current/thermal/timing verification, passive pull-up inference, simulation, physical validation or hardware actuation is claimed.
