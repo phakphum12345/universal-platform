@@ -157,3 +157,11 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds deterministic visible-bridge selection and ear clipping for one or more strictly-contained polygonal holes, with CW inner walls facing the void.
 - Initial inner-wall winding/volume failures were corrected on the final tested head; one-hole, multiple-hole and reversed-hole-winding regressions remain.
 - Curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
+
+
+## PR #70 — Circular-arc profile triangle meshes (implementation candidate)
+
+- Extend ExtrudedProfileSolid tessellation to circular-arc outer and hole edges using the existing signed sweep contract.
+- Require explicit positive chordal tolerance in source length units; choose deterministic equal-angle segments from the maximum radial deviation bound and cap at 100,000 segments per arc.
+- Acceptance includes missing/invalid tolerance rejection, arc endpoint preservation, watertight topology, consistent winding, positive volume and deterministic round trips.
+- Non-circular curves/splines, exact B-rep, mesh repair/self-intersection and neutral CAD interchange remain separate work.
