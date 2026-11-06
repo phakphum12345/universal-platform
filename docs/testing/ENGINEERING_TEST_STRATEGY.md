@@ -100,3 +100,14 @@ Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`421
 
 
 Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`42193562931`): 452 passed in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`, post-merge run #405 (`42193654653`): 452 passed in 1.33s. Initial run #403 failed due a test expectation that confused full and reduced Jacobian widths; the assertion was corrected and the latest head passed.
+
+
+## Explicit planar plane-frame mobility (candidate PR #56)
+
+- Require a plane-to-world RigidTransform and shared world frame; reject missing/mismatched plane frames.
+- Validate every body origin lies in the plane and every body local +Z aligns with the plane normal.
+- Validate joint-frame origins and rotational/translational coordinate axes against the declared plane.
+- Verify FIXED, REVOLUTE, PRISMATIC and PLANAR single-joint mobility references; reject CYLINDRICAL, HELICAL, SPHERICAL and UNIVERSAL in the 2D formulation.
+- Project the generated world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link; preserve generalized-coordinate columns and deterministic IDs.
+- Test rotated/translated plane frames, ground-link reversal, off-plane body origins, tilted bodies, off-plane anchors, incompatible axes, unsupported joints and invalid tolerances.
+- Acceptance contract: docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md. Exact-head CI pending.
