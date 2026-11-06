@@ -30,7 +30,7 @@ class WorkerSpec:
             raise ValueError("worker_id must be non-empty")
         if not self.executable.strip():
             raise ValueError("executable must be non-empty")
-        if any(not isinstance(item, str) or "\\x00" in item for item in self.arguments):
+        if any(not isinstance(item, str) or "\x00" in item for item in self.arguments):
             raise ValueError("arguments must be NUL-free strings")
         if not self.working_directory.strip():
             raise ValueError("working_directory must be non-empty")
@@ -39,7 +39,7 @@ class WorkerSpec:
         if self.terminate_grace_seconds < 0:
             raise ValueError("terminate_grace_seconds must be non-negative")
         for key, value in self.environment.items():
-            if not key or "=" in key or "\\x00" in key or "\\x00" in value:
+            if not key or "=" in key or "\x00" in key or "\x00" in value:
                 raise ValueError("environment entries must have valid names and NUL-free values")
 
 
