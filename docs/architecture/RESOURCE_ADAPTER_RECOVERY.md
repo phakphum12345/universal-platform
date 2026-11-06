@@ -30,7 +30,7 @@ ACTIVE or SUSPECT -> QUIESCING -> SLEEP -> DIAGNOSING -> REPAIRING -> VALIDATING
 
 Any repair, health, canary or adapter exception fails closed to QUARANTINED. The adapter is responsible for stopping new scheduling and draining/cancelling its own work. A component resumes only after the repair executor reports success, health checks pass, canary checks pass and configured evidence has been persisted.
 
-The coordinator can read from a LogSource and optionally persist redacted outcome metadata and event fingerprints through a RecoveryEvidenceSink. The JSONL evidence implementation uses an OS file lock for cross-process serialization on the local host and a SHA-256 hash chain for new records. Verification runs before append and is exposed through verify(). Legacy unchained records are accepted only as a prefix and are not retroactively tamper-evident. This is not a distributed, signed or remote transactional ledger.
+The coordinator can read from a LogSource, detect an unhealthy current adapter while the resource is asleep, and optionally invoke a policy-gated fallback selection before repair. Fallback requires an explicit minimum version, non-empty license allow-list, dependency check and RuntimeAdapterRouter; the candidate must pass health/canary checks before the route is switched. The coordinator then repairs and validates using the selected adapter. If no candidate passes, the resource is quarantined without repair/resume. The coordinator can optionally persist redacted outcome metadata and event fingerprints through a RecoveryEvidenceSink. The JSONL evidence implementation uses an OS file lock for cross-process serialization on the local host and a SHA-256 hash chain for new records. Verification runs before append and is exposed through verify(). Legacy unchained records are accepted only as a prefix and are not retroactively tamper-evident. This is not a distributed, signed or remote transactional ledger.
 
 ## Python process supervision
 
@@ -63,6 +63,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
 - Adapter catalog tests cover capability/kind matching, numeric minimum versions, explicit license allow-lists, dependency checks, priority selection, asleep-only replacement and no mutation after failed health/canary checks.
+- Recovery fallback tests cover unhealthy current adapter detection, asleep-only compatible replacement, route switching before repair, evidence persistence and quarantine when no fallback candidate passes.
 - RuntimeAdapterRouter tests cover bound-route identity, synchronized registry/route replacement, stale-route rejection and preservation of the old adapter after failed candidate validation.
 
 ## Remaining gates
@@ -70,9 +71,9 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 1. Persistent resource registry, durable leases and cross-process concurrency control.
 2. Stream log sources, cursoring, rotation, retention and robust cross-source correlation.
 3. OS sandbox implementation for untrusted repair and worker code; platform-specific process-tree containment.
-4. CPU/memory/disk/network quotas and resource telemetry collectors.
+4. OS-enforced CPU/memory/disk/network quotas and broader resource telemetry collectors.
 5. Checkpoint/restore, heartbeat, crash restart policy and lifecycle integration with ResourceRegistry/RecoveryCoordinator.
-6. Adapter discovery, compatibility/version/license validation, tested staged switchover and canary traffic policy.
+6. Cross-process adapter routing, active-task transfer, durable route state and production canary traffic policy; local policy-gated fallback and in-process route replacement are implemented.
 7. Distributed/remote evidence replication, signatures, key management and retention policy; local cross-process locking and hash chaining are implemented in the current evidence-store increment.
 8. Human approval and permission integration for source/dependency changes.
 9. Exact-head CI, security review and adversarial tests before any merge.
