@@ -77,7 +77,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Automatic Joint Constraint Generation](docs/design-3d/AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT.md) — generated pose-consistency residuals.
 - [Automatic Joint Constraint Jacobian](docs/design-3d/AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT.md) — finite-difference Jacobian contract.
 - [Automatic Geometric Mobility](docs/design-3d/AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT.md)
-- [Planar Plane-Frame Mobility](docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md) — candidate PR #56 contract and acceptance criteria. — spatial local mobility diagnostics.
+- [Automatic Geometric Mobility](docs/design-3d/AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT.md) — spatial local mobility diagnostics.
+- [Planar Plane-Frame Mobility](docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md) — candidate PR #56 contract and acceptance criteria.
 - [Planar Two-Link Inverse Kinematics](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md) — narrow analytic planar 2R adapter.
 - [Planar Four-Bar Loop Closure](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md) — narrow planar 4R closure and mobility estimate.
 
