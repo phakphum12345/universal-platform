@@ -4,7 +4,7 @@ from threading import RLock
 from .models import ResourceRecord, ResourceSnapshot, ResourceState
 
 _ALLOWED = {
- ResourceState.ACTIVE: {ResourceState.SUSPECT, ResourceState.QUIESCING},
+ ResourceState.ACTIVE: {ResourceState.SUSPECT, ResourceState.QUIESCING, ResourceState.QUARANTINED},
  ResourceState.SUSPECT: {ResourceState.QUIESCING, ResourceState.QUARANTINED},
  ResourceState.QUIESCING: {ResourceState.SLEEP, ResourceState.QUARANTINED},
  ResourceState.SLEEP: {ResourceState.DIAGNOSING, ResourceState.QUARANTINED},
