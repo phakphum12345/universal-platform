@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `cb91c7c49406fd02324be6b30d5570e821b4d503` (PR #80 exact triangle-mesh intersection analysis).
-**Exact PR-head CI:** PR #80 workflow #42238370626 on head `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181`; `workflow-sanity` PASS and `python-tests` PASS; **550 passed in 2.63s**. Push workflow #42238360081 passed both jobs; documentation-only marker step SKIPPED. **Post-merge CI for integration HEAD:** UNKNOWN (no workflow runs/status entries returned for `cb91c7c49406fd02324be6b30d5570e821b4d503`).  
+**Integration HEAD:** `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53` (PR #81 documentation reconciliation after PR #80).
+**Exact post-merge CI:** PR #81 merge SHA `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; workflow #42239244546: workflow-sanity PASS and python-tests PASS; **550 passed in 1.97s**. Documentation-only marker step SKIPPED.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -721,3 +721,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - `MeshTopologyAnalysis v1.0` remains backward compatible and keeps `self_intersection_status=UNKNOWN`; the new intersection result is independent.
 - Post-merge CI for `cb91c7c49406fd02324be6b30d5570e821b4d503`: UNKNOWN; no run/status evidence was returned.
 - Next work is general planar-region Boolean topology after a precision-policy decision and independent adversarial references. Full gaps: [post-PR #80 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md).
+
+
+## PR #82 — PlanarRegion v1 input model (IN REVIEW; not yet implemented on integration)
+
+- Base integration SHA: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`.
+- Candidate branch: `feat/planar-region-model-v1`; exact candidate head will be recorded after PR creation.
+- Adds separate PlanarRegion v1.0 input model, exact rational represented-binary64 boundary predicates, strict hole checks, canonical orientation/start point, explicit frame/unit, canonical digest, schema and tests.
+- Does not implement Boolean operations and does not change convex ProfileLoop v1.0.
+- Status remains IN REVIEW until exact-head CI, merge and post-merge checks are verified.

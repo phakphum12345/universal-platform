@@ -252,3 +252,12 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 ## Next gated increment
 
 General planar-region Boolean topology beyond convex loops is next, but implementation must wait for an explicit precision policy and independent adversarial reference corpus. Then proceed to B-rep/3D Boolean, CAD interchange, parametric sketch/feature history, EDA/electrical simulation, validated physics adapters, secure module runtime, and cross-domain API/CLI/UI integration. See [post-PR #80 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md).
+
+
+## Next increment — PlanarRegion v1 (PR #82 candidate)
+
+- Add a separate region model with one outer boundary and zero or more holes; keep convex ProfileLoop v1.0 unchanged.
+- Validate simple loops, strict hole containment/non-touching, canonical outer CCW/hole CW winding, stable cyclic origin, explicit frame/unit, exact represented-binary64 rational predicates and deterministic digest.
+- Use a dependency-free precision policy; no epsilon snapping, quantization or third-party kernel dependency is introduced.
+- This increment is region input/validation only. Boolean union/intersection/difference/symmetric difference remain a subsequent PR requiring independent topology/area references, error bounds and resource limits.
+- Candidate implementation is in PR #82; do not mark implemented until exact-head CI passes and the PR is merged with post-merge verification.
