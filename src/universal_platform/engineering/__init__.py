@@ -103,7 +103,11 @@ from .mechanism_loops import (
     analyze_loop_topology,
     solve_mechanism_loops,
 )
-from .feature_history import (\n    FeatureArtifact, FeatureHistory, FeatureKind, FeatureNode,\n    FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history,\n)\nfrom .sketch_region import SketchRegionConversionResult, sketch_to_planar_regions
+from .feature_history import (
+    FeatureArtifact, FeatureHistory, FeatureKind, FeatureNode,
+    FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history,
+)
+from .sketch_region import SketchRegionConversionResult, sketch_to_planar_regions
 from .parametric_sketch import (
     ParametricSketch, ParametricSketchSolveResult, SketchConstraint,
     SketchConstraintKind, SketchPoint, SketchSegment, solve_parametric_sketch,
