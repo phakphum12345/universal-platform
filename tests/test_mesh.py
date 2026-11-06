@@ -154,3 +154,11 @@ def test_mesh_schema_matches_serialized_shape():
     assert schema["properties"]["schema_version"]["const"] == snapshot["schema_version"]
     assert set(snapshot) == set(schema["required"])
     assert schema["properties"]["source_kind"]["enum"] == ["BOX", "CYLINDER"]
+
+
+def test_mesh_rejects_non_length_units():
+    solid = BoxSolid("box.unit", "world", Vec3(1.0, 1.0, 1.0), "m")
+    mesh = tessellate_box(solid).to_dict()
+    mesh["length_unit"] = "kg"
+    with pytest.raises(InvalidModelError):
+        TriangleMesh.from_dict(mesh)
