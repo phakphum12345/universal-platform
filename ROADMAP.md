@@ -308,3 +308,20 @@ Next CAD gates: deterministic point-contact topology, parametric sketch constrai
 - Remaining sketch scope: angle/tangent/equal/symmetry/radius constraints, arcs/splines, inference, drag solver and validated closed-loop-to-PlanarRegion adapter.
 
 Next dependency order: closed-loop sketch-to-region adapter → feature DAG/history → deterministic feature regeneration → B-rep/3D Boolean kernel → STEP/3MF interchange. See [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## PR #92 — Closed Sketch Loop to PlanarRegion (MERGED)
+
+- Merge SHA: `ecc5b7acebdfd48ccf07e64c53f169caf268193a`.
+- Exact PR-head and push CI runs #42261996879 / #42261963319 passed both required jobs, 627 tests; post-merge run #42262116610 passed both jobs, 627 tests.
+- Converts converged sketch segments into deterministic cycles, rejects open/branching/duplicate/self-intersecting/touching loops, classifies nested loops and emits canonical regions with holes and nested islands.
+- Straight-edge loops only; point contacts fail closed.
+
+## PR #93 — Feature History and Regeneration (MERGED)
+
+- Merge SHA: `0983de4c8839070e2a27cd7b8e704f975d176abf`.
+- Exact PR-head run #42263173745 and post-merge run #42263296016 both passed both required jobs, 636 tests.
+- Adds a deterministic DAG and allow-listed SKETCH_PROFILE → PLANAR_BOOLEAN → EXTRUSION → MESH regeneration pipeline with per-feature SHA-256, cycle/dangling-reference validation and all-or-nothing failure semantics.
+- No arbitrary code execution, persistence service, incremental recompute, B-rep or general 3D Boolean.
+
+Next: extend sketch constraint families and arc/spline support; add feature edit/recompute semantics and persistent document contracts; then resolve planar point-contact topology before B-rep/3D Boolean and STEP/3MF.
