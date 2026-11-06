@@ -97,4 +97,4 @@ PR #33 merged at `62c71e4ca1f60eff5b496305429e6d141a81d268`. Final PR head `68fb
 
 ## PR #34 — Automatic constraint Jacobian
 
-Implementation in review adds a numerical Jacobian for generated joint residuals with deterministic stable-ID columns for generalized coordinates and body poses. Forward/central finite differences, characteristic coordinate scales, physical row/column units and bound-aware one-sided differences are represented explicitly. Symbolic derivatives and solver convergence claims remain out of scope.
+Implementation in review adds a numerical Jacobian for generated joint residuals with deterministic stable-ID columns for generalized coordinates and body poses. Forward/central finite differences, characteristic coordinate scales, physical row/column units and bound-aware one-sided differences are represented explicitly. Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f` passed push run #276 and PR run #277 (248 tests each). Symbolic derivatives and solver convergence claims remain out of scope.

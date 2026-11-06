@@ -25,7 +25,7 @@
 
 | CAD-003D | Generalized coordinates and joint parameterization | GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT; NORMALIZED_MECHANISM_MODEL_CONTRACT | Schema v1.2 stable coordinate IDs, explicit units/axes/limits/scales, deterministic joint mappings, family-specific validation and legacy v1.0/v1.1 compatibility (PR #32; merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258: 225 tests PASS) |
 | CAD-003E | Automatic joint constraint generation | AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT; JOINT_AND_GEOMETRY_PLACEMENT_CONTRACT; GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT | Six-component pose-consistency residual generation from explicit body poses, joint placements and generalized coordinates for all eight joint kinds (PR #33; final PR head `68fb6a6d0c268b67786183211734a66db0a4b27c`; runs #270/#271: 241 tests PASS; squash merge `62c71e4ca1f60eff5b496305429e6d141a81d268`; post-merge run #272: 241 tests PASS) |
-| CAD-003F | Automatic constraint Jacobian | AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT; AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT | Finite-difference Jacobian over generalized-coordinate and body-pose tangent variables, with stable row/column IDs, units, scales and bound-aware differences (PR #34; validation pending) |
+| CAD-003F | Automatic constraint Jacobian | AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT; AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT | Finite-difference Jacobian over generalized-coordinate and body-pose tangent variables, with stable row/column IDs, units, scales and bound-aware differences (PR #34; exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f`; push run #276 and PR run #277: 248 tests PASS; final docs-head and post-merge evidence pending) |
 
 ## Status
 
@@ -105,3 +105,6 @@ PR #33 validation history: run #263 on initial head `6c25ec2ffdd368605dc90ff67b2
 ## PR #34 — Automatic joint constraint Jacobian
 
 Implementation in review adds a deterministic numerical Jacobian for the PR #33 generated joint residuals. Columns cover generalized coordinates and body-pose tangent variables; forward/central differences and bound-aware one-sided fallback are explicit. This is a finite-difference estimate, not a symbolic or exact analytic Jacobian.
+
+
+PR #34 exact code/documentation head `c0a69866ceaf318b5e05ae4689ba018085e6363f` passed push run #276 (`42159087591`) and PR run #277 (`42159114452`): workflow-sanity PASS; python-tests PASS, 248 passed on both. Documentation-only marker SKIPPED. Merge and post-merge evidence pending.

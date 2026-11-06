@@ -291,4 +291,4 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Supports forward and central finite differences, coordinate characteristic scales, bound-aware one-sided fallback and BOUND_LOCKED columns for coordinates fixed at both bounds.
 - Does not claim symbolic/exact derivatives, solver convergence, rank proof or physical validation. Jacobian rank remains a separate numerical diagnostic.
 - PR branch: feat/automatic-joint-constraint-jacobian; base SHA: 74a5fed138d9dc2bdf543da9263397c095de7514.
-- Exact PR validation and merge evidence pending.
+- Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f`: push run #276 (`42159087591`) and PR run #277 (`42159114452`) both passed workflow-sanity and python-tests; **248 passed** (0.51s / 0.35s). Documentation-only marker SKIPPED. Mergeability/review/thread inspection and post-merge evidence pending.
