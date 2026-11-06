@@ -782,3 +782,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Verified end-to-end: parametric sketch → region → extrusion → watertight mesh; and two sketches → planar UNION → extrusion → watertight mesh.
 - Limitations: no persistent document store, incremental recompute, suppression/rollback/branch editing, GUI, arc/spline sketch conversion, B-rep, 3D Boolean or STEP/3MF. Main remains unchanged; no local working-tree claim.
 - Contract: [Feature History and Regeneration](../design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md).
+
+
+## PR #95 — Planar Boolean Point-Contact Topology (MERGED)
+
+- Merge SHA: `2eea0bdc9226c8ec3b3d5458e3902ee01b8314f0`.
+- Exact PR-head #42264798640 and post-merge #42264923364 passed both required jobs, 639 tests.
+- Exact-rational planar rotation-system pairing preserves point-touching material components as separate simple regions; edge-adjacent rectangles still merge.
+- Four-way point-contact and two-component point-contact references pass. Ambiguous branching, invalid hole contact and repeated-vertex cycles remain fail-closed.
+- This closes the prior blanket point-touch limitation only for the tested deterministic cases; it does not implement general B-rep or 3D Boolean.
