@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isclose, isfinite
-from typing import TypeAlias
+from typing import ClassVar, Mapping, TypeAlias
 
 from .errors import InvalidModelError
 from .geometry import BoundingBox, Vec3
+from .quantity import LENGTH, Quantity
 
 Matrix3: TypeAlias = tuple[
     tuple[float, float, float],
@@ -55,10 +56,15 @@ def _determinant(matrix: Matrix3) -> float:
 
 
 def _validate_rotation(matrix: Matrix3, tolerance: float) -> None:
-    if len(matrix) != 3 or any(len(row) != 3 for row in matrix):
-        raise InvalidModelError("Rotation must be a 3x3 matrix")
-    if not all(isfinite(value) for row in matrix for value in row):
-        raise InvalidModelError("Rotation entries must be finite")
+    if not isinstance(matrix, tuple) or len(matrix) != 3 or any(
+        not isinstance(row, tuple) or len(row) != 3 for row in matrix
+    ):
+        raise InvalidModelError("Rotation must be an immutable 3x3 tuple matrix")
+    if any(
+        isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value)
+        for row in matrix for value in row
+    ):
+        raise InvalidModelError("Rotation entries must be finite numeric values")
     product = _mat_mul(matrix, _transpose(matrix))
     for row in range(3):
         for column in range(3):
@@ -80,15 +86,72 @@ class RigidTransform:
     to_frame: str
     rotation: Matrix3 = _IDENTITY
     translation: Vec3 = Vec3(0.0, 0.0, 0.0)
+    length_unit: str = "m"
+
+    SCHEMA_VERSION: ClassVar[str] = "1.0"
 
     def __post_init__(self) -> None:
-        if not self.from_frame.strip() or not self.to_frame.strip():
-            raise InvalidModelError("Transform frame identifiers are required")
+        if not isinstance(self.from_frame, str) or not self.from_frame.strip():
+            raise InvalidModelError("Transform from_frame identifier is required")
+        if not isinstance(self.to_frame, str) or not self.to_frame.strip():
+            raise InvalidModelError("Transform to_frame identifier is required")
+        if not isinstance(self.translation, Vec3):
+            raise InvalidModelError("Transform translation must be a Vec3")
+        if not isinstance(self.length_unit, str) or not self.length_unit:
+            raise InvalidModelError("Transform length_unit is required")
+        try:
+            unit = Quantity.of(1.0, self.length_unit)
+        except Exception as exc:
+            raise InvalidModelError(f"Unsupported transform length unit: {self.length_unit}") from exc
+        if unit.dimension != LENGTH:
+            raise InvalidModelError("Transform length_unit must have length dimension")
         _validate_rotation(self.rotation, 1e-9)
 
     @classmethod
-    def identity(cls, frame_id: str) -> "RigidTransform":
-        return cls(frame_id, frame_id)
+    def identity(cls, frame_id: str, length_unit: str = "m") -> "RigidTransform":
+        return cls(frame_id, frame_id, length_unit=length_unit)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "from_frame": self.from_frame,
+            "to_frame": self.to_frame,
+            "rotation": [list(row) for row in self.rotation],
+            "translation": {
+                "x": self.translation.x,
+                "y": self.translation.y,
+                "z": self.translation.z,
+                "unit": self.length_unit,
+            },
+        }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, object]) -> "RigidTransform":
+        expected = {"schema_version", "from_frame", "to_frame", "rotation", "translation"}
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise InvalidModelError("RigidTransform snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION:
+            raise InvalidModelError("Unsupported RigidTransform schema_version")
+        raw_rotation = value["rotation"]
+        if not isinstance(raw_rotation, (list, tuple)) or len(raw_rotation) != 3:
+            raise InvalidModelError("RigidTransform rotation must be a 3x3 matrix")
+        try:
+            rotation = tuple(tuple(row) for row in raw_rotation)
+        except TypeError as exc:
+            raise InvalidModelError("RigidTransform rotation rows must be sequences") from exc
+        raw_translation = value["translation"]
+        if not isinstance(raw_translation, Mapping) or set(raw_translation) != {"x", "y", "z", "unit"}:
+            raise InvalidModelError("RigidTransform translation requires x, y, z and unit")
+        coordinates = (raw_translation["x"], raw_translation["y"], raw_translation["z"])
+        if any(isinstance(item, bool) or not isinstance(item, (int, float)) for item in coordinates):
+            raise InvalidModelError("RigidTransform translation coordinates must be numeric")
+        return cls(
+            from_frame=value["from_frame"],
+            to_frame=value["to_frame"],
+            rotation=rotation,  # type: ignore[arg-type]
+            translation=Vec3(*(float(item) for item in coordinates)),
+            length_unit=raw_translation["unit"],
+        )
 
     def apply_vector(self, vector: Vec3) -> Vec3:
         """Rotate a vector without applying translation."""
@@ -122,7 +185,7 @@ class RigidTransform:
             Vec3(-self.translation.x, -self.translation.y, -self.translation.z),
         )
         return RigidTransform(self.to_frame, self.from_frame,
-                              inverse_rotation, inverse_translation)
+                              inverse_rotation, inverse_translation, self.length_unit)
 
     def then(self, next_transform: "RigidTransform") -> "RigidTransform":
         """Compose this A→B mapping followed by a B→C mapping."""
@@ -131,7 +194,9 @@ class RigidTransform:
                 f"Cannot compose {self.from_frame}→{self.to_frame} with "
                 f"{next_transform.from_frame}→{next_transform.to_frame}"
             )
+        if self.length_unit != next_transform.length_unit:
+            raise InvalidModelError("Cannot compose transforms with different length units")
         rotation = _mat_mul(next_transform.rotation, self.rotation)
         translated = next_transform.apply_point(self.translation)
         return RigidTransform(self.from_frame, next_transform.to_frame,
-                              rotation, translated)
+                              rotation, translated, self.length_unit)

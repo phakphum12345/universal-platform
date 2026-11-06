@@ -75,3 +75,8 @@ The envelopes do not load modules, execute operations, enforce permissions, or g
 The evidence model is implemented in `provenance.py`. SourceRef validates optional SHA-256 content hashes and preserves revision, locator and license. EvidenceRecord validates evidence kind/status, non-empty statements, unique source locators, timezone-aware ISO-8601 timestamps and JSON-safe immutable metadata. Its `to_dict()` method returns a deterministic JSON-compatible snapshot.
 
 `evaluate_evidence_gate()` treats every supplied record as required. FAIL takes precedence over UNKNOWN, which takes precedence over SKIPPED; PASS is returned only when at least one record exists and every record is PASS. An empty set is UNKNOWN. This aggregate does not infer physical validity or certification.
+
+
+## Coordinate-frame interchange (PR #43)
+
+RigidTransform and FrameGraph use versioned v1.0 JSON-compatible snapshots. Transform records identify source/destination frames, a proper 3×3 rotation and translation with an explicit length unit. FrameGraph snapshots sort frame IDs and edges deterministically and reject duplicate IDs, undeclared edge endpoints, multiple parents, cycles and mixed length units. This forest is a coordinate utility, not an assembly constraint solver. Mixed-unit graphs require explicit conversion and are not supported implicitly.

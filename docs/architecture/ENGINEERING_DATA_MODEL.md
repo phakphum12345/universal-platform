@@ -33,3 +33,8 @@ Support export, retention policy, access control, data classification and deleti
 - [ ] Provenance survives transformations.
 - [ ] Dependencies support invalidation of stale results.
 - [ ] Evidence is linked to exact artifacts and tool versions.
+
+
+## Implemented coordinate-frame interchange
+
+The v1.0 coordinate-frame graph snapshot stores sorted stable frame IDs and sorted rigid-transform edges. Each transform carries an explicit length unit. The current graph contract requires one common length unit per graph; mixed-unit transforms must be converted before insertion.

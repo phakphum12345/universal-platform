@@ -131,3 +131,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | EVID-001 | Validated provenance records and conservative evidence aggregation | ENGINEERING_UNITS_UNCERTAINTY_AND_PROVENANCE; src/universal_platform/engineering/provenance.py | SourceRef SHA-256 validation, immutable JSON-safe EvidenceRecord metadata, timezone-aware timestamps, deterministic serialization and evidence-gate precedence FAIL > UNKNOWN > SKIPPED > PASS; empty evidence returns UNKNOWN (PR #42; exact-SHA CI pending). |
+
+
+| GEO-FRAME-001 | Versioned coordinate-frame and rigid-transform exchange | COORDINATE_FRAME_AND_TRANSFORM_CONTRACT; schemas/geometry/coordinate-frame-graph.schema.json | RigidTransform/FrameGraph schema v1.0 round-trip, explicit length unit, strict field/version validation, deterministic ordering, cycle/duplicate-edge rejection and same-unit composition tests (PR #43; exact-SHA CI pending). Mixed-unit frame graphs are explicitly unsupported. |
