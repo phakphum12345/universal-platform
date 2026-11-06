@@ -1,6 +1,6 @@
 # Binary STL Interchange Contract
 
-**Status:** Contract implemented for binary STL export by PR #74 candidate; exact-SHA CI evidence is pending. Arbitrary STL import and external CAD toolchain integration are not implemented. The existing TriangleMesh v1.0 remains the canonical in-memory representation.
+**Status:** Binary STL export implemented by PR #74; exact PR-head and post-merge CI passed 523 tests. PR #75 extends independent geometric reopen references. Arbitrary STL import and external CAD toolchain integration are not implemented. The existing TriangleMesh v1.0 remains the canonical in-memory representation.
 
 ## 1. Purpose and delivery boundary
 

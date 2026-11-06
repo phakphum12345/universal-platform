@@ -18,12 +18,12 @@ from universal_platform.engineering import (
     tessellate_cylinder,
     tessellate_extruded_profile,
     validate_binary_stl_artifact,
+    validate_triangle_mesh,
 )
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh
 from universal_platform.engineering.stl_interchange import (
-    MAX_STL_FACETS,
     STLInterchangeManifest,
 )
 
@@ -45,11 +45,14 @@ def _independent_binary_stl_reader(payload: bytes):
     return header, facets
 
 
-def _assert_reopened_facets_match(mesh: TriangleMesh, payload: bytes):
+def _assert_reopened_facets_match(mesh: TriangleMesh, payload: bytes, max_coordinate_error: float):
     header, facets = _independent_binary_stl_reader(payload)
     assert header.startswith(b"UNIVERSAL_PLATFORM_BINARY_STL_V1")
     assert not header.startswith(b"solid")
     assert len(facets) == len(mesh.triangles)
+    reopened_points = []
+    origin = facets[0][1][0]
+    signed_volume = 0.0
     for source_face, (normal, vertices, attribute) in zip(mesh.triangles, facets):
         assert attribute == 0
         source_vertices = [mesh.vertices[index] for index in source_face]
@@ -59,6 +62,7 @@ def _assert_reopened_facets_match(mesh: TriangleMesh, payload: bytes):
                 for value in (source.x, source.y, source.z)
             )
             assert reopened == expected
+            reopened_points.append(reopened)
         ax, ay, az = vertices[0]
         bx, by, bz = vertices[1]
         cx, cy, cz = vertices[2]
@@ -72,6 +76,42 @@ def _assert_reopened_facets_match(mesh: TriangleMesh, payload: bytes):
         magnitude = sum(value*value for value in cross) ** 0.5
         expected_normal = tuple(value/magnitude for value in cross)
         assert sum(normal[i]*expected_normal[i] for i in range(3)) == pytest.approx(1.0, abs=1e-5)
+
+        # Independent signed-volume accumulation translated to a local origin.
+        relative = tuple(vertices[0][i]-origin[i] for i in range(3))
+        second = tuple(vertices[1][i]-origin[i] for i in range(3))
+        third = tuple(vertices[2][i]-origin[i] for i in range(3))
+        local_cross = (
+            second[1]*third[2]-second[2]*third[1],
+            second[2]*third[0]-second[0]*third[2],
+            second[0]*third[1]-second[1]*third[0],
+        )
+        signed_volume += sum(relative[i]*local_cross[i] for i in range(3))/6.0
+
+    source_points = [
+        tuple(struct.unpack("<f", struct.pack("<f", value))[0] for value in (v.x, v.y, v.z))
+        for v in mesh.vertices
+    ]
+    expected_bounds = tuple(
+        (min(point[axis] for point in source_points), max(point[axis] for point in source_points))
+        for axis in range(3)
+    )
+    reopened_bounds = tuple(
+        (min(point[axis] for point in reopened_points), max(point[axis] for point in reopened_points))
+        for axis in range(3)
+    )
+    assert reopened_bounds == expected_bounds
+
+    source_metrics = validate_triangle_mesh(mesh)
+    scale = max(high-low for low, high in reopened_bounds)
+    volume_error_bound = (
+        source_metrics.surface_area * (3.0**0.5 * max_coordinate_error)
+        + 6.0 * scale * max_coordinate_error**2
+        + 8.0 * max_coordinate_error**3
+        + 1e-14 * max(scale**3, 1e-300)
+    )
+    assert signed_volume == pytest.approx(source_metrics.signed_volume, abs=volume_error_bound)
+    return reopened_bounds, signed_volume
 
 
 def test_binary_stl_box_export_is_deterministic_and_independently_reopens():
@@ -88,7 +128,7 @@ def test_binary_stl_box_export_is_deterministic_and_independently_reopens():
     assert artifact.manifest.stl_sha256 == sha256(artifact.payload).hexdigest()
     assert export_binary_stl(mesh) == artifact
     assert artifact.manifest.to_dict() == export_binary_stl(mesh).manifest.to_dict()
-    _assert_reopened_facets_match(mesh, artifact.payload)
+    _assert_reopened_facets_match(mesh, artifact.payload, artifact.manifest.max_coordinate_rounding_error)
     assert validate_binary_stl_artifact(
         artifact.payload, artifact.manifest.to_dict(),
         expected_frame_id="assembly.frame", expected_length_unit="mm",
@@ -114,7 +154,7 @@ def test_binary_stl_supports_cylinder_straight_hole_and_arc_meshes():
     )
     for mesh in meshes:
         artifact = export_binary_stl(mesh)
-        _assert_reopened_facets_match(mesh, artifact.payload)
+        _assert_reopened_facets_match(mesh, artifact.payload, artifact.manifest.max_coordinate_rounding_error)
         assert artifact.manifest.facet_count == len(mesh.triangles)
         assert validate_binary_stl_artifact(
             artifact.payload, artifact.manifest,
@@ -236,3 +276,29 @@ def test_stl_export_rejects_invalid_mesh_quantization_and_resource_excess():
     tiny = tessellate_box(BoxSolid("box.tiny.stl", "world", Vec3(1e-50, 1e-50, 1e-50)))
     with pytest.raises(InvalidModelError, match="quantization"):
         export_binary_stl(tiny)
+
+
+def test_stl_validator_rejects_nonfinite_facets_and_inconsistent_normals():
+    artifact = export_binary_stl(tessellate_box(BoxSolid("box.corrupt", "world", Vec3(1, 1, 1))))
+
+    nonfinite = bytearray(artifact.payload)
+    struct.pack_into("<f", nonfinite, 84 + 12, float("nan"))
+    nonfinite_bytes = bytes(nonfinite)
+    manifest = artifact.manifest.to_dict()
+    manifest["stl_sha256"] = sha256(nonfinite_bytes).hexdigest()
+    with pytest.raises(InvalidModelError, match="non-finite"):
+        validate_binary_stl_artifact(
+            nonfinite_bytes, manifest,
+            expected_frame_id="world", expected_length_unit="m",
+        )
+
+    wrong_normal = bytearray(artifact.payload)
+    struct.pack_into("<f", wrong_normal, 84 + 8, 1.0)
+    wrong_normal_bytes = bytes(wrong_normal)
+    manifest = artifact.manifest.to_dict()
+    manifest["stl_sha256"] = sha256(wrong_normal_bytes).hexdigest()
+    with pytest.raises(InvalidModelError, match="normal"):
+        validate_binary_stl_artifact(
+            wrong_normal_bytes, manifest,
+            expected_frame_id="world", expected_length_unit="m",
+        )
