@@ -21,9 +21,11 @@
 | R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | EFI/OpenCore candidate partially inspected; generic source UNKNOWN |
 
 ## Engineering and 3D sub-requirements
-See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with proposed acceptance evidence. CAD-003A tracks the initial planar 2R inverse-kinematics slice separately; it does not close general CAD-003.
+
+See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with acceptance evidence. CAD-003A tracks the initial planar 2R inverse-kinematics slice separately; it does not close general CAD-003.
 
 ## Audit and planning artifacts
+
 - [x] Repository capability inventory created.
 - [x] Engineering master file plan created.
 - [x] Phase plan updated with merged engineering-core baseline.
@@ -34,6 +36,7 @@ See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILIT
 - [ ] Owner approves first vertical slice and acceptance tolerances.
 
 ## Coverage checklist
+
 - [x] Platform vision and broad scope.
 - [x] Requirements and quality attributes.
 - [x] Command/task orchestration concept.
@@ -52,4 +55,5 @@ See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILIT
 - [ ] Complete full candidate-source test/license/security audit.
 
 ## Status semantics
+
 Documented means represented in specifications. Implemented means source exists. PASS requires executed evidence tied to an exact SHA and reproducible procedure. SKIPPED and UNKNOWN are never PASS. No overall requirement is complete solely because it appears in a document.

@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged baseline:** 06334b68e7ce084e99df70a7651face34d3a3ec0 (PR #11)  
-**Current feature work:** feat/planar-two-link-inverse-kinematics — PR #12; corrected test revision pending CI.  
+**Latest merged baseline:** 0379c8613c7668a56b681a91d01882c66f1c812c (PR #12)  
+**Latest feature:** Planar two-link inverse kinematics (PR #12), merged and verified on the exact PR head and merge commit.  
 **Scope:** Dependency-light engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics and a narrow analytic planar 2R inverse-kinematics adapter.
 
 ## Implemented in the merged baseline
@@ -17,24 +17,28 @@
 - Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
 - Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
 - Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
+- Narrow analytic planar two-link (2R) inverse kinematics for elbow-up and elbow-down branches, with workspace, joint-limit, finite-input and forward-reconstruction residual checks.
 - Linear algebra simulation adapter with declared limitations and evidence.
 - Versioned module request/response envelopes.
 - Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
 
-## Current feature slice — planar two-link inverse kinematics
+## PR #12 — Planar two-link inverse kinematics
 
-The feature branch adds an analytic 2R planar serial-arm inverse-kinematics adapter using the law of cosines. It supports both elbow branches, explicit joint limits, finite-input validation, reachability checks, singular workspace boundaries and independent forward reconstruction with a Cartesian residual tolerance.
-
-Run #80 on initial PR head 95938cc6f86753d8c3ffc682aa0e45d435ffe86e failed: workflow-sanity PASS; python-tests FAIL with 83 passed and 1 failed. The failing test, test_rejects_shoulder_limit_violation, expected a rejection for a 0.0–0.1 radian interval even though the computed shoulder angle was inside that interval. This was a faulty test expectation, not evidence of a solver defect. The test interval was corrected to 0.1–0.2 radians. The corrected revision must pass CI on its exact head SHA before this slice is treated as verified.
-
-This is deliberately not a general inverse-kinematics or assembly constraint solver. The docs and tests do not imply broader capability.
+- PR: https://github.com/phakphum12345/universal-platform/pull/12
+- Base: docs/phase-0-complete-requirements at 06334b68e7ce084e99df70a7651face34d3a3ec0.
+- Tested PR head: e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
+- Merge commit: 0379c8613c7668a56b681a91d01882c66f1c812c.
+- [PR Actions run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Post-merge push run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390) on merge commit 0379c8613c7668a56b681a91d01882c66f1c812c: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- The initial PR head 95938cc6f86753d8c3ffc682aa0e45d435ffe86e had run #80 fail with 83 passed and 1 failed because a shoulder-limit test used a range that actually contained the computed angle. The test range was corrected in the next commit; the corrected head and merge commit passed. This historical failure remains recorded.
 
 ## PR #10 and #11 evidence baseline
 
 - PR #10 merged at 8db7010872d69635963a982f4f09ec3cda0913a8; tested PR head dae2db5d069ef72ce155d97b7531f7beb1b2ca7a.
 - [Actions run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218): workflow-sanity PASS; python-tests PASS; engineering core tests executed successfully. Documentation-only marker SKIPPED, not PASS.
 - PR #11 merged at 06334b68e7ce084e99df70a7651face34d3a3ec0; it reconciled this documentation baseline.
-- Post-merge push evidence for PR #8–#11 was not returned by the available status interface; those post-merge statuses remain UNKNOWN, not PASS.
+- Post-merge push evidence for PR #8–#11 was not returned by the available status interface; those historical post-merge statuses remain UNKNOWN, not PASS.
 
 ## Earlier implementation evidence
 
