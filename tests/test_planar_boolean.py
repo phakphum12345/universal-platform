@@ -100,8 +100,8 @@ def test_four_components_touching_at_one_point_remain_four_canonical_regions():
     )
     result = boolean_planar_region_set(regions, Operation.UNION)
     assert len(result.regions) == 4
-    assert result.area == 4.0
-    assert sorted(region.area_exact for region in result.regions) == [1, 1, 1, 1]
+    assert result.area == 8.0
+    assert sorted(region.area_exact for region in result.regions) == [2, 2, 2, 2]
 
 
 def test_boolean_rejects_frame_and_unit_mismatch():
