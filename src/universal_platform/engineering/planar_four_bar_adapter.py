@@ -7,7 +7,7 @@ It is intentionally limited to one planar four-bar loop.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import isfinite
+from math import hypot, isfinite
 from typing import Literal
 
 from .errors import InvalidModelError
@@ -142,7 +142,7 @@ def solve_planar_four_bar_model(
     lengths_m = tuple(value.in_unit("m") for value in quantities)
     if any(not isfinite(value) or value <= 0.0 for value in lengths_m):
         raise InvalidModelError("Four-bar lengths and tolerance must be finite and positive")
-    if not isinstance(snapshot.input_angle_rad, (int, float)) or not isfinite(snapshot.input_angle_rad):
+    if (isinstance(snapshot.input_angle_rad, bool)\n            or not isinstance(snapshot.input_angle_rad, (int, float))\n            or not isfinite(snapshot.input_angle_rad)):
         raise InvalidModelError("Input angle must be finite radians")
     if snapshot.branch not in ("left", "right"):
         raise InvalidModelError("Branch must be 'left' or 'right'")
@@ -166,18 +166,23 @@ def solve_planar_four_bar_model(
         (snapshot.output_link_id, geometry.output_angle_rad),
     )
     residuals = (
-        (f"link/{snapshot.input_link_id}/length", 0.0),
-        (f"link/{snapshot.coupler_link_id}/length", abs(
-            ((geometry.coupler_joint_x - geometry.input_joint_x) ** 2
-             + (geometry.coupler_joint_y - geometry.input_joint_y) ** 2) ** 0.5
-            - lengths_m[2]
-        )),
-        (f"link/{snapshot.output_link_id}/length", abs(
-            ((geometry.coupler_joint_x - lengths_m[0]) ** 2
-             + geometry.coupler_joint_y ** 2) ** 0.5
-            - lengths_m[3]
-        )),
+        (f"link/{snapshot.ground_link_id}/length",
+         abs(hypot(lengths_m[0], 0.0) - lengths_m[0])),
+        (f"link/{snapshot.input_link_id}/length",
+         abs(hypot(geometry.input_joint_x, geometry.input_joint_y) - lengths_m[1])),
+        (f"link/{snapshot.coupler_link_id}/length",
+         abs(hypot(
+             geometry.coupler_joint_x - geometry.input_joint_x,
+             geometry.coupler_joint_y - geometry.input_joint_y,
+         ) - lengths_m[2])),
+        (f"link/{snapshot.output_link_id}/length",
+         abs(hypot(
+             geometry.coupler_joint_x - lengths_m[0],
+             geometry.coupler_joint_y,
+         ) - lengths_m[3])),
     )
+    if max(value for _, value in residuals) > lengths_m[4]:
+        raise InvalidModelError("Mapped link residuals exceed the declared SI tolerance")
     evidence = EvidenceRecord(
         kind=EvidenceKind.SIMULATION,
         status=EvidenceStatus.PASS,
