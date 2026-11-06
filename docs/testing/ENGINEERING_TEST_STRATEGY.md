@@ -58,3 +58,8 @@ PR #45 tests strict v1.0 serialization, POINT/VECTOR distinction, frame identity
 ## Hardware schematic model validation
 
 PR #46 tests strict SchematicModel v1.0 JSON round-trip, deterministic component/net/pin ordering, stable IDs and reference designators, duplicate detection, dangling terminal rejection, one-net-per-pin, NO_CONNECT enforcement, schema version and unknown-field rejection. These are connectivity-model checks, not electrical rule checking.
+
+
+## Hardware driver binding validation
+
+PR #47 adds tests for driver/protocol/signal schema round-trip, module/operation identity, known schematic pin and driver signal resolution, duplicate bindings, NO_CONNECT rejection, pin/signal direction compatibility and optional ModuleRegistry operation lookup. These checks do not load driver code or communicate with hardware.

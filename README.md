@@ -25,7 +25,8 @@ Current modules include:
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
 - Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
-- Normalized hardware schematic component/pin/net connectivity model (PR #46 under review; no renderer/ERC/simulation).
+- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged; no renderer/ERC/simulation).
+- Hardware driver interface declarations and schematic pin bindings (PR #47 under review; metadata only).
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
