@@ -349,14 +349,23 @@ See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHA
 
 ## Runtime resource and recovery delivery ledger — 2026-11-07
 
-The following feature stack is open and has exact-head CI evidence; it is **not merged** into the integration branch or `main`:
+**Integrated baseline:** PR #107 merge SHA `2bdeb85239eed84ae1738a2dc9bf332a5b8bbbd8`; PR #113 merge SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 
-- PR #100 — typed resource registry, metrics/snapshots, bounded log analysis and recovery lifecycle contract.
-- PR #101 — bounded UTF-8 file-log source and append-only JSONL recovery evidence.
-- PR #102 — log-source/coordinator/evidence integration with evidence-before-resume behavior.
-- PR #103 — allow-listed trusted-worker process supervision, bounded output, timeout and cancellation.
-- PR #104 — policy-gated adapter discovery and asleep-only replacement candidate validation.
-- PR #105 — in-process resource quota allocation and expiring leases.
-- PR #106 — provider-driven resource snapshots and available local CPU-count, memory, disk and Linux network metrics.
+- PR #107 integrates the source increments originally developed in PRs #100–#106: resource registry/snapshots, bounded log analysis and ingestion, recovery coordinator/evidence, trusted-worker process supervisor, adapter catalog, logical resource leases and local resource collection.
+- PR #110 integrates the central PhysicsSolverRegistry with three bounded analytical solvers.
+- PR #113 integrates RuntimeAdapterRouter, local cross-process hash-chained recovery evidence and threshold-based resource health monitoring.
+- PR #99 integrates a bounded faceted STEP AP214 import/export subset.
 
-These slices do not complete Phase 5. Remaining gates include real OS/container sandboxing, OS resource enforcement, durable/distributed leases and evidence, process-tree containment on Windows, checkpoints/heartbeats/restart policy, automatic runtime routing, broader telemetry providers, and integration with permissions/module governance. Continue to treat unsupported capabilities as OPEN or UNKNOWN, never PASS.
+These increments have post-merge CI evidence; PR #113 post-merge run #42279521637 passed `workflow-sanity` and `python-tests`, **732 tests**. They do not complete Phase 5 or the full platform.
+
+### Remaining runtime gates
+
+- Real OS/container sandboxing for untrusted workers and repair code.
+- OS-level CPU/memory/disk/network quotas and platform-specific process-tree containment.
+- Durable/distributed leases, route state and resource persistence.
+- Checkpoint/restore, heartbeat, crash restart policy and full runtime lifecycle integration.
+- Production repair execution with explicit human approval, scoped permissions and rollback.
+- Stream log ingestion, rotation, cursors, retention and multi-source correlation.
+- Signed/external evidence anchoring, key management, replication and retention.
+
+Continue to classify unsupported capabilities as OPEN or UNKNOWN, never PASS.
