@@ -520,7 +520,7 @@ def analyze_geometric_mechanism_mobility(
     if formulation is MobilityFormulation.PLANAR:
         if plane_frame is None:
             raise InvalidModelError(
-                "PLANAR mobility requires an explicit plane_frame RigidTransform contract"
+                "PLANAR mobility requires an explicit plane-frame contract (plane_frame RigidTransform)"
             )
         nominal = estimate_nominal_mobility(
             model, formulation, ground_link_id=ground_link_id
