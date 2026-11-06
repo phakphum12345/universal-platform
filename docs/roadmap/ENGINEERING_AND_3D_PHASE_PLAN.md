@@ -274,3 +274,13 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - BoxSolid exact tessellation: 8 vertices / 12 triangles; CylinderSolid deterministic polygonal surface under explicit radial chordal tolerance.
 - Structural checks cover face indices, degenerate triangles, boundary/nonmanifold edges, consistent winding and positive signed volume.
 - Limitations: no extruded-profile/hole meshing, general self-intersection detection/repair, B-rep, 3D Boolean or neutral CAD interchange.
+
+
+## PR #66 — Straight extruded-profile triangle mesh (merged)
+
+- Base SHA: `51e8227e2be50caccebce7ee307eaabb4d74292b`; exact corrected head `1179fb69114bc76b3155d0c3e6edf50223050846`.
+- Merge SHA: `1ead537afa34d2637fdb08f91b2d2bb823d411a0`.
+- PR run #42221102000 and push run #42221092727 passed both jobs with 511 tests; post-merge run #42221247498 on the exact merge SHA passed both jobs with 511 tests in 1.20s.
+- Adds deterministic ear-clipped caps and outward side walls for straight-edged, hole-free concave/convex extruded profiles.
+- Initial CW side-wall winding failure was fixed on the final tested head; regression remains in the suite.
+- Profile holes/arcs, mesh repair, B-rep, 3D Boolean and neutral interchange remain out of scope.
