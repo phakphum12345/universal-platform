@@ -759,3 +759,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - PR #88 added `extrude_planar_region`, preserving source ID/SHA, frame/unit and holes; PR/push and post-merge CI passed 607 tests. Full Boolean → extrusion → triangle mesh path validates as closed, watertight and consistently oriented.
 - Current integration HEAD: `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 - Limits remain: 256-edge Boolean bound; point-touching/branching output fails closed; straight-edged PlanarRegion extrusion only; no B-rep, 3D Boolean, feature history, sketch constraints, STEP/3MF or manufacturing claims.
+
+
+## PR #90 — Parametric Sketch Constraint Foundation (MERGED)
+
+- Integration merge SHA: `e2d631b49910e3d7f05fea6337742fd87385fb81`.
+- Exact PR-head workflow #42260796531: workflow-sanity PASS; python-tests PASS, 618 tests.
+- Post-merge workflow #42260977543: workflow-sanity PASS; python-tests PASS, 618 tests.
+- Implemented immutable ParametricSketch v1.0 with explicit frame and registered length unit, points, straight segments, unique IDs and reference validation.
+- Implemented eight constraints: HORIZONTAL, VERTICAL, COINCIDENT, DISTANCE, HORIZONTAL_DISTANCE, VERTICAL_DISTANCE, FIX_X, FIX_Y. Delegates to existing bounded nonlinear solver and exposes solver result/rank diagnostics.
+- Limitations: points/lines only; no angle/tangent/equal/radius/symmetry constraints, arcs/splines, auto-inference, interactive drag solver, closed-loop region conversion, feature history or regeneration.
+- Main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 241 ahead / 0 behind at the PR #90 merge baseline. Local working tree remains UNKNOWN.
+- Contract: [Parametric Sketch Constraint Contract](../design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).

@@ -297,3 +297,14 @@ Merge SHA `316e0d6c3166470bc839d3c880a38720bd854577`. PR/push workflows #4225190
 Merge SHA `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; PR/push workflows #42252525813 / #42252493832 passed 607 tests each; post-merge #42252619167 passed 607. Adds source-digest-preserving extrusion from PlanarRegion to ExtrudedProfileSolid and verifies Boolean → extrusion → watertight mesh.
 
 Next CAD gates: deterministic point-contact topology, parametric sketch constraints, feature history/regeneration, B-rep/3D Booleans and STEP/3MF. Hardware EDA, circuit simulation, validated multiphysics and secure runtime remain separate open workstreams. See [post-PR #88 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md).
+
+
+## PR #90 — Parametric Sketch Constraint Foundation (MERGED)
+
+- Merge SHA: `e2d631b49910e3d7f05fea6337742fd87385fb81`.
+- Exact PR-head run #42260796531: workflow-sanity PASS; python-tests PASS, 618 tests.
+- Post-merge run #42260977543: both required jobs PASS, 618 tests.
+- Adds immutable 2D points, straight segments and HORIZONTAL, VERTICAL, COINCIDENT, DISTANCE, HORIZONTAL_DISTANCE, VERTICAL_DISTANCE, FIX_X and FIX_Y constraints; reuses existing nonlinear solver.
+- Remaining sketch scope: angle/tangent/equal/symmetry/radius constraints, arcs/splines, inference, drag solver and validated closed-loop-to-PlanarRegion adapter.
+
+Next dependency order: closed-loop sketch-to-region adapter → feature DAG/history → deterministic feature regeneration → B-rep/3D Boolean kernel → STEP/3MF interchange. See [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).

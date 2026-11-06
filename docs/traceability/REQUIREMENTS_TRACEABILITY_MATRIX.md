@@ -73,3 +73,7 @@ Documented means represented in specifications. Implemented means source exists.
 
 | CAD-PLANAR-SET-001 | Set Boolean operations over two or more PlanarRegion inputs | PlanarRegion Set Boolean contract / result schema | IMPLEMENTED — PR #87 merged at `316e0d6c3166470bc839d3c880a38720bd854577`; PR/push and post-merge CI PASS, 600 tests. |
 | CAD-PLANAR-EXTRUSION-001 | Convert validated PlanarRegion with holes into an analytic extruded solid and validated mesh | PlanarRegion Extrusion Result schema; CAD-neutral Primitive Geometry Contract | IMPLEMENTED — PR #88 merged at `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; PR/push and post-merge CI PASS, 607 tests. |
+
+
+| CAD-SKETCH-001 | Versioned 2D parametric sketch model with deterministic point/segment references | [Parametric Sketch Constraint Contract](../design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md); `parametric-sketch.schema.json` | IMPLEMENTED — PR #90 merged at `e2d631b49910e3d7f05fea6337742fd87385fb81`; exact PR-head and post-merge CI PASS, 618 tests. Bounded points/straight segments only. |
+| CAD-SKETCH-CONSTRAINT-001 | Initial geometric/dimensional equality constraints solved through bounded nonlinear solver | Same contract; `solve_parametric_sketch` | IMPLEMENTED — eight constraint kinds; exact PR-head and post-merge CI PASS, 618 tests. No uniqueness/global convergence guarantee; unsupported constraint families remain OPEN. |
