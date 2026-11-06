@@ -13,6 +13,7 @@ from .framed_coordinates import FramedPoint3, FramedVector3
 from .frame_graph import FrameGraph
 from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, FramedBounds3, PrimitiveGeometryModel, Vec2
 from .profile_boolean import ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles
+from .three_mf import ThreeMFArtifact, ThreeMFImportResult, export_3mf, import_3mf
 from .mesh import TriangleMesh, MeshValidationResult, tessellate_box, tessellate_cylinder, tessellate_extruded_profile, validate_triangle_mesh
 from .stl_interchange import BinarySTLArtifact, STLInterchangeManifest, export_binary_stl, validate_binary_stl_artifact
 from .mesh_topology import MeshTopologyAnalysis, analyze_mesh_topology
@@ -163,5 +164,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "solve_parametric_sketch", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
+    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "solve_parametric_sketch", "ThreeMFArtifact", "ThreeMFImportResult", "export_3mf", "import_3mf", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
 ]
