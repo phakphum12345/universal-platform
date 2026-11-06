@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest merged integration baseline:** `587bd503dad3f6d4f66c99fe08e39e20a65c5265` (PR #38; cross-discipline reference validation pack). Latest documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 passed 285 tests.
-**Latest merged feature:** PR #38 squash merge `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; exact PR-head run #297 (`42164123611`) passed 285 tests; post-merge run #298 (`42164204886`) on the exact merge SHA passed workflow-sanity and python-tests; **285 tests passed in 0.81s**. Documentation/evidence follow-up `b9aba3d82396494c005accf948fa9e992473044d` passed run #299 (`42164335487`); **285 tests passed in 0.82s**.
+**Latest merged integration baseline:** `cd552e5fa96fa21ab21a437b0103b3a195542dbc` (PR #39; validated offline module metadata registry).
+**Latest merged feature:** PR #39 squash merge `cd552e5fa96fa21ab21a437b0103b3a195542dbc`; exact PR-head run #311 (`42167103639`) passed workflow-sanity and python-tests; **308 tests passed in 0.57s**. Post-merge run #312 (`42167199845`) on the exact merge SHA passed both jobs; **308 tests passed in 0.85s**. PR #38 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -341,11 +341,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 (ID `42164335487`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.82s.
 
 
-## PR #39 — Offline module metadata registry (implementation candidate)
+## PR #39 — Offline module metadata registry (merged)
 
 - Base integration branch: `docs/phase-0-complete-requirements`, exact base SHA `22c71b610b3af4e2707389f0b62e039135ef76a0`.
-- Code head tested by PR Actions: `8ed4d4f9778a264cf3676d1821807ebdc3943fda`.
-- PR run #305 (ID `42166708892`): `workflow-sanity` PASS; `python-tests` PASS; **304 passed in 0.90s**. Documentation-only marker SKIPPED.
+- Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`.
+- PR run #311 (ID `42167103639`): `workflow-sanity` PASS; `python-tests` PASS; **308 passed in 0.57s**. Documentation-only marker SKIPPED.
+- Squash merge commit: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
+- Post-merge run #312 (ID `42167199845`) on the exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS; **308 passed in 0.85s**.
 - Scope: immutable module manifests/operations, metadata-only registry, deterministic snapshots and dependency ordering.
 - Boundary: no dynamic loading/invocation, sandboxing, permission enforcement, physical control, firmware writes or external writes.
-- PR #39 final documentation-head CI and post-merge evidence: PENDING.
+- Metadata-only scope; runtime loading/invocation, sandboxing and permission enforcement remain NOT IMPLEMENTED.

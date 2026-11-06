@@ -1,6 +1,6 @@
 # Engineering Module API Contract
 
-**Status:** PROPOSED logical contract; no implementation implied
+**Status:** PROPOSED invocation contract; metadata registry subset implemented in PR #39
 
 ## 1. Purpose
 
@@ -49,8 +49,15 @@ Contracts are versioned. Breaking changes require a new major schema version, mi
 - [ ] Completion and verification are separate.
 
 
-## 6. Implemented metadata registry subset (PR #39)
+## Implemented metadata registry subset (PR #39)
 
 The implementation adds immutable `ModuleManifest` and `ModuleOperation` records plus an in-memory `ModuleRegistry`. It validates stable IDs, semantic module versions, MAJOR.MINOR operation schema versions, explicit license/maturity, operation permission subsets and a restricted execution classification. Dependency ordering is deterministic and fails closed for missing dependencies or cycles. Snapshots are JSON-compatible and sorted.
 
 This is a metadata registry only. It does not load or invoke code, enforce permissions, isolate processes, or provide a runtime plugin system.
+
+
+### PR #39 evidence
+
+- Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`; run #311 (`42167103639`): 308 tests passed.
+- Merge commit: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
+- Post-merge run #312 (`42167199845`) on the exact merge SHA: 308 tests passed.

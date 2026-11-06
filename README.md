@@ -13,12 +13,13 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Initial implementation (active development)
 
-The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
+The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
 Current modules include:
 - SI-backed quantities with dimensional checks (limited initial unit registry).
 - Evidence and provenance contracts with explicit evidence kinds and statuses.
 - A fail-closed safety gate for offline engineering workflows.
+- A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
