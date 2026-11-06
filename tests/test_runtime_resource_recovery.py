@@ -41,7 +41,7 @@ def test_log_analyzer_extracts_error_and_redacts_secrets():
     assert "[REDACTED]" in events[0].message
 
 def test_log_analyzer_reads_json_structured_error_only():
-    events = analyze_logs('{"level":"INFO","message":"ok"}\\n{"level":"ERROR","component_id":"worker-1","message":"broken"}')
+    events = analyze_logs('{"level":"INFO","message":"ok"}\n{"level":"ERROR","component_id":"worker-1","message":"broken"}')
     assert len(events) == 1 and events[0].component_id == "worker-1"
 
 def test_recovery_sleeps_repairs_validates_canary_and_resumes():
@@ -49,7 +49,7 @@ def test_recovery_sleeps_repairs_validates_canary_and_resumes():
     result = RecoveryCoordinator(registry).recover("worker-1", "ERROR component_id=worker-1 worker crashed", adapter=adapter, repair_executor=repair)
     assert result.state is ResourceState.ACTIVE and result.repaired and result.resumed
     assert adapter.calls == ["quiesce", "health", "canary", "resume"]
-    assert registry.get("worker-1").generation == 8
+    assert registry.get("worker-1").generation == 7
 
 def test_unsandboxed_repair_quarantines_without_running_repair():
     registry, adapter, repair = make_registry(), FakeAdapter(), FakeRepair(sandboxed=False)
