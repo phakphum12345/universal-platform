@@ -523,9 +523,7 @@ def analyze_geometric_mechanism_mobility(
             raise InvalidModelError(
                 "PLANAR mobility requires an explicit plane-frame contract (plane_frame RigidTransform)"
             )
-        nominal = estimate_nominal_mobility(
-            model, formulation, ground_link_id=ground_link_id
-        )
+        estimate_nominal_mobility(model, formulation, ground_link_id=ground_link_id)
         generated = generate_joint_constraints(model)
         generated.evaluate(body_poses, coordinate_values)
         _validate_planar_plane_frame(
