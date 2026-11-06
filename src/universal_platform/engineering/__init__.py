@@ -11,7 +11,7 @@ from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
 from .framed_coordinates import FramedPoint3, FramedVector3
 from .frame_graph import FrameGraph
-from .primitive_geometry import BoxSolid, CylinderSolid, FramedBounds3, PrimitiveGeometryModel
+from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, FramedBounds3, PrimitiveGeometryModel, Vec2
 from .kinematics import JointPlacement, solve_tree_forward_kinematics
 from .inverse_kinematics import (
     PlanarIKResult,
