@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `24f0b7083d95fb5582e26f4614a227250e0a2de0` (PR #73 binary STL interchange contract squash merge).  
-**Exact post-merge CI:** PR #73 post-merge run #42226889599 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **516 passed in 1.11s**. Exact PR-head run #42226759918 passed both required jobs with 516 tests in 2.11s.  
+**Integration HEAD:** `1503266c18c5ed74c5756391c033437b05ae6f13` (PR #74 binary STL exporter squash merge).  
+**Exact post-merge CI:** PR #74 post-merge run #42227796004 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **523 passed in 1.31s**. Exact PR-head run #42227530004 passed both required jobs with 523 tests in 1.61s; exact push run #42227459289 passed with 523 tests in 1.12s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -664,3 +664,19 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Branch: `feat/binary-stl-export`; base SHA: `24f0b7083d95fb5582e26f4614a227250e0a2de0`.
 - Adds `STLInterchangeManifest`, `BinarySTLArtifact`, `export_binary_stl` and `validate_binary_stl_artifact`; strict manifest schema v1.0; independent test-only parser; Box/Cylinder/straight-hole/curved-hole, quantization, tampering and resource-limit references.
 - Exact PR-head and post-merge CI evidence pending. No external CAD reopen or arbitrary third-party STL import is claimed.
+
+
+## PR #74 — Deterministic binary STL export (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/74
+- Base SHA: `24f0b7083d95fb5582e26f4614a227250e0a2de0`; exact PR head: `e7491d976177a51933f62e5eefcab90d11dcc19f`.
+- Merge commit / integration HEAD: `1503266c18c5ed74c5756391c033437b05ae6f13`.
+- Exact PR run #42227530004: both jobs PASS, 523 tests in 1.61s; push run #42227459289: both jobs PASS, 523 tests in 1.12s; post-merge run #42227796004: both jobs PASS, **523 tests in 1.31s**.
+- Adds pure-Python binary STL export and strict sidecar metadata, public API exports, source-specific tolerance rules, binary32 quantization checks, caller-approved frame/unit validation and independent test-only facet reader.
+- Limitations: no arbitrary STL import, ASCII STL, external CAD reopen, STEP/3MF, B-rep or mesh repair.
+
+## PR #75 — Independent STL geometric reopen references (TEST CANDIDATE)
+
+- Branch: `test/stl-independent-geometry-references`; base SHA: `1503266c18c5ed74c5756391c033437b05ae6f13`.
+- Extends independent parsing to compare quantized bounds and signed volume using a coordinate-error-derived tolerance; adds non-finite facet and inconsistent-normal corruption cases.
+- Exact-head and post-merge CI evidence pending.
