@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProfileBooleanResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "operation", "first_profile_id", "second_profile_id", "regions", "area", "region_count", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "operation": {"enum": ["UNION", "INTERSECTION", "DIFFERENCE"]},
+    "first_profile_id": {"type": "string", "minLength": 1},
+    "second_profile_id": {"type": "string", "minLength": 1},
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 3,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "properties": {"x": {"type": "number"}, "y": {"type": "number"}}
+        }
+      }
+    },
+    "area": {"type": "number", "minimum": 0},
+    "region_count": {"type": "integer", "minimum": 0},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}
