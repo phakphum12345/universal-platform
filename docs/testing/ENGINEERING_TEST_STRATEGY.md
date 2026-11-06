@@ -85,4 +85,4 @@ PR #49 adds simple polygon validation (duplicate vertices, self-intersections an
 - Preserve the existing Box/Cylinder, transformed-bound and mechanism regression suite.
 
 
-Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #357 (`42191597715`) passed both jobs with 425 tests in 0.78s; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`, post-merge run #358 (`42191666816`) passed both jobs with 425 tests in 0.87s.
+Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`42191597715`) passed both jobs with 425 tests in 0.78s; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`, post-merge run #385 (`42191666816`) passed both jobs with 425 tests in 0.87s.
