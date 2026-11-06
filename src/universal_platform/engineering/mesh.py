@@ -542,12 +542,10 @@ def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
         for position, local_i in enumerate(boundary_indices):
             local_j = boundary_indices[(position+1) % len(boundary_indices)]
             i, j = offset+local_i, offset+local_j
-            if loop_index == 0:
-                faces.append((i, j, j+total))
-                faces.append((i, j+total, i+total))
-            else:
-                faces.append((j, i, j+total))
-                faces.append((i, i+total, j+total))
+            # Outer rings are CCW and hole rings CW; the same face order
+            # points away from the solid on both kinds of boundary.
+            faces.append((i, j, j+total))
+            faces.append((i, j+total, i+total))
     triangle_area = sum(
         abs(_profile_cross(vertices_2d[a], vertices_2d[b], vertices_2d[c]))/2.0
         for a, b, c in cap_triangles
