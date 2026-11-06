@@ -27,7 +27,7 @@ def model(**overrides):
         ground_length=Quantity.of(40, "cm"),
         input_crank_length=Quantity.of(10, "cm"),
         coupler_length=Quantity.of(300, "mm"),
-        output_rocker_length=Quantity.of(3, "dm"),
+        output_rocker_length=Quantity.of(0.3, "m"),
         input_angle_rad=math.pi / 2,
         branch="left",
         tolerance=Quantity.of(1e-6, "mm"),
