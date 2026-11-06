@@ -191,14 +191,30 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds deterministic binary STL export, strict sidecar manifest v1.0, source frame/unit/provenance/tolerance, payload SHA-256, measured binary32 quantization error, caller-context validation and a 1,000,000-facet ceiling.
 - Independent test-only parser covers Box, Cylinder, straight-hole and circular-arc-hole output. Arbitrary STL import and external CAD application reopen remain unsupported.
 
-## PR #75 — Independent STL geometric reopen references (TEST CANDIDATE)
+## PR #75 — Independent STL geometric reopen references (MERGED)
 
-- Extends the independent test reader to calculate quantized bounding boxes and signed volume directly from the binary facet records.
-- Compares those independent metrics against the source TriangleMesh using an explicit coordinate-error-derived volume bound.
-- Adds corrupt non-finite facet and inconsistent-normal rejection references.
-- Exact-head and post-merge CI evidence pending.
+- PR #75 merged at `a8a7e6b28650a90665a465e7373d8ad6582f7832`; exact PR head `0d17638b6c361abfed7d0501576b0bc7de277809`; base `1503266c18c5ed74c5756391c033437b05ae6f13`.
+- Exact PR workflow #42228344477 passed both jobs with **524 tests in 2.09s**; exact post-merge run #42228462537 passed both jobs with **524 tests in 2.20s**.
+- Independent reader now computes quantized bounds and signed volume directly from serialized facet records using a coordinate-error-derived volume bound; corrupt NaN coordinates and inconsistent normals are rejected even with recomputed payload digests.
+
+## PR #76 — Mesh geometric topology analysis contract (DESIGN ONLY)
+
+- Adds `MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md` for face-connected shell analysis, vertex-link manifoldness, unused vertices, exact duplicate coordinates and optional explicit near-coincident tolerance.
+- Keeps the existing structural validator backward compatible and separate from the new diagnostic result.
+- Requires deterministic component/group ordering, explicit units/tolerance, no automatic welding/repair, and `self_intersection_status=UNKNOWN` until a robust geometric intersection implementation is independently validated.
+- No topology-analysis API or implementation is claimed in this PR.
 
 ## Next repository increments
+
+1. Implement the additive mesh topology analysis API defined by PR #76; then design and implement triangle-triangle self-intersection separately.
+2. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
+3. Neutral CAD interchange (external STL import and STEP/3MF) with independent external-tool reopen validation.
+4. Parametric sketch constraints, solver diagnostics and versioned feature history with deterministic recomputation.
+5. Hardware EDA symbol/library exchange, BOM/footprint reconciliation, datasheet-backed electrical limits and circuit simulation.
+6. Additional validated physics/solver adapters with independent domain reference cases.
+7. Module runtime invocation, permissions, sandboxing, quotas, cancellation and audit only after threat model and isolation contracts are implemented and tested.
+
+<!-- remaining legacy phase checklist retained below -->
 
 1. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
 2. General mesh validation beyond indexed edge topology: geometric self-intersection detection, disconnected-shell semantics, duplicate/coincident vertex diagnostics and safe repair policy (repair remains opt-in).
