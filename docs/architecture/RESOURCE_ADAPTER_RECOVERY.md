@@ -46,7 +46,7 @@ PythonProcessSupervisor launches explicitly allow-listed executable files withou
 
 AdapterRegistry catalogs adapter instances that are already available to the application; it never downloads or installs code. Fallback selection requires a matching resource kind, all required capabilities, a numeric minimum version, an explicit non-empty license allow-list and a caller-supplied dependency check. Selection is deterministic by priority, version and adapter ID.
 
-AdapterReplacementCoordinator only operates while the resource is in SLEEP. It checks the candidate adapter's health and canary methods before updating the ResourceRegistry adapter ID. A failed check leaves the existing registration unchanged. The caller remains responsible for routing runtime work to the returned adapter and for resuming the resource through the recovery lifecycle. Version comparison currently supports numeric dot-separated versions only; prerelease/build metadata and full semantic-version range expressions are not supported.
+AdapterReplacementCoordinator only operates while the resource is in SLEEP. It checks the candidate adapter's health and canary methods before updating the ResourceRegistry adapter ID. When configured with RuntimeAdapterRouter, the router verifies the currently bound adapter, updates the registry and in-process resource route under one route lock, and exposes the new adapter through get_current(). A failed candidate check leaves both the old registry identity and route unchanged. Without a router, the coordinator performs metadata-only replacement and the caller remains responsible for runtime routing. Resuming the resource through the recovery lifecycle remains a separate step. Version comparison currently supports numeric dot-separated versions only; prerelease/build metadata and full semantic-version range expressions are not supported.
 
 ## Implemented verification
 
@@ -57,6 +57,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
 - Adapter catalog tests cover capability/kind matching, numeric minimum versions, explicit license allow-lists, dependency checks, priority selection, asleep-only replacement and no mutation after failed health/canary checks.
+- RuntimeAdapterRouter tests cover bound-route identity, synchronized registry/route replacement, stale-route rejection and preservation of the old adapter after failed candidate validation.
 
 ## Remaining gates
 
