@@ -25,7 +25,7 @@ def test_file_log_source_rejects_traversal_oversize_and_invalid_utf8(tmp_path):
     (tmp_path / "large.log").write_text("0123456789", encoding="utf-8")
     with pytest.raises(ValueError, match="byte limit"):
         source.read_text("large.log")
-    (tmp_path / "bad.log").write_bytes(b"\\xff")
+    (tmp_path / "bad.log").write_bytes(bytes([0xff]))
     with pytest.raises(ValueError, match="UTF-8"):
         source.read_text("bad.log")
 
