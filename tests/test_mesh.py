@@ -269,3 +269,18 @@ def test_profile_mesh_snapshot_round_trip_preserves_provenance():
     restored = TriangleMesh.from_dict(mesh.to_dict())
     assert restored == mesh
     assert validate_triangle_mesh(restored).valid
+
+def test_profile_hole_winding_is_normalized_and_deterministic():
+    outer = (Vec2(0, 0), Vec2(4, 0), Vec2(4, 4), Vec2(0, 4))
+    hole_cw = (Vec2(1, 1), Vec2(1, 2), Vec2(2, 2), Vec2(2, 1))
+    hole_ccw = tuple(reversed(hole_cw))
+    cw_solid = ExtrudedProfileSolid("profile.hole.cw", "world", outer, 2.0, "m", (hole_cw,))
+    ccw_solid = ExtrudedProfileSolid("profile.hole.ccw", "world", outer, 2.0, "m", (hole_ccw,))
+    cw_mesh = tessellate_extruded_profile(cw_solid)
+    ccw_mesh = tessellate_extruded_profile(ccw_solid)
+
+    assert validate_triangle_mesh(cw_mesh).valid
+    assert validate_triangle_mesh(ccw_mesh).valid
+    assert validate_triangle_mesh(ccw_mesh).signed_volume == pytest.approx(30.0)
+    assert validate_triangle_mesh(ccw_mesh).surface_area == pytest.approx(70.0)
+    assert tessellate_extruded_profile(cw_solid).to_dict() == cw_mesh.to_dict()
