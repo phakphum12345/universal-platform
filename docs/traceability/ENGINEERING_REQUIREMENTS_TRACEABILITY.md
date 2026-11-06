@@ -23,7 +23,8 @@
 | DATA-001 | Traceable engineering data model | ENGINEERING_DATA_MODEL | Lineage and revision tests |
 | SAFE-001 | Human-controlled high-impact release | ENGINEERING_SAFETY_AND_APPROVAL | Permission and approval tests |
 
-| CAD-003D | Generalized coordinates and joint parameterization | GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT; NORMALIZED_MECHANISM_MODEL_CONTRACT | Schema v1.2 stable coordinate IDs, explicit units/axes/limits/scales, deterministic joint mappings, family-specific validation and legacy v1.0/v1.1 compatibility (PR #32) |
+| CAD-003D | Generalized coordinates and joint parameterization | GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT; NORMALIZED_MECHANISM_MODEL_CONTRACT | Schema v1.2 stable coordinate IDs, explicit units/axes/limits/scales, deterministic joint mappings, family-specific validation and legacy v1.0/v1.1 compatibility (PR #32; merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258: 225 tests PASS) |
+| CAD-003E | Automatic joint constraint generation | AUTOMATIC_JOINT_CONSTRAINT_GENERATION_CONTRACT; JOINT_AND_GEOMETRY_PLACEMENT_CONTRACT; GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT | Six-component pose-consistency residual generation from explicit body poses, joint placements and generalized coordinates for all eight joint kinds (PR #33; validation pending) |
 
 ## Status
 
@@ -90,3 +91,8 @@ Schema v1.2 introduces stable-ID independent generalized coordinates and ordered
 
 
 PR #32 initial tested head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed run #255 (`42157210760`): workflow-sanity PASS; python-tests PASS, 225 passed in 0.54s. Final PR head `c2b768b8f3a75a010614c1cd8a874b63f32f7ca0` passed run #257 (`42157342765`): workflow-sanity PASS; python-tests PASS, 225 passed in 0.57s. Squash merge `e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598`; post-merge run #258 (`42157428741`) on the exact merge SHA passed workflow-sanity and python-tests, 225 passed in 0.59s. Documentation-only marker SKIPPED.
+
+
+## PR #33 — Automatic joint constraint generation
+
+Implementation in review adds ordered, stable-ID translational and rotational pose-consistency residuals for every normalized joint. Evaluation requires complete body pose and generalized-coordinate maps, exact frame compatibility and explicit joint placements. This is an offline geometric consistency layer only; automatic Jacobian generation is the next dependency step.

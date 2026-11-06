@@ -88,3 +88,8 @@ Full UEIC/3D implementation: NOT IMPLEMENTED / NOT VERIFIED.
 ## PR #32 — Generalized coordinate foundation
 
 Implemented and merged as PR #32 at `e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598`. Exact PR head `c2b768b8f3a75a010614c1cd8a874b63f32f7ca0` passed run #257 (225 tests); post-merge run #258 on the exact merge SHA passed (225 tests). The v1.2 extension defines independent coordinate records, ordered joint mappings, explicit units/axes/bounds/scales, family-specific validation and legacy compatibility. This remains a structural parameterization layer; automatic joint constraint equations and Jacobian generation remain subsequent dependency steps.
+
+
+## PR #33 — Automatic joint constraint generation
+
+Implementation in review adds deterministic six-component pose-consistency residuals per joint using explicit body poses, joint placements and generalized coordinates. It covers all eight declared joint families and rejects missing placement/parameterization inputs. Automatic Jacobian generation and solver integration remain separate follow-on work.

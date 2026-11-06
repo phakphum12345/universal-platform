@@ -3,7 +3,7 @@
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged integration baseline:** e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598 (PR #32; schema v1.2 generalized coordinates and joint parameterization).  
 **Latest merged feature:** PR #32 squash merge e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598; post-merge run #258 (ID 42157428741) passed workflow-sanity and python-tests; 225 tests passed in 0.59s. PR #31 placement baseline and evidence are retained below.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial solver or physical control is claimed.
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -270,3 +270,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Missing parameterization coverage is reported for non-fixed joints. No automatic solver-variable generation, geometric residual/Jacobian generation or physical feasibility is claimed.
 - PR branch: feat/generalized-coordinate-joint-parameterization; base SHA: 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5.
 - Initial exact PR head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed pull_request run #255 (ID `42157210760`): `workflow-sanity` PASS; `python-tests` PASS; **225 passed in 0.54s**. The documentation-only marker was SKIPPED. The PR head is mergeable, with no review submissions or unresolved review threads at this inspection. Final documentation-head validation and post-merge evidence remain pending.
+
+
+## PR #33 — Automatic joint constraint generation (implementation in review)
+
+- Adds deterministic six-component pose-consistency residual definitions for each normalized joint: translation x/y/z in metres and rotation-log x/y/z in radians.
+- Uses explicit parent/joint/child placements, caller-supplied body-to-world rigid poses and exact generalized-coordinate values. Generates expected joint motion for FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL families.
+- Fails closed for missing joint placements, missing non-fixed parameterizations, incomplete pose/coordinate coverage, invalid units/frames and invalid tolerances.
+- Does not create solver variables, Jacobians, branch selection, dynamics, contact/collision or physical feasibility. Six pose residual components are kinematic consistency checks; they are not six independent mobility constraints in every formulation.
+- PR branch: feat/automatic-joint-constraint-generation; base SHA: b658fa385851ccc3eeb1e598e1b587fea8e6266e.
+- Exact PR validation and merge evidence pending.
