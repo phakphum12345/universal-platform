@@ -68,6 +68,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - Identify capability gaps and propose controlled self-improvements.
 
 ## Documentation map
+- [Documentation Index](DOCUMENTATION_INDEX.md)
 ### Product and planning
 - [Vision](VISION.md)
 - [Master Blueprint](MASTER_BLUEPRINT.md)
@@ -142,4 +143,4 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 ### CAD-neutral geometry
 
 - Analytic Box/Cylinder primitives and straight-sided polygon profile extrusion with explicit units, SI properties, deterministic v1.0 serialization and frame-aware bounds (PRs #48–#49 merged on integration; not a B-rep/mesh CAD kernel).
-- Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are being ported from merged PR #50 by candidate PR #52; do not treat this as integrated until exact-head and post-merge CI pass.
+- Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52; exact PR-head and post-merge CI both passed (425 tests each).

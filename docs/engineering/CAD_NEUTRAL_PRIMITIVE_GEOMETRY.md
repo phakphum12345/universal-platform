@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** Baseline IMPLEMENTED — analytic Box/Cylinder and straight-sided polygon extrusion (PRs #48–#49). Through-hole extension is a PR #52 candidate on `fix/cad-profile-holes-integration`; it is not part of the integration baseline until merged and post-merge CI passes.
+**Status:** IMPLEMENTED — analytic Box/Cylinder and straight-sided polygon extrusion with through-hole loops (PRs #48, #49 and #52). PR #52 merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact PR-head and post-merge CI each passed 425 tests. This remains an analytic primitive layer, not a B-rep/mesh CAD kernel.
 
 ## 1. Model
 

@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #48 merged at `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; prior evidence reconciliations are recorded below.
+**Current integration baseline:** PR #52 merged at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact post-merge run #385 (`42191666816`) passed workflow-sanity and python-tests, 425 tests. PR #49 and PR #52 now provide the integrated straight-sided profile and through-hole CAD slice; prior evidence reconciliations are recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -211,8 +211,18 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - This is not a CAD kernel or manufacturing validation. Exact-SHA CI pending.
 
 
-## PR #49 — Profile extrusion primitive (implementation candidate)
+## PR #49 — Profile extrusion primitive (merged)
 
 - Base SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
-- Adds validated simple polygon extrusion, analytic properties and frame-aware bounds.
-- Curved sketches, holes, Boolean operations and CAD-kernel output remain future work. Exact-SHA CI pending.
+- Final head `38a800d033ebbba19e1120c8cd3a47ade4088526`; run `42178039043`: workflow-sanity PASS; python-tests PASS, 416 passed in 1.06s.
+- Merge `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; post-merge run `42186896757`: both jobs PASS, 416 passed in 0.84s.
+- Adds validated simple polygon extrusion, analytic properties and frame-aware bounds. Curved sketches, Boolean operations and CAD-kernel output remain future work.
+
+
+## PR #52 — Through-hole profile integration and public exports (merged)
+
+- Base integration SHA: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`.
+- Final PR head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`; run #384 (`42191597715`): workflow-sanity PASS; python-tests PASS, 425 passed in 0.78s.
+- Squash merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; post-merge run #358 (`42191666816`) on exact merge SHA: both jobs PASS, 425 passed in 0.87s.
+- Adds validated optional hole loops, net area/perimeter, inner-wall surface area, backward-compatible snapshots, JSON Schema support and public `Vec2`/`ExtrudedProfileSolid` exports.
+- No B-rep, mesh, Boolean kernel, physical validation or manufacturing readiness is implied.

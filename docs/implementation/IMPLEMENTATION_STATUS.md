@@ -1,10 +1,10 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `bfc3e6585106c73b29297cbda2ab9ec9d50340db` (PR #49 merge commit).  
-**Exact integration CI:** run #356 / ID `42186896757` on that SHA; `workflow-sanity` PASS, `python-tests` PASS; job log: **416 passed in 0.84s**.  
-**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 202 commits ahead and 0 behind. This work has not been merged to `main`.  
-**CAD integration gap:** PR #50 (through-holes) and PR #51 (documentation audit) are merged on their stacked feature branches but are not ancestors of this integration HEAD. Candidate branch `fix/cad-profile-holes-integration` ports the through-hole implementation, schema and tests, and fixes the missing public imports for `ExtrudedProfileSolid` and `Vec2`; PR/CI evidence is pending.  
+**Integration HEAD:** `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa` (PR #52 squash merge).  
+**Exact post-merge CI:** run #385 / ID `42191666816` on this exact SHA; `workflow-sanity` PASS, `python-tests` PASS; **425 passed in 0.87s**.  
+**Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 203 commits ahead and 0 behind. This work has not been merged to `main`.  
+**Working-tree state:** UNKNOWN — this audit used the GitHub API; no local checkout/working tree was available to inspect.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -20,6 +20,7 @@
 - Versioned JSON-compatible solver result snapshots via `NonlinearSolveResult.to_dict()`; not-computed rank/scale diagnostics are represented as null.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
+- Straight-sided polygon profile extrusion with optional through-hole loops, strict topology validation, net area/perimeter, SI volume/surface area including inner walls, deterministic backward-compatible v1.0 snapshots and public package exports (PR #52 merged).
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
 - Versioned normalized mechanism schema v1.2: stable-ID links, eight joint kinds, frame/geometry references, explicit placements and generalized-coordinate/joint parameterization records. Joint schema capability remains SCHEMA_ONLY; no general solver support is implied.
 - Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
@@ -484,9 +485,20 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Scope: Box/Cylinder analytic primitives, SI properties and frame-aware bounds.
 
 
-## PR #49 — Profile extrusion primitive (implementation candidate)
+## PR #49 — Profile extrusion primitive (merged)
 
 - Base integration SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
-- Adds a simple-polygon 2D profile extrusion solid with self-intersection/degeneracy checks, analytic area/perimeter/volume/surface area and transformed bounds.
-- Does not implement curved sketches, holes, arbitrary Boolean features, B-rep or mesh output.
-- Exact-SHA CI and post-merge evidence: PENDING.
+- Final PR head: `38a800d033ebbba19e1120c8cd3a47ade4088526`; run #356 (`42178039043`): workflow-sanity PASS; python-tests PASS; **416 passed in 1.06s**.
+- Squash merge: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; post-merge run #381 (`42186896757`): both jobs PASS; **416 passed in 0.84s**.
+- Scope: simple polygon profile extrusion with analytic properties and transformed bounds; no curved sketches, Boolean features, B-rep or mesh output.
+
+
+## PR #52 — Through-hole profile integration and public exports (merged)
+
+- Base integration SHA: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`.
+- Final PR head: `bf093db34c7a7900d3d0924bccadfb40c33a30f0`; PR run #384 (`42191597715`): workflow-sanity PASS; python-tests PASS; **425 passed in 0.78s**.
+- Squash merge: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; post-merge run #385 (`42191666816`) on the exact merge SHA: both jobs PASS; **425 passed in 0.87s**.
+- Adds optional through-hole loops, strict inner-loop topology, net area/perimeter, SI volume/surface area including inner walls, backward-compatible optional serialization and JSON Schema support.
+- Fixes missing package-level imports for `Vec2` and `ExtrudedProfileSolid`; regression tests now import both from `universal_platform.engineering`.
+- Reviews: 0; unresolved threads: 0; mergeability clean before merge.
+- Limitations: straight-sided analytic extrusion only; no curved sketches, Boolean kernel, B-rep, mesh or physical/manufacturing validation.
