@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `213b1b52ef78ae3297a88892b4cc0c6539159160` (PR #62 general planar topology contract squash merge).  
-**Exact post-merge CI:** PR #62 post-merge run #42218707816 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **496 passed in 1.08s**. PR #62 exact-head runs #42217964997 and #42217937596 also passed with 496 tests.  
+**Integration HEAD:** `f0bfd8ad9958af9bfe678e923d52726b12eee73a` (PR #64 deterministic primitive triangle mesh squash merge).  
+**Exact post-merge CI:** PR #64 post-merge run #42220119818 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **506 passed in 1.93s**. PR #64 exact-head runs #42219983207 and #42219977049 also passed with 506 tests.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -586,3 +586,14 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds `docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md`; defines a CAD-neutral region/hole topology and numerical/kernel decision gate.
 - Documentation/design only. No general polygon Boolean implementation, precision policy selection, geometry kernel selection, or third-party dependency is claimed.
 - Current working tree is UNKNOWN because no local checkout was inspected. Default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration has not been merged to main.
+
+
+## PR #64 — Deterministic primitive triangle mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/64
+- Base SHA: `342c3c43ae6b4561da42a4839f042054f3198a4d`; exact PR head SHA: `8fe9db48cd07a66ea39d61e386ee8f362b968104`.
+- Merge commit / integration HEAD: `f0bfd8ad9958af9bfe678e923d52726b12eee73a`.
+- Exact PR-head run #42219983207 and push run #42219977049: both required jobs PASS; **506 passed**.
+- Exact post-merge run #42220119818 on the merge SHA: both jobs PASS; **506 passed in 1.93s**.
+- Adds `TriangleMesh` v1.0, deterministic BoxSolid/CylinderSolid tessellation, source SHA-256 provenance, explicit local frame/unit, cylinder chordal tolerance, structural edge/winding validation, signed volume and surface area.
+- Explicit limitations: no extruded-profile or hole meshing, arbitrary triangle self-intersection detection/repair, B-rep, 3D Boolean, STEP/STL/3MF exchange or manufacturing validation.
