@@ -106,3 +106,22 @@ def test_rejects_unknown_schema_version():
     result = validate_mechanism_model(model(schema_version="2.0"))
     assert not result.valid
     assert any("schema_version" in error for error in result.errors)
+
+
+def test_rejects_geometry_or_body_frame_owned_by_another_link():
+    frames = (
+        FrameReference("frame/world"),
+        FrameReference("frame/ground", "frame/world", "crank"),
+        FrameReference("frame/crank", "frame/world", "crank"),
+        FrameReference("frame/joint", "frame/world"),
+    )
+    result = validate_mechanism_model(model(frames=frames))
+    assert not result.valid
+    assert any("body frame is owned by another link" in error for error in result.errors)
+
+    geometry = GeometryReference(
+        "geom/ground", "crank", "frame/ground", GeometryKind.ANALYTIC
+    )
+    result = validate_mechanism_model(model(geometry=(geometry,)))
+    assert not result.valid
+    assert any("geometry owned by another link" in error for error in result.errors)
