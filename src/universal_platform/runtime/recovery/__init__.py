@@ -1,3 +1,4 @@
 """Governed component recovery orchestration."""
-from .coordinator import RecoveryCoordinator, RecoveryResult
-__all__ = ["RecoveryCoordinator", "RecoveryResult"]
+from .coordinator import AdapterFallbackPolicy, RecoveryCoordinator, RecoveryResult
+
+__all__ = ["AdapterFallbackPolicy", "RecoveryCoordinator", "RecoveryResult"]
