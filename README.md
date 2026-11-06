@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Phase 0 requirements baseline with active, incremental engineering-core implementation
-- Implementation: Initial Python engineering core, rigid transforms, coordinate-frame forest, limited rooted-tree forward kinematics, analytic planar two-link inverse kinematics and a narrow planar four-bar loop-closure adapter; broader UEIC/CAD/CAE capabilities remain incomplete
+- Implementation: Initial Python engineering core, partial CAD/mesh/STEP interchange, central analytical PhysicsSolverRegistry, and integrated runtime resource/log/recovery/adapter/health foundations; broader UEIC/CAD/CAE and production runtime capabilities remain incomplete
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure
 - Hardware boundary: Analysis and simulation only; no physical control
 - Integration: Existing projects remain independent until assessed and explicitly approved
 - Driver generation: Existing capability to be inventoried and reused; no duplicate generator is planned
-- Engineering design: Owner-approved scope; specifications remain proposed and unimplemented
+- Engineering design: Bounded CAD/3D and physics slices are implemented; general CAD kernel, broad multiphysics solvers and full tool-generation workflows remain incomplete
 
 ## Initial implementation (active development)
 
@@ -201,8 +201,18 @@ Point-touching but otherwise disjoint material components now remain separate ca
 The integration branch now exports and imports a bounded single-object 3MF Core profile for validated watertight triangle meshes. It preserves source geometry digest, solid/frame IDs and supported units, uses deterministic ZIP/XML output, and rejects unsafe or unsupported package structures. PR #97 exact-head and post-merge CI both passed 650 tests. This does not implement full 3MF assemblies/extensions or STEP. See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Runtime resource and recovery workstream (OPEN PRs #100–#106)
+## Integrated runtime resource and recovery foundation (PRs #107 and #113)
 
-A separate, dependency-stacked runtime workstream is under development on feature branches based on the integration branch. It currently adds a typed ResourceRegistry, log analysis and bounded file-log ingestion, recovery evidence, coordinator integration, a trusted-worker OS process supervisor, policy-gated adapter fallback selection, in-memory resource leases, and adapter-driven host metric snapshots.
+The integration branch now includes the resource and recovery stack: typed ResourceRegistry and snapshots, bounded log analysis and file ingestion, recovery coordinator and evidence-before-resume behavior, trusted-worker process supervision, policy-gated adapter discovery, in-process adapter routing, resource quota leases, provider-driven local metrics, threshold-based health assessment, and a local cross-process SHA-256-chained evidence store.
 
-The work is **not merged** into the integration branch or `main`. PRs #100–#106 remain open and must be reviewed/merged in dependency order. Exact-head CI evidence is recorded in each PR. The current implementation is deliberately partial: process supervision is not a sandbox; leases are process-local; adapter routing remains caller-owned; CPU utilization/GPU metrics and platform-specific quotas are not claimed. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) for the precise boundaries.
+The stack was integrated through PR #107 (merge SHA `2bdeb85239eed84ae1738a2dc9bf332a5b8bbbd8`) and PR #113 (merge SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`). The PR #100–#106 source branches were incorporated through PR #107; PR #109, #111 and #112 source increments were consolidated through PR #113. These are partial foundations, not a production self-healing or security sandbox.
+
+Known boundaries: process supervision is not a sandbox; quotas and leases are logical/in-memory; route/evidence coordination is local-host/in-process; CPU utilization and GPU metrics are not universally available; repair execution still requires a real sandbox and approval policy. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md).
+
+## Central physics solver registry (PR #110)
+
+The engineering core includes a versioned, license/dependency-gated PhysicsSolverRegistry with bounded analytical adapters for axial stress, ideal lumped DC Ohm's law/power, and linear thermal expansion. It records validity range, assumptions, source references and limitations. This is not a general multiphysics engine, FEA/CFD suite, design-code checker or physical certification system. See [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md).
+
+## STEP AP214 faceted BREP interchange (PR #99)
+
+A bounded ISO 10303-21 AP214 faceted BREP subset for one connected closed triangular shell is integrated. It preserves selected IDs, units and source geometry digest and rejects unsupported entities and invalid shells. It is not a full STEP translator and does not cover assemblies, analytic surfaces, curves, face holes or general B-rep geometry.
