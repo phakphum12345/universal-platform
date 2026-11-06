@@ -160,3 +160,8 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Use an independent test-only parser that does not reuse production packing helpers; verify order, winding, bounds, signed volume and the coordinate-error bound.
 - Bind the payload SHA-256 to a strict sidecar carrying frame, length unit, source identity, source digest, chordal tolerance and facet count.
 - External CAD application reopen remains UNKNOWN until TECH-002 selects and validates an independent tool.
+
+
+- PR #74 exact PR workflow #42227530004 passed 523 tests in 1.61s; exact push workflow #42227459289 passed 523 tests in 1.12s; post-merge run #42227796004 passed 523 tests in 1.31s.
+- PR #75 adds a test-only independent metric pass: calculate bounding box and signed volume from parsed facet records, compare quantized bounds exactly and compare volume within a bound derived from the source surface area, coordinate quantization error and mesh scale.
+- PR #75 also mutates valid payloads to include NaN coordinates and inconsistent normals, recomputes the payload digest, and verifies the production validator still rejects the records.
