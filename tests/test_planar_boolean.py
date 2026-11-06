@@ -115,3 +115,46 @@ def test_boolean_is_invariant_to_input_winding_and_cyclic_start():
     a = boolean_planar_regions(first, second, Operation.UNION).to_dict()
     b = boolean_planar_regions(reversed_first, second, Operation.UNION).to_dict()
     assert a == b
+
+
+def test_union_preserves_a_hole_and_an_island_inside_that_hole_as_separate_regions():
+    ring = rectangle("ring", 0, 0, 10, 10, holes=(((2, 2), (2, 8), (8, 8), (8, 2)),))
+    island = rectangle("island", 3, 3, 7, 7)
+    result = boolean_planar_regions(ring, island, Operation.UNION)
+    assert len(result.regions) == 2
+    assert sorted(len(item.holes) for item in result.regions) == [0, 1]
+    assert result.area == 80.0
+
+
+def test_rational_intersections_report_binary64_coordinate_and_area_error():
+    triangle = region("triangle", ((0, 0), (3, 0), (0, 1)))
+    strip = rectangle("strip", 1, 0, 2, 1)
+    result = boolean_planar_regions(triangle, strip, Operation.INTERSECTION)
+    assert result.area == pytest.approx(0.5)
+    assert result.max_coordinate_rounding_error > 0.0
+    assert result.area_rounding_error >= 0.0
+
+
+def test_result_snapshot_round_trip_and_tamper_rejection():
+    first = rectangle("first", 0, 0, 10, 8)
+    second = rectangle("second", 5, 0, 15, 8)
+    snapshot = boolean_planar_regions(first, second, Operation.DIFFERENCE).to_dict()
+    restored = type(boolean_planar_regions(first, second, Operation.DIFFERENCE)).from_dict(snapshot)
+    assert restored.to_dict() == snapshot
+    with pytest.raises(InvalidModelError, match="missing or unknown"):
+        restored.from_dict(dict(snapshot, extra=True))
+    with pytest.raises(InvalidModelError, match="does not match"):
+        restored.from_dict(dict(snapshot, area=999.0))
+
+
+def test_result_schema_is_strict_and_tracks_serialized_contract():
+    import json
+    from pathlib import Path
+
+    first = rectangle("first", 0, 0, 2, 2)
+    second = rectangle("second", 1, 0, 3, 2)
+    snapshot = boolean_planar_regions(first, second, Operation.UNION).to_dict()
+    schema = json.loads((Path(__file__).parents[1] / "schemas" / "geometry" /
+                         "planar-region-boolean-result.schema.json").read_text(encoding="utf-8"))
+    assert set(snapshot) == set(schema["required"])
+    assert schema["additionalProperties"] is False
