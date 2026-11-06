@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `a3884853fa039d27f0427d2ab6198fffb8e00bc8` (PR #43; versioned coordinate-frame exchange). **Latest merged feature baseline:** `a3884853fa039d27f0427d2ab6198fffb8e00bc8` (PR #43).
-**Latest merged feature:** PR #43 squash merge `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; exact PR-head run #327 (`42169448334`) passed workflow-sanity and python-tests; **366 tests passed in 0.56s**. Post-merge run #328 (`42169547658`) on the exact merge SHA passed both jobs; **366 tests passed in 0.92s**. PR #39–#42 evidence remains recorded below.
+**Latest integration branch head:** `40edecde06b966327ea09d84d911e8959f698b71` (PR #44; versioned Quantity exchange). **Latest merged feature baseline:** `40edecde06b966327ea09d84d911e8959f698b71` (PR #44).
+**Latest merged feature:** PR #44 squash merge `40edecde06b966327ea09d84d911e8959f698b71`; exact PR-head run #331 (`42169954337`) passed workflow-sanity and python-tests; **377 tests passed in 0.71s**. Post-merge run #332 (`42170030517`) on the exact merge SHA passed both jobs; **377 tests passed in 0.85s**. PR #39–#43 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -398,8 +398,25 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Limitation: one common length unit per graph; no implicit mixed-unit conversion.
 
 
-## PR #44 — Versioned Quantity exchange (implementation candidate)
+## PR #44 — Versioned Quantity exchange (merged)
 
 - Base integration SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
 - Adds Quantity v1.0 JSON snapshots with SI value, five-exponent dimension and source-unit lineage; strict schema and round-trip tests.
+- Final PR head: `130f37216afbcc753e2311bdee114b2e5a0289f2`; PR run #331 (`42169954337`): both jobs PASS; 377 passed in 0.71s.
+- Squash merge: `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`): both jobs PASS; 377 passed in 0.85s.
+
+
+## PR #44 — Versioned Quantity exchange (merged)
+
+- Base integration SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
+- Final PR head `130f37216afbcc753e2311bdee114b2e5a0289f2`; run #331 (`42169954337`): workflow-sanity PASS; python-tests PASS; **377 passed in 0.71s**.
+- Squash merge `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`) on exact merge SHA: both jobs PASS; **377 passed in 0.85s**.
+- Scope: Quantity v1.0 serialization with SI value, dimensional signature and source-unit lineage.
+
+
+## PR #45 — Frame-bound spatial values (implementation candidate)
+
+- Base integration SHA: `40edecde06b966327ea09d84d911e8959f698b71`.
+- Adds immutable FramedPoint3 and FramedVector3 records, v1.0 schemas and FrameGraph transformation helpers.
+- Point transforms apply rotation and translation; vector transforms apply rotation only.
 - Exact-SHA CI and post-merge evidence: PENDING.

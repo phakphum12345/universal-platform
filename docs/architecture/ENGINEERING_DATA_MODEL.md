@@ -43,3 +43,8 @@ The v1.0 coordinate-frame graph snapshot stores sorted stable frame IDs and sort
 ## Quantity interchange
 
 The implemented Quantity v1.0 snapshot contains SI base value, a five-integer dimensional signature and original source unit. This preserves dimensional identity and source-unit lineage in JSON data exchange. The current unit catalogue is limited and does not represent arbitrary user-defined units.
+
+
+## Frame-bound coordinate values
+
+FramedPoint3 and FramedVector3 preserve frame identity and length units through JSON exchange. Transformations require a connected FrameGraph and matching graph/value units. Point/vector semantics are separate: only points receive translation.
