@@ -52,7 +52,7 @@ These are software capability observations, not manufacturing, physical, certifi
 
 ## 5. Next gated work
 
-1. Implement PR #79: additive triangle-mesh self-intersection analysis strictly against `MESH_TRIANGLE_INTERSECTION_CONTRACT.md`. Preserve `MeshTopologyAnalysis v1.0` and its `self_intersection_status=UNKNOWN` field.
+1. Implement PR #80: additive triangle-mesh self-intersection analysis strictly against `MESH_TRIANGLE_INTERSECTION_CONTRACT.md`. Preserve `MeshTopologyAnalysis v1.0` and its `self_intersection_status=UNKNOWN` field.
 2. Build an independent exact-rational reference corpus and deterministic/resource-limit tests before claiming a no-intersections result.
 3. Continue general planar topology and Boolean operations only after selecting and documenting the precision strategy.
 4. Then address CAD kernel/interchange, parametric sketch/feature history, EDA/electrical simulation, validated physics adapters, and secure module runtime as separate PRs.
