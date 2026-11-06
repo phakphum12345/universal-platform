@@ -108,3 +108,27 @@ def test_boolean_operation_requires_explicit_enum():
     with pytest.raises(InvalidModelError, match="ProfileBooleanOperation"):
         boolean_profiles("UNION", rectangle("profile.a", 0, 0, 1, 1),
                          rectangle("profile.b", 0, 0, 1, 1))
+
+
+def test_profile_boolean_result_schema_declares_strict_v1_contract():
+    from pathlib import Path
+    schema_path = Path(__file__).parents[1] / "schemas" / "geometry" / "profile-boolean-result.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    assert schema["properties"]["schema_version"]["const"] == "1.0"
+    assert schema["properties"]["operation"]["enum"] == ["UNION", "INTERSECTION", "DIFFERENCE"]
+    assert schema["additionalProperties"] is False
+    assert schema["properties"]["regions"]["items"]["minItems"] == 3
+
+
+def test_public_profile_boolean_exports_are_canonical():
+    from universal_platform.engineering import ProfileBooleanOperation as PublicOperation
+    from universal_platform.engineering import ProfileBooleanResult as PublicResult
+    from universal_platform.engineering import ProfileLoop as PublicLoop
+    from universal_platform.engineering import boolean_profiles as public_boolean_profiles
+    from universal_platform.engineering.profile_boolean import (
+        ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles,
+    )
+    assert PublicOperation is ProfileBooleanOperation
+    assert PublicResult is ProfileBooleanResult
+    assert PublicLoop is ProfileLoop
+    assert public_boolean_profiles is boolean_profiles
