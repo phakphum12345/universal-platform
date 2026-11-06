@@ -63,3 +63,8 @@ PR #46 tests strict SchematicModel v1.0 JSON round-trip, deterministic component
 ## Hardware driver binding validation
 
 PR #47 adds tests for driver/protocol/signal schema round-trip, module/operation identity, known schematic pin and driver signal resolution, duplicate bindings, NO_CONNECT rejection, pin/signal direction compatibility and optional ModuleRegistry operation lookup. These checks do not load driver code or communicate with hardware.
+
+
+## CAD-neutral primitive geometry validation
+
+PR #48 adds reference-value tests for Box/Cylinder SI volume and surface area, local and transformed bounding boxes, exact rotated-cylinder extents, unit/frame consistency, strict v1.0 snapshots and malformed primitive rejection. No mesh/B-rep or physical validation is implied.

@@ -48,3 +48,8 @@ The implemented Quantity v1.0 snapshot contains SI base value, a five-integer di
 ## Frame-bound coordinate values
 
 FramedPoint3 and FramedVector3 preserve frame identity and length units through JSON exchange. Transformations require a connected FrameGraph and matching graph/value units. Point/vector semantics are separate: only points receive translation.
+
+
+## CAD-neutral primitive geometry
+
+PR #48 introduces versioned BoxSolid and CylinderSolid records, explicit units, analytic SI volume/surface-area quantities and frame-aware axis-aligned bounds. The geometry model remains analytic and does not create boundary representations, meshes, Boolean solids or manufacturing toolpaths.

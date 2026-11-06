@@ -30,6 +30,11 @@ class FrameGraph:
         return frozenset(self._frames)
 
     @property
+    def length_unit(self) -> str | None:
+        """Common translation unit for graph edges, or None when there are no edges."""
+        return self._length_unit
+
+    @property
     def roots(self) -> frozenset[str]:
         children = set(self._parent_to_child)
         return frozenset(self._frames - children)

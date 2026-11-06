@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb` (PR #46; normalized hardware schematic model). **Latest merged feature baseline:** `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb` (PR #46).
-**Latest merged feature:** PR #46 squash merge `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; exact PR-head run #341 (`42171427481`) passed workflow-sanity and python-tests; **395 tests passed in 0.51s**. Post-merge run #342 (`42171498370`) on the exact merge SHA passed both jobs; **395 tests passed in 0.53s**. PR #39–#45 evidence remains recorded below.
+**Latest integration branch head:** `e2a66b4425e971c58fb88b14cf6fb3479f4df935` (PR #47; hardware driver interface bindings). **Latest merged feature baseline:** `e2a66b4425e971c58fb88b14cf6fb3479f4df935` (PR #47).
+**Latest merged feature:** PR #47 squash merge `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; exact PR-head run #345 (`42171976796`) passed workflow-sanity and python-tests; **403 tests passed in 1.01s**. Post-merge run #346 (`42172082271`) on the exact merge SHA passed both jobs; **403 tests passed**. PR #39–#46 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -448,9 +448,26 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Scope: normalized component/pin/net connectivity metadata; no EDA rendering, ERC or circuit simulation.
 
 
-## PR #47 — Hardware driver interface bindings (implementation candidate)
+## PR #47 — Hardware driver interface bindings (merged)
 
 - Base integration SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
 - Adds driver/protocol/signal declarations and explicit schematic-pin bindings with endpoint and direction compatibility checks.
 - Optional metadata validation against ModuleRegistry; no driver loading, bus configuration, firmware writes or hardware actuation.
+- Final PR head: `d10f83804bc95e9896cdbf457fb30194b8e395d3`; PR run #345 (`42171976796`): both jobs PASS; 403 passed in 1.01s.
+- Squash merge: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; post-merge run #346 (`42172082271`): both jobs PASS; 403 passed.
+
+
+## PR #47 — Hardware driver interface bindings (merged)
+
+- Base integration SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Final PR head `d10f83804bc95e9896cdbf457fb30194b8e395d3`; run #345 (`42171976796`): workflow-sanity PASS; python-tests PASS; **403 passed in 1.01s**.
+- Squash merge `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; post-merge run #346 (`42172082271`) on exact merge SHA: both jobs PASS; **403 passed**.
+- Scope: driver interface/protocol/signal declarations and metadata-only schematic pin bindings.
+
+
+## PR #48 — CAD-neutral analytic primitive geometry (implementation candidate)
+
+- Base integration SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
+- Adds versioned Box/Cylinder primitive solids, SI volume/surface-area calculations, frame-aware AABBs and deterministic model serialization.
+- Does not implement B-rep, mesh export, Boolean operations, feature history, CAD kernel integration or manufacturability validation.
 - Exact-SHA CI and post-merge evidence: PENDING.
