@@ -199,3 +199,10 @@ Point-touching but otherwise disjoint material components now remain separate ca
 ## 3MF Core mesh interchange (PR #97)
 
 The integration branch now exports and imports a bounded single-object 3MF Core profile for validated watertight triangle meshes. It preserves source geometry digest, solid/frame IDs and supported units, uses deterministic ZIP/XML output, and rejects unsafe or unsupported package structures. PR #97 exact-head and post-merge CI both passed 650 tests. This does not implement full 3MF assemblies/extensions or STEP. See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
+
+
+## Runtime resource and recovery workstream (OPEN PRs #100–#106)
+
+A separate, dependency-stacked runtime workstream is under development on feature branches based on the integration branch. It currently adds a typed ResourceRegistry, log analysis and bounded file-log ingestion, recovery evidence, coordinator integration, a trusted-worker OS process supervisor, policy-gated adapter fallback selection, in-memory resource leases, and adapter-driven host metric snapshots.
+
+The work is **not merged** into the integration branch or `main`. PRs #100–#106 remain open and must be reviewed/merged in dependency order. Exact-head CI evidence is recorded in each PR. The current implementation is deliberately partial: process supervision is not a sandbox; leases are process-local; adapter routing remains caller-owned; CPU utilization/GPU metrics and platform-specific quotas are not claimed. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) for the precise boundaries.
