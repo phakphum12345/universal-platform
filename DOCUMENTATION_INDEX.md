@@ -70,6 +70,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Joint and Geometry Placement Contract](docs/design-3d/JOINT_AND_GEOMETRY_PLACEMENT_CONTRACT.md) — schema v1.1 placements.
 - [Normalized Mechanism Model Contract](docs/design-3d/NORMALIZED_MECHANISM_MODEL_CONTRACT.md) — stable-ID links, joints and references.
 - [Generalized Coordinate and Joint Parameterization](docs/design-3d/GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT.md) — schema v1.2 coordinate mapping.
+- [Spatial Joint Reference Validation](docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md) — eight-family reference coverage and acceptance criteria.
 - [General Loop Closure Contract](docs/design-3d/GENERAL_LOOP_CLOSURE_CONTRACT.md) — graph topology and loop concepts.
 - [Geometry-aware Loop Closure Contract](docs/design-3d/GEOMETRY_AWARE_LOOP_CLOSURE_CONTRACT.md) — evaluation of supplied configurations.
 - [Geometric Loop Coordinate Solver Contract](docs/design-3d/GEOMETRIC_LOOP_COORDINATE_SOLVER_CONTRACT.md) — bounded coordinate fitting with fixed body poses.

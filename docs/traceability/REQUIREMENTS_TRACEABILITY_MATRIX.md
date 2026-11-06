@@ -60,3 +60,6 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | CAD-PROFILE-002 | Through-hole loops in profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY | IMPLEMENTED — PR #52 merged at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact-head and post-merge CI PASS, 425 tests each. |
+
+
+| MECH-SPATIAL-JOINT-001 | Spatial joint family reference validation | SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT | PARTIAL — existing residual generation covers eight joint kinds; candidate PR #54 adds all-family Jacobian and local-mobility reference coverage. Exact-head CI pending. |

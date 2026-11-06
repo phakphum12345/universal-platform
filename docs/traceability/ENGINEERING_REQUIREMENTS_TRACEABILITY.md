@@ -155,3 +155,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | CAD-PROFILE-002 | Through-hole loops in straight-sided profile extrusion | CAD_NEUTRAL_PRIMITIVE_GEOMETRY; schemas/geometry/primitive-geometry.schema.json | IMPLEMENTED by PR #52: optional backward-compatible `holes`, strict loop topology, net area/perimeter/SI volume/surface area including inner walls, and public package exports. Exact head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`; run #384 (`42191597715`): both jobs PASS, 425 tests; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; post-merge run #385 (`42191666816`): both jobs PASS, 425 tests. |
+
+
+| MECH-SPATIAL-JOINT-001 | Eight-family spatial joint reference validation | SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT; tests/fixtures/spatial_joint_reference_cases.json; src/universal_platform/engineering/joint_constraints.py; joint_jacobian.py; mechanism_mobility.py | Candidate PR #54 adds eight-family reference fixture, missing Jacobian/mobility references, ground-link reversal and nontrivial placement composition tests. Source supports six-component residual generation for all eight joint kinds; broader reference coverage remains pending exact-head CI. Separate 2D PLANAR mobility formulation remains unsupported pending a plane-frame contract. |

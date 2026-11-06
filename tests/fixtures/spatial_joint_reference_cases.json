@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "formulation": "SPATIAL",
+  "cases": [
+    {
+      "joint_kind": "FIXED",
+      "nominal_dof": 0,
+      "joint_axis": null,
+      "coordinates": [],
+      "parameterization": null,
+      "coordinate_values": {},
+      "expected_jacobian_entries": []
+    },
+    {
+      "joint_kind": "REVOLUTE",
+      "nominal_dof": 1,
+      "joint_axis": [0.0, 0.0, 1.0],
+      "coordinates": [
+        {"coordinate_id": "q/theta", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 0.0, 1.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/theta"]},
+      "coordinate_values": {"q/theta": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "rotation_z", "coordinate_id": "q/theta", "value": -1.0}
+      ]
+    },
+    {
+      "joint_kind": "PRISMATIC",
+      "nominal_dof": 1,
+      "joint_axis": [1.0, 0.0, 0.0],
+      "coordinates": [
+        {"coordinate_id": "q/x", "coordinate_kind": "TRANSLATIONAL", "unit": "m", "axis": [1.0, 0.0, 0.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/x"]},
+      "coordinate_values": {"q/x": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "translation_x", "coordinate_id": "q/x", "value": -1.0}
+      ]
+    },
+    {
+      "joint_kind": "CYLINDRICAL",
+      "nominal_dof": 2,
+      "joint_axis": [0.0, 0.0, 1.0],
+      "coordinates": [
+        {"coordinate_id": "q/theta", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 0.0, 1.0]},
+        {"coordinate_id": "q/z", "coordinate_kind": "TRANSLATIONAL", "unit": "m", "axis": [0.0, 0.0, 1.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/theta", "q/z"]},
+      "coordinate_values": {"q/theta": 0.0, "q/z": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "rotation_z", "coordinate_id": "q/theta", "value": -1.0},
+        {"component": "translation_z", "coordinate_id": "q/z", "value": -1.0}
+      ]
+    },
+    {
+      "joint_kind": "HELICAL",
+      "nominal_dof": 1,
+      "joint_axis": [0.0, 0.0, 1.0],
+      "coordinates": [
+        {"coordinate_id": "q/theta", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 0.0, 1.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/theta"], "pitch_m_per_rad": 0.01},
+      "coordinate_values": {"q/theta": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "rotation_z", "coordinate_id": "q/theta", "value": -1.0},
+        {"component": "translation_z", "coordinate_id": "q/theta", "value": -0.01}
+      ]
+    },
+    {
+      "joint_kind": "SPHERICAL",
+      "nominal_dof": 3,
+      "joint_axis": null,
+      "coordinates": [
+        {"coordinate_id": "q/x", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [1.0, 0.0, 0.0]},
+        {"coordinate_id": "q/y", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 1.0, 0.0]},
+        {"coordinate_id": "q/z", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 0.0, 1.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/x", "q/y", "q/z"], "coordinate_convention": "EULER_INTRINSIC_XYZ"},
+      "coordinate_values": {"q/x": 0.0, "q/y": 0.0, "q/z": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "rotation_x", "coordinate_id": "q/x", "value": -1.0},
+        {"component": "rotation_y", "coordinate_id": "q/y", "value": -1.0},
+        {"component": "rotation_z", "coordinate_id": "q/z", "value": -1.0}
+      ]
+    },
+    {
+      "joint_kind": "PLANAR",
+      "nominal_dof": 3,
+      "joint_axis": null,
+      "coordinates": [
+        {"coordinate_id": "q/x", "coordinate_kind": "TRANSLATIONAL", "unit": "m", "axis": [1.0, 0.0, 0.0]},
+        {"coordinate_id": "q/y", "coordinate_kind": "TRANSLATIONAL", "unit": "m", "axis": [0.0, 1.0, 0.0]},
+        {"coordinate_id": "q/theta", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 0.0, 1.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/x", "q/y", "q/theta"]},
+      "coordinate_values": {"q/x": 0.0, "q/y": 0.0, "q/theta": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "translation_x", "coordinate_id": "q/x", "value": -1.0},
+        {"component": "translation_y", "coordinate_id": "q/y", "value": -1.0},
+        {"component": "rotation_z", "coordinate_id": "q/theta", "value": -1.0}
+      ]
+    },
+    {
+      "joint_kind": "UNIVERSAL",
+      "nominal_dof": 2,
+      "joint_axis": null,
+      "coordinates": [
+        {"coordinate_id": "q/x", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [1.0, 0.0, 0.0]},
+        {"coordinate_id": "q/y", "coordinate_kind": "ROTATIONAL", "unit": "rad", "axis": [0.0, 1.0, 0.0]}
+      ],
+      "parameterization": {"coordinate_ids": ["q/x", "q/y"]},
+      "coordinate_values": {"q/x": 0.0, "q/y": 0.0},
+      "expected_jacobian_entries": [
+        {"component": "rotation_x", "coordinate_id": "q/x", "value": -1.0},
+        {"component": "rotation_y", "coordinate_id": "q/y", "value": -1.0}
+      ]
+    }
+  ]
+}
