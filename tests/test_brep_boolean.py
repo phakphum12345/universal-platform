@@ -105,7 +105,7 @@ def test_axis_aligned_brep_boolean_rejects_frame_unit_and_non_box_inputs():
     non_box = brep_from_triangle_mesh(cylinder)
     # The converted mesh is still a box; alter one vertex to make a valid non-axis-aligned shell.
     moved = tuple(
-        Vec3(v.x + (0.125 if i == 0 else 0.0), v.y, v.z)
+        Vec3(v.position.x + (0.125 if i == 0 else 0.0), v.position.y, v.position.z)
         for i, v in enumerate(non_box.vertices)
     )
     distorted_mesh = TriangleMesh(
