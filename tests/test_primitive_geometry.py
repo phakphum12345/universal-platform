@@ -331,7 +331,7 @@ def test_curved_profile_bounds_include_interior_arc_extrema():
     assert bounds.minimum.x == pytest.approx(-1.0)
     assert bounds.minimum.y == pytest.approx(0.0)
     assert bounds.maximum.x == pytest.approx(1.0)
-    assert bounds.maximum.y == pytest.approx(sqrt(2.0))
+    assert bounds.maximum.y == pytest.approx(2.0 ** 0.5)
 
 
 def test_curved_profile_rejects_duplicate_segment_ids_and_outside_curved_holes():
