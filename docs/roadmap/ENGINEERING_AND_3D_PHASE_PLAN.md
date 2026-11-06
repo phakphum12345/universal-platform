@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #53 documentation reconciliation merged at `1db066915c4993e544b386c0311e332874ef4aed`; exact post-merge run #402 (`42192465566`) passed workflow-sanity and python-tests, 425 tests. PR #49 and PR #52 provide the integrated straight-sided profile and through-hole CAD slice; prior evidence reconciliations are recorded below.
+**Current integration baseline:** PR #54 spatial joint reference validation merged at `22bbf1714224095cfd652d6887130d26facef087`; exact post-merge run #405 (`42193654653`) passed workflow-sanity and python-tests, 452 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -228,10 +228,11 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - No B-rep, mesh, Boolean kernel, physical validation or manufacturing readiness is implied.
 
 
-## PR #54 — Spatial Joint Reference Validation (candidate)
+## PR #54 — Spatial Joint Reference Validation (merged)
 
 - Base integration SHA: `1db066915c4993e544b386c0311e332874ef4aed` (PR #53 documentation reconciliation merge; post-merge run #402 / `42192465566`: 425 tests PASS).
-- Existing source generates six-component joint residuals for all eight declared joint kinds. Existing Jacobian reference tests cover FIXED, REVOLUTE, PRISMATIC and HELICAL; spatial mobility reference tests cover FIXED, REVOLUTE and PRISMATIC.
-- Candidate branch: `test/spatial-joint-reference-suite-v1`.
+- Final head: `3da8c733895baab939548e0ba2e81670ca0c6359`; run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s.
+- Merge: `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s.
 - Adds `SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md`, a versioned eight-family fixture, all-family Jacobian and local-mobility references, ground-link reversal, and nontrivial joint-frame placement composition.
-- Exact PR-head CI and post-merge evidence: PENDING. This is a local reference suite, not proof of arbitrary mechanism feasibility or physical correctness.
+- Run #403 / `42193476702` initially failed eight test assertions due to a full-vs-reduced Jacobian width expectation; corrected on the final head without weakening tests.
+- This is a local reference suite, not proof of arbitrary mechanism feasibility or physical correctness.
