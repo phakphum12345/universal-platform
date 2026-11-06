@@ -235,7 +235,7 @@ def test_profile_tessellation_supports_one_through_hole():
     assert result.winding_conflict_count == 0
     assert result.signed_volume == pytest.approx(30.0)
     assert result.surface_area == pytest.approx(70.0)
-    assert mesh.vertex_count if hasattr(mesh, "vertex_count") else len(mesh.vertices) == 16
+    assert len(mesh.vertices) == 16
 
 
 def test_profile_tessellation_supports_multiple_disjoint_holes():
