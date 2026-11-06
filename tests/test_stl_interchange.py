@@ -151,6 +151,21 @@ def test_stl_manifest_is_strict_and_round_trips():
         STLInterchangeManifest.from_dict(malformed)
 
 
+def test_stl_manifest_enforces_source_specific_tolerance():
+    box = export_binary_stl(tessellate_box(BoxSolid("box.source-kind", "world", Vec3(1, 1, 1))))
+    malformed = box.manifest.to_dict()
+    malformed["chordal_tolerance"] = 0.1
+    with pytest.raises(InvalidModelError):
+        STLInterchangeManifest.from_dict(malformed)
+
+    cylinder_mesh = tessellate_cylinder(CylinderSolid("cylinder.source-kind", "world", 1, 2), 0.1)
+    cylinder = export_binary_stl(cylinder_mesh)
+    malformed = cylinder.manifest.to_dict()
+    malformed["chordal_tolerance"] = None
+    with pytest.raises(InvalidModelError):
+        STLInterchangeManifest.from_dict(malformed)
+
+
 def test_stl_manifest_schema_matches_exported_shape():
     artifact = export_binary_stl(tessellate_box(BoxSolid("box.schema.stl", "world", Vec3(1, 1, 1))))
     schema = json.loads(
