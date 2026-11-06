@@ -94,6 +94,6 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
     with pytest.raises(ValueError, match="finite and non-negative"):
         WorkerSpec("infinite-grace", sys.executable, terminate_grace_seconds=float("inf"))
     with pytest.raises(ValueError, match="NUL-free"):
-        WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad\\x00value"})
+        WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad" + chr(0) + "value"})
     with pytest.raises(ValueError, match="string values"):
         WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
