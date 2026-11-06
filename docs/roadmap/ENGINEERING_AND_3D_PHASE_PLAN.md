@@ -92,4 +92,4 @@ Implemented and merged as PR #32 at `e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598`. 
 
 ## PR #33 — Automatic joint constraint generation
 
-Implementation in review adds deterministic six-component pose-consistency residuals per joint using explicit body poses, joint placements and generalized coordinates. It covers all eight declared joint families and rejects missing placement/parameterization inputs. Automatic Jacobian generation and solver integration remain separate follow-on work.
+Implementation in review adds deterministic six-component pose-consistency residuals per joint using explicit body poses, joint placements and generalized coordinates. It covers all eight declared joint families and rejects missing placement/parameterization inputs. Initial CI exposed and corrected a fixture-axis mismatch and an extrinsic Euler sequence-order defect; corrected code head `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff` passed push run #268 and PR run #269 (241 tests each). Automatic Jacobian generation and solver integration remain separate follow-on work.
