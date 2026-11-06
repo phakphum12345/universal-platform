@@ -335,3 +335,13 @@ Next: extend sketch constraint families and arc/spline support; add feature edit
 - Ambiguous branch incidence, coincident outgoing branches, repeated-vertex cycles and invalid hole topology remain fail-closed.
 
 See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md). General B-rep/3D Boolean remains open.
+
+
+## PR #97 — Bounded 3MF Core Mesh Interchange (MERGED)
+
+- Merge SHA: `9b415f7c6be0f537feb67cbe86a911dc0ef5f662`.
+- Exact PR-head run #42265918058 and post-merge run #42266044427 both passed required jobs, 650 tests.
+- Adds deterministic one-object/one-mesh 3MF Core import/export with strict OPC package validation, provenance metadata, supported unit mapping and size/path/XML safety limits.
+- Full 3MF assemblies, transforms, materials, colors, textures, extensions and unknown-part preservation remain unsupported. STEP import/export remains OPEN.
+
+See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
