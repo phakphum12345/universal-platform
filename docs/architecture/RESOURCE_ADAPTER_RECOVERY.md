@@ -4,7 +4,7 @@
 
 ## Resource model
 
-Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed leases are not implemented.
+Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed resource leases are not implemented.
 
 ## Resource snapshot collection
 
@@ -26,7 +26,7 @@ ACTIVE or SUSPECT -> QUIESCING -> SLEEP -> DIAGNOSING -> REPAIRING -> VALIDATING
 
 Any repair, health, canary or adapter exception fails closed to QUARANTINED. The adapter is responsible for stopping new scheduling and draining/cancelling its own work. A component resumes only after the repair executor reports success, health checks pass, canary checks pass and configured evidence has been persisted.
 
-The coordinator can read from a LogSource and optionally persist redacted outcome metadata and event fingerprints through a RecoveryEvidenceSink. The JSONL evidence implementation uses process-local locking; it is not a multi-process transactional or tamper-evident ledger.
+The coordinator can read from a LogSource and optionally persist redacted outcome metadata and event fingerprints through a RecoveryEvidenceSink. The JSONL evidence implementation uses an OS file lock for cross-process serialization on the local host and a SHA-256 hash chain for new records. Verification runs before append and is exposed through verify(). Legacy unchained records are accepted only as a prefix and are not retroactively tamper-evident. This is not a distributed, signed or remote transactional ledger.
 
 ## Python process supervision
 
@@ -52,6 +52,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 
 - Resource registry, metrics/snapshots and lifecycle transitions have focused tests.
 - ResourceAllocator tests cover quota enforcement, unit matching, expiry, release and concurrent reservations without overcommit.
+- Recovery evidence tests cover cross-process file-lock semantics across independent store instances, SHA-256 chain verification, tamper detection, legacy-prefix anchoring and bounded store size.
 - ResourceSnapshotCollector tests cover provider registration, real local disk/network sampling, unit-bearing snapshots, monotonic sequence assignment and concurrent collection.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
@@ -67,7 +68,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 4. CPU/memory/disk/network quotas and resource telemetry collectors.
 5. Checkpoint/restore, heartbeat, crash restart policy and lifecycle integration with ResourceRegistry/RecoveryCoordinator.
 6. Adapter discovery, compatibility/version/license validation, tested staged switchover and canary traffic policy.
-7. Durable, multi-process, tamper-evident recovery evidence and retention policy.
+7. Distributed/remote evidence replication, signatures, key management and retention policy; local cross-process locking and hash chaining are implemented in the current evidence-store increment.
 8. Human approval and permission integration for source/dependency changes.
 9. Exact-head CI, security review and adversarial tests before any merge.
 
