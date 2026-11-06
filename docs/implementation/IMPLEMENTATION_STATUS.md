@@ -321,3 +321,7 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Computes local mobility as combined variable count minus estimated Jacobian rank and retains the nominal joint-count estimate separately.
 - The generated adapter is SPATIAL-only. PLANAR is rejected until an explicit plane-frame contract and coplanarity validation are implemented.
 - Singularity status remains UNKNOWN unless a regular-configuration reference rank is supplied; rank is numerical and tolerance-dependent.
+- Base integration SHA: `775ee8bbd9169b9d2def3c1abdc6d01e52487013`.
+- Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3`: push run #293 (`42163424217`) and PR run #294 (`42163431321`) passed `workflow-sanity` and `python-tests`; **265 passed** on both (0.56s / 0.41s). Documentation-only marker SKIPPED.
+- Squash merge commit: `41d81818385dd82497840ce93ce5aac60e3216da`.
+- Post-merge run #295 (`42163519632`) on the exact merge SHA passed both checks; **265 passed in 0.78s**.

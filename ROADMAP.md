@@ -81,3 +81,6 @@ PR #36 — Geometric loop coordinate fitting — merged at `d7b740fc98d396c130f1
 
 
 PR #37 — Generated spatial Jacobian mobility — automatically derives local spatial mobility from joint residuals and finite-difference Jacobians, using body-pose tangent variables plus independent joint coordinates with ground pose elimination. PLANAR automatic mobility remains deferred pending a plane-frame contract.
+
+
+PR #37 — Generated spatial Jacobian mobility — merged at `41d81818385dd82497840ce93ce5aac60e3216da`; exact PR-head runs #293/#294 and post-merge run #295 passed 265 tests each. The generated adapter is SPATIAL-only; PLANAR remains deferred pending explicit plane-frame validation.

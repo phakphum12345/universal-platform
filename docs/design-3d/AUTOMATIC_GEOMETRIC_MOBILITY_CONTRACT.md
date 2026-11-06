@@ -1,6 +1,6 @@
 # Automatic Geometric Mobility Analysis Contract
 
-**Status:** Implementation candidate in PR #37; SPATIAL formulation only.
+**Status:** Implemented and merged in PR #37 at `41d81818385dd82497840ce93ce5aac60e3216da`; PR-head runs #293/#294 and post-merge run #295 passed 265 tests each. SPATIAL formulation only.
 
 ## Purpose
 

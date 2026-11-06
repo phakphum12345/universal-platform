@@ -119,3 +119,6 @@ PR #36 merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`. Exact PR head `d00b
 ## PR #37 — Generated spatial Jacobian mobility
 
 Integrates generated joint residuals and their finite-difference Jacobian into local spatial mobility diagnostics. The combined local variable set includes six pose-tangent components per non-ground link plus all independent joint coordinates. The ground pose is removed; nominal mobility and local rank-based mobility remain separate. This initial adapter rejects PLANAR because the repository has no explicit plane-frame contract yet.
+
+
+PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3` passed push run #293 (`42163424217`) and PR run #294 (`42163431321`), 265 tests each. Post-merge run #295 (`42163519632`) on the exact merge SHA passed 265 tests. The adapter is SPATIAL-only; PLANAR remains deferred pending a plane-frame contract.
