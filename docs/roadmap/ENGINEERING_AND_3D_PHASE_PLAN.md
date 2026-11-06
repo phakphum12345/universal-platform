@@ -264,3 +264,13 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Exact PR and push runs #42217964997 / #42217937596 passed both jobs with 496 tests; post-merge run #42218707816 on the exact merge SHA passed both jobs with 496 tests in 1.08s.
 - Contract covers general planar region identity, outer/hole boundary invariants, explicit frames/units, point/edge contacts, deterministic result/evidence expectations, numerical robustness tiers and replaceable-kernel decision gate.
 - No general polygon Boolean engine, precision policy, CAD kernel, or third-party runtime dependency is implemented or selected.
+
+
+## PR #64 — Deterministic primitive triangle mesh (merged)
+
+- Base SHA: `342c3c43ae6b4561da42a4839f042054f3198a4d`; exact PR head `8fe9db48cd07a66ea39d61e386ee8f362b968104`.
+- Merge SHA: `f0bfd8ad9958af9bfe678e923d52726b12eee73a`.
+- PR run #42219983207 and push run #42219977049 passed both jobs with 506 tests; post-merge run #42220119818 on exact merge SHA passed both jobs with 506 tests in 1.93s.
+- BoxSolid exact tessellation: 8 vertices / 12 triangles; CylinderSolid deterministic polygonal surface under explicit radial chordal tolerance.
+- Structural checks cover face indices, degenerate triangles, boundary/nonmanifold edges, consistent winding and positive signed volume.
+- Limitations: no extruded-profile/hole meshing, general self-intersection detection/repair, B-rep, 3D Boolean or neutral CAD interchange.
