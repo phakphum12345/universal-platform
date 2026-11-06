@@ -96,10 +96,20 @@ PR #38 — Cross-discipline engineering reference validation — add versioned r
 PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`; exact PR-head run #297 and post-merge run #298 passed 285 tests.
 
 
-## Hardware schematic rendering increment — PR #59 candidate
+## Hardware schematic rendering increment — PR #59 merged
 
 - Add a separate versioned layout contract rather than overloading the normalized connectivity graph.
 - Implement supplied symbol geometry, explicit page-space millimetres, component placement/rotation, pin anchors and explicit routes.
 - Render deterministic offline SVG and distinguish completely routed nets from incomplete ones.
-- PR #59 implementation commit `6785cd685b9fb879ffea69eedcc04a56a2290f11`; exact commit run `42201375975`: both required jobs PASS; 477 tests.
+- PR #59 merged at `2fd7b3144ed38491f11c6dfefa8bb793f1a2cc21`; final PR head `70003c5ec985fe487471bd68996cfb60e501f7a7`; PR head runs `42203797877` and `42203791191` passed; post-merge run `42205768788` passed both required jobs.
 - Remaining hardware roadmap: symbol/library import and EDA exchange; electrical rule checking; power-domain and component-rating validation; circuit simulation; BOM/footprint reconciliation. These remain separate requirements and are not implied by SVG rendering.
+
+
+## Next hardware verification increment — PR #60 candidate
+
+- Add versioned static ERC result schema and deterministic offline rules over normalized SchematicModel v1.0.
+- Rules: unconnected non-NO_CONNECT pins; multiple push-pull outputs; multiple declared power sources; power inputs without a declared POWER_OUT; power inputs mixed with signal drivers; open-drain/open-collector nets without a declared POWER_OUT.
+- Record canonical input SHA-256, stable finding IDs, rule versions, severity, affected objects, evidence, recommendations and explicit limitations.
+- No voltage/current/thermal/timing analysis, external standards, passive pull-up inference, waiver ledger, circuit simulation, physical verification or hardware operation.
+- Follow-up roadmap remains: datasheet-backed power-domain/rating checks; EDA symbol/library import and exchange; circuit simulation; BOM/footprint reconciliation.
+
