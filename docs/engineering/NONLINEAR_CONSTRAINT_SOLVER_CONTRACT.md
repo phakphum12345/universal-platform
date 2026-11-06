@@ -36,6 +36,7 @@ Provide a small, dependency-free local nonlinear equality solver that can be reu
 - Individual residuals are always returned as PASS or FAIL.
 - Input/model evaluation errors raise SolverError; no missing/non-finite residual is silently treated as zero.
 - The result includes the iteration count, objective, termination reason, method and limitations.
+- `NonlinearSolveResult.to_dict()` emits a versioned (`schema_version`) JSON-compatible snapshot with residuals, solver settings/diagnostics, scales and limitations. Diagnostics that were not computed are serialized as `null`, not inferred.
 - Derivative strategy and residual/Jacobian/analytic-Jacobian evaluation counts are reported separately. Residual evaluation counts are scalar residual callback invocations.
 - When a Jacobian has been evaluated, the result reports estimated rank, threshold, matrix shape and whether the estimate is full rank, rank deficient or indeterminate. It also reports the scaled-Jacobian column-norm ratio and effective variable scales. The matrix shape separately identifies underdetermined, square and overdetermined systems. If no Jacobian was needed, diagnostics are `None` (not computed).
 
@@ -47,7 +48,7 @@ It does not by itself solve arbitrary CAD constraints, multi-loop assemblies, 3D
 
 ## Acceptance tests
 
-The test suite covers scalar and coupled nonlinear equations, a consistent overdetermined system, variable bounds, stationary unsatisfied equations, already-satisfied initial points, malformed contracts, non-finite residuals and callback failures. It also covers default forward differences, central differences, analytic Jacobian agreement, residual scaling, shape/finiteness validation, derivative callback failures, evaluation diagnostics, full-rank/duplicate-row/underdetermined rank fixtures, threshold validation and indeterminate rank handling, plus mixed-magnitude variable scaling, column-norm disparity and scale validation.
+The test suite covers scalar and coupled nonlinear equations, a consistent overdetermined system, variable bounds, stationary unsatisfied equations, already-satisfied initial points, malformed contracts, non-finite residuals and callback failures. It also covers default forward differences, central differences, analytic Jacobian agreement, residual scaling, shape/finiteness validation, derivative callback failures, evaluation diagnostics, full-rank/duplicate-row/underdetermined rank fixtures, threshold validation and indeterminate rank handling, mixed-magnitude variable scaling, column-norm disparity and scale validation, plus deterministic JSON-compatible result serialization.
 
 ## Safety boundary
 
