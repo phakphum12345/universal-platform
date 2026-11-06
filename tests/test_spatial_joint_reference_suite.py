@@ -134,7 +134,7 @@ def test_all_joint_families_match_reference_jacobian_entries(case):
     model, poses, values = build_reference_model(case)
     generated = generate_joint_constraints(model)
     jacobian = build_joint_constraint_jacobian(generated, poses, values)
-    assert jacobian.shape == (6, 6 + case["nominal_dof"])
+    assert jacobian.shape == (6, 6 * len(model.links) + case["nominal_dof"])
     assert all(
         isinstance(value, (int, float)) and isfinite(value)
         for row in jacobian.values for value in row
