@@ -79,11 +79,29 @@ def test_union_of_edge_adjacent_regions_dissolves_shared_edge():
     assert result.regions[0].area_exact == 8
 
 
-def test_point_touching_union_fails_closed_instead_of_guessing_topology():
+def test_point_touching_union_preserves_two_simple_components():
     first = rectangle("first", 0, 0, 1, 1)
     second = rectangle("second", 1, 1, 2, 2)
-    with pytest.raises(InvalidModelError, match="point-touching|branching"):
-        boolean_planar_regions(first, second, Operation.UNION)
+    result = boolean_planar_regions(first, second, Operation.UNION)
+    assert len(result.regions) == 2
+    assert sorted(region.area_exact for region in result.regions) == [1, 1]
+    assert all(len({(point.x, point.y) for point in region.outer_boundary}) == 4
+               for region in result.regions)
+
+
+def test_four_components_touching_at_one_point_remain_four_canonical_regions():
+    from universal_platform.engineering.planar_region_set_boolean import boolean_planar_region_set
+
+    regions = (
+        rectangle("southwest", -1, -1, 0, 0),
+        rectangle("southeast", 0, -1, 1, 0),
+        rectangle("northwest", -1, 0, 0, 1),
+        rectangle("northeast", 0, 0, 1, 1),
+    )
+    result = boolean_planar_region_set(regions, Operation.UNION)
+    assert len(result.regions) == 4
+    assert result.area == 4.0
+    assert sorted(region.area_exact for region in result.regions) == [1, 1, 1, 1]
 
 
 def test_boolean_rejects_frame_and_unit_mismatch():
