@@ -152,3 +152,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md) — v1.0 point/line sketch data model, supported constraints, solver semantics, limitations and PR #90 evidence.
 - [Parametric Sketch Schema](schemas/geometry/parametric-sketch.schema.json) — strict JSON Schema for versioned 2D sketches.
+
+
+- [Feature History and Regeneration Contract](docs/design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md) — versioned DAG, allow-listed feature execution, deterministic regeneration, artifact hashes and failure semantics.
+- [Feature History Schema](schemas/geometry/feature-history.schema.json) — strict v1.0 feature graph schema.
+- [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md) — 2D parametric sketch model and initial constraint families.
