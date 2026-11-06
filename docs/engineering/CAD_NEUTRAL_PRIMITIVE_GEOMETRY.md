@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** IMPLEMENTED — analytic Box/Cylinder and straight-sided polygon extrusion; through-hole support is introduced by PR #52 on the integration branch.
+**Status:** Baseline IMPLEMENTED — analytic Box/Cylinder and straight-sided polygon extrusion (PRs #48–#49). Through-hole extension is a PR #52 candidate on `fix/cad-profile-holes-integration`; it is not part of the integration baseline until merged and post-merge CI passes.
 
 ## 1. Model
 
