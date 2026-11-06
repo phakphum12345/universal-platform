@@ -143,3 +143,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Repository Audit post-PR #84](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md) — integration SHA, exact PR-head/post-merge CI, PlanarRegion Boolean implementation scope and remaining gates.
 - [PlanarRegion Boolean Result](schemas/geometry/planar-region-boolean-result.schema.json) — versioned result envelope, source digests, output regions and rounding-error metrics.
+
+
+- [Repository Audit post-PR #88](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md) — exact integration SHA, PR #84–#88 evidence, CAD Boolean-to-mesh vertical slice and remaining engineering gates.
+- [PlanarRegion Set Boolean Result](schemas/geometry/planar-region-set-boolean-result.schema.json) — versioned multi-region Boolean output envelope.
+- [PlanarRegion Extrusion Result](schemas/geometry/planar-region-extrusion-result.schema.json) — source-bound conversion from PlanarRegion to ExtrudedProfileSolid.
