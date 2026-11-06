@@ -15,7 +15,9 @@ def sample():
 def test_round_trip_and_deterministic_serialization():
     model=sample(); data=json.loads(json.dumps(model.to_dict()))
     assert SchematicModel.from_dict(data)==model
-    assert SchematicModel(tuple(reversed(model.components)),tuple(reversed(model.nets))).to_dict()==model.to_dict()
+    reordered=SchematicModel(tuple(reversed(model.components)),tuple(reversed(model.nets)))
+    assert reordered.to_dict()==model.to_dict()
+    assert reordered==model
 
 def test_duplicate_component_ids_and_reference_designators_rejected():
     a=Component("component.a","R1","resistor",(Pin("a.1","1","A"),))

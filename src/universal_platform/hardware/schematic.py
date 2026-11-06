@@ -67,6 +67,7 @@ class Component:
         if len(ids)!=len(set(ids)): raise InvalidModelError("pin IDs must be unique within a component")
         if len(nums)!=len(set(nums)): raise InvalidModelError("pin numbers must be unique within a component")
         _optional_text(self.value,"component value"); _optional_text(self.manufacturer_part,"manufacturer_part")
+        object.__setattr__(self, "pins", tuple(sorted(self.pins, key=lambda pin: pin.pin_id)))
     def to_dict(self):
         return {"component_id":self.component_id,"reference_designator":self.reference_designator,
                 "symbol_id":self.symbol_id,"pins":[p.to_dict() for p in sorted(self.pins,key=lambda p:p.pin_id)],
@@ -93,6 +94,7 @@ class Net:
             raise InvalidModelError("net terminals must contain PinRef records")
         keys=tuple((t.component_id,t.pin_id) for t in self.terminals)
         if len(keys)!=len(set(keys)): raise InvalidModelError("a net cannot contain duplicate terminals")
+        object.__setattr__(self, "terminals", tuple(sorted(self.terminals, key=lambda item: (item.component_id, item.pin_id))))
     def to_dict(self):
         return {"net_id":self.net_id,"name":self.name,
                 "terminals":[t.to_dict() for t in sorted(self.terminals,key=lambda t:(t.component_id,t.pin_id))]}
@@ -123,6 +125,8 @@ class SchematicModel:
                     raise InvalidModelError("NO_CONNECT pins cannot be assigned to a net")
                 if key in connected: raise InvalidModelError(f"pin is assigned to more than one net: {key}")
                 connected.add(key)
+        object.__setattr__(self, "components", tuple(sorted(self.components, key=lambda item: item.component_id)))
+        object.__setattr__(self, "nets", tuple(sorted(self.nets, key=lambda item: item.net_id)))
     def to_dict(self):
         return {"schema_version":self.SCHEMA_VERSION,
                 "components":[c.to_dict() for c in sorted(self.components,key=lambda c:c.component_id)],
