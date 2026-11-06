@@ -13,7 +13,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Initial implementation (active development)
 
-The merged requirements baseline contains the first executable Python engineering-core slice under src/universal_platform/engineering; work is delivered incrementally through reviewed pull requests.
+The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
 Current modules include:
 - SI-backed quantities with dimensional checks (limited initial unit registry).
@@ -23,6 +23,7 @@ Current modules include:
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Analytic Box/Cylinder geometry primitives and bounding boxes (not a CAD kernel).
 - Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
+- Normalized mechanism schema v1.2 with stable generalized-coordinate IDs and explicit per-joint coordinate ordering, units, axes, bounds and scales; missing parameterization coverage remains visible.
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
 - An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).
