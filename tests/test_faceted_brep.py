@@ -90,3 +90,11 @@ def test_faceted_brep_public_api_is_exported():
     from universal_platform.engineering import brep_from_triangle_mesh as public_convert
     assert PublicBRepSolid is BRepSolid
     assert public_convert is brep_from_triangle_mesh
+
+
+def test_faceted_brep_contract_is_indexed():
+    root = Path(__file__).parents[1]
+    index = (root / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
+    contract = root / "docs" / "design-3d" / "FACETED_BREP_TOPOLOGY_CONTRACT.md"
+    assert contract.is_file()
+    assert "FACETED_BREP_TOPOLOGY_CONTRACT.md" in index
