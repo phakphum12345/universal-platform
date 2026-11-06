@@ -659,13 +659,6 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR workflow #42226759918 and push workflow #42226749519 passed both jobs with 516 tests; post-merge run #42226889599 passed both jobs with **516 tests in 1.11s**.
 - Adds a design contract only. STL export/import, schema and external CAD reopen are not implemented.
 
-## PR #74 — Deterministic binary STL export (IMPLEMENTATION CANDIDATE)
-
-- Branch: `feat/binary-stl-export`; base SHA: `24f0b7083d95fb5582e26f4614a227250e0a2de0`.
-- Adds `STLInterchangeManifest`, `BinarySTLArtifact`, `export_binary_stl` and `validate_binary_stl_artifact`; strict manifest schema v1.0; independent test-only parser; Box/Cylinder/straight-hole/curved-hole, quantization, tampering and resource-limit references.
-- Exact PR-head and post-merge CI evidence pending. No external CAD reopen or arbitrary third-party STL import is claimed.
-
-
 ## PR #74 — Deterministic binary STL export (MERGED)
 
 - PR: https://github.com/phakphum12345/universal-platform/pull/74
@@ -674,13 +667,6 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR run #42227530004: both jobs PASS, 523 tests in 1.61s; push run #42227459289: both jobs PASS, 523 tests in 1.12s; post-merge run #42227796004: both jobs PASS, **523 tests in 1.31s**.
 - Adds pure-Python binary STL export and strict sidecar metadata, public API exports, source-specific tolerance rules, binary32 quantization checks, caller-approved frame/unit validation and independent test-only facet reader.
 - Limitations: no arbitrary STL import, ASCII STL, external CAD reopen, STEP/3MF, B-rep or mesh repair.
-
-## PR #75 — Independent STL geometric reopen references (TEST CANDIDATE)
-
-- Branch: `test/stl-independent-geometry-references`; base SHA: `1503266c18c5ed74c5756391c033437b05ae6f13`.
-- Extends independent parsing to compare quantized bounds and signed volume using a coordinate-error-derived tolerance; adds non-finite facet and inconsistent-normal corruption cases.
-- Exact-head and post-merge CI evidence pending.
-
 
 ## PR #75 — Independent STL geometric reopen references (MERGED)
 
