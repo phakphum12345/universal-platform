@@ -186,3 +186,19 @@ def test_topology_analysis_rejects_bad_tolerance_and_comparison_budget():
         analyze_mesh_topology(mesh, coincident_tolerance=100.0, max_neighbor_comparisons=1)
     with pytest.raises(InvalidModelError):
         analyze_mesh_topology(mesh, max_neighbor_comparisons=0)
+
+
+def test_topology_analysis_skips_invalid_faces_without_crashing():
+    mesh = tessellate_box(BoxSolid("box.topology.invalid-face", "world", Vec3(1, 1, 1), "m"))
+    faces = list(mesh.triangles)
+    faces[0] = (0, 1, 999)
+    malformed = TriangleMesh(
+        mesh.solid_id, mesh.frame_id, mesh.length_unit, mesh.source_kind,
+        mesh.source_geometry_sha256, mesh.vertices, tuple(faces),
+    )
+
+    result = analyze_mesh_topology(malformed)
+
+    assert result.triangle_count == len(mesh.triangles)
+    assert result.face_component_count >= 1
+    assert result.self_intersection_status == "UNKNOWN"
