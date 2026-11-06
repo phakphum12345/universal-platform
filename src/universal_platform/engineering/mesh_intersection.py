@@ -24,7 +24,7 @@ _CLASSIFICATIONS = {
 }
 _RESULT_FIELDS = {
     "schema_version", "solid_id", "frame_id", "length_unit",
-    "source_geometry_sha256", "mesh_snapshot_sha256", "algorithm_version",
+    "source_geometry_sha256", "mesh_snapshot_sha256", "triangle_count", "algorithm_version",
     "predicate_policy_version", "candidate_pair_count", "candidate_pair_count_complete",
     "checked_pair_count", "candidate_pair_limit", "status", "intersections",
     "unresolved_reasons",
@@ -44,7 +44,7 @@ class MeshIntersection:
                 or isinstance(self.triangle_b, bool) or not isinstance(self.triangle_b, int)
                 or self.triangle_a < 0 or self.triangle_b <= self.triangle_a):
             raise InvalidModelError("intersection triangle indices must be ordered non-negative integers")
-        if self.classification not in _CLASSIFICATIONS:
+        if not isinstance(self.classification, str) or self.classification not in _CLASSIFICATIONS:
             raise InvalidModelError("unsupported mesh intersection classification")
 
     def to_dict(self) -> dict[str, Any]:
@@ -61,6 +61,7 @@ class MeshIntersectionAnalysis:
     length_unit: str
     source_geometry_sha256: str
     mesh_snapshot_sha256: str
+    triangle_count: int
     candidate_pair_count: int
     candidate_pair_count_complete: bool
     checked_pair_count: int
@@ -83,7 +84,8 @@ class MeshIntersectionAnalysis:
             if (not isinstance(digest, str) or len(digest) != 64
                     or any(ch not in "0123456789abcdef" for ch in digest)):
                 raise InvalidModelError(f"{label} must be a lowercase SHA-256 digest")
-        for label, value in (("candidate_pair_count", self.candidate_pair_count),
+        for label, value in (("triangle_count", self.triangle_count),
+                             ("candidate_pair_count", self.candidate_pair_count),
                              ("checked_pair_count", self.checked_pair_count),
                              ("candidate_pair_limit", self.candidate_pair_limit)):
             if isinstance(value, bool) or not isinstance(value, int) or value < 0:
@@ -101,7 +103,11 @@ class MeshIntersectionAnalysis:
         keys = tuple((item.triangle_a, item.triangle_b, item.classification) for item in self.intersections)
         if tuple(sorted(set(keys))) != keys:
             raise InvalidModelError("intersections must be sorted and unique")
-        if not isinstance(self.unresolved_reasons, tuple) or tuple(sorted(set(self.unresolved_reasons))) != self.unresolved_reasons:
+        if any(item.triangle_b >= self.triangle_count for item in self.intersections):
+            raise InvalidModelError("intersection record contains an out-of-range triangle index")
+        if (not isinstance(self.unresolved_reasons, tuple)
+                or any(not isinstance(reason, str) or not reason for reason in self.unresolved_reasons)
+                or tuple(sorted(set(self.unresolved_reasons))) != self.unresolved_reasons):
             raise InvalidModelError("unresolved_reasons must be sorted and unique")
         if self.status not in {"NO_INTERSECTIONS_FOUND", "INTERSECTIONS_FOUND", "UNKNOWN"}:
             raise InvalidModelError("unsupported mesh intersection status")
@@ -123,6 +129,7 @@ class MeshIntersectionAnalysis:
             "length_unit": self.length_unit,
             "source_geometry_sha256": self.source_geometry_sha256,
             "mesh_snapshot_sha256": self.mesh_snapshot_sha256,
+            "triangle_count": self.triangle_count,
             "algorithm_version": self.ALGORITHM_VERSION,
             "predicate_policy_version": self.PREDICATE_POLICY_VERSION,
             "candidate_pair_count": self.candidate_pair_count,
@@ -155,7 +162,7 @@ class MeshIntersectionAnalysis:
         return cls(
             solid_id=value["solid_id"], frame_id=value["frame_id"], length_unit=value["length_unit"],
             source_geometry_sha256=value["source_geometry_sha256"],
-            mesh_snapshot_sha256=value["mesh_snapshot_sha256"],
+            mesh_snapshot_sha256=value["mesh_snapshot_sha256"], triangle_count=value["triangle_count"],
             candidate_pair_count=value["candidate_pair_count"],
             candidate_pair_count_complete=value["candidate_pair_count_complete"],
             checked_pair_count=value["checked_pair_count"],
@@ -351,7 +358,8 @@ def _make_result(mesh: TriangleMesh, *, candidate_count: int, complete: bool,
     return MeshIntersectionAnalysis(
         solid_id=mesh.solid_id, frame_id=mesh.frame_id, length_unit=mesh.length_unit,
         source_geometry_sha256=mesh.source_geometry_sha256,
-        mesh_snapshot_sha256=_mesh_digest(mesh), candidate_pair_count=candidate_count,
+        mesh_snapshot_sha256=_mesh_digest(mesh), triangle_count=len(mesh.triangles),
+        candidate_pair_count=candidate_count,
         candidate_pair_count_complete=complete, checked_pair_count=checked,
         candidate_pair_limit=limit, status=status, intersections=intersections,
         unresolved_reasons=unresolved,

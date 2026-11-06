@@ -232,3 +232,35 @@ def test_projected_sweep_pair_limit_bounds_x_overlapping_aabbs():
     result = analyze_mesh_intersections(mesh, max_candidate_pairs=1)
     assert result.status == "UNKNOWN"
     assert result.unresolved_reasons == ("RESOURCE_LIMIT_EXCEEDED",)
+
+
+
+def test_duplicate_coincident_closed_shells_report_duplicate_facets():
+    mesh = _combine_boxes(0.0)
+    assert validate_triangle_mesh(mesh).valid
+    result = analyze_mesh_intersections(mesh)
+    assert result.status == "INTERSECTIONS_FOUND"
+    assert any(pair.classification == "DUPLICATE_FACET" for pair in result.intersections)
+
+
+def test_exact_predicates_are_stable_under_binary_exact_scale_and_translation():
+    from universal_platform.engineering.mesh_intersection import _pair_intersection
+
+    base = ((0, 0, 0), (2, 0, 0), (0, 2, 0),
+            (1, -1, -1), (1, 2, -1), (1, 0, 1))
+    for scale, offset in ((2**-10, 0.0), (2**10, 0.0), (1.0, float(2**30))):
+        points = [(offset+scale*x, offset+scale*y, offset+scale*z) for x, y, z in base]
+        mesh = _raw_pair_mesh(points, [(0, 1, 2), (3, 4, 5)])
+        assert _pair_intersection(mesh, 0, 1) == "PROPER_INTERSECTION"
+
+
+def test_result_rejects_intersection_indices_outside_source_triangle_count():
+    mesh = tessellate_box(BoxSolid("intersection.index", "world", Vec3(1, 1, 1), "m"))
+    result = analyze_mesh_intersections(mesh)
+    malformed = deepcopy(result.to_dict())
+    malformed["intersections"] = [{
+        "triangle_a": 0, "triangle_b": 999, "classification": "PROPER_INTERSECTION"
+    }]
+    malformed["status"] = "INTERSECTIONS_FOUND"
+    with pytest.raises(InvalidModelError):
+        MeshIntersectionAnalysis.from_dict(malformed)

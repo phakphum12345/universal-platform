@@ -3,7 +3,7 @@
   "title": "MeshIntersectionAnalysis",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version","solid_id","frame_id","length_unit","source_geometry_sha256","mesh_snapshot_sha256","algorithm_version","predicate_policy_version","candidate_pair_count","candidate_pair_count_complete","checked_pair_count","candidate_pair_limit","status","intersections","unresolved_reasons"],
+  "required": ["schema_version","solid_id","frame_id","length_unit","source_geometry_sha256","mesh_snapshot_sha256","triangle_count","algorithm_version","predicate_policy_version","candidate_pair_count","candidate_pair_count_complete","checked_pair_count","candidate_pair_limit","status","intersections","unresolved_reasons"],
   "properties": {
     "schema_version": {"const":"1.0"},
     "solid_id":{"type":"string","minLength":1},
@@ -11,6 +11,7 @@
     "length_unit":{"type":"string","minLength":1},
     "source_geometry_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
     "mesh_snapshot_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "triangle_count":{"type":"integer","minimum":1},
     "algorithm_version":{"const":"sweep-aabb-exact-rational-v1"},
     "predicate_policy_version":{"const":"binary64-as-exact-rational-v1"},
     "candidate_pair_count":{"type":"integer","minimum":0},
