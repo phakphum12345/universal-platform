@@ -37,7 +37,7 @@ Current modules include:
 - Finite-difference constraint Jacobian generation over generalized coordinates and body-pose tangent variables, with stable variable/row ordering and bound-aware one-sided fallback; this is not a symbolic or analytic derivative engine.
 - Geometry-aware loop-closure evaluation that combines deterministic fundamental cycles with generated joint residuals, retaining closing-edge and spanning-tree evidence for caller-supplied configurations; this is not a configuration-search solver.
 - Bounded local generalized-coordinate fitting against fixed caller-supplied body poses, using every generated joint residual, declared coordinate bounds/scales and the offline nonlinear equality solver; this is not a general body-pose configuration solver.
-- Spatial local mobility analysis from generated finite-difference joint Jacobians, combining non-ground body-pose tangent variables with independent joint coordinates; planar auto-mobility still requires an explicit plane-frame contract.
+- Spatial local mobility analysis from generated finite-difference joint Jacobians, combining non-ground body-pose tangent variables with independent joint coordinates. Candidate PR #56 adds explicit plane-frame projection for PLANAR mobility; it is not integrated until exact-head CI passes.
 - Versioned cross-discipline reference validation pack for dimensional quantities, mechanics, DC electrical, thermal expansion, analytic geometry/transforms, linear solve, static algebraic simulation, planar inverse kinematics, four-bar closure, materials, assembly, constraints and safety-boundary checks.
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
@@ -110,6 +110,7 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [3D Assembly and Kinematics](docs/design-3d/3D_ASSEMBLY_AND_KINEMATICS.md)
 - [Generalized Coordinate and Joint Parameterization](docs/design-3d/GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT.md)
 - [Spatial Joint Reference Validation](docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md)
+- [Planar Plane-Frame Mobility](docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md)
 - [Assembly Tree Forward-Kinematics Contract](docs/design-3d/ASSEMBLY_TREE_FORWARD_KINEMATICS_CONTRACT.md)
 - [Planar Two-Link Inverse-Kinematics Contract](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md)
 - [Planar Four-Bar Loop-Closure Contract](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md)
