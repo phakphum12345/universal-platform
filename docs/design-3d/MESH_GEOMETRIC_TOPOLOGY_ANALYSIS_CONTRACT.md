@@ -1,6 +1,6 @@
 # Mesh Geometric Topology Analysis Contract
 
-**Status:** Design contract for a staged topology-analysis layer. The existing `validate_triangle_mesh` remains the structural edge-incidence/winding validator. This contract does not claim general triangle-triangle self-intersection detection.
+**Status:** Contract implemented by PR #77 candidate; exact-SHA CI evidence pending. The existing `validate_triangle_mesh` remains the structural edge-incidence/winding validator. This contract does not claim general triangle-triangle self-intersection detection.
 
 ## 1. Purpose and separation of concerns
 
