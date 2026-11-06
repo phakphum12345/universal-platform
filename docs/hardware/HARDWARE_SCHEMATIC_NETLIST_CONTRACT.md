@@ -1,6 +1,6 @@
 # Hardware Schematic Netlist Contract
 
-**Status:** Normalized connectivity model v1.0 implemented under PR #46; rendering and electrical verification remain open.
+**Status:** Normalized connectivity model v1.0 implemented under PR #46. PR #59 adds a deterministic symbol/layout SVG renderer; electrical rule checking and circuit simulation remain open.
 
 ## 1. Purpose
 
@@ -29,10 +29,13 @@ Represent an offline hardware schematic as a stable, versioned connectivity grap
 
 This is a metadata/connectivity model only. It does not render a schematic, import/export EDA formats, perform electrical rule checking, run SPICE/circuit simulation, select components, verify electrical ratings, bind firmware drivers, or operate hardware. Structural PASS is not electrical correctness or physical validation.
 
-## 5. Future work
+## 5. Rendering implementation boundary
+
+PR #59 introduces a separate versioned SchematicLayout with reusable symbol definitions, explicit component placements, pin anchors and net routes. The pure-Python SVG renderer is deterministic and reports nets that do not have a complete route. It does not infer placement, import EDA libraries, or claim electrical correctness.
+
+## 6. Future work
 
 - EDA symbol/library import and stable external object references.
-- Schematic diagram rendering and layout.
 - Electrical rule checking with versioned standards and reviewable waivers.
 - Component ratings, power budgets, net classes and electrical constraints.
 - Driver/interface mapping with source and firmware-version provenance.
