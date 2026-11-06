@@ -48,3 +48,17 @@ PR #28 adds deterministic fundamental-cycle topology for normalized mechanism gr
 - Reports estimated rank, redundant constraint rows, negative nominal DOF and possible singularity as separate fields. Singularity remains UNKNOWN without an explicit regular-configuration reference rank.
 - Tests cover planar 4R nominal and local mobility, spatial revolute-pair nominal mobility, unsupported planar joint kinds, redundant rows, rank drop, negative nominal count, validation and versioned provenance snapshots.
 - This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Final tested PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (`42152768589`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, 196 passed in 0.45s; documentation-only marker SKIPPED. Squash merge `a20e83314abb735448c6ebebf755b8b50cf7635e`; post-merge push run #234 (`42152843277`) on the exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, 196 passed in 0.32s. The implementation returns singularity UNKNOWN if a supplied regular-rank reference is inconsistent with a higher observed rank.
+
+
+## CAD-003D — Integrated mechanism kinematics (PR #30)
+
+- Connects normalized stable-ID mechanism topology and explicit loop residuals to position closure, PR #29 mobility/rank diagnostics, and velocity/acceleration constraint solves.
+- Position, velocity and acceleration use a common ordered generalized-coordinate vector. Velocity and acceleration are solved from J*qdot + b_v = 0 and J*qddot + b_a = 0; derivative bias terms are explicit caller inputs with source labels.
+- Regression coverage includes planar 4R and two-loop models, same-branch continuation, branch switch, schema/revision mismatch and versioned provenance.
+- The pipeline does not auto-generate geometric joint constraints/Jacobians or derivative bias terms. It is a caller-driven integration contract, not a general 3D multibody dynamics engine.
+- Exact-SHA CI evidence pending.
+
+
+PR #30 initial exact-head run #237 (`42153434281`, head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e)): workflow-sanity PASS; python-tests FAIL, 202 passed / 1 failed. The failure log shows the test fixture accessed `__dict__` on a slotted dataclass; corrected using `dataclasses.replace`.
+
+PR #30 corrected exact head `385122e4e2d1abb1678c9bdc08f2fbfcf290bdc0`; run #240 (`42153561436`): workflow-sanity PASS; python-tests PASS, 203 passed in 0.47s. The earlier fixture-only failure on initial head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` (202 passed, 1 failed) is retained as historical evidence.
