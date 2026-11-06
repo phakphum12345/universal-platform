@@ -158,3 +158,6 @@ Adds immutable versioned module and operation declarations, deterministic regist
 
 
 | MECH-SPATIAL-JOINT-001 | Eight-family spatial joint reference validation | SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT; tests/fixtures/spatial_joint_reference_cases.json; tests/test_spatial_joint_reference_suite.py | IMPLEMENTED by PR #54: all eight joint kinds have deterministic residual, finite-difference Jacobian and spatial local-mobility/rank references; ground-link reversal and nontrivial joint-frame placements are covered. Exact head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`42193562931`): 452 tests PASS; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 (`42193654653`): 452 tests PASS. Separate 2D PLANAR mobility remains unsupported pending plane-frame contract. |
+
+
+| MECH-PLANAR-MOBILITY-001 | Explicit plane-frame geometric mobility | PLANAR_PLANE_FRAME_MOBILITY_CONTRACT; docs/design-3d/AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT.md; src/universal_platform/engineering/mechanism_mobility.py; tests/test_planar_geometric_mobility.py | Candidate PR #56 adds a plane-to-world RigidTransform contract, body/joint coplanarity and axis validation, a projected 3-variable-per-moving-link Jacobian, supported FIXED/REVOLUTE/PRISMATIC/PLANAR references and fail-closed cases. Exact PR-head CI pending; not integrated yet. |
