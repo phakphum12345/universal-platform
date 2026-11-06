@@ -32,7 +32,11 @@ Record exact input snapshot, model and solver versions, configuration, random se
 
 Run untrusted or third-party solvers in least-privilege isolation. No solver may obtain hardware-control privileges through this interface. External network access and file writes require explicit adapter policy and scoped approval.
 
-## 8. Acceptance criteria
+## 8. Mechanism adapter boundary
+
+The proposed mapping from versioned assembly/mechanism snapshots to ordered nonlinear variables and residuals is specified in [MECHANISM_CONSTRAINT_ADAPTER_CONTRACT](MECHANISM_CONSTRAINT_ADAPTER_CONTRACT.md). This is a design contract only; no general mechanism-to-solver adapter is implemented. The adapter must validate topology, frames, units, ground reference, bounds and source lineage before solver invocation.
+
+## 9. Acceptance criteria
 
 - [ ] Solver adapters are replaceable.
 - [ ] Input/output schemas are versioned.
