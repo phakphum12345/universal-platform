@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from math import isfinite
+from math import hypot, isfinite
 from typing import Callable, Mapping, Sequence
 
 from .errors import SolverError
@@ -30,10 +30,24 @@ class JacobianMethod(str, Enum):
     ANALYTIC = "analytic"
 
 
+class JacobianScaleStatus(str, Enum):
+    BALANCED = "BALANCED"
+    SCALE_DISPARITY = "SCALE_DISPARITY"
+    INDETERMINATE = "INDETERMINATE"
+
+
 class JacobianRankStatus(str, Enum):
     FULL_RANK = "FULL_RANK"
     RANK_DEFICIENT = "RANK_DEFICIENT"
     INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True, slots=True)
+class JacobianScaleDiagnostics:
+    column_norm_ratio: float | None
+    threshold: float
+    status: JacobianScaleStatus
+    method: str = "scaled-jacobian-column-norm-ratio"
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +87,7 @@ class NonlinearSolverOptions:
     maximum_damping: float = 1e12
     jacobian_method: JacobianMethod = JacobianMethod.FORWARD_FINITE_DIFFERENCE
     rank_tolerance: float = 1e-10
+    column_scale_disparity_threshold: float = 1e8
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,6 +112,8 @@ class NonlinearSolveResult:
     jacobian_evaluations: int = 0
     analytic_jacobian_evaluations: int = 0
     jacobian_rank: JacobianRankDiagnostics | None = None
+    jacobian_scale: JacobianScaleDiagnostics | None = None
+    variable_scales: tuple[tuple[str, float], ...] = ()
     limitations: tuple[str, ...] = (
         "Local solver; no global convergence or uniqueness guarantee",
         "Derivative accuracy depends on the selected strategy; finite differences are step-sensitive",
@@ -249,7 +266,7 @@ def _estimate_jacobian_rank(
         [matrix[row][column] for row in range(row_count)]
         for column in range(column_count)
     ]
-    norms = [sum(value * value for value in column) ** 0.5 for column in columns]
+    norms = [hypot(*column) for column in columns]
     reference_norm = max(norms, default=0.0)
     threshold = relative_tolerance * reference_norm
     rank = 0
@@ -259,7 +276,7 @@ def _estimate_jacobian_rank(
             value * value for value in columns[index]
         ))
         vector = columns.pop(pivot)
-        norm = sum(value * value for value in vector) ** 0.5
+        norm = hypot(*vector)
         if norm <= threshold:
             break
         basis = [value / norm for value in vector]
@@ -281,6 +298,33 @@ def _estimate_jacobian_rank(
     return JacobianRankDiagnostics(
         rank, maximum_rank, row_count, column_count, threshold, status,
         _system_shape(row_count, column_count),
+    )
+
+
+def _estimate_jacobian_scale(
+    matrix: list[list[float]],
+    disparity_threshold: float,
+) -> JacobianScaleDiagnostics:
+    if not matrix or not matrix[0] or any(
+        len(row) != len(matrix[0]) for row in matrix
+    ) or not all(isfinite(value) for row in matrix for value in row):
+        return JacobianScaleDiagnostics(
+            None, disparity_threshold, JacobianScaleStatus.INDETERMINATE
+        )
+    norms = [
+        hypot(*(matrix[row][column] for row in range(len(matrix))))
+        for column in range(len(matrix[0]))
+    ]
+    if not norms or min(norms) <= 0.0 or not all(isfinite(value) for value in norms):
+        return JacobianScaleDiagnostics(
+            None, disparity_threshold, JacobianScaleStatus.INDETERMINATE
+        )
+    ratio = max(norms) / min(norms)
+    return JacobianScaleDiagnostics(
+        ratio,
+        disparity_threshold,
+        JacobianScaleStatus.SCALE_DISPARITY
+        if ratio > disparity_threshold else JacobianScaleStatus.BALANCED,
     )
 
 
@@ -322,6 +366,8 @@ def _build_result(
     stats: _EvaluationStats,
     jacobian_method: JacobianMethod,
     jacobian_rank: JacobianRankDiagnostics | None,
+    jacobian_scale: JacobianScaleDiagnostics | None,
+    variable_scales: tuple[tuple[str, float], ...],
 ) -> NonlinearSolveResult:
     residual_items = tuple(
         NonlinearConstraintResidual(
@@ -350,6 +396,8 @@ def _build_result(
         jacobian_evaluations=stats.jacobian_evaluations,
         analytic_jacobian_evaluations=stats.analytic_jacobian_evaluations,
         jacobian_rank=jacobian_rank,
+        jacobian_scale=jacobian_scale,
+        variable_scales=variable_scales,
     )
 
 
@@ -361,6 +409,7 @@ def solve_nonlinear_constraints(
     bounds: Mapping[str, VariableBound] | None = None,
     options: NonlinearSolverOptions | None = None,
     jacobian: JacobianFunction | None = None,
+    variable_scales: Mapping[str, float] | None = None,
 ) -> NonlinearSolveResult:
     """Solve scalar equality residuals with bounded damped least squares.
 
@@ -372,6 +421,7 @@ def solve_nonlinear_constraints(
     equations = tuple(constraints)
     settings = options or NonlinearSolverOptions()
     bound_map = bounds or {}
+    variable_scale_map = variable_scales or {}
 
     if not names or any(not isinstance(name, str) or not name.strip() for name in names):
         raise SolverError("At least one non-empty variable name is required")
@@ -404,8 +454,18 @@ def solve_nonlinear_constraints(
             or not isfinite(settings.maximum_damping)
             or settings.maximum_damping <= settings.initial_damping
             or not isfinite(settings.rank_tolerance)
-            or settings.rank_tolerance <= 0.0):
+            or settings.rank_tolerance <= 0.0
+            or not isfinite(settings.column_scale_disparity_threshold)
+            or settings.column_scale_disparity_threshold <= 1.0):
         raise SolverError("Solver step, tolerance and damping options must be finite and positive")
+
+    for key, scale in variable_scale_map.items():
+        if key not in names:
+            raise SolverError(f"Variable scales supplied for unknown variable {key!r}")
+        if not isfinite(scale) or scale <= 0.0:
+            raise SolverError(f"Variable scale for {key!r} must be finite and positive")
+
+    scales = tuple(float(variable_scale_map.get(name, 1.0)) for name in names)
 
     for key, bound in bound_map.items():
         if key not in names:
@@ -441,13 +501,15 @@ def solve_nonlinear_constraints(
         return _build_result(
             NonlinearSolveStatus.CONVERGED, names, current, equations,
             residuals, 0, "initial_point_satisfies_all_constraints",
-            stats, settings.jacobian_method, None,
+            stats, settings.jacobian_method, None, None,
+            tuple(zip(names, scales)),
         )
 
     damping = settings.initial_damping
     reason = "maximum_iterations_reached"
     iterations = 0
     rank_diagnostics: JacobianRankDiagnostics | None = None
+    scale_diagnostics: JacobianScaleDiagnostics | None = None
 
     for iteration in range(1, settings.max_iterations + 1):
         iterations = iteration
@@ -456,12 +518,19 @@ def solve_nonlinear_constraints(
             settings.finite_difference_step,
             settings.jacobian_method, jacobian, stats,
         )
+        scaled_jacobian = [
+            [jacobian_matrix[row][col] * scales[col] for col in range(len(names))]
+            for row in range(len(equations))
+        ]
         rank_diagnostics = _estimate_jacobian_rank(
-            jacobian_matrix, settings.rank_tolerance
+            scaled_jacobian, settings.rank_tolerance
+        )
+        scale_diagnostics = _estimate_jacobian_scale(
+            scaled_jacobian, settings.column_scale_disparity_threshold
         )
         row_count, column_count = len(equations), len(names)
         gradient = [
-            sum(jacobian_matrix[row][col] * residuals[row] for row in range(row_count))
+            sum(scaled_jacobian[row][col] * residuals[row] for row in range(row_count))
             for col in range(column_count)
         ]
         if max(abs(value) for value in gradient) <= settings.step_tolerance:
@@ -472,7 +541,7 @@ def solve_nonlinear_constraints(
         for i in range(column_count):
             for j in range(column_count):
                 normal[i][j] = sum(
-                    jacobian_matrix[row][i] * jacobian_matrix[row][j]
+                    scaled_jacobian[row][i] * scaled_jacobian[row][j]
                     for row in range(row_count)
                 )
             normal[i][i] += damping * max(normal[i][i], 1.0)
@@ -487,13 +556,16 @@ def solve_nonlinear_constraints(
             continue
 
         candidate = _project_bounds(
-            tuple(value + change for value, change in zip(current, delta)),
+            tuple(value + change * scale for value, change, scale in zip(current, delta, scales)),
             names,
             bound_map,
         )
-        actual_step = max(abs(new - old) for new, old in zip(candidate, current))
+        actual_step = max(
+            abs(new - old) / scale
+            for new, old, scale in zip(candidate, current, scales)
+        )
         if actual_step <= settings.step_tolerance * (
-            1.0 + max(abs(value) for value in current)
+            1.0 + max(abs(value) / scale for value, scale in zip(current, scales))
         ):
             reason = "step_tolerance_reached_without_constraint_convergence"
             break
@@ -511,6 +583,7 @@ def solve_nonlinear_constraints(
                     residuals, iterations,
                     "all_constraint_residuals_within_tolerance",
                     stats, settings.jacobian_method, rank_diagnostics,
+                    scale_diagnostics, tuple(zip(names, scales)),
                 )
         else:
             damping *= 10.0
@@ -521,5 +594,5 @@ def solve_nonlinear_constraints(
     return _build_result(
         NonlinearSolveStatus.NOT_CONVERGED, names, current, equations,
         residuals, iterations, reason, stats, settings.jacobian_method,
-        rank_diagnostics,
+        rank_diagnostics, scale_diagnostics, tuple(zip(names, scales)),
     )
