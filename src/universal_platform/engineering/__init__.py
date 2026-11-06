@@ -103,7 +103,7 @@ from .mechanism_loops import (
     analyze_loop_topology,
     solve_mechanism_loops,
 )
-from .nonlinear_solver import (
+from .parametric_sketch import (\n    ParametricSketch, ParametricSketchSolveResult, SketchConstraint,\n    SketchConstraintKind, SketchPoint, SketchSegment, solve_parametric_sketch,\n)\nfrom .nonlinear_solver import (
     JacobianMethod,
     JacobianScaleDiagnostics,
     JacobianScaleStatus,
@@ -154,5 +154,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
+    "solve_nonlinear_constraints", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "solve_parametric_sketch", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
 ]
