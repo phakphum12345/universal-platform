@@ -85,6 +85,29 @@ class MeshTopologyAnalysis:
     SCHEMA_VERSION: ClassVar[str] = "1.0"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.solid_id, str) or not self.solid_id.strip():
+            raise InvalidModelError("solid_id is required")
+        if not isinstance(self.frame_id, str) or not self.frame_id.strip():
+            raise InvalidModelError("frame_id is required")
+        if not isinstance(self.length_unit, str) or not self.length_unit:
+            raise InvalidModelError("length_unit is required")
+        try:
+            if Quantity.of(1.0, self.length_unit).dimension != LENGTH:
+                raise InvalidModelError("length_unit must have length dimension")
+        except Exception as exc:
+            if isinstance(exc, InvalidModelError):
+                raise
+            raise InvalidModelError(f"Unsupported mesh topology length_unit: {self.length_unit}") from exc
+        for label, digest in (
+            ("source_geometry_sha256", self.source_geometry_sha256),
+            ("mesh_snapshot_sha256", self.mesh_snapshot_sha256),
+        ):
+            if (not isinstance(digest, str) or len(digest) != 64
+                    or any(character not in "0123456789abcdef" for character in digest)):
+                raise InvalidModelError(f"{label} must be a lowercase SHA-256 digest")
+        for label, value in (("vertex_count", self.vertex_count), ("triangle_count", self.triangle_count)):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise InvalidModelError(f"{label} must be a non-negative integer")
         if not isinstance(self.face_components, tuple):
             raise InvalidModelError("face_components must be an immutable tuple")
         normalized_components = _groups(self.face_components, "face_components", minimum_group_length=1)
