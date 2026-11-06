@@ -164,3 +164,8 @@ Integration branch HEAD: `cb91c7c49406fd02324be6b30d5570e821b4d503`. PR #80 impl
 ## Current verified integration baseline (post-PR #81)
 
 Integration HEAD `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; post-merge workflow #42239244546 passed workflow-sanity and python-tests with 550 tests in 1.97s. Recursive tree: 199 files, 92 Markdown, 90 Python, 13 schemas and 48 test files. PR #82 is the next candidate increment for a separate exact-predicate PlanarRegion input model; it does not yet implement general planar Boolean operations. See [post-PR #81 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR81.md).
+
+
+## Current verified integration baseline (post-PR #82)
+
+Integration HEAD `114bf8dd84831d7d4080922ed7069cadda380ba3`. PR #82 PlanarRegion v1.0 is merged; PR-head and push CI passed 563 tests, and post-merge workflow #42240292055 passed both required jobs with 563 tests in 2.47s. Current tree: 204 files, 94 Markdown, 92 Python, 14 schemas and 49 test files. General planar Boolean operations remain unimplemented. See [post-PR #82 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md).

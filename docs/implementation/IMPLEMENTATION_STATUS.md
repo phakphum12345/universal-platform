@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53` (PR #81 documentation reconciliation after PR #80).
-**Exact post-merge CI:** PR #81 merge SHA `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; workflow #42239244546: workflow-sanity PASS and python-tests PASS; **550 passed in 1.97s**. Documentation-only marker step SKIPPED.  
+**Integration HEAD:** `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 PlanarRegion v1.0 input model).
+**Exact post-merge CI:** PR #82 merge SHA `114bf8dd84831d7d4080922ed7069cadda380ba3`; workflow #42240292055: workflow-sanity PASS and python-tests PASS; **563 passed in 2.47s**. Documentation-only marker step SKIPPED.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -730,3 +730,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds separate PlanarRegion v1.0 input model, exact rational represented-binary64 boundary predicates, strict hole checks, canonical orientation/start point, explicit frame/unit, canonical digest, schema and tests.
 - Does not implement Boolean operations and does not change convex ProfileLoop v1.0.
 - Status remains IN REVIEW until exact-head CI, merge and post-merge checks are verified.
+
+
+## PR #82 — PlanarRegion v1.0 input model (MERGED)
+
+- Base integration SHA: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; exact PR head: `a2df003b7dfe66c6ccaf605cfb8ee83d0780668e`; merge SHA / integration HEAD: `114bf8dd84831d7d4080922ed7069cadda380ba3`.
+- PR workflow #42240159979 and push workflow #42240149518 passed both required jobs; 563 tests in 1.54s on the PR head.
+- Post-merge workflow #42240292055 passed workflow-sanity and python-tests; 563 tests in 2.47s.
+- Adds PlanarRegion v1.0, exact represented-binary64 rational predicates, canonical winding/start, strict simple boundary and hole validation, explicit frame/unit, digest, schema and 2,048-edge bound.
+- No Boolean operation is implemented. ProfileLoop/ProfileBooleanResult v1.0 remain convex-only.
+- Next work: exact planar-region Boolean arrangement with multi-component/hole support, independent references, deterministic graph traversal and output rounding/error bounds.

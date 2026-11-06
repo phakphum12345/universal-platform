@@ -261,3 +261,15 @@ General planar-region Boolean topology beyond convex loops is next, but implemen
 - Use a dependency-free precision policy; no epsilon snapping, quantization or third-party kernel dependency is introduced.
 - This increment is region input/validation only. Boolean union/intersection/difference/symmetric difference remain a subsequent PR requiring independent topology/area references, error bounds and resource limits.
 - Candidate implementation is in PR #82; do not mark implemented until exact-head CI passes and the PR is merged with post-merge verification.
+
+
+## PR #82 — PlanarRegion v1.0 input model (IMPLEMENTED)
+
+- Merged at `114bf8dd84831d7d4080922ed7069cadda380ba3`; exact PR head `a2df003b7dfe66c6ccaf605cfb8ee83d0780668e`.
+- PR workflow #42240159979 and push workflow #42240149518 passed both required jobs with 563 tests; post-merge workflow #42240292055 passed both jobs with 563 tests in 2.47s.
+- Adds exact-rational represented-binary64 predicates, canonical outer/hole winding, strict simple-loop and hole checks, explicit frame/unit, canonical digest, strict schema and a 2,048-edge bound.
+- Existing convex ProfileLoop v1.0 remains unchanged. General planar Boolean operations are still PLANNED, not implemented.
+
+## Next increment — exact planar-region Boolean arrangement
+
+Implement union, intersection, difference and symmetric difference for PlanarRegion sets with multiple components and holes. Require independent exact-rational topology/area references, deterministic boundary graph traversal, output rounding/error bounds, and resource-limit UNKNOWN behavior before declaring completion. See [post-PR #82 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md).

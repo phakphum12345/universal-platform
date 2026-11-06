@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53` (PR #81 merge); post-merge workflow #42239244546 passed workflow-sanity and python-tests with 550 tests in 1.97s. PRs #49, #52, #54, #56, #59–#80 are integrated on `docs/phase-0-complete-requirements`. The last recursive tree audit was pinned to the PR #78 baseline SHA `502d49baf58e43938d2746859e10817badd43f6e` (193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files). PRs #79 and #80 changed the tree; a new recursive tree enumeration has not been performed, so current counts are UNKNOWN. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `114bf8dd84831d7d4080922ed7069cadda380ba3` (PR #82 merge); post-merge workflow #42240292055 passed workflow-sanity and python-tests with 563 tests in 2.47s. PRs #49, #52, #54, #56, #59–#80 are integrated on `docs/phase-0-complete-requirements`. The last recursive tree audit was pinned to the PR #78 baseline SHA `502d49baf58e43938d2746859e10817badd43f6e` (193 files, 89 Markdown documents, 43 source files, 12 JSON schemas, 47 test files). PRs #79 and #80 changed the tree; a new recursive tree enumeration has not been performed, so current counts are UNKNOWN. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 
@@ -135,3 +135,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — dependency-free exact-rational predicate policy for PlanarRegion v1.
 - [Repository Audit post-PR #81](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR81.md) — current baseline, tree counts, maturity boundaries and next gated work.
+
+- [Planar Region Model](schemas/geometry/planar-region.schema.json) — PlanarRegion v1.0 schema; exact-rational input validation and hole topology.
+- [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — selected dependency-free predicate policy.
+- [Repository Audit post-PR #82](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md) — current baseline, tree counts, implemented maturity and remaining gated work.
