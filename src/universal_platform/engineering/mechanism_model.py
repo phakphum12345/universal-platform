@@ -158,16 +158,22 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
     joint_ids = unique_ids(model.joints, "joint_id", "joint")
     frame_ids = unique_ids(model.frames, "frame_id", "frame")
     geometry_ids = unique_ids(model.geometry, "geometry_id", "geometry")
+    geometry_by_id = {item.geometry_id: item for item in model.geometry}
+    frame_by_id = {item.frame_id: item for item in model.frames}
 
     for link in model.links:
         required(link.revision, f"Link {link.link_id!r} revision")
         if link.frame_id not in frame_ids:
             errors.append(f"Link {link.link_id!r} references unknown frame {link.frame_id!r}")
+        elif frame_by_id[link.frame_id].owner_link_id not in (None, link.link_id):
+            errors.append(f"Link {link.link_id!r} body frame is owned by another link")
         if len(link.geometry_ids) != len(set(link.geometry_ids)):
             errors.append(f"Link {link.link_id!r} has duplicate geometry references")
         for geometry_id in link.geometry_ids:
             if geometry_id not in geometry_ids:
                 errors.append(f"Link {link.link_id!r} references unknown geometry {geometry_id!r}")
+            elif geometry_by_id[geometry_id].owner_link_id != link.link_id:
+                errors.append(f"Link {link.link_id!r} references geometry owned by another link")
 
     for frame in model.frames:
         if frame.parent_frame_id is not None and frame.parent_frame_id not in frame_ids:
