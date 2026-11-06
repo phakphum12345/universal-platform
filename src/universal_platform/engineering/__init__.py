@@ -4,6 +4,7 @@ This package performs offline calculations and model validation only. It does
 not communicate with or control physical devices.
 """
 from .quantity import Quantity, DIMENSIONLESS, LENGTH, MASS, TIME, CURRENT, TEMPERATURE
+from .module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
 from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus, SourceRef
 from .safety import RiskTier, SafetyGate, SafetyDecision
 from .transforms import RigidTransform
@@ -107,6 +108,7 @@ from .nonlinear_solver import (
 
 __all__ = [
     "Quantity", "DIMENSIONLESS", "LENGTH", "MASS", "TIME", "CURRENT",
+    "ModuleManifest", "ModuleOperation", "ModuleRegistry",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "JointPlacement",

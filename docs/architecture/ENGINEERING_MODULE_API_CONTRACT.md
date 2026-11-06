@@ -1,13 +1,14 @@
 # Engineering Module API Contract
 
-**Status:** PROPOSED logical contract; no implementation implied
+**Status:** PROPOSED invocation contract; metadata registry subset implemented in PR #39.
 
 ## 1. Purpose
 
-Define the stable boundary between UEIC, domain modules, CAD/design tools, solvers, simulation adapters and evidence services.
+Define the stable boundary between UEIC, domain modules, CAD/design tools, solvers, simulation adapters and evidence services. The first implementation deliberately separates module discovery metadata from any future code execution.
 
 ## 2. Required operations
 
+The proposed full adapter lifecycle includes:
 - describe_module
 - validate_inputs
 - estimate_resources
@@ -18,32 +19,42 @@ Define the stable boundary between UEIC, domain modules, CAD/design tools, solve
 - emit_evidence
 - cancel_operation
 
-The actual transport and serialization format remain OPEN until a vertical slice is tested.
+These invocation operations are not implemented by the metadata registry. Transport and runtime execution remain OPEN pending a reviewed vertical slice.
 
 ## 3. Request envelope
 
-Include request_id, task_id, module_id/version, operation, schema_version, inputs, units, coordinate_frames, assumptions, constraints, source_refs, requested_precision, resource_limits, permissions and cancellation context.
+The existing Python ModuleRequest envelope includes module_id, operation, inputs, schema_version, request_id, assumptions, source_refs, resource_limits and permissions. It does not yet validate schemas, units, coordinate frames, task identity or cancellation.
 
 ## 4. Response envelope
 
-Include request_id, status, outputs, units, model/solver versions, warnings, assumptions, uncertainty, limitations, source_lineage, execution_metadata, evidence_refs and error details.
+The existing Python ModuleResponse envelope includes request_id, status, outputs, warnings, assumptions, limitations, evidence_refs and error_code. Completion remains distinct from engineering verification. Model/solver versions, uncertainty and execution metadata require a later versioned contract.
 
-## 5. Status semantics
+## 5. Metadata manifest v1.0
 
-Use PASS / FAIL / SKIPPED / UNKNOWN for evidence checks. Operational responses may use ACCEPTED / REJECTED / RUNNING / COMPLETED / CANCELLED / ERROR. Never equate COMPLETED with engineering PASS.
+The offline ModuleManifest contract declares:
+- Stable module ID, semantic version, domain, license identifier and maturity.
+- Operation IDs, input/output MAJOR.MINOR schema versions and execution classification.
+- Module dependencies and permission declarations.
+- Operation permissions, which must be a subset of module-declared permissions.
+
+Allowed execution classifications in this registry are ANALYSIS, CALCULATION, SIMULATION and EXTERNAL_READ. Physical control, firmware writes and external writes are not accepted classifications.
+
+The ModuleRegistry provides duplicate-ID rejection, operation lookup, deterministic listing/snapshots and dependency ordering. Missing dependencies and dependency cycles fail closed.
 
 ## 6. Security and authority
 
-Modules receive least privilege. A calculation module cannot acquire hardware-control permissions. External network, file modification, procurement, fabrication and deployment are separate permission scopes.
+The registry stores metadata only. It does not import, load, invoke or grant permissions to module code. Declared permissions are descriptive metadata, not authorization. No hardware-control, firmware-write, physical-actuation, deployment or external-write operation is enabled.
 
 ## 7. Compatibility
 
-Contracts are versioned. Breaking changes require a new major schema version, migration notes and compatibility tests. Unknown fields must not silently change safety-critical meaning.
+Manifest schema version is 1.0. Module versions use MAJOR.MINOR.PATCH semantic version syntax. Operation input/output schema versions use MAJOR.MINOR. Breaking changes require a new major schema version, migration notes and compatibility tests. Unknown fields must not silently change safety-critical meaning.
 
 ## 8. Acceptance criteria
 
-- [ ] Module operations and schemas are versioned.
-- [ ] Permissions are operation-specific.
-- [ ] Errors and cancellation are explicit.
-- [ ] Result lineage is preserved.
-- [ ] Completion and verification are separate.
+- [x] Stable module and operation identifiers and explicit versions.
+- [x] License and maturity are explicit.
+- [x] Duplicate IDs, duplicate operations and undeclared permissions are rejected.
+- [x] Unsupported execution classifications fail closed.
+- [x] Missing dependencies and cycles fail closed.
+- [x] Registry snapshots are deterministic and JSON-compatible.
+- [ ] Runtime loading, invocation, isolation, cancellation and evidence emission remain future work.
