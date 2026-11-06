@@ -84,3 +84,6 @@ PR #37 — Generated spatial Jacobian mobility — automatically derives local s
 
 
 PR #37 — Generated spatial Jacobian mobility — merged at `41d81818385dd82497840ce93ce5aac60e3216da`; exact PR-head runs #293/#294 and post-merge run #295 passed 265 tests each. The generated adapter is SPATIAL-only; PLANAR remains deferred pending explicit plane-frame validation.
+
+
+PR #38 — Cross-discipline engineering reference validation — add versioned reference data and executable checks for dimensional, mechanics, electrical, thermal, geometry, transform, linear solver, static algebraic simulation, kinematics, material record, assembly, constraint and safety-boundary behavior.

@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0",
+  "reference_basis": "Independent closed-form equations and analytically reconstructable kinematic examples; no vendor allowables or design-code certification values.",
+  "cases": [
+    {
+      "id": "UNIT-LENGTH-MM-TO-M-001",
+      "operation": "quantity.convert",
+      "inputs": {"value": 25.0, "unit": "mm", "target_unit": "m"},
+      "expected": 0.025,
+      "tolerance": 1e-14,
+      "reference": "SI prefix conversion: 1 mm = 1e-3 m"
+    },
+    {
+      "id": "MECH-AXIAL-STRESS-001",
+      "operation": "mechanics.axial_stress",
+      "inputs": {"force": {"value": 1000.0, "unit": "N"}, "width": {"value": 100.0, "unit": "mm"}, "height": {"value": 100.0, "unit": "mm"}, "unit": "MPa"},
+      "expected": 0.1,
+      "tolerance": 1e-12,
+      "reference": "sigma = F / A"
+    },
+    {
+      "id": "MECH-AXIAL-STRAIN-001",
+      "operation": "mechanics.axial_strain",
+      "inputs": {"extension": {"value": 1.0, "unit": "mm"}, "length": {"value": 1.0, "unit": "m"}},
+      "expected": 0.001,
+      "tolerance": 1e-14,
+      "reference": "epsilon = delta_L / L"
+    },
+    {
+      "id": "MECH-FACTOR-OF-SAFETY-001",
+      "operation": "mechanics.factor_of_safety",
+      "inputs": {"yield_strength": {"value": 250.0, "unit": "MPa"}, "applied_stress": {"value": 100.0, "unit": "MPa"}},
+      "expected": 2.5,
+      "tolerance": 1e-14,
+      "reference": "FoS = yield_strength / applied_stress"
+    },
+    {
+      "id": "ELEC-OHMS-LAW-001",
+      "operation": "electrical.ohms_law",
+      "inputs": {"voltage": {"value": 12.0, "unit": "V"}, "resistance": {"value": 6.0, "unit": "ohm"}, "unit": "A"},
+      "expected": 2.0,
+      "tolerance": 1e-14,
+      "reference": "I = V / R"
+    },
+    {
+      "id": "ELEC-POWER-001",
+      "operation": "electrical.power",
+      "inputs": {"voltage": {"value": 12.0, "unit": "V"}, "current": {"value": 2.0, "unit": "A"}, "unit": "W"},
+      "expected": 24.0,
+      "tolerance": 1e-14,
+      "reference": "P = V * I"
+    },
+    {
+      "id": "THERMAL-LINEAR-EXPANSION-001",
+      "operation": "thermal.linear_expansion",
+      "inputs": {"length": {"value": 2.0, "unit": "m"}, "coefficient_per_kelvin": 0.000012, "temperature_change_kelvin": 50.0, "unit": "mm"},
+      "expected": 1.2,
+      "tolerance": 1e-12,
+      "reference": "delta_L = alpha * L * delta_T"
+    },
+    {
+      "id": "GEOM-BOX-VOLUME-001",
+      "operation": "geometry.box_volume",
+      "inputs": {"length": 2.0, "width": 3.0, "height": 4.0},
+      "expected": 24.0,
+      "tolerance": 1e-14,
+      "reference": "V = length * width * height"
+    },
+    {
+      "id": "GEOM-CYLINDER-VOLUME-001",
+      "operation": "geometry.cylinder_volume",
+      "inputs": {"radius": 1.0, "height": 2.0},
+      "expected": 6.283185307179586,
+      "tolerance": 1e-13,
+      "reference": "V = pi * radius^2 * height"
+    },
+    {
+      "id": "LINEAR-PIVOTING-001",
+      "operation": "linear.solve",
+      "inputs": {"matrix": [[0.0, 2.0], [1.0, 1.0]], "rhs": [4.0, 3.0]},
+      "expected": [1.0, 2.0],
+      "tolerance": 1e-12,
+      "reference": "Exact solution of A*x = b"
+    },
+    {
+      "id": "SIM-STATIC-LINEAR-001",
+      "operation": "simulation.static_linear",
+      "inputs": {"stiffness": [[2.0, 0.0], [0.0, 4.0]], "load": [4.0, 8.0]},
+      "expected": {"status": "PASS", "values": [2.0, 2.0], "residual_inf": 0.0},
+      "tolerance": 1e-12,
+      "reference": "Exact solution of K*x = f; algebraic residual only, not FEA"
+    },
+    {
+      "id": "TRANSFORM-POINT-Z90-001",
+      "operation": "geometry.transform_point",
+      "inputs": {"rotation": [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], "translation": [10.0, 20.0, 0.0], "point": [2.0, 0.0, 4.0]},
+      "expected": [10.0, 22.0, 4.0],
+      "tolerance": 1e-12,
+      "reference": "Rigid transform p_world = R*p_local + t"
+    },
+    {
+      "id": "IK-PLANAR-2R-001",
+      "operation": "kinematics.planar_2r",
+      "inputs": {"link_1": 2.0, "link_2": 1.0, "target_x": 2.0, "target_y": 1.0, "branch": "up"},
+      "expected": {"achieved_x": 2.0, "achieved_y": 1.0, "position_error": 0.0},
+      "tolerance": 1e-9,
+      "reference": "Analytic two-link inverse kinematics; forward reconstruction of target"
+    },
+    {
+      "id": "MECH-FOURBAR-MIXED-UNITS-001",
+      "operation": "mechanism.planar_four_bar",
+      "inputs": {"ground_length": {"value": 40.0, "unit": "cm"}, "input_length": {"value": 10.0, "unit": "cm"}, "coupler_length": {"value": 300.0, "unit": "mm"}, "output_length": {"value": 0.3, "unit": "m"}, "input_angle_rad": 1.5707963267948966, "branch": "left"},
+      "expected": {"joint_D_x_m": 0.4, "joint_D_y_m": 0.0, "closure_error_m": 0.0},
+      "tolerance": 1e-9,
+      "reference": "Analytic circle-intersection four-bar closure; explicit branch and SI-normalized lengths"
+    },
+    {
+      "id": "MATERIAL-STEEL-RECORD-001",
+      "operation": "materials.record",
+      "inputs": {"material_id": "reference/steel", "name": "Reference steel", "density": {"value": 7850.0, "unit": "kg/m3"}, "young_modulus": {"value": 200.0, "unit": "GPa"}, "poisson_ratio": 0.3, "yield_strength": {"value": 250.0, "unit": "MPa"}},
+      "expected": {"density_kg_m3": 7850.0, "young_modulus_gpa": 200.0, "yield_strength_mpa": 250.0, "poisson_ratio": 0.3},
+      "tolerance": 1e-12,
+      "reference": "Dimensional record validation; values are illustrative inputs, not certified material allowables"
+    },
+    {
+      "id": "ASSEMBLY-REVOLUTE-DOF-001",
+      "operation": "assembly.revolute_joint",
+      "inputs": {},
+      "expected": {"validation_error_count": 0, "nominal_joint_dof": 1},
+      "tolerance": 0.0,
+      "reference": "Declared assembly joint type metadata"
+    },
+    {
+      "id": "CONSTRAINT-MAXIMUM-PASS-001",
+      "operation": "constraints.maximum",
+      "inputs": {"actual": {"value": 80.0, "unit": "mm"}, "maximum": {"value": 100.0, "unit": "mm"}},
+      "expected": {"status": "PASS"},
+      "tolerance": 1e-14,
+      "reference": "Scalar maximum constraint with dimensionally compatible SI quantities"
+    },
+    {
+      "id": "SAFETY-PHYSICAL-DENY-001",
+      "operation": "safety.physical_action",
+      "inputs": {"action": "motor_control"},
+      "expected": {"allowed": false, "status": "REJECTED"},
+      "tolerance": 0.0,
+      "reference": "Fail-closed physical-execution boundary"
+    }
+  ]
+}

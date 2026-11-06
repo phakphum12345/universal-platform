@@ -122,3 +122,8 @@ Integrates generated joint residuals and their finite-difference Jacobian into l
 
 
 PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3` passed push run #293 (`42163424217`) and PR run #294 (`42163431321`), 265 tests each. Post-merge run #295 (`42163519632`) on the exact merge SHA passed 265 tests. The adapter is SPATIAL-only; PLANAR remains deferred pending a plane-frame contract.
+
+
+## PR #38 — Cross-discipline reference validation pack
+
+Introduces versioned, executable reference cases that validate implemented engineering primitives against independent closed-form results. Cases include stable IDs, operation identifiers, explicit input units, expected outputs, numerical tolerances and formula/source notes. The pack does not promote illustrative material inputs to design allowables or algebraic simulation to FEA.
