@@ -93,3 +93,8 @@ Implemented and merged as PR #32 at `e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598`. 
 ## PR #33 — Automatic joint constraint generation
 
 PR #33 merged at `62c71e4ca1f60eff5b496305429e6d141a81d268`. Final PR head `68fb6a6d0c268b67786183211734a66db0a4b27c` passed push run #270 and PR run #271 (241 tests each); post-merge run #272 on the exact merge SHA passed 241 tests. The implementation adds deterministic six-component pose-consistency residuals per joint using explicit body poses, joint placements and generalized coordinates. It covers all eight declared joint families and rejects missing placement/parameterization inputs. Automatic Jacobian generation and solver integration remain separate follow-on work.
+
+
+## PR #34 — Automatic constraint Jacobian
+
+Implementation in review adds a numerical Jacobian for generated joint residuals with deterministic stable-ID columns for generalized coordinates and body poses. Forward/central finite differences, characteristic coordinate scales, physical row/column units and bound-aware one-sided differences are represented explicitly. Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f` passed push run #276 and PR run #277 (248 tests each). Symbolic derivatives and solver convergence claims remain out of scope.
