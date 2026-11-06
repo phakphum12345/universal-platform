@@ -345,6 +345,8 @@ def _validate_planar_plane_frame(
 ) -> None:
     if not isinstance(plane_frame, RigidTransform):
         raise InvalidModelError("PLANAR mobility requires an explicit plane_frame RigidTransform")
+    if plane_frame.length_unit != "m":
+        raise InvalidModelError("PLANAR mobility plane_frame must use metres (m)")
     for name, value in (
         ("plane_tolerance_m", plane_tolerance_m),
         ("angular_tolerance_rad", angular_tolerance_rad),
