@@ -1,3 +1,4 @@
+import json
 import math
 
 import pytest
@@ -402,3 +403,36 @@ def test_variable_scales_reject_unknown_names_and_invalid_values():
             [NonlinearConstraint("eq", lambda v: v["x"] - 2.0)],
             variable_scales={"x": 0.0},
         )
+
+
+
+def test_result_serialization_is_versioned_deterministic_and_json_compatible():
+    result = solve_nonlinear_constraints(
+        ["x", "y"], {"x": 0.8, "y": 2.2},
+        [
+            NonlinearConstraint("circle", lambda v: v["x"] ** 2 + v["y"] ** 2 - 5.0),
+            NonlinearConstraint("line", lambda v: v["x"] + v["y"] - 3.0),
+        ],
+        variable_scales={"x": 1.0, "y": 1.0},
+    )
+    snapshot = result.to_dict()
+    encoded = json.dumps(snapshot, sort_keys=True)
+    decoded = json.loads(encoded)
+    assert decoded["schema_version"] == "1.0"
+    assert decoded["status"] == "CONVERGED"
+    assert decoded["all_constraints_satisfied"] is True
+    assert decoded["jacobian_rank"]["status"] == "FULL_RANK"
+    assert decoded["jacobian_scale"]["status"] == "BALANCED"
+    assert decoded["variable_scales"] == {"x": 1.0, "y": 1.0}
+    assert json.dumps(result.to_dict(), sort_keys=True) == encoded
+
+
+def test_result_serialization_preserves_not_computed_diagnostics_as_null():
+    result = solve_nonlinear_constraints(
+        ["x"], {"x": 1.0},
+        [NonlinearConstraint("already_satisfied", lambda v: v["x"] - 1.0)],
+    )
+    snapshot = result.to_dict()
+    assert snapshot["jacobian_rank"] is None
+    assert snapshot["jacobian_scale"] is None
+    assert snapshot["jacobian_evaluations"] == 0
