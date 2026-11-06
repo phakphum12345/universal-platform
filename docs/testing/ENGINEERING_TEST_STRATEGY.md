@@ -120,3 +120,11 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Adversarial structural cases: out-of-range indices, open boundary, repeated triangle indices, inconsistent winding, invalid/under-resolution tolerance, and non-length units.
 - Verify strict schema/version/unknown-field rejection and deterministic round-trip snapshots.
 - This test level does not establish triangle-triangle self-intersection freedom, profile-with-hole meshing, B-rep validity or independent interchange fidelity.
+
+
+## Straight extruded-profile mesh references (PR #66 candidate)
+
+- Concave L-section with six vertices: validate ear-clipped caps, side-wall closure, positive signed volume (12 m³) and surface area (38 m²) at 4 m extrusion height.
+- Verify clockwise and counter-clockwise input, collinear boundary vertices, deterministic serialization and source provenance.
+- Fail closed for through-hole and curved-edge profiles in this increment.
+- Continue Box/Cylinder regression tests and malformed index/open-boundary/degenerate/winding/tolerance/unit cases.
