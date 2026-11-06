@@ -158,3 +158,55 @@ def test_extruded_profile_rejects_self_intersection_degenerate_and_duplicate_ver
     with pytest.raises(InvalidModelError, match="height must be positive"):
         ExtrudedProfileSolid("solid.height", "part",
             (Vec2(0, 0), Vec2(1, 0), Vec2(0, 1)), 0)
+
+
+def test_extruded_profile_through_hole_area_surface_and_snapshot():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    outer = (Vec2(0, 0), Vec2(10, 0), Vec2(10, 8), Vec2(0, 8))
+    hole = (Vec2(2, 2), Vec2(2, 4), Vec2(5, 4), Vec2(5, 2))
+    solid = ExtrudedProfileSolid("solid.plate-hole", "part", outer, 3, "mm", (hole,))
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
+    assert solid.area == pytest.approx(74.0)
+    assert solid.perimeter == pytest.approx(42.0)
+    assert model.volume("solid.plate-hole").si_value == pytest.approx(222e-9)
+    assert model.surface_area("solid.plate-hole").si_value == pytest.approx(400e-6)
+    restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(model.to_dict())))
+    assert restored.to_dict() == model.to_dict()
+
+
+def test_extruded_profile_supports_multiple_disjoint_holes():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    outer = (Vec2(0, 0), Vec2(12, 0), Vec2(12, 8), Vec2(0, 8))
+    holes = (
+        (Vec2(2, 2), Vec2(2, 4), Vec2(4, 4), Vec2(4, 2)),
+        (Vec2(7, 2), Vec2(7, 5), Vec2(10, 5), Vec2(10, 2)),
+    )
+    solid = ExtrudedProfileSolid("solid.multi-hole", "part", outer, 2, "mm", holes)
+    assert solid.area == pytest.approx(72.0)
+    assert solid.perimeter == pytest.approx(54.0)
+
+
+@pytest.mark.parametrize("holes", [
+    ((Vec2(0, 2), Vec2(0, 4), Vec2(2, 4), Vec2(2, 2)),),
+    ((Vec2(8, 2), Vec2(8, 4), Vec2(12, 4), Vec2(12, 2)),),
+    ((Vec2(2, 2), Vec2(2, 6), Vec2(8, 6), Vec2(8, 2)),
+     (Vec2(3, 3), Vec2(3, 4), Vec2(4, 4), Vec2(4, 3))),
+    ((Vec2(2, 2), Vec2(2, 5), Vec2(6, 5), Vec2(6, 2)),
+     (Vec2(5, 3), Vec2(5, 6), Vec2(8, 6), Vec2(8, 3))),
+])
+def test_extruded_profile_rejects_touching_outside_overlapping_or_nested_holes(holes):
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    outer = (Vec2(0, 0), Vec2(10, 0), Vec2(10, 8), Vec2(0, 8))
+    with pytest.raises(InvalidModelError):
+        ExtrudedProfileSolid("solid.invalid-hole", "part", outer, 2, "mm", holes)
+
+
+def test_extruded_profile_snapshot_remains_backward_compatible_without_holes():
+    from universal_platform.engineering.primitive_geometry import ExtrudedProfileSolid, Vec2
+    model = PrimitiveGeometryModel(graph_with_frame("part"), (
+        ExtrudedProfileSolid("solid.legacy", "part",
+            (Vec2(0, 0), Vec2(2, 0), Vec2(0, 2)), 1, "mm"),
+    ))
+    snapshot = model.to_dict()
+    assert "holes" not in snapshot["solids"][0]
+    assert PrimitiveGeometryModel.from_dict(snapshot).to_dict() == snapshot
