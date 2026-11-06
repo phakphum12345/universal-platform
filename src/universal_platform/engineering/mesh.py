@@ -547,7 +547,7 @@ def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
                 faces.append((i, j+total, i+total))
             else:
                 faces.append((j, i, j+total))
-                faces.append((j, j+total, i+total))
+                faces.append((i, i+total, j+total))
     triangle_area = sum(
         abs(_profile_cross(vertices_2d[a], vertices_2d[b], vertices_2d[c]))/2.0
         for a, b, c in cap_triangles
