@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PlanarRegionSetBooleanResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm_version",
+    "operation",
+    "input_region_ids",
+    "input_region_sha256",
+    "frame_id",
+    "length_unit",
+    "regions",
+    "region_count",
+    "segment_pair_count",
+    "area",
+    "max_coordinate_rounding_error",
+    "area_rounding_error",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "algorithm_version": {
+      "const": "exact-rational-region-set-arrangement-v1"
+    },
+    "operation": {
+      "enum": [
+        "UNION",
+        "INTERSECTION",
+        "DIFFERENCE",
+        "SYMMETRIC_DIFFERENCE"
+      ]
+    },
+    "input_region_ids": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "input_region_sha256": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "length_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "$ref": "planar-region.schema.json"
+      }
+    },
+    "region_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "segment_pair_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 32640
+    },
+    "area": {
+      "type": "number",
+      "minimum": 0
+    },
+    "max_coordinate_rounding_error": {
+      "type": "number",
+      "minimum": 0
+    },
+    "area_rounding_error": {
+      "type": "number",
+      "minimum": 0
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
