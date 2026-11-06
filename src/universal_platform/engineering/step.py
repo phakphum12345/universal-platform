@@ -119,10 +119,6 @@ def export_step(mesh: TriangleMesh) -> STEPArtifact:
         entities.append(f"#{identifier}={entity_type}({args});")
         return identifier
 
-    point_ids = [
-        emit("CARTESIAN_POINT", f"'',{_real(v.x)},{_real(v.y)},{_real(v.z)}".replace(",", ",", 1))
-        for v in ()
-    ]
     # The point list is emitted explicitly to keep entity numbering stable.
     point_ids = []
     for vertex in mesh.vertices:
@@ -392,8 +388,9 @@ def import_step(content: bytes) -> STEPImportResult:
     solid_id = _unquote(brep_args[0])
     shell_id = _ref(brep_args[1])
     rep_args = representations[0][1]
-    if len(rep_args) != 3 or _refs(rep_args[1]) != (brep_id,):
-        raise InvalidModelError("STEP shape representation must reference the single FACETED_BREP")
+    if (len(rep_args) != 3 or _refs(rep_args[1]) != (brep_id,)
+            or _ref(rep_args[2]) != context_id):
+        raise InvalidModelError("STEP shape representation must reference the single FACETED_BREP and geometric context")
     shell_args = get(shell_id, "CLOSED_SHELL")
     if len(shell_args) != 2:
         raise InvalidModelError("STEP CLOSED_SHELL has invalid arity")
@@ -442,6 +439,9 @@ def import_step(content: bytes) -> STEPImportResult:
         axis, reference = _numbers(axis_args[1]), _numbers(ref_args[1])
         if len(axis) != 3 or len(reference) != 3:
             raise InvalidModelError("STEP plane directions must be three-dimensional")
+        reference_norm = sqrt(sum(item*item for item in reference))
+        if reference_norm <= 0:
+            raise InvalidModelError("STEP plane reference direction must be non-zero")
         p0, p1, p2 = (vertices_by_id[item] for item in loop_ids)
         ab = (p1.x-p0.x, p1.y-p0.y, p1.z-p0.z)
         ac = (p2.x-p0.x, p2.y-p0.y, p2.z-p0.z)
@@ -451,9 +451,13 @@ def import_step(content: bytes) -> STEPImportResult:
         if cross_norm <= 0 or axis_norm <= 0:
             raise InvalidModelError("STEP face or plane has degenerate orientation")
         alignment = sum(cross[i]*axis[i] for i in range(3)) / (cross_norm*axis_norm)
+        perpendicular = sum(axis[i]*reference[i] for i in range(3)) / (axis_norm*reference_norm)
+        edge_alignment = sum(ab[i]*reference[i] for i in range(3)) / (sqrt(sum(item*item for item in ab))*reference_norm)
         if alignment < 1.0 - 1e-8:
             raise InvalidModelError("STEP face loop orientation does not agree with its plane normal")
-        if sum((p0.x-location.x)**2 + (p0.y-location.y)**2 + (p0.z-location.z)**2 for _ in (0,)) > 1e-16:
+        if abs(perpendicular) > 1e-8 or edge_alignment < 1.0 - 1e-8:
+            raise InvalidModelError("STEP plane reference direction is not aligned with its face loop")
+        if ((p0.x-location.x)**2 + (p0.y-location.y)**2 + (p0.z-location.z)**2) > 1e-16:
             raise InvalidModelError("STEP plane placement must be anchored at the first loop point")
         triangles_by_ids.append(loop_ids)
 
