@@ -2,7 +2,7 @@
 
 **Repository:** `phakphum12345/universal-platform`  
 **Inventory baseline:** `9507b9fab758465763c60d02f8da83d7d8131d2d` (PR #50 head)  
-**Inventory result:** 78 Markdown files in the recursive Git tree; tree response was not truncated.  
+**Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
 
 ## How to read documentation status
