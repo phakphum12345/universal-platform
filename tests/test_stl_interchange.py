@@ -154,7 +154,7 @@ def test_binary_stl_supports_cylinder_straight_hole_and_arc_meshes():
     )
     for mesh in meshes:
         artifact = export_binary_stl(mesh)
-        _assert_reopened_facets_match(mesh, artifact.payload)
+        _assert_reopened_facets_match(mesh, artifact.payload, artifact.manifest.max_coordinate_rounding_error)
         assert artifact.manifest.facet_count == len(mesh.triangles)
         assert validate_binary_stl_artifact(
             artifact.payload, artifact.manifest,
