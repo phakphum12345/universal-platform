@@ -159,9 +159,10 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
 
 
-## PR #70 — Circular-arc profile triangle meshes (implementation candidate)
+## PR #70 — Circular-arc profile triangle meshes (MERGED)
 
-- Extend ExtrudedProfileSolid tessellation to circular-arc outer and hole edges using the existing signed sweep contract.
-- Require explicit positive chordal tolerance in source length units; choose deterministic equal-angle segments from the maximum radial deviation bound and cap at 100,000 segments per arc.
-- Acceptance includes missing/invalid tolerance rejection, arc endpoint preservation, watertight topology, consistent winding, positive volume and deterministic round trips.
-- Non-circular curves/splines, exact B-rep, mesh repair/self-intersection and neutral CAD interchange remain separate work.
+- PR #70 merged at `98440851b0b75216ea89013d9d2eea07b42c4416`; exact corrected head `0e7d7233069e2fafb8850a15d1f1e1539bf6c883`.
+- Exact PR/push runs #42223197118 / #42223188816 passed both required jobs with 515 tests; exact post-merge run #42223374301 passed both jobs with **515 tests in 1.87s**.
+- Adds deterministic circular-arc sampling for outer and hole profile loops under explicit positive chordal tolerance; tolerance is serialized with the mesh.
+- Initial Vec2 import-path failure was corrected on the final tested head; full repository regression suite passes.
+- Non-circular curves/splines, exact B-rep, mesh repair/self-intersection and neutral CAD interchange remain unsupported.
