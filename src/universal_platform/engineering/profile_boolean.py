@@ -79,6 +79,29 @@ def _validate_convex_loop(points: tuple[Vec2, ...], label: str) -> tuple[Vec2, .
             signs.append(value > 0)
     if not signs or any(sign != signs[0] for sign in signs):
         raise InvalidModelError(f"{label} must be a convex simple polygon")
+    # A consistently turning star polygon can still self-intersect; reject
+    # every non-adjacent segment crossing explicitly.
+    def orientation(a: Vec2, b: Vec2, p: Vec2) -> float:
+        return _cross(a, b, p)
+    def on_segment(a: Vec2, b: Vec2, p: Vec2) -> bool:
+        return (min(a.x, b.x) - 1e-12 * scale <= p.x <= max(a.x, b.x) + 1e-12 * scale
+                and min(a.y, b.y) - 1e-12 * scale <= p.y <= max(a.y, b.y) + 1e-12 * scale)
+    for i in range(len(points)):
+        a, b = points[i], points[(i + 1) % len(points)]
+        for j in range(i + 1, len(points)):
+            if j == i + 1 or (i == 0 and j == len(points) - 1):
+                continue
+            c, d = points[j], points[(j + 1) % len(points)]
+            o1, o2 = orientation(a, b, c), orientation(a, b, d)
+            o3, o4 = orientation(c, d, a), orientation(c, d, b)
+            if (((o1 > cross_eps and o2 < -cross_eps) or (o1 < -cross_eps and o2 > cross_eps))
+                    and ((o3 > cross_eps and o4 < -cross_eps) or (o3 < -cross_eps and o4 > cross_eps))):
+                raise InvalidModelError(f"{label} must be a convex simple polygon")
+            if ((abs(o1) <= cross_eps and on_segment(a, b, c))
+                    or (abs(o2) <= cross_eps and on_segment(a, b, d))
+                    or (abs(o3) <= cross_eps and on_segment(c, d, a))
+                    or (abs(o4) <= cross_eps and on_segment(c, d, b))):
+                raise InvalidModelError(f"{label} must be a convex simple polygon")
     return points if _area(points) > 0 else tuple(reversed(points))
 
 
@@ -108,6 +131,9 @@ class ProfileBooleanResult:
             raise InvalidModelError("unsupported ProfileBooleanResult schema_version")
         if not isinstance(self.operation, ProfileBooleanOperation):
             raise InvalidModelError("operation must be a ProfileBooleanOperation")
+        if any(not isinstance(value, str) or not value.strip()
+               for value in (self.first_profile_id, self.second_profile_id)):
+            raise InvalidModelError("result profile IDs must be non-empty strings")
         if not isinstance(self.regions, tuple):
             raise InvalidModelError("regions must be an immutable tuple")
         if any(not isinstance(loop, tuple) or len(loop) < 3 or any(not isinstance(p, Vec2) for p in loop)
@@ -134,6 +160,42 @@ class ProfileBooleanResult:
                 "No B-rep, mesh, manufacturing, physical validation or certification is implied.",
             ],
         }
+
+    @classmethod
+    def from_dict(cls, value: dict[str, object]) -> "ProfileBooleanResult":
+        required = {"schema_version", "operation", "first_profile_id", "second_profile_id",
+                    "regions", "area", "region_count", "limitations"}
+        if not isinstance(value, dict) or set(value) != required:
+            raise InvalidModelError("ProfileBooleanResult snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION:
+            raise InvalidModelError("Unsupported ProfileBooleanResult schema_version")
+        try:
+            operation = ProfileBooleanOperation(value["operation"])
+        except (ValueError, TypeError) as exc:
+            raise InvalidModelError("Unsupported profile Boolean operation") from exc
+        raw_regions = value["regions"]
+        if not isinstance(raw_regions, (list, tuple)):
+            raise InvalidModelError("regions must be an array")
+        regions = []
+        for raw_region in raw_regions:
+            if not isinstance(raw_region, (list, tuple)):
+                raise InvalidModelError("each region must be an array")
+            points = []
+            for raw_point in raw_region:
+                if not isinstance(raw_point, dict) or set(raw_point) != {"x", "y"}:
+                    raise InvalidModelError("region point requires x and y")
+                points.append(Vec2(raw_point["x"], raw_point["y"]))
+            regions.append(_validate_convex_loop(tuple(points), "result region"))
+        result = cls(cls.SCHEMA_VERSION, operation, value["first_profile_id"],
+                     value["second_profile_id"], tuple(regions))
+        if (isinstance(value["area"], bool) or not isinstance(value["area"], (int, float))
+                or abs(float(value["area"]) - result.area) > 1e-10 * max(result.area, 1.0)):
+            raise InvalidModelError("ProfileBooleanResult area does not match its regions")
+        if value["region_count"] != len(result.regions):
+            raise InvalidModelError("ProfileBooleanResult region_count does not match its regions")
+        if not isinstance(value["limitations"], (list, tuple)) or any(not isinstance(item, str) for item in value["limitations"]):
+            raise InvalidModelError("limitations must be an array of strings")
+        return result
 
 
 def _clip_half_plane(subject: tuple[Vec2, ...], a: Vec2, b: Vec2,
