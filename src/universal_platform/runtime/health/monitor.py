@@ -37,7 +37,7 @@ class ResourceHealthRule:
             raise ValueError("comparison must be a ThresholdComparison")
         if isinstance(self.threshold, bool) or not isinstance(self.threshold, (int, float)) or not isfinite(self.threshold):
             raise ValueError("threshold must be finite")
-        if self.severity not in {"WARNING", "CRITICAL"}:
+        if not isinstance(self.severity, str) or self.severity not in {"WARNING", "CRITICAL"}:
             raise ValueError("severity must be WARNING or CRITICAL")
 
 
@@ -68,9 +68,9 @@ class ResourceHealthMonitor:
             raise ValueError("rules must be a non-empty immutable tuple")
         if any(not isinstance(rule, ResourceHealthRule) for rule in rules):
             raise ValueError("rules must contain ResourceHealthRule records")
-        keys = [(rule.metric_name, rule.unit) for rule in rules]
+        keys = [(rule.metric_name, rule.unit, rule.comparison, rule.threshold, rule.severity) for rule in rules]
         if len(keys) != len(set(keys)):
-            raise ValueError("health rules must not duplicate metric name/unit pairs")
+            raise ValueError("health rules must not contain exact duplicates")
         self._registry = registry
         self._rules = rules
 
