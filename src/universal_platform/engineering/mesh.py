@@ -349,31 +349,209 @@ def _triangulate_simple_profile(points: tuple[Any, ...]) -> tuple[tuple[int, int
     return tuple(result)
 
 
+def _point_in_loop(point: Any, loop: tuple[Any, ...]) -> bool:
+    inside = False
+    previous = loop[-1]
+    for current in loop:
+        if (current.y > point.y) != (previous.y > point.y):
+            crossing = (previous.x-current.x) * (point.y-current.y) / (previous.y-current.y) + current.x
+            if point.x < crossing:
+                inside = not inside
+        previous = current
+    return inside
+
+
+def _on_segment_2d(a: Any, b: Any, point: Any, epsilon: float) -> bool:
+    return (
+        min(a.x, b.x)-epsilon <= point.x <= max(a.x, b.x)+epsilon
+        and min(a.y, b.y)-epsilon <= point.y <= max(a.y, b.y)+epsilon
+    )
+
+
+def _segments_intersect_2d(a: Any, b: Any, c: Any, d: Any, epsilon: float) -> bool:
+    o1, o2 = _profile_cross(a, b, c), _profile_cross(a, b, d)
+    o3, o4 = _profile_cross(c, d, a), _profile_cross(c, d, b)
+    if ((o1 > epsilon and o2 < -epsilon) or (o1 < -epsilon and o2 > epsilon)) and (
+        (o3 > epsilon and o4 < -epsilon) or (o3 < -epsilon and o4 > epsilon)
+    ):
+        return True
+    return (
+        (abs(o1) <= epsilon and _on_segment_2d(a, b, c, epsilon))
+        or (abs(o2) <= epsilon and _on_segment_2d(a, b, d, epsilon))
+        or (abs(o3) <= epsilon and _on_segment_2d(c, d, a, epsilon))
+        or (abs(o4) <= epsilon and _on_segment_2d(c, d, b, epsilon))
+    )
+
+
+def _bridge_is_visible(
+    hole_point: Any,
+    outer_point: Any,
+    polygon_nodes: list[tuple[Any, int]],
+    loops: tuple[tuple[Any, ...], ...],
+    outer: tuple[Any, ...],
+    holes: tuple[tuple[Any, ...], ...],
+    epsilon: float,
+) -> bool:
+    midpoint = type(hole_point)((hole_point.x+outer_point.x)/2, (hole_point.y+outer_point.y)/2)
+    if not _point_in_loop(midpoint, outer) or any(_point_in_loop(midpoint, hole) for hole in holes):
+        return False
+    boundary_edges: list[tuple[Any, Any]] = []
+    for loop in loops:
+        boundary_edges.extend((loop[i], loop[(i+1) % len(loop)]) for i in range(len(loop)))
+    boundary_edges.extend(
+        (polygon_nodes[i][0], polygon_nodes[(i+1) % len(polygon_nodes)][0])
+        for i in range(len(polygon_nodes))
+    )
+    for a, b in boundary_edges:
+        shares_endpoint = a == hole_point or b == hole_point or a == outer_point or b == outer_point
+        if not _segments_intersect_2d(hole_point, outer_point, a, b, epsilon):
+            continue
+        if not shares_endpoint:
+            return False
+        for point in (a, b):
+            if point not in (hole_point, outer_point) and _on_segment_2d(hole_point, outer_point, point, epsilon):
+                return False
+    return True
+
+
+def _triangulate_bridged_nodes(nodes: list[tuple[Any, int]]) -> tuple[tuple[int, int, int], ...]:
+    points = tuple(node[0] for node in nodes)
+    scale = max(
+        max(point.x for point in points)-min(point.x for point in points),
+        max(point.y for point in points)-min(point.y for point in points),
+        1e-300,
+    )
+    epsilon = 1e-14 * scale * scale
+    area = _profile_signed_area(points)
+    if area <= epsilon:
+        raise InvalidModelError("bridged profile must have positive non-degenerate area")
+    remaining = list(range(len(nodes)))
+    result: list[tuple[int, int, int]] = []
+    while len(remaining) > 3:
+        ear_found = False
+        for position, current in enumerate(remaining):
+            previous = remaining[position-1]
+            following = remaining[(position+1) % len(remaining)]
+            a, b, c = points[previous], points[current], points[following]
+            if _profile_cross(a, b, c) <= epsilon:
+                continue
+            blocked = False
+            for index in remaining:
+                if index in {previous, current, following} or points[index] in (a, b, c):
+                    continue
+                if _inside_or_on_triangle(points[index], a, b, c, epsilon):
+                    blocked = True
+                    break
+            if blocked:
+                continue
+            tri = (nodes[previous][1], nodes[current][1], nodes[following][1])
+            if len(set(tri)) != 3:
+                continue
+            result.append(tri)
+            remaining.pop(position)
+            ear_found = True
+            break
+        if not ear_found:
+            raise InvalidModelError("profile-with-holes triangulation could not find a valid ear")
+    final = tuple(nodes[index][1] for index in remaining)
+    if len(set(final)) != 3:
+        raise InvalidModelError("profile-with-holes triangulation ended with duplicate vertices")
+    a, b, c = (points[index] for index in remaining)
+    if _profile_cross(a, b, c) <= epsilon:
+        raise InvalidModelError("profile-with-holes triangulation ended with a degenerate triangle")
+    result.append(final)
+    return tuple(result)
+
+
+def _triangulate_profile_region(
+    outer: tuple[Any, ...], holes: tuple[tuple[Any, ...], ...], offsets: tuple[int, ...]
+) -> tuple[tuple[int, int, int], ...]:
+    outer_indices = list(range(len(outer)))
+    if _profile_signed_area(outer) < 0:
+        outer_indices.reverse()
+    nodes = [(outer[index], index) for index in outer_indices]
+    scale = max(
+        max(point.x for point in outer)-min(point.x for point in outer),
+        max(point.y for point in outer)-min(point.y for point in outer),
+        1e-300,
+    )
+    epsilon = 1e-12 * scale
+    hole_order = sorted(
+        range(len(holes)),
+        key=lambda i: (-max(point.x for point in holes[i]), min(point.y for point in holes[i])),
+    )
+    for hole_index in hole_order:
+        hole = holes[hole_index]
+        hole_ids = list(range(len(hole)))
+        if _profile_signed_area(hole) > 0:
+            hole_ids.reverse()
+        hole_nodes = [(hole[index], offsets[hole_index]+index) for index in hole_ids]
+        candidates = []
+        for hi, (hp, _) in enumerate(hole_nodes):
+            for oi, (op, _) in enumerate(nodes):
+                if _bridge_is_visible(hp, op, nodes, (outer,)+holes, outer, holes, epsilon):
+                    distance = (hp.x-op.x)**2 + (hp.y-op.y)**2
+                    candidates.append((distance, oi, hi))
+        if not candidates:
+            raise InvalidModelError("could not find a visible bridge for a profile hole")
+        _, outer_index, hole_vertex_index = min(candidates)
+        walk = [hole_nodes[(hole_vertex_index+k) % len(hole_nodes)] for k in range(len(hole_nodes))]
+        nodes = (
+            nodes[:outer_index+1]
+            + walk
+            + [walk[0], nodes[outer_index]]
+            + nodes[outer_index+1:]
+        )
+    return _triangulate_bridged_nodes(nodes)
+
+
 def tessellate_extruded_profile(solid: ExtrudedProfileSolid) -> TriangleMesh:
-    """Tessellate a straight-edged, hole-free simple extrusion by deterministic ear clipping."""
+    """Tessellate straight-edged concave/convex extrusions, including polygonal holes."""
     if not isinstance(solid, ExtrudedProfileSolid):
         raise InvalidModelError("tessellate_extruded_profile requires an ExtrudedProfileSolid")
-    if solid.holes:
-        raise InvalidModelError("profile mesh v1.0 does not yet support through-hole loops")
-    if solid.arc_sweeps_rad:
+    if solid.arc_sweeps_rad or solid.hole_arc_sweeps_rad:
         raise InvalidModelError("profile mesh v1.0 supports straight edges only")
-    points = solid.profile
-    cap_triangles = _triangulate_simple_profile(points)
-    count = len(points)
-    lower = tuple(Vec3(point.x, point.y, 0.0) for point in points)
-    upper = tuple(Vec3(point.x, point.y, solid.height) for point in points)
+    loops = (solid.profile,) + solid.holes
+    offsets = []
+    vertices_2d = []
+    for loop in loops:
+        offsets.append(len(vertices_2d))
+        vertices_2d.extend(loop)
+    offsets_tuple = tuple(offsets[1:])
+    cap_triangles = (
+        _triangulate_simple_profile(solid.profile)
+        if not solid.holes
+        else _triangulate_profile_region(solid.profile, solid.holes, offsets_tuple)
+    )
+    total = len(vertices_2d)
+    lower = tuple(Vec3(point.x, point.y, 0.0) for point in vertices_2d)
+    upper = tuple(Vec3(point.x, point.y, solid.height) for point in vertices_2d)
     vertices = lower + upper
     faces: list[tuple[int, int, int]] = []
     for a, b, c in cap_triangles:
         faces.append((c, b, a))
-        faces.append((a+count, b+count, c+count))
-    boundary_indices = list(range(count))
-    if _profile_signed_area(points) < 0:
-        boundary_indices.reverse()
-    for position, i in enumerate(boundary_indices):
-        j = boundary_indices[(position+1) % count]
-        faces.append((i, j, j+count))
-        faces.append((i, j+count, i+count))
+        faces.append((a+total, b+total, c+total))
+    for loop_index, loop in enumerate(loops):
+        offset = offsets[loop_index]
+        boundary_indices = list(range(len(loop)))
+        area = _profile_signed_area(loop)
+        if loop_index == 0 and area < 0:
+            boundary_indices.reverse()
+        if loop_index > 0 and area > 0:
+            boundary_indices.reverse()
+        for position, local_i in enumerate(boundary_indices):
+            local_j = boundary_indices[(position+1) % len(boundary_indices)]
+            i, j = offset+local_i, offset+local_j
+            # Outer rings are CCW and hole rings CW; the same face order
+            # points away from the solid on both kinds of boundary.
+            faces.append((i, j, j+total))
+            faces.append((i, j+total, i+total))
+    triangle_area = sum(
+        abs(_profile_cross(vertices_2d[a], vertices_2d[b], vertices_2d[c]))/2.0
+        for a, b, c in cap_triangles
+    )
+    if abs(triangle_area-solid.area) > 1e-10 * max(solid.area, 1e-300):
+        raise InvalidModelError("profile triangulation area does not match the source region")
     return TriangleMesh(
         solid.solid_id, solid.frame_id, solid.length_unit, "EXTRUDED_PROFILE",
         _source_digest(solid), vertices, tuple(faces),

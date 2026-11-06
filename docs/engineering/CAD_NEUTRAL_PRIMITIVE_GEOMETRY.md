@@ -1,6 +1,6 @@
 # CAD-neutral Primitive Geometry Contract
 
-**Status:** PR #61 implements dependency-free convex 2D profile Boolean operations v1.0; PR #62 adds a general planar topology design contract only; PR #64 implements deterministic Box/Cylinder triangle tessellation and structural validation; PR #66 adds straight-edged, hole-free extruded-profile meshing. This remains an analytic primitive layer plus a narrow mesh adapter, not a B-rep CAD kernel.
+**Status:** PR #61 implements dependency-free convex 2D profile Boolean operations v1.0; PR #62 adds a general planar topology design contract only; PR #64 implements deterministic Box/Cylinder triangle tessellation and structural validation; PR #66 adds straight-edged profile meshing; PR #68 extends this to polygonal through-holes. This remains an analytic primitive layer plus a narrow mesh adapter, not a B-rep CAD kernel.
 
 ## 1. Model
 
@@ -52,6 +52,6 @@ See [2D Convex Profile Boolean Topology Contract](../design-3d/CAD_2D_BOOLEAN_TO
 
 ## 7. Deterministic primitive triangle meshes (PR #64 merged)
 
-See [Deterministic Primitive Triangle Mesh Contract](../design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md). BoxSolid emits an exact 8-vertex/12-triangle closed surface. CylinderSolid emits deterministic polygonal rings and cap fans under an explicit radial chordal tolerance. PR #66 adds ear-clipped caps and side walls for straight-edged, hole-free concave/convex ExtrudedProfileSolid inputs. Meshes retain source-local frame/unit and a SHA-256 source geometry digest; validation checks face indices, degenerate triangles, edge manifold counts, directed winding and positive signed volume.
+See [Deterministic Primitive Triangle Mesh Contract](../design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md). BoxSolid emits an exact 8-vertex/12-triangle closed surface. CylinderSolid emits deterministic polygonal rings and cap fans under an explicit radial chordal tolerance. PR #66 adds ear-clipped caps and side walls for straight-edged concave/convex ExtrudedProfileSolid inputs; PR #68 adds ear-clipped cap regions with bridged polygonal holes and correctly oriented inner walls. Meshes retain source-local frame/unit and a SHA-256 source geometry digest; validation checks face indices, degenerate triangles, edge manifold counts, directed winding and positive signed volume.
 
-Curved or through-hole ExtrudedProfileSolid meshes, general mesh self-intersection, mesh repair, B-rep, 3D Booleans and STEP/STL/3MF interchange remain unsupported.
+Curved ExtrudedProfileSolid meshes, general mesh self-intersection, mesh repair, B-rep, 3D Booleans and STEP/STL/3MF interchange remain unsupported.

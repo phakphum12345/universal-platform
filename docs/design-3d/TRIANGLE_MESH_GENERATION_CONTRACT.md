@@ -4,12 +4,12 @@
 
 ## 1. Scope
 
-The v1.0 adapter converts one validated analytic `BoxSolid`, `CylinderSolid` or straight-edged, hole-free `ExtrudedProfileSolid` into an immutable triangle mesh. Mesh coordinates are expressed in the source solid's local `frame_id` and retain its explicit `length_unit`. Source solids are never mutated.
+The v1.0 adapter converts one validated analytic `BoxSolid`, `CylinderSolid` or straight-edged `ExtrudedProfileSolid` with polygonal through-holes into an immutable triangle mesh. Mesh coordinates are expressed in the source solid's local `frame_id` and retain its explicit `length_unit`. Source solids are never mutated.
 
 - Box: exact planar boundary represented by 8 vertices and 12 outward-oriented triangles.
 - Cylinder: local +Z axis, deterministic regular polygon rings and triangle-fan caps. The caller supplies a positive maximum radial chordal error in the same length unit as the source solid.
-- Straight extruded profile: deterministic ear-clipped caps and boundary side walls for a validated simple concave or convex polygon without holes. Clockwise input is normalized for cap winding; collinear boundary vertices are preserved.
-- Unsupported source geometry fails closed. Profile arcs, through-holes, arbitrary polygon surfaces, assemblies and 3D Boolean results are not tessellated by v1.0.
+- Straight extruded profile: deterministic ear-clipped caps and boundary side walls for a validated simple concave or convex polygon, including one or more strictly-contained polygonal through-holes. Hole loops are bridged into a weakly-simple cap polygon; hole walls are oriented toward the void.
+- Unsupported source geometry fails closed. Profile arcs, arbitrary curved boundaries, assemblies and 3D Boolean results are not tessellated by v1.0.
 
 ## 2. Mesh identity and serialization
 
@@ -45,9 +45,10 @@ The mesh remains in its source-local frame; frame transformation is an explicit 
 - Cylinder: requested chordal tolerance bounds radial polygon deviation; output is closed and outward-oriented, with positive volume and surface area.
 - Concave L-profile: deterministic ear clipping produces a closed outward-oriented mesh with volume 12 m³ and surface area 38 m² for the 6-vertex 2×2 L section extruded 4 m.
 - Clockwise/counter-clockwise and collinear-boundary profile references preserve positive volume and watertight edge incidence.
+- Single-hole and multiple-disjoint-hole fixtures preserve net volume/surface area and produce closed, consistently-oriented meshes.
 - Invalid face indices, open boundaries, repeated triangle indices, inconsistent winding, invalid tolerance and strict snapshot tampering are rejected or reported.
 - Repeated tessellation and strict serialization round trips produce identical snapshots.
 
 ## 7. Explicit non-claims and next increments
 
-This module does not tessellate curved profiles, through-hole profiles, arbitrary planar regions or assemblies. It does not perform B-rep validity, general mesh self-intersection, repair, decimation, normals smoothing, Boolean operations, STEP/STL/3MF import/export, independent interchange reopen, collision/contact, finite-element meshing, structural analysis, manufacturing checks, physical validation or certification. Passing these tests proves only the implemented software invariants for the exact tested SHA.
+This module does not tessellate curved profiles, arbitrary planar regions or assemblies. It does not perform B-rep validity, general mesh self-intersection, repair, decimation, normals smoothing, Boolean operations, STEP/STL/3MF import/export, independent interchange reopen, collision/contact, finite-element meshing, structural analysis, manufacturing checks, physical validation or certification. Passing these tests proves only the implemented software invariants for the exact tested SHA.

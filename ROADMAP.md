@@ -148,3 +148,11 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds deterministic ear-clipped caps and outward side walls for straight-edged, hole-free concave/convex ExtrudedProfileSolid.
 - A clockwise-input side-wall winding defect on the first tested head was corrected; the final exact head passes the retained CW/CCW regression.
 - Profile holes/arcs, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
+
+
+## PR #68 — Polygonal through-hole extrusion meshes (implementation candidate)
+
+- Extend straight-profile mesh tessellation to one or more strictly-contained polygonal holes using deterministic visible-bridge selection and ear clipping.
+- Preserve source-local frame/unit/provenance; orient inner walls toward the void and retain closed two-manifold edge incidence.
+- Acceptance includes one-hole and multiple-disjoint-hole analytic volume/surface-area references, CW/CCW normalization, stable serialization and rejection of curved boundaries.
+- Profile arcs, mesh self-intersection repair, B-rep, 3D Boolean and neutral CAD interchange remain separate work.
