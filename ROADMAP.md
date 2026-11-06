@@ -141,9 +141,10 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Scope remains Box/Cylinder only. Extruded-profile and hole meshing, arbitrary mesh self-intersection detection/repair, B-rep, 3D Boolean and STEP/STL/3MF interchange remain unsupported.
 
 
-## PR #66 — Straight extruded-profile triangle mesh (implementation candidate)
+## PR #66 — Straight extruded-profile triangle mesh (MERGED)
 
-- Extend the versioned TriangleMesh source kind to straight-edged, hole-free ExtrudedProfileSolid.
-- Use deterministic ear clipping for simple concave/convex profile caps and outward-oriented side walls; preserve local frame, length unit, stable solid ID and source SHA-256.
-- Acceptance includes concave L-section analytic volume/surface area, clockwise/counter-clockwise loops, collinear boundary vertices, watertight edge incidence and rejection of holes/arcs.
-- Through-hole and curved-profile meshing, 3D Boolean operations, general mesh self-intersection/repair and neutral CAD interchange remain separate future increments.
+- PR #66 merged at `1ead537afa34d2637fdb08f91b2d2bb823d411a0`; exact corrected head `1179fb69114bc76b3155d0c3e6edf50223050846`.
+- Exact PR/push runs #42221102000 / #42221092727 passed both required jobs with 511 tests; exact post-merge run #42221247498 passed both jobs with **511 tests in 1.20s**.
+- Adds deterministic ear-clipped caps and outward side walls for straight-edged, hole-free concave/convex ExtrudedProfileSolid.
+- A clockwise-input side-wall winding defect on the first tested head was corrected; the final exact head passes the retained CW/CCW regression.
+- Profile holes/arcs, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
