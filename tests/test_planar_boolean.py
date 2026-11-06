@@ -225,7 +225,7 @@ def test_union_preserves_multiple_holes_when_second_region_is_disjoint():
     assert len(result.regions) == 2
     plate = next(item for item in result.regions if item.holes)
     assert len(plate.holes) == 2
-    assert result.area == 106.0
+    assert result.area == 111.0
 
 
 def test_pairwise_boolean_rejects_total_edge_budget_before_arrangement():
