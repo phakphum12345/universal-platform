@@ -95,14 +95,14 @@ Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`421
 - Verify finite-difference Jacobian reference entries for cylindrical, spherical, planar and universal joints in addition to existing fixed/revolute/prismatic/helical coverage.
 - Verify single-joint spatial local mobility and rank references for all eight families, including ground-link reversal.
 - Verify nontrivial parent-to-joint and joint-to-child transforms with translation and rotation.
-- Keep the separate 2D PLANAR mobility formulation SKIPPED/unsupported until a plane-frame/coplanarity contract exists; a PLANAR joint kind remains valid in the SPATIAL rigid-body formulation.
+- Validate explicit 2D PLANAR mobility independently from the SPATIAL formulation; a PLANAR joint kind remains valid in SPATIAL without selecting the PLANAR analysis formulation.
 - Acceptance contract: docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md. Exact-head CI pending.
 
 
 Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`42193562931`): 452 passed in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`, post-merge run #405 (`42193654653`): 452 passed in 1.33s. Initial run #403 failed due a test expectation that confused full and reduced Jacobian widths; the assertion was corrected and the latest head passed.
 
 
-## Explicit planar plane-frame mobility (candidate PR #56)
+## Explicit planar plane-frame mobility (PR #56 — merged; exact head and post-merge CI PASS, 462 tests each)
 
 - Require a plane-to-world RigidTransform and shared world frame; reject missing/mismatched plane frames.
 - Validate every body origin lies in the plane and every body local +Z aligns with the plane normal.
@@ -110,4 +110,4 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Verify FIXED, REVOLUTE, PRISMATIC and PLANAR single-joint mobility references; reject CYLINDRICAL, HELICAL, SPHERICAL and UNIVERSAL in the 2D formulation.
 - Project the generated world-frame Jacobian to two in-plane translations and one plane-normal rotation per non-ground link; preserve generalized-coordinate columns and deterministic IDs.
 - Test rotated/translated plane frames, ground-link reversal, off-plane body origins, tilted bodies, off-plane anchors, incompatible axes, unsupported joints and invalid tolerances.
-- Acceptance contract: docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md. Exact-head CI pending.
+- Acceptance contract: docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md. PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.

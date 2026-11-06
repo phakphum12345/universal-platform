@@ -1,6 +1,6 @@
 # Planar Plane-Frame Mobility Contract
 
-**Status:** Contract and acceptance criteria for the explicit 2D geometric-mobility adapter. The existing SPATIAL formulation remains unchanged.
+**Status:** IMPLEMENTED by PR #56. PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests. The existing SPATIAL formulation remains unchanged.
 
 ## 1. Plane-frame definition
 
@@ -37,6 +37,13 @@ The 2D mobility formulation supports FIXED, REVOLUTE, PRISMATIC and PLANAR joint
 8. Deterministic plane-variable IDs, column ordering, units, and JSON-compatible result snapshots are preserved.
 9. Non-positive/non-finite tolerances, mismatched world frames and length units fail closed.
 
-## 5. Limitations
+
+## 6. Implementation evidence
+
+PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.
+
+The rotated/translated plane regression passes without changing rank tolerance. The geometric-mobility default finite-difference step is 1e-5 for improved round-off behavior in composed frames; explicit caller-provided steps remain supported.
+
+## 7. Limitations
 
 This is a local planar mobility estimate for ideal lower-pair joints, not a general closed-loop configuration solver or proof of global mobility. It does not handle higher pairs, contact, friction, collision, dynamics, singularity-free branch discovery, physical feasibility, physical testing, certification or machine control. Numerical rank remains dependent on finite-difference step, scaling and tolerance.

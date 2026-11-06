@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #55 documentation reconciliation merged at `263a53c0862276a33e735c616d33d24d89b09f74`; exact post-merge run #422 (`42194422246`) passed workflow-sanity and python-tests, 452 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
+**Current integration baseline:** PR #56 planar plane-frame mobility merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`; post-merge run #461 (`42197156442`) passed workflow-sanity and python-tests, 462 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -121,7 +121,7 @@ PR #36 merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`. Exact PR head `d00b
 Integrates generated joint residuals and their finite-difference Jacobian into local spatial mobility diagnostics. The combined local variable set includes six pose-tangent components per non-ground link plus all independent joint coordinates. The ground pose is removed; nominal mobility and local rank-based mobility remain separate. This initial adapter rejects PLANAR because the repository has no explicit plane-frame contract yet.
 
 
-PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3` passed push run #293 (`42163424217`) and PR run #294 (`42163431321`), 265 tests each. Post-merge run #295 (`42163519632`) on the exact merge SHA passed 265 tests. The adapter is SPATIAL-only; PLANAR remains deferred pending a plane-frame contract.
+PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3` passed push run #293 (`42163424217`) and PR run #294 (`42163431321`), 265 tests each. Post-merge run #295 (`42163519632`) on the exact merge SHA passed 265 tests. The adapter supports SPATIAL and explicit plane-frame PLANAR mobility (PR #56); PLANAR rejects unsupported joint families and out-of-plane geometry.
 
 
 ## PR #38 — Cross-discipline reference validation pack
@@ -246,11 +246,12 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Restores the documentation index to the integration branch and reconciles the CAD implementation status and exact evidence.
 
 
-## PR #56 — Explicit planar plane-frame mobility (candidate)
+## PR #56 — Explicit planar plane-frame mobility (merged)
 
-- Base integration SHA: `263a53c0862276a33e735c616d33d24d89b09f74` (PR #55 documentation reconciliation merge; post-merge run #422 / `42194422246`: 452 tests PASS).
-- Candidate branch: `feat/planar-plane-frame-mobility`.
-- Contract: `PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md`. The caller supplies a plane-to-world RigidTransform; body origins/local +Z, joint anchors and coordinate axes are checked for coplanarity and direction.
-- Implementation projects the generated world-frame Jacobian into two in-plane translations and one plane-normal rotation per non-ground link while preserving generalized-coordinate columns.
+- PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.
+- Base integration SHA: `263a53c0862276a33e735c616d33d24d89b09f74`; merge target: `docs/phase-0-complete-requirements`.
+- Contract: `PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md`. Caller supplies a plane-to-world RigidTransform; body origins/local +Z, joint anchors and coordinate axes are checked for coplanarity and direction.
+- Generated world-frame Jacobian is projected into two in-plane translations and one plane-normal rotation per non-ground link while preserving generalized-coordinate columns.
 - Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. Other families fail closed.
-- Tests cover single-joint references, rotated/translated planes, ground reversal and invalid out-of-plane conditions. Exact-head and post-merge CI pending.
+- Default geometric-mobility finite-difference step is 1e-5 to reduce round-off amplification in composed frames; explicit caller overrides remain supported. Rank tolerance was not relaxed.
+- Tests cover canonical and rotated/translated plane references, ground reversal and invalid out-of-plane conditions.
