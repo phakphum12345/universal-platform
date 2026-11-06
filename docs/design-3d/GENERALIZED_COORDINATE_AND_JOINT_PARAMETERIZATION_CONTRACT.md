@@ -1,6 +1,6 @@
 # Generalized Coordinate and Joint Parameterization Contract
 
-**Status:** Implemented schema v1.2 structural contract. PR #33 adds generated six-component pose-consistency residuals for all eight declared joint kinds; PR #34 adds finite-difference Jacobians; PR #37 adds SPATIAL local mobility analysis for supplied configurations. PR #54 adds missing all-family Jacobian/mobility reference coverage. General time derivatives and a general mechanism solver remain unimplemented.
+**Status:** Implemented schema v1.2 structural contract. PR #33 adds generated six-component pose-consistency residuals for all eight declared joint kinds; PR #34 adds finite-difference Jacobians; PR #37 adds SPATIAL local mobility analysis for supplied configurations; PR #54 adds all-family Jacobian/mobility reference coverage. General time derivatives and a general mechanism solver remain unimplemented.
 
 ## Purpose
 
