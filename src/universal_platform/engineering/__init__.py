@@ -103,7 +103,11 @@ from .mechanism_loops import (
     analyze_loop_topology,
     solve_mechanism_loops,
 )
-from .parametric_sketch import (\n    ParametricSketch, ParametricSketchSolveResult, SketchConstraint,\n    SketchConstraintKind, SketchPoint, SketchSegment, solve_parametric_sketch,\n)\nfrom .nonlinear_solver import (
+from .parametric_sketch import (
+    ParametricSketch, ParametricSketchSolveResult, SketchConstraint,
+    SketchConstraintKind, SketchPoint, SketchSegment, solve_parametric_sketch,
+)
+from .nonlinear_solver import (
     JacobianMethod,
     JacobianScaleDiagnostics,
     JacobianScaleStatus,
