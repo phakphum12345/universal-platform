@@ -37,6 +37,15 @@ from .mechanism_model import (
     SolverCapability,
     validate_mechanism_model,
 )
+from .mechanism_loops import (
+    LoopClosureConstraint,
+    LoopClosureResult,
+    LoopClosureStatus,
+    LoopTopology,
+    MechanismLoop,
+    analyze_loop_topology,
+    solve_mechanism_loops,
+)
 from .nonlinear_solver import (
     JacobianMethod,
     JacobianScaleDiagnostics,
@@ -65,7 +74,9 @@ __all__ = [
     "MECHANISM_SCHEMA_VERSION", "FrameReference", "GeometryKind",
     "GeometryReference", "JointKind", "JointModel", "LinkModel",
     "MechanismModel", "ModelValidationResult", "SolverCapability",
-    "validate_mechanism_model", "JacobianMethod", "JacobianScaleDiagnostics",
+    "validate_mechanism_model", "LoopClosureConstraint", "LoopClosureResult",
+    "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
+    "solve_mechanism_loops", "JacobianMethod", "JacobianScaleDiagnostics",
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
