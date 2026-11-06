@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Engineering Quantity Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "si_value", "dimension", "source_unit"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "si_value": { "type": "number" },
+    "dimension": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "type": "integer" }
+    },
+    "source_unit": {
+      "enum": ["1", "m", "mm", "cm", "km", "in", "kg", "g", "s", "ms", "min", "h", "A", "mA", "K", "N", "kN", "Pa", "kPa", "MPa", "GPa", "m/s", "m2", "m3", "kg/m3", "V", "mV", "W", "kW", "J", "ohm", "Hz"]
+    }
+  }
+}

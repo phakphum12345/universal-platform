@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #42 merged at `5781f3bd017b5e12f55e463934f7e34a933c6dc3`; PR #40 documentation reconciliation is recorded below.
+**Current integration baseline:** PR #43 merged at `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; prior evidence reconciliations are recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -166,9 +166,17 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Merge `5781f3bd017b5e12f55e463934f7e34a933c6dc3`; post-merge run #324 (`42168808102`): 357 tests PASS.
 
 
-## PR #43 — Versioned coordinate-frame exchange (implementation candidate)
+## PR #43 — Versioned coordinate-frame exchange (merged)
 
 - Base SHA: `5781f3bd017b5e12f55e463934f7e34a933c6dc3`.
 - RigidTransform and FrameGraph v1.0 snapshots include stable frame IDs, explicit length units and deterministic edge ordering.
 - Same-unit graph invariant is enforced; cross-unit conversion is not implicit.
+- Final PR head `0a1460f3910ca00f385dd52f58cd06f5f52ddee8`; run #327 (`42169448334`): 366 tests PASS.
+- Merge `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; post-merge run #328 (`42169547658`): 366 tests PASS.
+
+
+## PR #44 — Versioned Quantity exchange (implementation candidate)
+
+- Base SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
+- Quantity v1.0 snapshots carry SI value, five dimension exponents and source-unit lineage; JSON Schema and strict round-trip validation are added.
 - Exact-SHA CI pending.
