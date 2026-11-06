@@ -139,3 +139,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Planar Region Model](schemas/geometry/planar-region.schema.json) — PlanarRegion v1.0 schema; exact-rational input validation and hole topology.
 - [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — selected dependency-free predicate policy.
 - [Repository Audit post-PR #82](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md) — current baseline, tree counts, implemented maturity and remaining gated work.
+
+
+- [Repository Audit post-PR #84](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md) — integration SHA, exact PR-head/post-merge CI, PlanarRegion Boolean implementation scope and remaining gates.
+- [PlanarRegion Boolean Result](schemas/geometry/planar-region-boolean-result.schema.json) — versioned result envelope, source digests, output regions and rounding-error metrics.

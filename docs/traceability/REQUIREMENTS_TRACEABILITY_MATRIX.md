@@ -66,3 +66,6 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | MECH-PLANAR-MOBILITY-001 | Explicit plane-frame geometric mobility | PLANAR_PLANE_FRAME_MOBILITY_CONTRACT | IMPLEMENTED — PR #56; PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests. |
+
+
+| CAD-PLANAR-BOOLEAN-001 | Pairwise Boolean operations over validated PlanarRegion inputs, with multiple output components and holes | CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT; PlanarRegionBooleanResult schema | IMPLEMENTED — PR #84 merged at `1b75e2dab5b64d2d089e410bba02187d28772193`; exact PR-head and post-merge CI PASS, 580 tests each. Pairwise only; 256 total input-edge limit; point-touching/branching output fails closed; region-set aggregation and B-rep remain PLANNED. |
