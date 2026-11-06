@@ -137,3 +137,12 @@ Evidence: PR #54 head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 (`421
 - Verify closed edge incidence, consistent outward/void-facing winding, positive signed volume, deterministic bridge/ear order and strict mesh round trips.
 - Hole and outer loops with reversed winding must normalize without changing geometric validity.
 - Curved outer/hole boundaries remain rejected; touching, crossing and nested invalid holes remain rejected by source profile validation.
+
+
+## Circular-arc profile mesh references (PR #70 candidate)
+
+- Require an explicit positive chordal tolerance for every profile with circular arcs; reject missing, zero, negative, under-resolution and resource-excessive tolerances.
+- Verify the maximum radial chord deviation formula for each subdivided arc and preserve exact source endpoints.
+- Verify closed two-manifold edge incidence, consistent winding, positive signed volume, deterministic snapshots and source provenance.
+- Exercise both outer-boundary arcs and hole-boundary arcs; retain straight-only, single-hole and multiple-hole references.
+- This remains a tessellated approximation; it does not establish exact curved B-rep geometry or manufacturing tolerance.
