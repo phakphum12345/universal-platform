@@ -86,3 +86,14 @@ PR #49 adds simple polygon validation (duplicate vertices, self-intersections an
 
 
 Evidence: PR #52 head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`, run #384 (`42191597715`) passed both jobs with 425 tests in 0.78s; merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`, post-merge run #385 (`42191666816`) passed both jobs with 425 tests in 0.87s.
+
+
+## Spatial joint reference validation (candidate PR #54)
+
+- A versioned JSON fixture enumerates all eight declared joint families and their independent coordinates, units, axes, nominal local DOF and expected zero-configuration Jacobian entries.
+- Verify six deterministic residual rows and units for every family.
+- Verify finite-difference Jacobian reference entries for cylindrical, spherical, planar and universal joints in addition to existing fixed/revolute/prismatic/helical coverage.
+- Verify single-joint spatial local mobility and rank references for all eight families, including ground-link reversal.
+- Verify nontrivial parent-to-joint and joint-to-child transforms with translation and rotation.
+- Keep the separate 2D PLANAR mobility formulation SKIPPED/unsupported until a plane-frame/coplanarity contract exists; a PLANAR joint kind remains valid in the SPATIAL rigid-body formulation.
+- Acceptance contract: docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md. Exact-head CI pending.
