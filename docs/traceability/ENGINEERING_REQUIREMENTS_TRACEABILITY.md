@@ -114,3 +114,6 @@ PR #34 exact code/documentation head `c0a69866ceaf318b5e05ae4689ba018085e6363f` 
 
 
 | CAD-003H | Geometric loop coordinate fitting | GEOMETRIC_LOOP_COORDINATE_SOLVER_CONTRACT; GEOMETRY_AWARE_LOOP_CLOSURE_CONTRACT; NONLINEAR_CONSTRAINT_SOLVER_CONTRACT | Bounded local solve over stable generalized-coordinate IDs, all generated joint residuals, per-coordinate limits/scales and final geometric re-evaluation (PR #36; final PR head `d00bd6e5631fa4a0101f1c4d5a7c9e1f811cd2f1`; runs #288/#289: 258 tests PASS; squash merge `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; post-merge run #290 on exact merge SHA: 258 tests PASS) |
+
+
+| CAD-003I | Generated spatial local mobility | AUTOMATIC_GEOMETRIC_MOBILITY_CONTRACT; AUTOMATIC_JOINT_CONSTRAINT_JACOBIAN_CONTRACT; MECHANISM_MOBILITY_CONTRACT | Finite-difference Jacobian columns combine non-ground spatial body-pose tangent variables and independent joint coordinates; ground pose excluded; local mobility is total variables minus estimated rank (PR #37; exact-SHA evidence pending). PLANAR auto-mobility remains deferred pending explicit plane-frame contract |

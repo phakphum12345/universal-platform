@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from .errors import InvalidModelError
 from .mechanism_model import (
@@ -19,10 +19,14 @@ from .mechanism_model import (
     MechanismModel,
     validate_mechanism_model,
 )
+from .joint_constraints import generate_joint_constraints
+from .joint_jacobian import build_joint_constraint_jacobian
 from .nonlinear_solver import (
+    JacobianMethod,
     JacobianRankDiagnostics,
     _estimate_jacobian_rank,
 )
+from .transforms import RigidTransform
 
 
 SCHEMA_VERSION = "1.0"
@@ -43,10 +47,11 @@ class SingularityStatus(str, Enum):
 class ConstraintJacobian:
     """Constraint Jacobian at one configuration.
 
-    Rows are scalar constraint equations; columns are free-body generalized
-    coordinates. The caller owns coordinate ordering, units, scaling and the
-    derivation of the matrix. The matrix is not synthesized from JointModel
-    metadata because the normalized schema lacks complete joint placements.
+    Rows are scalar constraint equations. Columns contain free-body pose
+    tangent variables and may additionally declare independent joint
+    generalized-coordinate variables. Caller-supplied matrices retain their
+    explicit ordering; the geometric adapter builds a finite-difference matrix
+    from complete placements and generated joint residuals.
     """
 
     constraint_ids: tuple[str, ...]
@@ -54,6 +59,7 @@ class ConstraintJacobian:
     values: tuple[tuple[float, ...], ...]
     configuration_id: str
     source: str
+    joint_coordinate_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +90,7 @@ class MobilityAnalysisResult:
     singularity_status: SingularityStatus
     reference_constraint_rank: int | None
     limitations: tuple[str, ...]
+    joint_coordinate_count: int = 0
 
     @property
     def redundant_constraints_detected(self) -> bool:
@@ -110,6 +117,9 @@ class MobilityAnalysisResult:
             "local": {
                 "constraint_count": self.jacobian_rank.row_count,
                 "coordinate_count": self.jacobian_rank.column_count,
+                "body_pose_coordinate_count": self.nominal.free_body_dof,
+                "joint_coordinate_count": self.joint_coordinate_count,
+                "total_variable_count": self.jacobian_rank.column_count,
                 "estimated_constraint_rank": self.jacobian_rank.estimated_rank,
                 "rank_status": self.jacobian_rank.status.value,
                 "rank_method": self.jacobian_rank.method,
@@ -233,6 +243,12 @@ def analyze_mechanism_mobility(
         raise InvalidModelError("Jacobian constraint identifiers must be unique")
     if len(set(jacobian.coordinate_ids)) != len(jacobian.coordinate_ids):
         raise InvalidModelError("Jacobian coordinate identifiers must be unique")
+    if any(not isinstance(item, str) or not item.strip() for item in jacobian.joint_coordinate_ids):
+        raise InvalidModelError("Joint coordinate identifiers must be non-empty strings")
+    if len(set(jacobian.joint_coordinate_ids)) != len(jacobian.joint_coordinate_ids):
+        raise InvalidModelError("Joint coordinate identifiers must be unique")
+    if not set(jacobian.joint_coordinate_ids).issubset(set(jacobian.coordinate_ids)):
+        raise InvalidModelError("Joint coordinate identifiers must be a subset of Jacobian variables")
     if len(jacobian.values) != len(jacobian.constraint_ids):
         raise InvalidModelError("Jacobian row count must match constraint identifiers")
     if any(len(row) != len(jacobian.coordinate_ids) for row in jacobian.values):
@@ -245,10 +261,11 @@ def analyze_mechanism_mobility(
     if isinstance(rank_tolerance, bool) or not isfinite(rank_tolerance) or rank_tolerance <= 0.0:
         raise InvalidModelError("rank_tolerance must be finite and positive")
 
-    if len(jacobian.coordinate_ids) != nominal.free_body_dof:
+    expected_variables = nominal.free_body_dof + len(jacobian.joint_coordinate_ids)
+    if len(jacobian.coordinate_ids) != expected_variables:
         raise InvalidModelError(
-            "Jacobian coordinate count must match the free-body generalized DOF "
-            f"({nominal.free_body_dof}) for the selected ground link"
+            "Jacobian coordinate count must match free-body generalized DOF plus declared "
+            f"joint coordinates ({expected_variables}) for the selected ground link"
         )
 
     max_rank = min(len(jacobian.constraint_ids), len(jacobian.coordinate_ids))
@@ -295,12 +312,103 @@ def analyze_mechanism_mobility(
         nominal_overconstrained=nominal.estimated_dof < 0,
         singularity_status=singularity,
         reference_constraint_rank=reference_constraint_rank,
+        joint_coordinate_count=len(jacobian.joint_coordinate_ids),
         limitations=(
             "Nominal DOF assumes ideal lower pairs and independent joint constraints; higher pairs are not modeled.",
-            "Local mobility is an estimate from a caller-supplied Jacobian at one configuration; rank depends on scaling and tolerance.",
-            "The normalized mechanism schema does not yet generate geometric joint equations or Jacobians automatically.",
+            "Local mobility is an estimate from a Jacobian at one configuration; rank depends on scaling and tolerance.",
+            "When declared, local variables combine free-body pose tangent coordinates and independent joint generalized coordinates.",
+            "Automatically generated geometric Jacobians use finite differences, not symbolic or exact derivatives.",
             "Redundant Jacobian rows are reported separately and do not alone prove physical overconstraint.",
             "A possible singularity requires an explicit regular-configuration reference rank; absence of a flag is not a proof of regularity.",
             "No collision/contact, dynamics, physical feasibility, safety certification or fabrication validation is performed.",
         ),
+    )
+
+
+
+def analyze_geometric_mechanism_mobility(
+    model: MechanismModel,
+    formulation: MobilityFormulation,
+    body_poses: Mapping[str, RigidTransform],
+    coordinate_values: Mapping[str, float],
+    *,
+    ground_link_id: str,
+    configuration_id: str,
+    reference_constraint_rank: int | None = None,
+    rank_tolerance: float = 1e-10,
+    jacobian_method: JacobianMethod = JacobianMethod.CENTRAL_FINITE_DIFFERENCE,
+    finite_difference_step: float = 1e-6,
+) -> MobilityAnalysisResult:
+    """Estimate spatial local mobility from generated joint residual derivatives.
+
+    The selected local variable set contains six pose-tangent coordinates for
+    every non-ground link plus every independent generalized joint coordinate.
+    The ground pose is excluded. PLANAR is intentionally not inferred from a
+    3D pose snapshot; it requires an explicit plane-frame contract.
+    """
+    if formulation is not MobilityFormulation.SPATIAL:
+        raise InvalidModelError(
+            "Automatic geometric mobility currently supports SPATIAL formulation only; "
+            "PLANAR requires an explicit plane-frame contract"
+        )
+    if not isinstance(configuration_id, str) or not configuration_id.strip():
+        raise InvalidModelError("configuration_id must be a non-empty stable identifier")
+
+    nominal = estimate_nominal_mobility(
+        model, formulation, ground_link_id=ground_link_id
+    )
+    generated = generate_joint_constraints(model)
+    generated_jacobian = build_joint_constraint_jacobian(
+        generated,
+        body_poses,
+        coordinate_values,
+        method=jacobian_method,
+        finite_difference_step=finite_difference_step,
+    )
+
+    selected_indices: list[int] = []
+    selected_ids: list[str] = []
+    joint_coordinate_ids: list[str] = []
+    for index, column in enumerate(generated_jacobian.columns):
+        variable = column.variable
+        if variable.variable_kind == "GENERALIZED_COORDINATE":
+            selected_indices.append(index)
+            selected_ids.append(variable.variable_id)
+            joint_coordinate_ids.append(variable.variable_id)
+        elif (
+            variable.variable_kind in ("BODY_POSE_TRANSLATION", "BODY_POSE_ROTATION")
+            and variable.owner_id != ground_link_id
+        ):
+            selected_indices.append(index)
+            selected_ids.append(variable.variable_id)
+
+    expected_body_variables = nominal.free_body_dof
+    expected_joint_variables = len(model.generalized_coordinates)
+    if len(selected_ids) != expected_body_variables + expected_joint_variables:
+        raise InvalidModelError(
+            "Generated Jacobian does not cover the expected free-body and joint-coordinate variables"
+        )
+
+    reduced = ConstraintJacobian(
+        generated_jacobian.row_ids,
+        tuple(selected_ids),
+        tuple(
+            tuple(row[index] for index in selected_indices)
+            for row in generated_jacobian.values
+        ),
+        configuration_id,
+        (
+            "generated-joint-pose-residuals:"
+            + jacobian_method.value
+            + f":step={finite_difference_step:g}"
+        ),
+        tuple(joint_coordinate_ids),
+    )
+    return analyze_mechanism_mobility(
+        model,
+        formulation,
+        reduced,
+        ground_link_id=ground_link_id,
+        reference_constraint_rank=reference_constraint_rank,
+        rank_tolerance=rank_tolerance,
     )

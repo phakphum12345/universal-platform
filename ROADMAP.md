@@ -78,3 +78,6 @@ PR #36 — Geometric loop coordinate fitting — adds local bounded generalized-
 
 
 PR #36 — Geometric loop coordinate fitting — merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; exact PR-head runs #288/#289 and post-merge run #290 passed 258 tests. This is a fixed-body-pose coordinate solver, not a general mechanism configuration solver.
+
+
+PR #37 — Generated spatial Jacobian mobility — automatically derives local spatial mobility from joint residuals and finite-difference Jacobians, using body-pose tangent variables plus independent joint coordinates with ground pose elimination. PLANAR automatic mobility remains deferred pending a plane-frame contract.
