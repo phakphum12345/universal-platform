@@ -19,6 +19,7 @@ from .mesh_topology import MeshTopologyAnalysis, analyze_mesh_topology
 from .mesh_intersection import MeshIntersection, MeshIntersectionAnalysis, analyze_mesh_intersections
 from .planar_region import PlanarRegion, PRECISION_POLICY as PLANAR_REGION_PRECISION_POLICY
 from .planar_boolean import PlanarRegionBooleanOperation, PlanarRegionBooleanResult, boolean_planar_regions
+from .planar_region_set_boolean import PlanarRegionSetBooleanResult, boolean_planar_region_set
 from .kinematics import JointPlacement, solve_tree_forward_kinematics
 from .inverse_kinematics import (
     PlanarIKResult,
@@ -152,5 +153,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions",
+    "solve_nonlinear_constraints", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set",
 ]
