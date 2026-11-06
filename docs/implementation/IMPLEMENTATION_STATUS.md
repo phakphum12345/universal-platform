@@ -740,3 +740,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds PlanarRegion v1.0, exact represented-binary64 rational predicates, canonical winding/start, strict simple boundary and hole validation, explicit frame/unit, digest, schema and 2,048-edge bound.
 - No Boolean operation is implemented. ProfileLoop/ProfileBooleanResult v1.0 remain convex-only.
 - Next work: exact planar-region Boolean arrangement with multi-component/hole support, independent references, deterministic graph traversal and output rounding/error bounds.
+
+
+## PR #84 — Pairwise PlanarRegion Boolean engine (MERGED)
+
+- Integration HEAD / merge SHA: `1b75e2dab5b64d2d089e410bba02187d28772193`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Exact PR head `999235de2627f948a6fba8c4c9a038cea7cf8857`; PR workflow #42250468895 passed workflow-sanity and python-tests, **580 passed in 2.14s**.
+- Exact post-merge workflow #42250583756 on the merge SHA passed both jobs, **580 passed in 2.96s**.
+- New API: `PlanarRegionBooleanOperation`, `PlanarRegionBooleanResult`, `boolean_planar_regions`; pairwise operations UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE. Supports multiple output components and holes, exact rational arrangement decisions over represented binary64 inputs, deterministic cycles, output rounding-error metrics and strict snapshot validation.
+- Limits: 256 total input boundary edges / 32,640 pair checks; same frame/unit required; point-touching or branching output fails closed. No implicit conversion, snapping, quantization or repair. Existing convex ProfileLoop v1.0 contract unchanged.
+- Still not implemented: general region-set aggregation, robust point-contact traversal, arcs/splines, parametric sketch constraints, feature history, B-rep/3D Booleans, STEP/3MF round-trip, physical/manufacturing validation. No local working-tree test is claimed.
