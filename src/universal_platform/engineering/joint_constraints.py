@@ -135,7 +135,7 @@ def _expected_joint_transform(
             for coordinate, value in values
         ]
         if convention.startswith("EULER_EXTRINSIC"):
-            for item in reversed(rotations):
+            for item in rotations:
                 rotation = _matmul(item, rotation)
         else:
             for item in rotations:
