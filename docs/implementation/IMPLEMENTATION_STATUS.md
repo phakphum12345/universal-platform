@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc` (PR #61 convex 2D profile Boolean squash merge).  
-**Exact post-merge CI:** PR #61 post-merge run #42217655332 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **496 passed in 1.19s**. PR #61 exact-head runs #42207436743 and #42207398485 also passed with 496 tests.  
+**Integration HEAD:** `213b1b52ef78ae3297a88892b4cc0c6539159160` (PR #62 general planar topology contract squash merge).  
+**Exact post-merge CI:** PR #62 post-merge run #42218707816 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **496 passed in 1.08s**. PR #62 exact-head runs #42217964997 and #42217937596 also passed with 496 tests.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -560,14 +560,6 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Exact PR-head run #42206594529 and push run #42206646922 passed both jobs with **485 tests**; merge `e641ca19b4f28bb2e2077cf475b371125ebf237a`; post-merge run #42206719188 passed both jobs with **485 tests**. No electrical standards, voltage/current/thermal/timing verification, passive pull-up inference, simulation, physical validation or hardware actuation is claimed.
 
 
-## PR #61 — Convex 2D profile Boolean operations (candidate)
-
-- Adds dependency-free UNION, INTERSECTION and DIFFERENCE over validated convex simple polygon loops.
-- Output is a deterministic convex-cell decomposition; adjacent cells are not dissolved. Result schema v1.0 records input IDs, operation, regions, area and region count.
-- Tests cover overlap, disjoint/touching, containment, orientation normalization, deterministic serialization, strict snapshot validation, invalid input rejection and public exports.
-- Exact-head CI pending. Concave inputs, holes, arcs, general planar arrangements, 3D B-rep and mesh Booleans remain NOT IMPLEMENTED.
-
-
 ## PR #61 — Convex 2D profile Boolean operations (MERGED)
 
 - Merge commit: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; base: `docs/phase-0-complete-requirements`.
@@ -582,3 +574,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds `docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md` defining CAD-neutral regions with outer boundaries and holes, explicit frames/units, topology invariants, contact semantics, numerical robustness tiers, result/evidence requirements and kernel decision gate.
 - Design only: no general planar Boolean implementation, precision policy selection, kernel selection or third-party dependency is claimed.
 - Next gate: select and document a precision policy and independent adversarial reference corpus before implementation.
+
+
+## PR #62 — General planar region topology contract (MERGED; DESIGN ONLY)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/62
+- Base SHA: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; exact head SHA: `d03928bbe3472fae4f5890f6a9f481c0049b7f35`.
+- Merge commit / current integration HEAD: `213b1b52ef78ae3297a88892b4cc0c6539159160`.
+- Exact PR-head runs #42217964997 (pull_request) and #42217937596 (push): both `workflow-sanity` and `python-tests` PASS; **496 passed**.
+- Exact post-merge run #42218707816 on the merge SHA: both jobs PASS; **496 passed in 1.08s**.
+- Adds `docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md`; defines a CAD-neutral region/hole topology and numerical/kernel decision gate.
+- Documentation/design only. No general polygon Boolean implementation, precision policy selection, geometry kernel selection, or third-party dependency is claimed.
+- Current working tree is UNKNOWN because no local checkout was inspected. Default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration has not been merged to main.

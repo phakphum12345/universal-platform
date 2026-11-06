@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4` (PR #56 merge); post-merge run `42197156442` passed workflow-sanity and python-tests, 462 tests. PR #49, #52, #54 and #56 are integrated on the engineering integration branch; this branch remains 207 commits ahead of `main`.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `213b1b52ef78ae3297a88892b4cc0c6539159160` (PR #62 merge); post-merge run `42218707816` passed workflow-sanity and python-tests, 496 tests. PRs #49, #52, #54, #56, #59–#62 are integrated on `docs/phase-0-complete-requirements`. The default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; the current integration baseline has not been merged to main.
 
 ## Repository-level product and governance
 

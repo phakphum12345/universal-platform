@@ -123,10 +123,11 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Adds dependency-free UNION, INTERSECTION and DIFFERENCE over convex simple polygon loops, deterministic convex-cell decomposition, schema v1.0, area accounting and strict snapshot validation.
 - Deliberate limits remain: no concave loops, holes, arcs, exact arithmetic, general planar arrangements, 3D B-rep or mesh Booleans.
 
-## CAD general planar topology — PR #62 design candidate
+## CAD general planar topology — PR #62 merged (design only)
 
-- Branch: `docs/cad-general-planar-topology-contract`, based on PR #61 merge SHA `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`.
-- Adds `CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md`: CAD-neutral region model with outer boundaries/holes, explicit frame and units, topology invariants, contact semantics, result/evidence requirements, adversarial numeric references, and a replaceable-kernel decision gate.
-- This is a design proposal only. No general polygon Boolean implementation or third-party kernel is claimed or selected.
-- Next implementation gate: agree precision policy and reference corpus, evaluate candidate kernels against license/offline/platform/robustness requirements, then implement the selected adapter behind versioned CAD-neutral schemas.
+- PR #62 merged at `213b1b52ef78ae3297a88892b4cc0c6539159160`; base `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`, head `d03928bbe3472fae4f5890f6a9f481c0049b7f35`.
+- PR and push runs #42217964997 / #42217937596 passed both required jobs with 496 tests; exact post-merge run #42218707816 passed both jobs on the merge SHA with **496 tests in 1.08s**.
+- Adds the CAD-neutral general planar region/hole topology contract, explicit frame/unit identity, contact semantics, numerical robustness tiers and replaceable-kernel decision gate.
+- Design only: no general polygon Boolean implementation, precision policy selection, kernel selection or third-party dependency is claimed.
+- Next implementation gates: evaluate candidate kernels against the reference corpus and license/offline/platform requirements; implement an isolated adapter only after evidence and approval; then add mesh generation and independent interchange validation.
 
