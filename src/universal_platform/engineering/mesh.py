@@ -58,8 +58,8 @@ class TriangleMesh:
             if isinstance(exc, InvalidModelError):
                 raise
             raise InvalidModelError(f"unsupported mesh length_unit: {self.length_unit}") from exc
-        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE", "IMPORTED_3MF", "IMPORTED_STEP"}:
-            raise InvalidModelError("mesh source_kind must be BOX, CYLINDER, EXTRUDED_PROFILE or IMPORTED_3MF or IMPORTED_STEP")
+        if not isinstance(self.source_kind, str) or self.source_kind not in {"BOX", "CYLINDER", "EXTRUDED_PROFILE", "IMPORTED_3MF", "IMPORTED_STEP", "IMPORTED_BREP"}:
+            raise InvalidModelError("mesh source_kind must be BOX, CYLINDER, EXTRUDED_PROFILE or IMPORTED_3MF or IMPORTED_STEP or IMPORTED_BREP")
         if (not isinstance(self.source_geometry_sha256, str)
                 or len(self.source_geometry_sha256) != 64
                 or any(ch not in "0123456789abcdef" for ch in self.source_geometry_sha256)):
