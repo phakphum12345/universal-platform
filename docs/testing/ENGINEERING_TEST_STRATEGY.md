@@ -33,3 +33,8 @@ No critical FAIL or UNKNOWN; skipped tests have approved rationale; supported-pl
 ## Implemented contract coverage
 
 PR #39 tests metadata manifest/registry validation, dependency ordering and deterministic snapshots. PR #41 adds request/response envelope validation for identifiers, schema versions, finite numeric values, JSON compatibility, immutable nested payloads, resource limits, operational status semantics and error-code consistency. Runtime invocation and permission enforcement remain unimplemented.
+
+
+## Evidence/provenance validation coverage
+
+PR #42 adds source metadata and SHA-256 checks, timezone validation, immutable evidence metadata, JSON/non-finite rejection, duplicate source/record detection, deterministic serialization and aggregate evidence-gate precedence. Empty evidence must remain UNKNOWN; a gate can PASS only when every supplied required record passes.
