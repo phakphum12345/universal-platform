@@ -1,6 +1,6 @@
 # Binary STL Interchange Contract
 
-**Status:** Design contract for a staged, offline binary-STL export increment. No STL import/export implementation or external CAD toolchain is claimed by this document. The existing TriangleMesh v1.0 remains the canonical in-memory representation.
+**Status:** Contract implemented for binary STL export by PR #74 candidate; exact-SHA CI evidence is pending. Arbitrary STL import and external CAD toolchain integration are not implemented. The existing TriangleMesh v1.0 remains the canonical in-memory representation.
 
 ## 1. Purpose and delivery boundary
 
