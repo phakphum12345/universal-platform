@@ -327,3 +327,28 @@ def test_rank_estimator_reports_indeterminate_for_non_finite_matrix():
     diagnostic = _estimate_jacobian_rank([[math.inf, 0.0]], 1e-10)
     assert diagnostic.status is JacobianRankStatus.INDETERMINATE
     assert diagnostic.estimated_rank is None
+
+
+def test_rank_estimator_threshold_sensitivity_is_explicit():
+    from universal_platform.engineering.nonlinear_solver import (
+        JacobianRankStatus,
+        _estimate_jacobian_rank,
+    )
+
+    nearly_dependent = [[1.0, 1.0], [0.0, 1e-8]]
+    loose = _estimate_jacobian_rank(nearly_dependent, 1e-6)
+    tight = _estimate_jacobian_rank(nearly_dependent, 1e-10)
+    assert loose.status is JacobianRankStatus.RANK_DEFICIENT
+    assert tight.status is JacobianRankStatus.FULL_RANK
+    assert tight.threshold < loose.threshold
+
+
+def test_rank_estimator_detects_zero_jacobian_column():
+    from universal_platform.engineering.nonlinear_solver import (
+        JacobianRankStatus,
+        _estimate_jacobian_rank,
+    )
+
+    diagnostic = _estimate_jacobian_rank([[1.0, 0.0], [2.0, 0.0]], 1e-10)
+    assert diagnostic.status is JacobianRankStatus.RANK_DEFICIENT
+    assert diagnostic.estimated_rank == 1
