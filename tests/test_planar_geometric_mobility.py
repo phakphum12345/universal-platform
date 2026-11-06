@@ -140,7 +140,7 @@ def test_planar_plane_frame_mobility_matches_supported_joint_references(case):
 def test_planar_mobility_requires_an_explicit_plane_frame():
     case = next(item for item in cases_for_planar() if item["joint_kind"] == "REVOLUTE")
     model, poses, values = build_model(case)
-    with pytest.raises(InvalidModelError, match="explicit plane_frame"):
+    with pytest.raises(InvalidModelError, match="explicit plane-frame contract"):
         analyze_geometric_mechanism_mobility(
             model, MobilityFormulation.PLANAR, poses, values,
             ground_link_id="link/parent", configuration_id="planar/missing-frame",
