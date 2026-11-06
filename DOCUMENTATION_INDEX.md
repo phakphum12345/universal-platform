@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Repository:** `phakphum12345/universal-platform`  
-**Historical inventory baseline:** `9507b9fab758465763c60d02f8da83d7d8131d2d` (PR #50 head). The index is restored to the integration branch by the documentation reconciliation following PR #52.  
+**Historical inventory baseline:** `9507b9fab758465763c60d02f8da83d7d8131d2d` (PR #50 head). The index was restored to the integration branch by PR #53 and extended with the spatial-joint reference contract in PR #54.  
 **Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
 
@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa` (PR #52 merge); post-merge run `42191666816` passed workflow-sanity and python-tests, 425 tests. PR #49 and PR #52 are integrated; PR #51's documentation index is restored here with its stale PR state corrected.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Current integration baseline: `22bbf1714224095cfd652d6887130d26facef087` (PR #54 merge); post-merge run `42193654653` passed workflow-sanity and python-tests, 452 tests. PR #49, #52 and #54 are integrated; PR #51's documentation index was restored to this integration line by PR #53.
 
 ## Repository-level product and governance
 
