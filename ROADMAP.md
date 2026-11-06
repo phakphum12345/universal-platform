@@ -159,9 +159,29 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
 
 
-## PR #70 — Circular-arc profile triangle meshes (implementation candidate)
+## PR #70 — Circular-arc profile triangle meshes (MERGED)
 
-- Extend ExtrudedProfileSolid tessellation to circular-arc outer and hole edges using the existing signed sweep contract.
-- Require explicit positive chordal tolerance in source length units; choose deterministic equal-angle segments from the maximum radial deviation bound and cap at 100,000 segments per arc.
-- Acceptance includes missing/invalid tolerance rejection, arc endpoint preservation, watertight topology, consistent winding, positive volume and deterministic round trips.
-- Non-circular curves/splines, exact B-rep, mesh repair/self-intersection and neutral CAD interchange remain separate work.
+- PR #70 merged at `98440851b0b75216ea89013d9d2eea07b42c4416`; exact PR head `0e7d7233069e2fafb8850a15d1f1e1539bf6c883`; base `c1056671b7ad8a8ca1415a449d830db0057f5034`.
+- Exact PR workflow run #42223197118 and push run #42223188816 passed both required checks with **515 tests**; exact post-merge run #42223460020 passed both checks with **515 tests in 2.01s**.
+- Adds deterministic circular-arc boundary sampling for extruded profiles and polygonal holes under explicit positive chordal tolerance in source length units, preserving endpoints, frame/unit and source SHA-256 provenance.
+- Per-arc subdivision uses the radial chord-deviation bound and a 100,000-segment ceiling. The result is an approximation, not exact B-rep geometry.
+- Non-circular curves/splines, general mesh self-intersection/repair, B-rep, 3D Boolean and STEP/STL/3MF interchange remain unsupported.
+
+## PR #71 — Circular-arc through-hole mesh reference (MERGED)
+
+- PR #71 merged at `8aba562a1df6c0691c855f95ef16a9ba94089556`; exact PR head `d94d9c3b974e3ceea70ddf4a8a1b18da92b8c845`; base `98440851b0b75216ea89013d9d2eea07b42c4416`.
+- Exact PR workflow run #42225768304 passed `workflow-sanity` and `python-tests`; **516 passed in 1.74s**.
+- Exact post-merge run #42225830931 on the merge SHA passed both required jobs; **516 passed in 1.45s**.
+- Adds a regression for a curved polygonal hole: watertight edge incidence, consistent winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict round trip.
+- This closes the missing hole-arc reference in the PR #70 implementation; it does not broaden support to non-circular curves or general mesh repair.
+
+## Next repository increments
+
+1. General planar-region Boolean operations beyond convex loops, with a selected precision policy and independent adversarial reference corpus.
+2. General mesh validation beyond indexed edge topology: geometric self-intersection detection, disconnected-shell semantics, duplicate/coincident vertex diagnostics and safe repair policy (repair remains opt-in).
+3. Neutral CAD interchange (STEP/STL/3MF) with explicit units/frames, provenance, export/import contracts and independent reopen validation using a separately selected toolchain.
+4. Parametric sketch constraints, solver diagnostics and versioned feature history with deterministic recomputation.
+5. Hardware EDA symbol/library exchange, BOM/footprint reconciliation, datasheet-backed electrical limits and circuit simulation.
+6. Additional validated physics/solver adapters with independent domain reference cases.
+7. Module runtime invocation, permissions, sandboxing, quotas, cancellation and audit only after threat model and isolation contracts are implemented and tested.
+

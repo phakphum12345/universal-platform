@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Integration HEAD:** `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b` (PR #68 polygonal profile-hole mesh squash merge).  
-**Exact post-merge CI:** PR #68 post-merge run #42222360177 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **514 passed in 1.53s**. PR #68 exact-head runs #42222216690 and #42222207986 also passed with 514 tests.  
+**Integration HEAD:** `8aba562a1df6c0691c855f95ef16a9ba94089556` (PR #71 circular-arc through-hole mesh reference squash merge).  
+**Exact post-merge CI:** PR #71 post-merge run #42225830931 on this exact SHA; `workflow-sanity` PASS and `python-tests` PASS; **516 passed in 1.45s**. Exact PR-head run #42225768304 passed both required jobs with 516 tests in 1.74s.  
 **Branch relationship:** default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is substantially ahead and has not been merged to `main`. This work has not been merged to `main`.  
 **Working-tree state:** UNKNOWN — this audit uses GitHub API evidence; no local checkout/working tree is available to inspect.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -621,3 +621,23 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Adds deterministic visible-bridge selection and ear clipping for straight polygonal extrusion regions with one or more strictly-contained holes; inner walls use CW hole boundaries to face the void.
 - First tested head had two inner-wall winding/volume failures; final exact head corrected orientation and added reversed-hole-winding regression coverage.
 - Limitations: curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
+
+
+## PR #70 — Circular-arc profile triangle mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/70
+- Base SHA: `c1056671b7ad8a8ca1415a449d830db0057f5034`; exact corrected PR head: `0e7d7233069e2fafb8850a15d1f1e1539bf6c883`.
+- Merge commit: `98440851b0b75216ea89013d9d2eea07b42c4416`.
+- Exact PR workflow run #42223197118 and push run #42223188816 passed both required jobs with 515 tests; exact post-merge run #42223460020 passed both jobs with **515 tests in 2.01s**.
+- Adds deterministic circular-arc boundary tessellation for extruded profiles and polygonal holes under explicit positive chordal tolerance; stores tolerance in TriangleMesh v1.0 and preserves source geometry digest/frame/unit.
+- Limits: non-circular curves/splines, general geometric self-intersection detection/repair, B-rep, 3D Boolean and neutral CAD interchange remain NOT IMPLEMENTED.
+
+## PR #71 — Circular-arc through-hole reference coverage (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/71
+- Base SHA: `98440851b0b75216ea89013d9d2eea07b42c4416`; exact PR head: `d94d9c3b974e3ceea70ddf4a8a1b18da92b8c845`.
+- Merge commit / integration HEAD: `8aba562a1df6c0691c855f95ef16a9ba94089556`.
+- Exact PR workflow run #42225768304 passed both jobs with **516 tests in 1.74s**; exact post-merge run #42225830931 passed both jobs with **516 tests in 1.45s**.
+- Adds a curved polygonal-hole reference validating watertightness, manifold edge incidence, winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict snapshot round trip.
+- Test-only change; production API/schema unchanged. This closes the reference-coverage gap for the hole-arc path.
+
