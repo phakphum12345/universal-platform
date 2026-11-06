@@ -114,7 +114,7 @@ __all__ = [
     "ModuleManifest", "ModuleOperation", "ModuleRegistry", "ModuleRequest", "ModuleResponse",
     "TEMPERATURE", "EvidenceKind", "EvidenceRecord", "EvidenceStatus",
     "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
-    "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "FramedBounds3", "PrimitiveGeometryModel", "JointPlacement",
+    "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "ExtrudedProfileSolid", "FramedBounds3", "PrimitiveGeometryModel", "Vec2", "JointPlacement",
     "solve_tree_forward_kinematics", "PlanarIKResult",
     "solve_planar_two_link_inverse_kinematics", "PlanarFourBarResult",
     "PlanarMobilityEstimate", "solve_planar_four_bar_loop",

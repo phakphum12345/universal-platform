@@ -1,8 +1,8 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** docs/phase-0-complete-requirements  
-**Latest integration branch head:** `e2a66b4425e971c58fb88b14cf6fb3479f4df935` (PR #47; hardware driver interface bindings). **Latest merged feature baseline:** `e2a66b4425e971c58fb88b14cf6fb3479f4df935` (PR #47).
-**Latest merged feature:** PR #47 squash merge `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; exact PR-head run #345 (`42171976796`) passed workflow-sanity and python-tests; **403 tests passed in 1.01s**. Post-merge run #346 (`42172082271`) on the exact merge SHA passed both jobs; **403 tests passed**. PR #39–#46 evidence remains recorded below.
+**Latest integration branch head:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48; CAD-neutral analytic primitive geometry). **Latest merged feature baseline:** `8c4d5a4277a63e71c10492595bd8431ec684cbe6` (PR #48).
+**Latest merged feature:** PR #48 squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; exact PR-head run #349 (`42172938440`) passed workflow-sanity and python-tests; **412 tests passed in 1.07s**. Post-merge run #350 (`42173099340`) on the exact merge SHA passed both jobs; **412 tests passed in 0.62s**. PR #39–#47 evidence remains recorded below.
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
@@ -465,9 +465,26 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Scope: driver interface/protocol/signal declarations and metadata-only schematic pin bindings.
 
 
-## PR #48 — CAD-neutral analytic primitive geometry (implementation candidate)
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
 
 - Base integration SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
 - Adds versioned Box/Cylinder primitive solids, SI volume/surface-area calculations, frame-aware AABBs and deterministic model serialization.
 - Does not implement B-rep, mesh export, Boolean operations, feature history, CAD kernel integration or manufacturability validation.
+- Final PR head: `fda9e42f9a57a35e302516ea1454f1277d73f5bd`; PR run #349 (`42172938440`): both jobs PASS; 412 passed in 1.07s.
+- Squash merge: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; post-merge run #350 (`42173099340`): both jobs PASS; 412 passed in 0.62s.
+
+
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
+
+- Base integration SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
+- Final PR head `fda9e42f9a57a35e302516ea1454f1277d73f5bd`; run #349 (`42172938440`): workflow-sanity PASS; python-tests PASS; **412 passed in 1.07s**.
+- Squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; post-merge run #350 (`42173099340`) on exact merge SHA: both jobs PASS; **412 passed in 0.62s**.
+- Scope: Box/Cylinder analytic primitives, SI properties and frame-aware bounds.
+
+
+## PR #49 — Profile extrusion primitive (implementation candidate)
+
+- Base integration SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
+- Adds a simple-polygon 2D profile extrusion solid with self-intersection/degeneracy checks, analytic area/perimeter/volume/surface area and transformed bounds.
+- Does not implement curved sketches, holes, arbitrary Boolean features, B-rep or mesh output.
 - Exact-SHA CI and post-merge evidence: PENDING.

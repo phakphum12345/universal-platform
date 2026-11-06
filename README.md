@@ -140,3 +140,6 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 ### CAD-neutral geometry
 
 - Analytic Box/Cylinder primitive solids with explicit units, SI volume/surface area, frame-aware bounds and versioned serialization (PR #48 under review; not a B-rep/mesh CAD kernel).
+
+
+- Simple polygon profile extrusion with deterministic geometry and analytic properties (PR #49 under review; no curved sketch or B-rep kernel).

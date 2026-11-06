@@ -68,3 +68,8 @@ PR #47 adds tests for driver/protocol/signal schema round-trip, module/operation
 ## CAD-neutral primitive geometry validation
 
 PR #48 adds reference-value tests for Box/Cylinder SI volume and surface area, local and transformed bounding boxes, exact rotated-cylinder extents, unit/frame consistency, strict v1.0 snapshots and malformed primitive rejection. No mesh/B-rep or physical validation is implied.
+
+
+## Profile extrusion validation
+
+PR #49 adds simple polygon validation (duplicate vertices, self-intersections and degenerate area), SI volume/surface area references, concave profile coverage, strict JSON round-trip and transformed extrusion bounds.

@@ -53,3 +53,8 @@ FramedPoint3 and FramedVector3 preserve frame identity and length units through 
 ## CAD-neutral primitive geometry
 
 PR #48 introduces versioned BoxSolid and CylinderSolid records, explicit units, analytic SI volume/surface-area quantities and frame-aware axis-aligned bounds. The geometry model remains analytic and does not create boundary representations, meshes, Boolean solids or manufacturing toolpaths.
+
+
+## Profile extrusion
+
+PR #49 adds a straight extrusion of a simple 2D polygon in a named frame. The implementation computes polygon area/perimeter, prism volume/surface area and transformed AABBs. Curved boundaries, holes and Boolean operations are not implemented.

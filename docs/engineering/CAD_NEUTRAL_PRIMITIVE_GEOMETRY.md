@@ -26,3 +26,10 @@ All transforms in a connected FrameGraph use one length unit; solids must match 
 ## 4. Limitations
 
 This is not a B-rep or mesh CAD kernel. It does not implement Boolean operations, sketches, feature history, fillets, tolerances, materials/density, collision/contact, meshing, STEP/STL export, toolpath generation or manufacturability/certification checks. Analytic PASS does not validate a physical design.
+
+
+## 5. Simple polygon extrusion (PR #49)
+
+`ExtrudedProfileSolid` adds a 2D simple polygon profile in local XY, extruded along local +Z by a positive height. It validates immutable unique vertices, non-self-intersection and non-zero area. Volume is profile area × height; surface area is 2 × profile area + perimeter × height. Bounds transform all profile vertices at both extrusion planes.
+
+This supports straight-sided plates/brackets as a CAD-neutral analytic primitive. It does not support arcs/splines, holes, draft angles, Boolean features, sketch constraints, B-rep or mesh export.

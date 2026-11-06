@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #47 merged at `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; prior evidence reconciliations are recorded below.
+**Current integration baseline:** PR #48 merged at `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; prior evidence reconciliations are recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -204,8 +204,15 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - No driver code execution, device communication or actuation. Exact-SHA CI pending.
 
 
-## PR #48 — CAD-neutral analytic primitive geometry (implementation candidate)
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
 
 - Base SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
 - Implements Box/Cylinder solid metadata, analytic quantities and frame-aware bounds.
 - This is not a CAD kernel or manufacturing validation. Exact-SHA CI pending.
+
+
+## PR #49 — Profile extrusion primitive (implementation candidate)
+
+- Base SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
+- Adds validated simple polygon extrusion, analytic properties and frame-aware bounds.
+- Curved sketches, holes, Boolean operations and CAD-kernel output remain future work. Exact-SHA CI pending.
