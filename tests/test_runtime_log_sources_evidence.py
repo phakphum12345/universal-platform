@@ -133,7 +133,7 @@ def test_evidence_store_hash_chain_detects_tampering(tmp_path):
     first = json.loads(lines[0])
     first["reason"] = "tampered"
     lines[0] = json.dumps(first, sort_keys=True, separators=(",", ":"))
-    store.path.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+    store.path.write_text(chr(10).join(lines) + chr(10), encoding="utf-8")
     with pytest.raises(ValueError, match="hash-chain"):
         store.verify()
     with pytest.raises(ValueError, match="hash-chain"):
@@ -156,7 +156,7 @@ def test_evidence_store_serializes_multiple_store_instances(tmp_path):
 def test_evidence_store_accepts_legacy_prefix_and_chains_new_records(tmp_path):
     legacy = make_record("legacy").to_dict()
     path = tmp_path / "recovery-evidence.jsonl"
-    path.write_text(json.dumps(legacy, sort_keys=True, separators=(",", ":")) + "\\n", encoding="utf-8")
+    path.write_text(json.dumps(legacy, sort_keys=True, separators=(",", ":")) + chr(10), encoding="utf-8")
     store = JsonlRecoveryEvidenceStore(tmp_path)
     assert store.verify()[0:2] == (1, 1)
     store.append(make_record("new-after-legacy"))
