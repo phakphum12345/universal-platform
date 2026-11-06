@@ -3,6 +3,9 @@ import json
 
 def test_feature_history_schema_and_public_api_are_available():
     from pathlib import Path
+    from universal_platform.engineering.feature_history import (
+        FeatureHistory, FeatureKind, FeatureNode, regenerate_feature_history,
+    )
     from universal_platform.engineering import (
         FeatureHistory as PublicHistory,
         FeatureKind as PublicKind,
