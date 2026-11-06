@@ -34,12 +34,19 @@ PythonProcessSupervisor launches explicitly allow-listed executable files withou
 - A production repair executor requires an isolated workspace/process/container, explicit permissions, quotas, timeout, cancellation, artifact capture, approval and rollback.
 - A failed validation must not resume the component.
 
+## Adapter discovery and staged replacement
+
+AdapterRegistry catalogs adapter instances that are already available to the application; it never downloads or installs code. Fallback selection requires a matching resource kind, all required capabilities, a numeric minimum version, an explicit non-empty license allow-list and a caller-supplied dependency check. Selection is deterministic by priority, version and adapter ID.
+
+AdapterReplacementCoordinator only operates while the resource is in SLEEP. It checks the candidate adapter's health and canary methods before updating the ResourceRegistry adapter ID. A failed check leaves the existing registration unchanged. The caller remains responsible for routing runtime work to the returned adapter and for resuming the resource through the recovery lifecycle. Version comparison currently supports numeric dot-separated versions only; prerelease/build metadata and full semantic-version range expressions are not supported.
+
 ## Implemented verification
 
 - Resource registry, metrics/snapshots and lifecycle transitions have focused tests.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
 - Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
+- Adapter catalog tests cover capability/kind matching, numeric minimum versions, explicit license allow-lists, dependency checks, priority selection, asleep-only replacement and no mutation after failed health/canary checks.
 
 ## Remaining gates
 
