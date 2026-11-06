@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
-from math import isfinite, pi, sqrt
+from math import acos, atan2, ceil, cos, isfinite, pi, sin, sqrt, tan
 from typing import Any, ClassVar
 import re
 
@@ -130,6 +130,140 @@ def _segments_intersect(a: Vec2, b: Vec2, c: Vec2, d: Vec2) -> bool:
             (abs(o4) <= eps and _on_segment(c,d,b,coordinate_eps)))
 
 
+
+def _arc_geometry(start: Vec2, end: Vec2, sweep: float) -> tuple[float, float, float, float]:
+    """Return center x/y, radius and start angle for a signed circular arc."""
+    dx, dy = end.x - start.x, end.y - start.y
+    chord = sqrt(dx * dx + dy * dy)
+    if chord <= 0.0:
+        raise InvalidModelError("profile arc endpoints must be distinct")
+    if abs(sweep) <= 1e-12 or abs(sweep) >= 2.0 * pi - 1e-12:
+        raise InvalidModelError("profile arc sweep must be non-zero and less than 2*pi radians")
+    half = sweep / 2.0
+    sine = sin(half)
+    tangent = tan(half)
+    if abs(sine) <= 1e-15 or abs(tangent) <= 1e-15:
+        raise InvalidModelError("profile arc sweep is numerically degenerate")
+    offset = chord / (2.0 * tangent)
+    midpoint_x, midpoint_y = (start.x + end.x) / 2.0, (start.y + end.y) / 2.0
+    center_x = midpoint_x - (dy / chord) * offset
+    center_y = midpoint_y + (dx / chord) * offset
+    radius = chord / (2.0 * abs(sine))
+    return center_x, center_y, radius, atan2(start.y - center_y, start.x - center_x)
+
+
+def _angle_on_sweep(angle: float, start_angle: float, sweep: float) -> bool:
+    if sweep > 0:
+        return ((angle - start_angle) % (2.0 * pi)) <= sweep + 1e-10
+    return ((start_angle - angle) % (2.0 * pi)) <= -sweep + 1e-10
+
+
+def _profile_loop_samples(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -> tuple[Vec2, ...]:
+    """Deterministic 1-degree arc tessellation used only for topology guards."""
+    if not any(sweeps):
+        return points
+    sampled: list[Vec2] = [points[0]]
+    for index, sweep in enumerate(sweeps):
+        start, end = points[index], points[(index + 1) % len(points)]
+        if sweep == 0.0:
+            sampled.append(end)
+            continue
+        cx, cy, radius, start_angle = _arc_geometry(start, end, sweep)
+        count = max(1, ceil(abs(sweep) / (pi / 180.0)))
+        if count > 20000:
+            raise InvalidModelError("profile arc tessellation exceeds the topology-validation limit")
+        for step in range(1, count + 1):
+            angle = start_angle + sweep * step / count
+            sampled.append(Vec2(cx + radius * cos(angle), cy + radius * sin(angle)))
+    if len(sampled) > 1 and sampled[-1] == sampled[0]:
+        sampled.pop()
+    return tuple(sampled)
+
+
+def _profile_loop_area(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -> float:
+    total = 0.0
+    for index, sweep in enumerate(sweeps):
+        start, end = points[index], points[(index + 1) % len(points)]
+        if sweep == 0.0:
+            total += (start.x * end.y - end.x * start.y) / 2.0
+            continue
+        cx, cy, radius, start_angle = _arc_geometry(start, end, sweep)
+        end_angle = start_angle + sweep
+        total += 0.5 * (
+            radius * cx * (sin(end_angle) - sin(start_angle))
+            - radius * cy * (cos(end_angle) - cos(start_angle))
+            + radius * radius * sweep
+        )
+    return total
+
+
+def _profile_loop_perimeter(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -> float:
+    total = 0.0
+    for index, sweep in enumerate(sweeps):
+        start, end = points[index], points[(index + 1) % len(points)]
+        if sweep == 0.0:
+            total += sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2)
+        else:
+            _, _, radius, _ = _arc_geometry(start, end, sweep)
+            total += radius * abs(sweep)
+    return total
+
+
+def _profile_loop_bounds(points: tuple[Vec2, ...], sweeps: tuple[float, ...]) -> tuple[float, float, float, float]:
+    candidates: list[Vec2] = list(points)
+    extrema = (0.0, pi / 2.0, pi, 3.0 * pi / 2.0)
+    for index, sweep in enumerate(sweeps):
+        if sweep == 0.0:
+            continue
+        start, end = points[index], points[(index + 1) % len(points)]
+        cx, cy, radius, start_angle = _arc_geometry(start, end, sweep)
+        for angle in extrema:
+            if _angle_on_sweep(angle, start_angle, sweep):
+                candidates.append(Vec2(cx + radius * cos(angle), cy + radius * sin(angle)))
+    return (
+        min(point.x for point in candidates), min(point.y for point in candidates),
+        max(point.x for point in candidates), max(point.y for point in candidates),
+    )
+
+
+def _validate_profile_loop(points: tuple[Vec2, ...], sweeps: tuple[float, ...], label: str) -> None:
+    if not any(sweeps):
+        _validate_simple_loop(points, label)
+        return
+    sampled = _profile_loop_samples(points, sweeps)
+    _validate_simple_loop(sampled, label)
+    min_x, min_y, max_x, max_y = _profile_loop_bounds(points, sweeps)
+    scale = max(max_x - min_x, max_y - min_y)
+    if scale <= 0 or abs(_profile_loop_area(points, sweeps)) <= 1e-12 * scale * scale:
+        raise InvalidModelError(f"{label} area must be positive")
+
+
+def _normalise_arc_sweeps(raw: tuple[float, ...], count: int, label: str) -> tuple[float, ...]:
+    if not isinstance(raw, tuple):
+        raise InvalidModelError(f"{label} must be an immutable tuple")
+    if not raw:
+        return (0.0,) * count
+    if len(raw) != count:
+        raise InvalidModelError(f"{label} must contain one signed sweep angle per profile edge")
+    values = tuple(_number(value, f"{label} angle") for value in raw)
+    for value in values:
+        if value != 0.0 and (abs(value) <= 1e-12 or abs(value) >= 2.0 * pi - 1e-12):
+            raise InvalidModelError(f"{label} angles must be zero for lines or have magnitude below 2*pi")
+    return values
+
+
+def _validate_segment_ids(ids: tuple[str, ...], count: int, label: str, required: bool) -> None:
+    if not isinstance(ids, tuple):
+        raise InvalidModelError(f"{label} must be an immutable tuple")
+    if required and len(ids) != count:
+        raise InvalidModelError(f"{label} are required for every curved profile edge")
+    if ids and len(ids) != count:
+        raise InvalidModelError(f"{label} must contain one stable ID per profile edge")
+    if any(not isinstance(value, str) or not _ID.fullmatch(value) for value in ids):
+        raise InvalidModelError(f"{label} must contain stable lowercase identifiers")
+    if len(ids) != len(set(ids)):
+        raise InvalidModelError(f"{label} must be unique within the profile loop")
+
 @dataclass(frozen=True, slots=True)
 class ExtrudedProfileSolid:
     solid_id: str
@@ -138,28 +272,64 @@ class ExtrudedProfileSolid:
     height: float
     length_unit: str = "m"
     holes: tuple[tuple[Vec2, ...], ...] = ()
+    arc_sweeps_rad: tuple[float, ...] = ()
+    hole_arc_sweeps_rad: tuple[tuple[float, ...], ...] = ()
+    segment_ids: tuple[str, ...] = ()
+    hole_segment_ids: tuple[tuple[str, ...], ...] = ()
 
     KIND: ClassVar[str] = "EXTRUDED_PROFILE"
 
     def __post_init__(self) -> None:
         _validate_identity(self.solid_id, self.frame_id, self.length_unit)
-        _validate_simple_loop(self.profile, "extruded outer profile")
+        if not isinstance(self.profile, tuple) or len(self.profile) < 3 or any(not isinstance(point, Vec2) for point in self.profile):
+            raise InvalidModelError("extruded outer profile requires at least three immutable Vec2 points")
+        outer_sweeps = _normalise_arc_sweeps(self.arc_sweeps_rad, len(self.profile), "profile arc_sweeps_rad")
+        _validate_segment_ids(self.segment_ids, len(self.profile), "profile segment_ids", any(outer_sweeps))
+        _validate_profile_loop(self.profile, outer_sweeps, "extruded outer profile")
         if not isinstance(self.holes, tuple):
             raise InvalidModelError("extruded profile holes must be an immutable tuple of loops")
+        if not isinstance(self.hole_arc_sweeps_rad, tuple):
+            raise InvalidModelError("hole_arc_sweeps_rad must be an immutable tuple")
+        if self.hole_arc_sweeps_rad and len(self.hole_arc_sweeps_rad) != len(self.holes):
+            raise InvalidModelError("hole_arc_sweeps_rad must have one entry per hole loop")
+        hole_sweeps = tuple(
+            _normalise_arc_sweeps(self.hole_arc_sweeps_rad[i] if self.hole_arc_sweeps_rad else (), len(hole), f"hole {i} arc_sweeps_rad")
+            for i, hole in enumerate(self.holes)
+        )
+        if not isinstance(self.hole_segment_ids, tuple):
+            raise InvalidModelError("hole_segment_ids must be an immutable tuple")
+        if self.hole_segment_ids and len(self.hole_segment_ids) != len(self.holes):
+            raise InvalidModelError("hole_segment_ids must have one entry per hole loop")
+        any_curved_hole = any(any(values) for values in hole_sweeps)
+        if any_curved_hole and not self.hole_segment_ids:
+            raise InvalidModelError("hole segment IDs are required for every curved hole edge")
+        if self.hole_segment_ids:
+            for i, ids in enumerate(self.hole_segment_ids):
+                _validate_segment_ids(ids, len(self.holes[i]), f"hole {i} segment_ids", any(hole_sweeps[i]))
+        outer_samples = _profile_loop_samples(self.profile, outer_sweeps)
         for index, hole in enumerate(self.holes):
-            _validate_simple_loop(hole, f"extruded profile hole {index}")
-            if _loops_intersect(self.profile, hole) or not all(_point_in_polygon(point, self.profile) for point in hole):
+            if not isinstance(hole, tuple) or len(hole) < 3 or any(not isinstance(point, Vec2) for point in hole):
+                raise InvalidModelError(f"extruded profile hole {index} requires at least three immutable Vec2 points")
+            _validate_profile_loop(hole, hole_sweeps[index], f"extruded profile hole {index}")
+            hole_samples = _profile_loop_samples(hole, hole_sweeps[index])
+            if _loops_intersect(outer_samples, hole_samples) or not all(_point_in_polygon(point, outer_samples) for point in hole_samples):
                 raise InvalidModelError("extruded profile holes must lie strictly inside the outer profile without touching it")
-        for i, first in enumerate(self.holes):
-            for second in self.holes[i+1:]:
+        sampled_holes = tuple(_profile_loop_samples(hole, hole_sweeps[i]) for i, hole in enumerate(self.holes))
+        for i, first in enumerate(sampled_holes):
+            for second in sampled_holes[i+1:]:
                 if (_loops_intersect(first, second) or _point_in_polygon(first[0], second)
                         or _point_in_polygon(second[0], first)):
                     raise InvalidModelError("extruded profile holes must not intersect, overlap or nest")
-        scale = max(
-            max(point.x for point in self.profile) - min(point.x for point in self.profile),
-            max(point.y for point in self.profile) - min(point.y for point in self.profile),
-        )
-        if self.area <= 1e-12 * scale**2:
+        object.__setattr__(self, "arc_sweeps_rad", outer_sweeps if any(outer_sweeps) else ())
+        object.__setattr__(self, "hole_arc_sweeps_rad", hole_sweeps if any(any(values) for values in hole_sweeps) else ())
+        height = _number(self.height, "extrusion height")
+        if height <= 0:
+            raise InvalidModelError("extrusion height must be positive")
+        object.__setattr__(self, "height", height)
+        if self.area <= 1e-12 * max(
+            _profile_loop_bounds(self.profile, outer_sweeps)[2] - _profile_loop_bounds(self.profile, outer_sweeps)[0],
+            _profile_loop_bounds(self.profile, outer_sweeps)[3] - _profile_loop_bounds(self.profile, outer_sweeps)[1],
+        ) ** 2:
             raise InvalidModelError("extruded profile net area must be positive")
         height = _number(self.height, "extrusion height")
         if height <= 0:
@@ -168,15 +338,18 @@ class ExtrudedProfileSolid:
 
     @property
     def area(self) -> float:
-        return abs(_polygon_signed_area(self.profile)) - sum(abs(_polygon_signed_area(hole)) for hole in self.holes)
+        outer = self.arc_sweeps_rad or (0.0,) * len(self.profile)
+        holes = self.hole_arc_sweeps_rad or tuple((0.0,) * len(hole) for hole in self.holes)
+        return abs(_profile_loop_area(self.profile, outer)) - sum(
+            abs(_profile_loop_area(hole, holes[i])) for i, hole in enumerate(self.holes)
+        )
 
     @property
     def perimeter(self) -> float:
-        loops = (self.profile, *self.holes)
-        return sum(
-            sqrt((loop[(i+1)%len(loop)].x-loop[i].x)**2 +
-                 (loop[(i+1)%len(loop)].y-loop[i].y)**2)
-            for loop in loops for i in range(len(loop))
+        outer = self.arc_sweeps_rad or (0.0,) * len(self.profile)
+        holes = self.hole_arc_sweeps_rad or tuple((0.0,) * len(hole) for hole in self.holes)
+        return _profile_loop_perimeter(self.profile, outer) + sum(
+            _profile_loop_perimeter(hole, holes[i]) for i, hole in enumerate(self.holes)
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -185,6 +358,9 @@ class ExtrudedProfileSolid:
             "profile": [{"x": point.x, "y": point.y} for point in self.profile],
             "height": self.height, "unit": self.length_unit,
             **({"holes": [[{"x": point.x, "y": point.y} for point in hole] for hole in self.holes]} if self.holes else {}),
+            **({"arc_sweeps_rad": list(self.arc_sweeps_rad), "segment_ids": list(self.segment_ids)} if self.arc_sweeps_rad else {}),
+            **({"hole_arc_sweeps_rad": [list(values) for values in self.hole_arc_sweeps_rad],
+                "hole_segment_ids": [list(values) for values in self.hole_segment_ids]} if self.hole_arc_sweeps_rad else {}),
         }
 
 
@@ -264,7 +440,10 @@ class PrimitiveGeometryModel:
     frame_graph: FrameGraph
     solids: tuple[SolidPrimitive, ...]
 
-    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    SCHEMA_VERSION: ClassVar[str] = "1.1"
+    LEGACY_SCHEMA_VERSION: ClassVar[str] = "1.0"
+    SUPPORTED_SCHEMA_VERSIONS: ClassVar[tuple[str, ...]] = ("1.0", "1.1")
+    schema_version: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.frame_graph, FrameGraph):
@@ -273,6 +452,11 @@ class PrimitiveGeometryModel:
             not isinstance(item, (BoxSolid, CylinderSolid, ExtrudedProfileSolid)) for item in self.solids
         ):
             raise InvalidModelError("solids must be an immutable tuple of supported primitives")
+        has_curves = any(isinstance(item, ExtrudedProfileSolid) and (item.arc_sweeps_rad or item.hole_arc_sweeps_rad) for item in self.solids)
+        version = self.schema_version or (self.SCHEMA_VERSION if has_curves else self.LEGACY_SCHEMA_VERSION)
+        if version not in self.SUPPORTED_SCHEMA_VERSIONS or (has_curves and version != self.SCHEMA_VERSION):
+            raise InvalidModelError("PrimitiveGeometryModel schema version does not support the supplied geometry")
+        object.__setattr__(self, "schema_version", version)
         solid_ids = tuple(item.solid_id for item in self.solids)
         if len(solid_ids) != len(set(solid_ids)):
             raise InvalidModelError("solid IDs must be unique")
@@ -284,7 +468,7 @@ class PrimitiveGeometryModel:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "schema_version": self.SCHEMA_VERSION,
+            "schema_version": self.schema_version,
             "frame_graph": self.frame_graph.to_dict(),
             "solids": [item.to_dict() for item in sorted(self.solids, key=lambda item: item.solid_id)],
         }
@@ -293,7 +477,7 @@ class PrimitiveGeometryModel:
     def from_dict(cls, value: Mapping[str, Any]) -> "PrimitiveGeometryModel":
         if not isinstance(value, Mapping) or set(value) != {"schema_version", "frame_graph", "solids"}:
             raise InvalidModelError("PrimitiveGeometryModel snapshot has missing or unknown fields")
-        if value["schema_version"] != cls.SCHEMA_VERSION:
+        if value["schema_version"] not in cls.SUPPORTED_SCHEMA_VERSIONS:
             raise InvalidModelError("Unsupported PrimitiveGeometryModel schema_version")
         if not isinstance(value["frame_graph"], Mapping):
             raise InvalidModelError("frame_graph must be a FrameGraph snapshot")
@@ -328,7 +512,8 @@ class PrimitiveGeometryModel:
                 ))
             elif kind == ExtrudedProfileSolid.KIND:
                 required = {"kind", "solid_id", "frame_id", "profile", "height", "unit"}
-                if not required.issubset(raw) or set(raw) - (required | {"holes"}):
+                optional = {"holes", "arc_sweeps_rad", "hole_arc_sweeps_rad", "segment_ids", "hole_segment_ids"}
+                if not required.issubset(raw) or set(raw) - (required | optional):
                     raise InvalidModelError("ExtrudedProfileSolid snapshot has missing or unknown fields")
                 raw_profile = raw["profile"]
                 if not isinstance(raw_profile, (list, tuple)):
@@ -351,13 +536,23 @@ class PrimitiveGeometryModel:
                             raise InvalidModelError("profile hole point requires x and y")
                         hole_points.append(Vec2(_number(point["x"], "hole x"), _number(point["y"], "hole y")))
                     holes.append(tuple(hole_points))
+                raw_sweeps = raw.get("arc_sweeps_rad", [])
+                raw_hole_sweeps = raw.get("hole_arc_sweeps_rad", [])
+                raw_segment_ids = raw.get("segment_ids", [])
+                raw_hole_segment_ids = raw.get("hole_segment_ids", [])
+                if not isinstance(raw_sweeps, (list, tuple)) or not isinstance(raw_hole_sweeps, (list, tuple)):
+                    raise InvalidModelError("profile arc sweep fields must be arrays")
+                if not isinstance(raw_segment_ids, (list, tuple)) or not isinstance(raw_hole_segment_ids, (list, tuple)):
+                    raise InvalidModelError("profile segment ID fields must be arrays")
                 solids.append(ExtrudedProfileSolid(
                     raw["solid_id"], raw["frame_id"], tuple(points),
                     _number(raw["height"], "extrusion height"), raw["unit"], tuple(holes),
+                    tuple(raw_sweeps), tuple(tuple(values) for values in raw_hole_sweeps),
+                    tuple(raw_segment_ids), tuple(tuple(values) for values in raw_hole_segment_ids),
                 ))
             else:
                 raise InvalidModelError(f"Unsupported primitive solid kind: {kind}")
-        return cls(graph, tuple(solids))
+        return cls(graph, tuple(solids), value["schema_version"])
 
     def _solid(self, solid_id: str) -> SolidPrimitive:
         for solid in self.solids:
@@ -397,9 +592,9 @@ class PrimitiveGeometryModel:
             elif isinstance(solid, CylinderSolid):
                 local = Cylinder(solid.radius, solid.height).bounds
             else:
-                xs = [point.x for point in solid.profile]
-                ys = [point.y for point in solid.profile]
-                local = BoundingBox(Vec3(min(xs), min(ys), 0.0), Vec3(max(xs), max(ys), solid.height))
+                sweeps = solid.arc_sweeps_rad or (0.0,) * len(solid.profile)
+                min_x, min_y, max_x, max_y = _profile_loop_bounds(solid.profile, sweeps)
+                local = BoundingBox(Vec3(min_x, min_y, 0.0), Vec3(max_x, max_y, solid.height))
             return FramedBounds3(target_frame, local, solid.length_unit)
         if transform.length_unit != solid.length_unit:
             raise InvalidModelError("solid and transform length units do not match")
@@ -409,10 +604,15 @@ class PrimitiveGeometryModel:
             minimum = Vec3(min(p.x for p in points), min(p.y for p in points), min(p.z for p in points))
             maximum = Vec3(max(p.x for p in points), max(p.y for p in points), max(p.z for p in points))
         elif isinstance(solid, ExtrudedProfileSolid):
-            points = [
-                transform.apply_point(Vec3(point.x, point.y, z))
-                for point in solid.profile for z in (0.0, solid.height)
-            ]
+            if solid.arc_sweeps_rad:
+                min_x, min_y, max_x, max_y = _profile_loop_bounds(solid.profile, solid.arc_sweeps_rad)
+                local_corners = product((min_x, max_x), (min_y, max_y), (0.0, solid.height))
+                points = [transform.apply_point(Vec3(x, y, z)) for x, y, z in local_corners]
+            else:
+                points = [
+                    transform.apply_point(Vec3(point.x, point.y, z))
+                    for point in solid.profile for z in (0.0, solid.height)
+                ]
             minimum = Vec3(min(p.x for p in points), min(p.y for p in points), min(p.z for p in points))
             maximum = Vec3(max(p.x for p in points), max(p.y for p in points), max(p.z for p in points))
         else:
