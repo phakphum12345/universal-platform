@@ -3,7 +3,7 @@
 **Integration branch:** docs/phase-0-complete-requirements  
 **Latest merged integration baseline:** `d7b740fc98d396c130f1c17b3c6487b30b599c2c` (PR #36; bounded geometric loop coordinate solver).  
 **Latest merged feature:** PR #36 squash merge `d7b740fc98d396c130f1c17b3c6487b30b599c2c`; post-merge run #290 (ID `42162667016`) passed workflow-sanity and python-tests; **258 tests passed in 0.59s**. PR-head push run #288 (ID `42162588094`) and PR run #289 (ID `42162600490`) each passed with 258 tests.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
+**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology and caller-driven mobility/kinematics. No general spatial dynamics solver or physical control is claimed.
 
 ## Implemented in the merged baseline
 
@@ -312,3 +312,12 @@ Passing tests validate only the code and contracts present at the exact tested S
 - Includes every joint residual, including spanning-tree joints; normalizes residual rows by their declared tolerances and forwards coordinate bounds and characteristic scales.
 - Returns CONVERGED only when the solver and final geometric evaluation both pass; local failure remains NOT_CONVERGED and is not interpreted as UNREACHABLE.
 - Does not solve body poses, discover branches, prove global reachability or physical feasibility. Exact PR-head and post-merge evidence pending.
+
+
+## PR #37 — Generated spatial Jacobian mobility (implementation candidate)
+
+- Builds on PR #33 generated joint pose-consistency residuals and PR #34 finite-difference Jacobians.
+- Selects six body-pose tangent variables per non-ground link plus every independent generalized joint coordinate; ground pose variables are excluded.
+- Computes local mobility as combined variable count minus estimated Jacobian rank and retains the nominal joint-count estimate separately.
+- The generated adapter is SPATIAL-only. PLANAR is rejected until an explicit plane-frame contract and coplanarity validation are implemented.
+- Singularity status remains UNKNOWN unless a regular-configuration reference rank is supplied; rank is numerical and tolerance-dependent.

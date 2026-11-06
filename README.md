@@ -28,6 +28,7 @@ Current modules include:
 - Finite-difference constraint Jacobian generation over generalized coordinates and body-pose tangent variables, with stable variable/row ordering and bound-aware one-sided fallback; this is not a symbolic or analytic derivative engine.
 - Geometry-aware loop-closure evaluation that combines deterministic fundamental cycles with generated joint residuals, retaining closing-edge and spanning-tree evidence for caller-supplied configurations; this is not a configuration-search solver.
 - Bounded local generalized-coordinate fitting against fixed caller-supplied body poses, using every generated joint residual, declared coordinate bounds/scales and the offline nonlinear equality solver; this is not a general body-pose configuration solver.
+- Spatial local mobility analysis from generated finite-difference joint Jacobians, combining non-ground body-pose tangent variables with independent joint coordinates; planar auto-mobility still requires an explicit plane-frame contract.
 - Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
 - A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
 - An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).

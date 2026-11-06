@@ -114,3 +114,8 @@ Adds a bounded local solver adapter that adjusts only generalized-coordinate val
 
 
 PR #36 merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`. Exact PR head `d00bd6e5631fa4a0101f1c4d5a7c9e1f811cd2f1` passed push run #288 (`42162588094`) and PR run #289 (`42162600490`), 258 tests each. Post-merge run #290 (`42162667016`) on the exact merge SHA passed 258 tests. The scope remains local generalized-coordinate fitting for fixed body poses.
+
+
+## PR #37 — Generated spatial Jacobian mobility
+
+Integrates generated joint residuals and their finite-difference Jacobian into local spatial mobility diagnostics. The combined local variable set includes six pose-tangent components per non-ground link plus all independent joint coordinates. The ground pose is removed; nominal mobility and local rank-based mobility remain separate. This initial adapter rejects PLANAR because the repository has no explicit plane-frame contract yet.

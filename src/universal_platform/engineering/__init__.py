@@ -44,6 +44,7 @@ from .mechanism_model import (
     validate_mechanism_model,
 )
 from .mechanism_mobility import (
+    analyze_geometric_mechanism_mobility,
     ConstraintJacobian,
     MobilityAnalysisResult,
     MobilityFormulation,
@@ -134,7 +135,8 @@ __all__ = [
     "GeometricLoopClosureStatus", "GeometricLoopResidualGroup",
     "evaluate_geometric_loop_closure", "ConstraintJacobian", "MobilityAnalysisResult",
     "MobilityFormulation", "NominalMobilityEstimate", "SingularityStatus",
-    "analyze_mechanism_mobility", "estimate_nominal_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
+    "analyze_mechanism_mobility", "analyze_geometric_mechanism_mobility",
+    "estimate_nominal_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
