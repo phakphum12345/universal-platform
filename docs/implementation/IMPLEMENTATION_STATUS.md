@@ -217,3 +217,15 @@ Passing tests validate only the code and contracts present at the exact tested S
 - The normalized JointModel schema still does not provide complete placements/parameterizations to generate geometric joint equations automatically. Higher pairs, automatic Jacobian construction, dynamics, contact, physical feasibility and certification remain out of scope.
 - PR #29 final tested PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (run ID `42152768589`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.45s**. Documentation-only marker SKIPPED, not PASS. Earlier code head `ce2f1dd7e46279f58a6d6572efebe0c62e1c98ba` passed run #231 (196 tests in 0.23s); preceding revisions and their test counts are retained in the PR body.
 - Squash merge commit: `a20e83314abb735448c6ebebf755b8b50cf7635e`. Post-merge push run #234 (run ID `42152843277`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.32s**. Documentation-only marker SKIPPED, not PASS.
+
+
+## PR #30 — Integrated mechanism kinematics pipeline
+
+- Adds one versioned orchestration result that runs normalized-model loop topology/position closure, PR #29 local mobility diagnostics, then velocity and acceleration equality solves.
+- Position uses the existing explicit loop-closing residual callback contract. Mobility uses a caller-supplied configuration-specific constraint Jacobian whose stable constraint/coordinate ordering is checked against the position input.
+- Velocity solves J*qdot + b_v = 0; acceleration solves J*qddot + b_a = 0. The time-derivative bias vectors and their provenance labels are caller-supplied; the pipeline does not synthesize derivatives from missing joint placements.
+- Derivative outputs report UNIQUE / NON_UNIQUE / NOT_ESTABLISHED from the Jacobian rank and solve status; rank-deficient results are not presented as unique.
+- Configuration IDs, branch IDs, prior configuration, continuation status, model revision, Jacobian source and bias sources are preserved in the versioned result snapshot. Same-branch continuation seeds from the prior solved coordinates; branch changes use the new caller-supplied seed and are explicit.
+- Regression fixtures cover one planar 4R loop, two independent loops, branch continuity/switch, invalid cross-revision continuation and deterministic result/provenance serialization.
+- Explicit limits: no automatic geometric joint equation/Jacobian generation, branch discovery, symbolic differentiation, dynamics, forces, collision/contact, physical feasibility or certification.
+- PR #30 validation evidence pending exact final head CI.

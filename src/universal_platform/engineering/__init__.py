@@ -46,6 +46,13 @@ from .mechanism_mobility import (
     analyze_mechanism_mobility,
     estimate_nominal_mobility,
 )
+from .mechanism_kinematics import (
+    BranchContinuityStatus,
+    DerivativeKinematicsResult,
+    MechanismKinematicsInput,
+    MechanismKinematicsResult,
+    solve_mechanism_kinematics,
+)
 from .mechanism_loops import (
     LoopClosureConstraint,
     LoopClosureResult,
@@ -85,7 +92,9 @@ __all__ = [
     "MechanismModel", "ModelValidationResult", "SolverCapability",
     "validate_mechanism_model", "LoopClosureConstraint", "LoopClosureResult",
     "LoopClosureStatus", "LoopTopology", "MechanismLoop", "analyze_loop_topology",
-    "solve_mechanism_loops", "ConstraintJacobian", "MobilityAnalysisResult",
+    "solve_mechanism_loops", "BranchContinuityStatus", "DerivativeKinematicsResult",
+    "MechanismKinematicsInput", "MechanismKinematicsResult",
+    "solve_mechanism_kinematics", "ConstraintJacobian", "MobilityAnalysisResult",
     "MobilityFormulation", "NominalMobilityEstimate", "SingularityStatus",
     "analyze_mechanism_mobility", "estimate_nominal_mobility", "JacobianMethod", "JacobianScaleDiagnostics",
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",

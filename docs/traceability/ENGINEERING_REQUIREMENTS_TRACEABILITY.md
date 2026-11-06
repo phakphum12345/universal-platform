@@ -48,3 +48,12 @@ PR #28 adds deterministic fundamental-cycle topology for normalized mechanism gr
 - Reports estimated rank, redundant constraint rows, negative nominal DOF and possible singularity as separate fields. Singularity remains UNKNOWN without an explicit regular-configuration reference rank.
 - Tests cover planar 4R nominal and local mobility, spatial revolute-pair nominal mobility, unsupported planar joint kinds, redundant rows, rank drop, negative nominal count, validation and versioned provenance snapshots.
 - This is a diagnostic contract, not automatic geometric Jacobian generation or a general mechanism solver. Final tested PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (`42152768589`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, 196 passed in 0.45s; documentation-only marker SKIPPED. Squash merge `a20e83314abb735448c6ebebf755b8b50cf7635e`; post-merge push run #234 (`42152843277`) on the exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, 196 passed in 0.32s. The implementation returns singularity UNKNOWN if a supplied regular-rank reference is inconsistent with a higher observed rank.
+
+
+## CAD-003D — Integrated mechanism kinematics (PR #30)
+
+- Connects normalized stable-ID mechanism topology and explicit loop residuals to position closure, PR #29 mobility/rank diagnostics, and velocity/acceleration constraint solves.
+- Position, velocity and acceleration use a common ordered generalized-coordinate vector. Velocity and acceleration are solved from J*qdot + b_v = 0 and J*qddot + b_a = 0; derivative bias terms are explicit caller inputs with source labels.
+- Regression coverage includes planar 4R and two-loop models, same-branch continuation, branch switch, schema/revision mismatch and versioned provenance.
+- The pipeline does not auto-generate geometric joint constraints/Jacobians or derivative bias terms. It is a caller-driven integration contract, not a general 3D multibody dynamics engine.
+- Exact-SHA CI evidence pending.
