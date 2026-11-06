@@ -287,6 +287,8 @@ class ExtrudedProfileSolid:
             raise InvalidModelError("extruded outer profile requires at least three immutable Vec2 points")
         outer_sweeps = _normalise_arc_sweeps(self.arc_sweeps_rad, len(self.profile), "profile arc_sweeps_rad")
         _validate_segment_ids(self.segment_ids, len(self.profile), "profile segment_ids", any(outer_sweeps))
+        if self.segment_ids and not any(outer_sweeps):
+            raise InvalidModelError("profile segment_ids require at least one curved profile edge")
         _validate_profile_loop(self.profile, outer_sweeps, "extruded outer profile")
         if not isinstance(self.holes, tuple):
             raise InvalidModelError("extruded profile holes must be an immutable tuple of loops")
@@ -306,6 +308,8 @@ class ExtrudedProfileSolid:
         if self.hole_segment_ids and len(self.hole_segment_ids) != len(self.holes):
             raise InvalidModelError("hole_segment_ids must have one entry per hole loop")
         any_curved_hole = any(any(values) for values in hole_sweeps)
+        if self.hole_segment_ids and not any_curved_hole:
+            raise InvalidModelError("hole_segment_ids require at least one curved hole edge")
         if any_curved_hole and not self.hole_segment_ids:
             raise InvalidModelError("hole segment IDs are required for every curved hole edge")
         if self.hole_segment_ids:
@@ -488,7 +492,7 @@ class PrimitiveGeometryModel:
         if not isinstance(raw_solids, (list, tuple)):
             raise InvalidModelError("solids must be an array")
         if value["schema_version"] == cls.LEGACY_SCHEMA_VERSION and any(
-            isinstance(raw, Mapping) and ("arc_sweeps_rad" in raw or "hole_arc_sweeps_rad" in raw)
+            isinstance(raw, Mapping) and any(key in raw for key in ("arc_sweeps_rad", "hole_arc_sweeps_rad", "segment_ids", "hole_segment_ids"))
             for raw in raw_solids
         ):
             raise InvalidModelError("PrimitiveGeometryModel schema version 1.0 does not support curved profile fields")
