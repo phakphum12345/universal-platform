@@ -69,3 +69,10 @@ This adapter supports straight-edged PlanarRegion inputs only. It does not creat
 The new `BRepSolid` model represents one connected closed shell of triangular planar faces with explicit vertices, canonical edges, oriented edge uses, loops and shell membership. It validates closed two-face edge incidence, opposite edge-use directions, connected face adjacency, Euler characteristic/genus and positive signed volume using exact-rational predicates over represented binary64 coordinates. `brep_from_triangle_mesh` and `triangle_mesh_from_brep` provide a deterministic, validation-preserving mesh bridge.
 
 This is only a faceted triangular-shell topology profile. It does not provide curved surfaces, n-gon faces, face holes, multiple shells, geometric self-intersection proof, shell healing or 3D Boolean operations. See [Faceted B-rep Topology Contract](../design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md).
+
+
+## 10. Bounded axis-aligned B-rep Boolean v1.0
+
+`boolean_axis_aligned_brep_solids` supports UNION, INTERSECTION, first-minus-rest DIFFERENCE and odd/even SYMMETRIC_DIFFERENCE for 2–16 axis-aligned box BRepSolid inputs sharing frame and unit. An exact-rational coordinate grid partitions at every input box boundary; boundary quads are triangulated deterministically, and face-connected output components are validated as closed, oriented faceted B-rep shells. Grid size is limited to 32,768 cells. Point/edge-only contacts remain separate components.
+
+This is not a general 3D Boolean kernel: arbitrary faceted solids, rotated boxes, cylinders, curved faces, shell healing and fully enclosed cavities are unsupported and fail closed. See [Axis-Aligned Faceted B-rep Boolean Contract](../design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
