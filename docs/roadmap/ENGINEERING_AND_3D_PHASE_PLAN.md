@@ -2,7 +2,7 @@
 
 **Planning status:** PROPOSED for owner review  
 **Scope direction:** CONFIRMED by owner  
-**Current integration baseline:** PR #41 merged at `a9053b02312d1319fa13f0079465fb3fc92afafd`; PR #40 documentation reconciliation is recorded below.
+**Current integration baseline:** PR #42 merged at `5781f3bd017b5e12f55e463934f7e34a933c6dc3`; PR #40 documentation reconciliation is recorded below.
 
 ## 1. Objective
 Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
@@ -157,9 +157,18 @@ PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #
 - Does not execute operations or enforce declared permissions.
 
 
-## PR #42 — Provenance and evidence gate (implementation candidate)
+## PR #42 — Provenance and evidence gate (merged)
 
 - Base SHA: `a9053b02312d1319fa13f0079465fb3fc92afafd`.
 - Validates source references, immutable evidence records, SHA-256 lineage, timestamps and JSON-safe metadata.
 - Adds a conservative aggregate gate: FAIL takes precedence, then UNKNOWN, then SKIPPED; only all-PASS evidence can produce PASS. An empty evidence set is UNKNOWN.
+- Final PR head `f9f55bc81f1d61d35489dabe330477199f8b910b`; run #323 (`42168703901`): 357 tests PASS.
+- Merge `5781f3bd017b5e12f55e463934f7e34a933c6dc3`; post-merge run #324 (`42168808102`): 357 tests PASS.
+
+
+## PR #43 — Versioned coordinate-frame exchange (implementation candidate)
+
+- Base SHA: `5781f3bd017b5e12f55e463934f7e34a933c6dc3`.
+- RigidTransform and FrameGraph v1.0 snapshots include stable frame IDs, explicit length units and deterministic edge ordering.
+- Same-unit graph invariant is enforced; cross-unit conversion is not implicit.
 - Exact-SHA CI pending.

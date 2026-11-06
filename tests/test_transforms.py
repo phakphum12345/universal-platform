@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
@@ -70,3 +71,36 @@ def test_rejects_non_rigid_or_invalid_rotation(rotation):
 def test_rejects_empty_frame_names():
     with pytest.raises(InvalidModelError):
         RigidTransform(" ", "world")
+
+
+def test_rigid_transform_versioned_snapshot_round_trip_preserves_units():
+    original = RigidTransform("part", "world", ROTATE_Z_90, Vec3(25.0, 10.0, 0.0), "mm")
+    snapshot = original.to_dict()
+    restored = RigidTransform.from_dict(json.loads(json.dumps(snapshot)))
+    assert restored == original
+    assert restored.length_unit == "mm"
+    assert restored.inverse().length_unit == "mm"
+
+
+def test_rigid_transform_snapshot_rejects_unknown_schema_and_fields():
+    snapshot = RigidTransform.identity("world").to_dict()
+    bad_version = dict(snapshot, schema_version="2.0")
+    bad_field = dict(snapshot, extra="not-supported")
+    with pytest.raises(InvalidModelError, match="schema_version"):
+        RigidTransform.from_dict(bad_version)
+    with pytest.raises(InvalidModelError, match="missing or unknown"):
+        RigidTransform.from_dict(bad_field)
+
+
+def test_rigid_transform_requires_length_unit_and_immutable_rotation():
+    with pytest.raises(InvalidModelError, match="length dimension"):
+        RigidTransform("a", "b", length_unit="s")
+    with pytest.raises(InvalidModelError, match="immutable"):
+        RigidTransform("a", "b", rotation=[[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+
+
+def test_transform_composition_rejects_mixed_length_units():
+    first = RigidTransform("A", "B", translation=Vec3(1, 0, 0), length_unit="mm")
+    second = RigidTransform("B", "C", translation=Vec3(1, 0, 0), length_unit="m")
+    with pytest.raises(InvalidModelError, match="different length units"):
+        first.then(second)

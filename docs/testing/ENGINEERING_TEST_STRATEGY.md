@@ -38,3 +38,8 @@ PR #39 tests metadata manifest/registry validation, dependency ordering and dete
 ## Evidence/provenance validation coverage
 
 PR #42 adds source metadata and SHA-256 checks, timezone validation, immutable evidence metadata, JSON/non-finite rejection, duplicate source/record detection, deterministic serialization and aggregate evidence-gate precedence. Empty evidence must remain UNKNOWN; a gate can PASS only when every supplied required record passes.
+
+
+## Coordinate-frame exchange validation
+
+PR #43 adds JSON round-trip and deterministic-order tests for RigidTransform/FrameGraph, explicit length-unit checks, schema-version/field validation, graph topology validation, cycle and duplicate detection, and rejection of mixed-unit composition.

@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
@@ -99,3 +100,56 @@ def test_existing_root_can_be_attached_under_another_frame():
     graph.add_transform(tx("world", "sensor", 0.0, 0.0, 2.0))
     assert graph.roots == frozenset({"world"})
     assert graph.transform_between("world", "sensor").translation == Vec3(0.0, 0.0, 2.0)
+
+
+def test_frame_graph_versioned_snapshot_round_trip_preserves_geometry_and_units():
+    graph = FrameGraph()
+    graph.add_transform(RigidTransform("world", "base", translation=Vec3(10, 0, 0), length_unit="mm"))
+    graph.add_transform(RigidTransform("base", "tool", translation=Vec3(0, 20, 0), length_unit="mm"))
+    snapshot = graph.to_dict()
+    restored = FrameGraph.from_dict(json.loads(json.dumps(snapshot)))
+    assert restored.to_dict() == snapshot
+    resolved = restored.transform_between("world", "tool")
+    assert resolved.length_unit == "mm"
+    assert resolved.apply_point(Vec3(0, 0, 0)) == Vec3(10, 20, 0)
+    assert restored.transform_between("tool", "tool").length_unit == "mm"
+
+
+def test_frame_graph_snapshot_is_insertion_order_independent():
+    first = FrameGraph()
+    first.add_transform(RigidTransform("A", "B", length_unit="mm"))
+    first.add_transform(RigidTransform("B", "C", length_unit="mm"))
+    second = FrameGraph()
+    second.add_transform(RigidTransform("B", "C", length_unit="mm"))
+    second.add_transform(RigidTransform("A", "B", length_unit="mm"))
+    assert first.to_dict() == second.to_dict()
+
+
+def test_frame_graph_rejects_unknown_schema_and_undeclared_edge_frames():
+    snapshot = {"schema_version": "2.0", "frames": ["A"], "transforms": []}
+    with pytest.raises(InvalidModelError, match="schema_version"):
+        FrameGraph.from_dict(snapshot)
+    snapshot = {
+        "schema_version": "1.0",
+        "frames": ["A", "B"],
+        "transforms": [RigidTransform("A", "C").to_dict()],
+    }
+    with pytest.raises(InvalidModelError, match="undeclared frame"):
+        FrameGraph.from_dict(snapshot)
+
+
+def test_frame_graph_rejects_duplicate_frames_cycles_and_mixed_units():
+    duplicate = {"schema_version": "1.0", "frames": ["A", "A"], "transforms": []}
+    with pytest.raises(InvalidModelError, match="unique"):
+        FrameGraph.from_dict(duplicate)
+    cycle = {
+        "schema_version": "1.0",
+        "frames": ["A", "B"],
+        "transforms": [RigidTransform("A", "B").to_dict(), RigidTransform("B", "A").to_dict()],
+    }
+    with pytest.raises(InvalidModelError, match="cycle"):
+        FrameGraph.from_dict(cycle)
+    graph = FrameGraph()
+    graph.add_transform(RigidTransform("A", "B", length_unit="mm"))
+    with pytest.raises(InvalidModelError, match="one length unit"):
+        graph.add_transform(RigidTransform("B", "C", length_unit="m"))
