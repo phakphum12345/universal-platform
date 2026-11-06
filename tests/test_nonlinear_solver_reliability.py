@@ -102,6 +102,7 @@ def test_original_unit_tolerances_remain_authoritative_after_residual_scaling():
             tolerance=1e-6,
             scale=1e6,
         )],
+        options=NonlinearSolverOptions(step_tolerance=1e-14),
     )
     assert result.status is NonlinearSolveStatus.CONVERGED
     assert abs(result.residuals[0].value) <= 1e-6
