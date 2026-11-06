@@ -150,9 +150,10 @@ PR #38 — Cross-discipline reference validation pack — merged at `587bd503dad
 - Profile holes/arcs, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
 
 
-## PR #68 — Polygonal through-hole extrusion meshes (implementation candidate)
+## PR #68 — Polygonal through-hole extrusion meshes (MERGED)
 
-- Extend straight-profile mesh tessellation to one or more strictly-contained polygonal holes using deterministic visible-bridge selection and ear clipping.
-- Preserve source-local frame/unit/provenance; orient inner walls toward the void and retain closed two-manifold edge incidence.
-- Acceptance includes one-hole and multiple-disjoint-hole analytic volume/surface-area references, CW/CCW normalization, stable serialization and rejection of curved boundaries.
-- Profile arcs, mesh self-intersection repair, B-rep, 3D Boolean and neutral CAD interchange remain separate work.
+- PR #68 merged at `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b`; exact corrected head `da5c8a292dacf8c300fcb48b9e92b506f1172bd8`.
+- Exact PR/push runs #42222216690 / #42222207986 passed both required jobs with 514 tests; exact post-merge run #42222360177 passed both jobs with **514 tests in 1.53s**.
+- Adds deterministic visible-bridge selection and ear clipping for one or more strictly-contained polygonal holes, with CW inner walls facing the void.
+- Initial inner-wall winding/volume failures were corrected on the final tested head; one-hole, multiple-hole and reversed-hole-winding regressions remain.
+- Curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
