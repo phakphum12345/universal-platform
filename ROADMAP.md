@@ -349,7 +349,7 @@ See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHA
 
 ## Current integration status — 2026-11-07 (post-PR #118)
 
-Integration HEAD `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. Integration is 265 ahead / 0 behind. PR #116–#118 are integrated on `docs/phase-0-complete-requirements`. Post-merge workflow #42282428283 on the exact integration SHA passed `workflow-sanity` and `python-tests` with **755 tests in 2.83s**. Recursive tree: 279 files, 105 Markdown, 149 Python, 21 JSON schemas and 75 test files. No open PRs at audit time. Local working-tree state is UNKNOWN (GitHub API inspection only).
+Integration HEAD `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. Integration is 265 ahead / 0 behind. Historical pre-PR #116 integration baseline (post-PR #113): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`. PR #116–#118 are integrated on `docs/phase-0-complete-requirements`. Post-merge workflow #42282428283 on the exact integration SHA passed `workflow-sanity` and `python-tests` with **755 tests in 2.83s**. Recursive tree: 279 files, 105 Markdown, 149 Python, 21 JSON schemas and 75 test files. No open PRs at audit time. Local working-tree state is UNKNOWN (GitHub API inspection only).
 
 ### Latest integrated increments
 - PR #116 — opt-in adapter fallback during recovery; exact-head 737 tests and post-merge 747 tests.
