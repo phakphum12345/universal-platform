@@ -148,3 +148,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Repository Audit post-PR #88](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md) — exact integration SHA, PR #84–#88 evidence, CAD Boolean-to-mesh vertical slice and remaining engineering gates.
 - [PlanarRegion Set Boolean Result](schemas/geometry/planar-region-set-boolean-result.schema.json) — versioned multi-region Boolean output envelope.
 - [PlanarRegion Extrusion Result](schemas/geometry/planar-region-extrusion-result.schema.json) — source-bound conversion from PlanarRegion to ExtrudedProfileSolid.
+
+
+- [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md) — v1.0 point/line sketch data model, supported constraints, solver semantics, limitations and PR #90 evidence.
+- [Parametric Sketch Schema](schemas/geometry/parametric-sketch.schema.json) — strict JSON Schema for versioned 2D sketches.
