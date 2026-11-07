@@ -146,3 +146,40 @@ def test_sketch_requires_constraints_and_rejects_wrong_input_type():
 def test_sketch_segment_endpoints_must_be_distinct_and_references_must_exist():
     with pytest.raises(InvalidModelError, match="must be distinct"):
         SketchSegment("bad", "p", "p")
+
+
+
+@pytest.mark.parametrize(
+    "kind,coordinates",
+    [
+        (Kind.PARALLEL, ((0.0, 0.0), (2.0, 0.0), (0.0, 1.0), (3.0, 1.0))),
+        (Kind.PERPENDICULAR, ((0.0, 0.0), (2.0, 0.0), (1.0, 1.0), (1.0, 4.0))),
+        (Kind.EQUAL_LENGTH, ((0.0, 0.0), (2.0, 0.0), (0.0, 1.0), (0.0, 3.0))),
+    ],
+)
+def test_relational_segment_constraints_accept_valid_geometry(kind, coordinates):
+    points = tuple(SketchPoint(f"p{i}", x, y) for i, (x, y) in enumerate(coordinates))
+    constraints = [SketchConstraint("relation", kind, ("p0", "p1", "p2", "p3"))]
+    for i, (x, y) in enumerate(coordinates):
+        constraints.extend((
+            SketchConstraint(f"fix-x-{i}", Kind.FIX_X, (f"p{i}",), x),
+            SketchConstraint(f"fix-y-{i}", Kind.FIX_Y, (f"p{i}",), y),
+        ))
+    sketch = ParametricSketch("relations", "plane", "mm", points, constraints=tuple(constraints))
+    result = solve_parametric_sketch(sketch)
+    assert result.converged
+
+
+def test_relational_segment_constraints_require_four_distinct_points_and_no_zero_length_segments():
+    with pytest.raises(InvalidModelError, match="requires 4"):
+        SketchConstraint("parallel", Kind.PARALLEL, ("a", "b"))
+    with pytest.raises(InvalidModelError, match="cannot repeat a point"):
+        SketchConstraint("parallel", Kind.PARALLEL, ("a", "b", "a", "d"))
+    sketch = ParametricSketch(
+        "degenerate-relations", "plane", "mm",
+        (SketchPoint("a", 0, 0), SketchPoint("b", 0, 0),
+         SketchPoint("c", 0, 1), SketchPoint("d", 1, 1)),
+        constraints=(SketchConstraint("parallel", Kind.PARALLEL, ("a", "b", "c", "d")),),
+    )
+    with pytest.raises(InvalidModelError, match="non-degenerate"):
+        solve_parametric_sketch(sketch)
