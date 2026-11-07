@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, read-only tree explorer and immutable backend add/replace/remove operations exist; interactive editing, suppression, undo/redo and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; interactive browser editing, suppression, undo/redo and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -39,3 +39,16 @@
 ## Next dependency-ready slice
 
 - CAD-EDIT-002 — expose safe edit operations through the local CAD Generator service and workbench, with expected-revision conflict handling, preview/validation, explicit cascade confirmation, and browser/API integration tests. Keep feature execution allow-listed and do not add user-code execution.
+
+## CAD-EDIT-002 — Revision-safe service and API editing
+
+- PR: #154 (merged to integration branch).
+- Exact PR head: d243fdee6e9fc04925eaf435b4b1e4a4cfb27ae3.
+- Exact PR-head workflow #42397413655: workflow-sanity PASS; python-tests PASS; 843 passed in 9.34s.
+- Exact merge SHA: 7046de5cff4a7a575de44de189bbb4fedcbdba58.
+- Post-merge workflow #42397474889: both jobs PASS; 843 passed in 7.14s.
+- Status: PASS for revision-safe service/API editing; overall WP-03 remains PARTIAL.
+
+## Next dependency-ready slice
+
+- CAD-EDIT-003 — interactive browser FeatureHistory editing controls using the revision-safe API. Include selected-feature parameter editing, add/remove controls, explicit cascade confirmation, expected-revision conflict handling, safe text-only rendering and browser/API integration tests. Keep the local-only authentication and no-user-code execution boundary.
