@@ -112,6 +112,8 @@ def test_sketch_schema_is_strict_and_matches_serialized_top_level_contract():
     assert set(snapshot) == set(schema["required"])
     assert schema["additionalProperties"] is False
     assert schema["properties"]["schema_version"]["enum"] == ["1.0", "1.1", "1.2"]
+    assert "arc" in schema["$defs"]
+    assert {"ANGLE", "TANGENT", "RADIUS"}.issubset(set(schema["$defs"]["constraint"]["properties"]["kind"]["enum"]))
 
 
 def test_sketch_rejects_duplicate_ids_and_dangling_segment_or_constraint_references():
@@ -330,6 +332,8 @@ def test_tangent_constraint_solves_line_to_be_tangent_at_shared_arc_endpoint():
 
 
 def test_arc_and_tangent_models_reject_invalid_references_and_degenerate_geometry():
+    with pytest.raises(InvalidModelError, match="radius must be finite and positive"):
+        SketchConstraint("zero-radius", Kind.RADIUS, (), 0.0, arc_ids=("arc",))
     with pytest.raises(InvalidModelError, match="references must be distinct"):
         SketchArc("bad", "center", "center", "end")
     with pytest.raises(InvalidModelError, match="clockwise must be boolean"):
