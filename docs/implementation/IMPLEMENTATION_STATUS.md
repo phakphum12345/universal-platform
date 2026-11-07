@@ -863,7 +863,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Integration HEAD: `a17a6359b4689fedbbcfbec769704a0322e027da`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`, integration 322 ahead / 0 behind.
 - PR #124 adds SQLite source-document revisions for FeatureHistory. Exact PR-head checks passed 780 tests; post-merge workflow #42336306301 on the exact integration SHA passed both `workflow-sanity` and `python-tests`, 780 tests in 4.34s.
 - Durable FeatureArtifact/geometry/solver cache and rehydration remain OPEN; the SQLite store persists source DAG documents only.
-- Next sketch increment branch: `feat/cad-parametric-sketch-angle-constraint-v1`, based on the exact integration SHA above. It adds a signed directed angle constraint between two existing segment IDs and reads legacy v1.0 sketch snapshots. Exact-head CI is pending; do not mark this branch PASS before the run completes.
+- PR #125 merged signed directed ANGLE between two existing segment IDs and schema v1.1 with legacy v1.0 snapshot reads. Exact PR-head and post-merge CI passed 785 tests.
 - Local workstation working-tree state remains UNKNOWN from remote repository inspection.
 
 
@@ -874,3 +874,13 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Next implementation branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on the exact integration SHA above. It adds circular arc references, positive RADIUS constraints, endpoint TANGENT constraints, and explicit fail-closed behavior in the straight-line region converter. Exact-head CI is pending.
 - The arc implementation is not a curved-profile CAD kernel: arc tessellation, curved planar regions, curved Boolean operations and B-rep conversion remain OPEN.
 - Local workstation working-tree state remains UNKNOWN from remote repository inspection.
+
+
+## Circular sketch geometry increment — pending exact-head validation
+
+- Branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on integration SHA `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9`.
+- Adds `SketchArc` with stable center/start/end point references and clockwise metadata; requires one positive `RADIUS` constraint per arc.
+- Adds a two-endpoint radial equality for RADIUS and a normalized orthogonality residual for TANGENT at a shared segment/arc endpoint.
+- Extends ParametricSketch to v1.2 while retaining v1.0/v1.1 snapshot reads.
+- Straight-line sketch-to-region conversion rejects arc-containing sketches; curved-loop conversion is not implemented.
+- Exact-head CI and post-merge CI are pending. No PASS is claimed for this branch.
