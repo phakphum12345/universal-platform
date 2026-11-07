@@ -31,6 +31,9 @@ class FeatureKind(str, Enum):
     MESH = "MESH"
 
 
+MESH_FEATURE_ALGORITHM_VERSION = "extruded-profile-triangle-mesh-v1"
+
+
 class RegenerationStatus(str, Enum):
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
@@ -279,7 +282,7 @@ class FeatureRegenerationResult:
             "limitations": [
                 "Only built-in allow-listed SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH operations execute",
                 "No user code, plugin, shell, network or physical device execution",
-                "Incremental reuse is in-memory and requires a prior successful result; no durable cache, persistent document store, suppression or branch/merge history",
+                "Incremental reuse is in-memory unless an optional local SQLite artifact cache is supplied; no distributed cache, suppression or branch/merge history",
                 "Geometry remains bounded by the source PlanarRegion and mesh kernel limitations",
             ],
         }
@@ -312,6 +315,18 @@ def _solver_options_payload(options: NonlinearSolverOptions | None) -> dict[str,
     }
 
 
+def _feature_algorithm_version(kind: FeatureKind) -> str:
+    if kind is FeatureKind.SKETCH_PROFILE:
+        return SketchRegionConversionResult.ALGORITHM_VERSION
+    if kind is FeatureKind.PLANAR_BOOLEAN:
+        return PlanarRegionSetBooleanResult.ALGORITHM_VERSION
+    if kind is FeatureKind.EXTRUSION:
+        return PlanarRegionExtrusionResult.ALGORITHM_VERSION
+    if kind is FeatureKind.MESH:
+        return MESH_FEATURE_ALGORITHM_VERSION
+    raise InvalidModelError("feature kind has no registered algorithm version")
+
+
 def _computation_signature(
     node: FeatureNode,
     inputs: list[FeatureArtifact],
@@ -319,6 +334,7 @@ def _computation_signature(
 ) -> str:
     snapshot = {
         "kind": node.kind.value,
+        "algorithm_version": _feature_algorithm_version(node.kind),
         "parameters": node.parameters,
         "inputs": [
             {"feature_id": item.feature_id, "content_sha256": item.content_sha256}
@@ -341,15 +357,23 @@ def regenerate_feature_history(
     *,
     solver_options: NonlinearSolverOptions | None = None,
     previous_result: FeatureRegenerationResult | None = None,
+    artifact_cache: object | None = None,
 ) -> FeatureRegenerationResult:
-    """Regenerate a feature DAG, reusing only artifacts with matching input fingerprints.
+    """Regenerate a feature DAG with optional verified local artifact-cache reuse.
 
-    Any expected feature/model/solver failure aborts the run and discards all
-    partial artifacts from the returned result. Reuse is process-local: callers
-    must retain a prior successful result and pass it explicitly.
+    Any expected feature/model/solver/cache failure aborts the run and discards
+    all partial artifacts from the returned result. In-memory reuse uses an
+    explicit prior successful result; persistent reuse requires an artifact
+    cache implementing load(history_id, feature_id, computation_sha256) and
+    save(history_id, artifact).
     """
     if not isinstance(history, FeatureHistory):
         raise InvalidModelError("regenerate_feature_history requires a FeatureHistory")
+    if artifact_cache is not None and not (
+        callable(getattr(artifact_cache, "load", None))
+        and callable(getattr(artifact_cache, "save", None))
+    ):
+        raise InvalidModelError("artifact_cache must provide callable load and save methods")
     if previous_result is not None:
         if not isinstance(previous_result, FeatureRegenerationResult):
             raise InvalidModelError("previous_result must be a FeatureRegenerationResult")
@@ -376,6 +400,26 @@ def regenerate_feature_history(
             completed.append(feature_id)
             reused.append(feature_id)
             continue
+        if artifact_cache is not None:
+            try:
+                persistent = artifact_cache.load(history.history_id, feature_id, signature)
+                if persistent is not None:
+                    if (
+                        not isinstance(persistent, FeatureArtifact)
+                        or persistent.feature_id != feature_id
+                        or persistent.kind is not node.kind
+                        or persistent.computation_sha256 != signature
+                    ):
+                        raise InvalidModelError("artifact cache returned a mismatched feature artifact")
+                    computed[feature_id] = persistent
+                    completed.append(feature_id)
+                    reused.append(feature_id)
+                    continue
+            except Exception as exc:
+                return FeatureRegenerationResult(
+                    history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
+                    feature_id, f"artifact cache load failed: {exc}", tuple(reused), tuple(recomputed),
+                )
         try:
             if node.kind is FeatureKind.SKETCH_PROFILE:
                 if inputs or set(parameters) != {"sketch"} or not isinstance(parameters["sketch"], Mapping):
@@ -424,7 +468,18 @@ def regenerate_feature_history(
                 payload = {"mesh": mesh.to_dict(), "validation": validation.to_dict()}
             else:
                 raise InvalidModelError("feature kind is not executable")
-            computed[feature_id] = _make_artifact(feature_id, node.kind, value, payload, signature)
+            artifact = _make_artifact(feature_id, node.kind, value, payload, signature)
+            if artifact_cache is not None:
+                try:
+                    saved = artifact_cache.save(history.history_id, artifact)
+                    if not isinstance(saved, FeatureArtifact) or saved.to_dict() != artifact.to_dict():
+                        raise InvalidModelError("artifact cache save returned a mismatched artifact")
+                except Exception as exc:
+                    return FeatureRegenerationResult(
+                        history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
+                        feature_id, f"artifact cache save failed: {exc}", tuple(reused), tuple(recomputed),
+                    )
+            computed[feature_id] = artifact
             completed.append(feature_id)
             recomputed.append(feature_id)
         except (InvalidModelError, SolverError, TypeError, ValueError, KeyError) as exc:
