@@ -123,6 +123,10 @@ from .feature_history import (
     FeatureArtifact, FeatureHistory, FeatureKind, FeatureNode,
     FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history,
 )
+from .feature_history_store import (
+    FeatureHistoryRevision, FeatureHistoryRevisionConflict,
+    FeatureHistoryStoreIntegrityError, SQLiteFeatureHistoryStore,
+)
 from .sketch_region import SketchRegionConversionResult, sketch_to_planar_regions
 from .parametric_sketch import (
     ParametricSketch, ParametricSketchSolveResult, SketchConstraint,
@@ -187,5 +191,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "solve_parametric_sketch", "STEPArtifact", "STEPImportResult", "export_step", "import_step", "ThreeMFArtifact", "ThreeMFImportResult", "export_3mf", "import_3mf", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
+    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "FeatureHistoryRevision", "FeatureHistoryRevisionConflict", "FeatureHistoryStoreIntegrityError", "SQLiteFeatureHistoryStore", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "solve_parametric_sketch", "STEPArtifact", "STEPImportResult", "export_step", "import_step", "ThreeMFArtifact", "ThreeMFImportResult", "export_3mf", "import_3mf", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
 ]
