@@ -161,6 +161,16 @@ Latest integration SHA: `e4a1add528e4fd77c88df96d428ff629e2f4b655`; main remains
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
 | CAD-GEN-SERVICE-001 | Revision-aware application service for durable CAD history and regeneration | PR #136; `cad_generator_service.py`; public exports; service contract | IMPLEMENTED — strict snapshot save, optimistic revision writes, exact revision reads, local cache-backed regeneration and provenance-bearing response. Exact-head and post-merge CI PASS, 817 tests. |
-| CAD-GEN-HTTP-API-001 | Governed transport adapter for remote/local client requests | Future HTTP/CLI API contract | OPEN — no HTTP listener is present. Authentication, authorization, request bounds, audit/cancellation, structured errors and loopback-only defaults remain prerequisites. |
+| CAD-GEN-HTTP-API-001 | Governed local HTTP transport for revisioned CAD generator requests | PR #138; `cad_generator_http_api.py`; `CAD_GENERATOR_HTTP_API_CONTRACT.md`; `tests/test_cad_generator_http_api.py` | IMPLEMENTED — explicit-start IPv4 loopback-only server, bearer auth, strict JSON/body/time bounds, immutable revision save/read/list/regenerate, SQLite append-only audit hash chain. Exact-head and post-merge CI PASS, 822 tests. Remote access, TLS, rate limiting and browser session controls remain OPEN. |
 
 Latest integration SHA: `ab0006c1ead3e6848f90e30c804d38a3029218f3`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42376951014 passed both required jobs with 817 tests.
+
+
+## CAD Generator HTTP API traceability — post-PR #138
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-GEN-HTTP-API-001 | Governed local transport for versioned CAD Generator operations | PR #138; `cad_generator_http_api.py`; `CAD_GENERATOR_HTTP_API_CONTRACT.md`; HTTP integration tests | IMPLEMENTED — loopback-only explicit-start HTTP server; bearer token; Host/Origin/peer validation; strict JSON; bounded request size/time; revision save/read/list/regenerate; append-only SQLite audit chain. Exact-head and post-merge CI PASS, 822 tests. |
+| CAD-GEN-UI-001 | Local CAD authoring UI integrated with the revision-aware API | Future same-origin UI and browser integration tests | OPEN — API is available locally but no authoring UI is implemented or served. UI must not introduce CORS or remote access. |
+
+Latest integration SHA: `674b6a52c725b6e3f4b4e083b602aab3a138104e`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42380918862 passed both required jobs with 822 tests.
