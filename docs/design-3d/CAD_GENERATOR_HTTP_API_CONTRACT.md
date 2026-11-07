@@ -168,3 +168,16 @@ The builder accepts 3–64 unique finite vertices, rejects adjacent/repeated clo
 The canvas supports mouse/touch click-to-add and exact numeric coordinate entry within X 0–26 mm and Y 0–15 mm, undo-last and clear. The extrusion height is entered separately. The service still performs geometry/mesh validation during regeneration; the canvas does not certify a profile as valid.
 
 **Capability boundary:** only a bounded straight-edge polygon template is generated. The editor does not yet support arcs, splines, automatic constraints, dimensions/relations beyond fixed coordinates, negative or out-of-range coordinates, holes, Boolean feature authoring, a 3D viewport, drag-based constraint solving or a general CAD kernel. Self-intersection must be rejected by the normal geometry pipeline, not inferred from the drawing alone.
+
+
+## 10. Isometric mesh preview — PR #144
+
+After successful regeneration, the local UI locates the `MESH` FeatureArtifact in the response and renders its triangle mesh as an isometric SVG preview.
+
+- Uses the exact mesh vertex and triangle arrays from the returned artifact; no geometry is reconstructed from the sketch.
+- Shows source revision, vertex/triangle counts, artifact content SHA-256 and computation SHA-256.
+- Displays explicit `valid`, `watertight` and `consistently_oriented` validation flags from the backend report.
+- Uses a painter-sorted static isometric projection. The preview is capped at 10,000 vertices and 5,000 triangles to bound browser work; full artifact JSON remains available in the operation result.
+- Malformed indices or non-finite coordinates prevent rendering; the preview does not change the backend validation result.
+
+**Capability boundary:** this is a static isometric mesh preview, not an interactive CAD viewport. No orbit/pan/zoom, selection, sectioning, B-rep face editing, dimensioning, assemblies or general CAD-kernel operations are implemented. Backend validation remains authoritative; a rendered mesh is not engineering certification.
