@@ -157,7 +157,11 @@ def test_http_polygon_template_endpoint_generates_and_regenerates_a_profile(api)
     )
     assert status == 200
     assert generated["regeneration"]["status"] == "SUCCESS"
-    assert generated["regeneration"]["artifacts"][-1]["payload"]["validation"]["watertight"] is True
+    mesh_payload = generated["regeneration"]["artifacts"][-1]["payload"]
+    assert mesh_payload["validation"]["watertight"] is True
+    assert len(mesh_payload["mesh"]["vertices"]) >= 4
+    assert len(mesh_payload["mesh"]["triangles"]) >= 4
+    assert len(generated["regeneration"]["artifacts"][-1]["content_sha256"]) == 64
     assert audit.verify()
 
 
