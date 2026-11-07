@@ -342,3 +342,95 @@ def test_ci_checks_cad_generator_javascript_syntax_without_external_dependencies
     content = workflow.read_text(encoding="utf-8")
     assert "node --check src/universal_platform/engineering/static/cad_generator.js" in content
     assert "hashFiles('src/universal_platform/engineering/static/cad_generator.js') != ''" in content
+
+
+def test_http_api_edits_feature_history_with_revision_checks_and_immutable_snapshots(api):
+    base, audit, _ = api
+    status, saved = send(
+        base, "/v1/histories", method="POST",
+        body={"history": make_history().to_dict(), "expected_revision": 0},
+    )
+    assert status == 201
+    assert saved["revision"] == 1
+
+    replacement = FeatureNode.create(
+        "extrusion", FeatureKind.EXTRUSION, ("profile",),
+        {"solid_id": "solid.http", "height": 3.0},
+    )
+    status, replaced = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 1,
+            "operation": "replace",
+            "feature_id": "extrusion",
+            "feature": replacement.to_dict(),
+        },
+    )
+    assert status == 201
+    assert replaced["revision"] == 2
+
+    added_node = FeatureNode.create("extra.mesh", FeatureKind.MESH, ("extrusion",))
+    status, added = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 2,
+            "operation": "add",
+            "feature": added_node.to_dict(),
+            "make_output": True,
+        },
+    )
+    assert status == 201
+    assert added["revision"] == 3
+
+    status, removed = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 3,
+            "operation": "remove",
+            "feature_id": "extra.mesh",
+        },
+    )
+    assert status == 201
+    assert removed["revision"] == 4
+
+    status, original = send(base, "/v1/histories/history.http-api?revision=1")
+    assert status == 200
+    original_extrusion = next(
+        node for node in original["history"]["nodes"] if node["feature_id"] == "extrusion"
+    )
+    assert original_extrusion["parameters"]["height"] == 2.0
+
+    status, latest = send(base, "/v1/histories/history.http-api?revision=4")
+    assert status == 200
+    latest_extrusion = next(
+        node for node in latest["history"]["nodes"] if node["feature_id"] == "extrusion"
+    )
+    assert latest_extrusion["parameters"]["height"] == 3.0
+    assert latest["history"]["output_feature_ids"] == ["mesh"]
+
+    status, conflict = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 3,
+            "operation": "remove",
+            "feature_id": "extra.mesh",
+        },
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "REVISION_CONFLICT"
+
+    status, malformed = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 4,
+            "operation": "add",
+            "feature": {"feature_id": "unsafe", "kind": "RUN_SHELL"},
+        },
+    )
+    assert status == 400
+    assert malformed["error"]["code"] == "INVALID_FIELDS" or malformed["error"]["code"] == "INVALID_FEATURE"
+
+    status, revisions = send(base, "/v1/histories/history.http-api/revisions")
+    assert status == 200
+    assert revisions["revisions"] == [1, 2, 3, 4]
+    assert audit.verify()
