@@ -217,7 +217,7 @@ class SQLiteFeatureHistoryStore:
             raise ValueError("revision must be a positive integer")
         with closing(self._connect()) as connection:
             head = connection.execute(
-                "SELECT revision FROM feature_history_heads WHERE history_id = ?",
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
                 (history_id,),
             ).fetchone()
             if head is None:
@@ -268,6 +268,8 @@ class SQLiteFeatureHistoryStore:
             expected_parent = stored_digest
         if selected is None:
             raise FeatureHistoryStoreIntegrityError("requested revision is missing")
+        if target == int(head[0]) and selected.content_sha256 != head[1]:
+            raise FeatureHistoryStoreIntegrityError("head digest does not match the latest revision")
         return selected
 
     def list_revisions(self, history_id: str) -> tuple[int, ...]:
