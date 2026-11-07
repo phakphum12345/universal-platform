@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (265 commits ahead / 0 behind `main`).
+- Integration HEAD: `674b6a52c725b6e3f4b4e083b602aab3a138104e` (ahead/behind count not recomputed in this audit).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #118 merge workflow #42282428283 — workflow-sanity PASS, python-tests PASS, 755 passed in 2.83s (exact merge SHA `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`).
-- Current inventory: 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files (recursive tree at the post-PR #118 integration SHA).
+- Latest post-merge CI: PR #138 workflow #42380918862 — workflow-sanity PASS, python-tests PASS, **822 passed in 6.95s** (exact merge SHA `674b6a52c725b6e3f4b4e083b602aab3a138104e`).
+- Current inventory: 332 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files (recursive tree at the post-PR #138 integration SHA).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
@@ -211,3 +211,10 @@ The integration branch now exports and imports a bounded single-object 3MF Core 
 ## Runtime resource and recovery (integrated foundation)
 
 PR #107 integrates the bounded runtime foundation: resource registry, bounded logs, recovery lifecycle/evidence, trusted-worker process supervision, adapter catalog, in-memory quotas/leases and local metrics. PR #113 adds in-process adapter routing, local cross-process evidence locking with an unkeyed SHA-256 hash chain, and threshold-based health monitoring. Exact PR #113 head and post-merge CI passed 732 tests. These are partial runtime primitives, not a production self-healing platform or security sandbox. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) and [post-PR #113 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
+
+
+## CAD Generator local API (PR #138)
+
+The revision-aware `CADGeneratorService` now has a local HTTP adapter with explicit startup, IPv4 loopback-only binding, dynamic port by default, bearer authentication, strict JSON/body/time limits, immutable revision save/read/list and exact-revision regeneration. A local SQLite audit log records request lifecycle metadata in a SHA-256 hash chain without storing credentials or model bodies.
+
+The HTTP adapter is not a public or remote service. Do not expose it through LAN binding, SSH/port forwarding, reverse proxies or firewall rules. TLS, rate limiting, browser session management and remote access are not implemented. The API contract and current verification evidence are linked in [Documentation Index](DOCUMENTATION_INDEX.md).
