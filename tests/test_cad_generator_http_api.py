@@ -166,6 +166,10 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'commitFeatureEdit("add"' in script
     assert 'commitFeatureEdit("remove"' in script
     assert "revisionSelect.value !== String(expected)" in script
+    assert "function updateFeatureEditorControls(hasSelection)" in script
+    assert "revisionSelect.value === String(expected)" in script
+    assert 'byId("feature-add").disabled = !canEditCurrentHead' in script
+    assert 'byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection)' in script
     assert 'snapshotInput.addEventListener("input", renderFeatureTree)' in script
     assert "innerHTML" not in script
 
