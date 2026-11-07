@@ -87,12 +87,16 @@
     return Math.min(maximum, Math.max(minimum, value));
   }
 
-  function clearMeshPreview(message = "No mesh artifact loaded.") {
+  function disableMeshPreview() {
     activeMesh = null;
     meshDrag = null;
     meshFaces.replaceChildren();
     meshCamera = { ...defaultMeshCamera };
     meshControlButtons.forEach((button) => { button.disabled = true; });
+  }
+
+  function clearMeshPreview(message = "No mesh artifact loaded.") {
+    disableMeshPreview();
     byId("mesh-state").textContent = "No mesh preview";
     byId("mesh-state").className = "state";
     byId("mesh-validation").textContent = message;
@@ -183,23 +187,27 @@
       " · computation SHA-256 " + artifact.computation_sha256;
     if (!Array.isArray(vertices) || !Array.isArray(triangles) ||
         vertices.length < 4 || vertices.length > MAX_PREVIEW_VERTICES) {
-      clearMeshPreview("Mesh vertex data is outside the preview bounds.");
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Mesh vertex data is outside the preview bounds.";
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
     if (triangles.length === 0 || triangles.length > MAX_PREVIEW_TRIANGLES) {
-      clearMeshPreview("Preview is limited to 1–5,000 triangles; full mesh remains in the result JSON.");
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Preview is limited to 1–5,000 triangles; full mesh remains in the result JSON.";
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
     if (triangles.some((indices) => !Array.isArray(indices) || indices.length !== 3 ||
         indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length))) {
-      clearMeshPreview("Malformed triangle indices prevent rendering this mesh.");
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Malformed triangle indices prevent rendering this mesh.";
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
     if (vertices.some((vertex) => !vertex || ![vertex.x, vertex.y, vertex.z].every(Number.isFinite))) {
-      clearMeshPreview("Non-finite or malformed vertex coordinates prevent rendering.");
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Non-finite or malformed vertex coordinates prevent rendering.";
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
