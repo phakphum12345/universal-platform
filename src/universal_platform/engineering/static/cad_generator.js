@@ -11,6 +11,9 @@
   const revisionSelect = byId("revision");
   const statusMessage = byId("status-message");
   const resultOutput = byId("result");
+  const featureTree = byId("feature-tree");
+  const featureTreeState = byId("feature-tree-state");
+  const featureInspector = byId("feature-inspector");
   const buttons = ["save", "list", "load", "regenerate", "generate-profile"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
@@ -23,6 +26,7 @@
   const meshClearSelectionButton = byId("mesh-clear-selection");
   const MAX_PREVIEW_TRIANGLES = 5000;
   const MAX_PREVIEW_VERTICES = 10000;
+  const MAX_FEATURE_TREE_NODES = 500;
   let bearerToken = "";
   let connected = false;
   let activeMesh = null;
@@ -30,6 +34,7 @@
   let meshCamera = { ...defaultMeshCamera };
   let meshDrag = null;
   let selectedMeshTriangleIndex = null;
+  let selectedFeatureId = null;
   let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
@@ -39,6 +44,137 @@
 
   function showResult(value) {
     resultOutput.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  }
+
+  function renderFeatureTree() {
+    featureTree.replaceChildren();
+    featureInspector.textContent = "Select a feature to inspect its inputs and parameters.";
+    const raw = snapshotInput.value.trim();
+    if (!raw) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "No FeatureHistory snapshot.";
+      return;
+    }
+
+    let snapshot;
+    try {
+      snapshot = JSON.parse(raw);
+    } catch (_) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "Invalid JSON; feature tree preview unavailable.";
+      return;
+    }
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot) ||
+        snapshot.schema_version !== "1.0" || typeof snapshot.history_id !== "string" ||
+        !Array.isArray(snapshot.nodes) || !Array.isArray(snapshot.output_feature_ids)) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "Snapshot structure is not recognized; backend validation remains authoritative.";
+      return;
+    }
+    if (snapshot.nodes.length > MAX_FEATURE_TREE_NODES) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "Feature tree preview is limited to " + MAX_FEATURE_TREE_NODES + " nodes.";
+      return;
+    }
+    if (snapshot.nodes.length === 0 || snapshot.output_feature_ids.length === 0) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "FeatureHistory requires nodes and output feature IDs.";
+      return;
+    }
+
+    const nodeById = new Map();
+    for (const node of snapshot.nodes) {
+      if (!node || typeof node !== "object" || Array.isArray(node) ||
+          typeof node.feature_id !== "string" || !node.feature_id ||
+          typeof node.kind !== "string" || !node.kind ||
+          !Array.isArray(node.input_feature_ids) ||
+          !node.parameters || typeof node.parameters !== "object" || Array.isArray(node.parameters) ||
+          node.input_feature_ids.some((id) => typeof id !== "string" || !id) ||
+          new Set(node.input_feature_ids).size !== node.input_feature_ids.length ||
+          nodeById.has(node.feature_id)) {
+        selectedFeatureId = null;
+        featureTreeState.textContent = "Malformed or duplicate feature node; preview unavailable.";
+        return;
+      }
+      nodeById.set(node.feature_id, node);
+    }
+    const outputs = new Set(snapshot.output_feature_ids);
+    if (outputs.size !== snapshot.output_feature_ids.length ||
+        snapshot.output_feature_ids.some((id) => typeof id !== "string" || !nodeById.has(id))) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "Output feature references are invalid.";
+      return;
+    }
+
+    const indegree = new Map();
+    const dependents = new Map();
+    for (const node of snapshot.nodes) {
+      indegree.set(node.feature_id, node.input_feature_ids.length);
+      dependents.set(node.feature_id, []);
+      if (node.input_feature_ids.some((id) => !nodeById.has(id) || id === node.feature_id)) {
+        selectedFeatureId = null;
+        featureTreeState.textContent = "Missing or self-referential feature dependency.";
+        return;
+      }
+    }
+    for (const node of snapshot.nodes) {
+      for (const dependency of node.input_feature_ids) dependents.get(dependency).push(node.feature_id);
+    }
+    const ready = snapshot.nodes.filter((node) => indegree.get(node.feature_id) === 0)
+      .map((node) => node.feature_id).sort();
+    const ordered = [];
+    while (ready.length) {
+      const id = ready.shift();
+      ordered.push(nodeById.get(id));
+      for (const dependent of dependents.get(id)) {
+        indegree.set(dependent, indegree.get(dependent) - 1);
+        if (indegree.get(dependent) === 0) {
+          ready.push(dependent);
+          ready.sort();
+        }
+      }
+    }
+    if (ordered.length !== snapshot.nodes.length) {
+      selectedFeatureId = null;
+      featureTreeState.textContent = "Feature dependency cycle detected; preview unavailable.";
+      return;
+    }
+
+    featureTreeState.textContent =
+      "Structure preview only · " + ordered.length + " features · outputs: " +
+      snapshot.output_feature_ids.join(", ") + " · deterministic topological order";
+    const showFeature = (node) => {
+      selectedFeatureId = node.feature_id;
+      featureTree.querySelectorAll("button[data-feature-id]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.featureId === selectedFeatureId));
+      });
+      featureInspector.textContent = JSON.stringify({
+        feature_id: node.feature_id,
+        kind: node.kind,
+        input_feature_ids: node.input_feature_ids,
+        parameters: node.parameters,
+      }, null, 2);
+    };
+    for (const node of ordered) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      const dependencies = document.createElement("span");
+      button.type = "button";
+      button.className = "feature-tree-node";
+      button.dataset.featureId = node.feature_id;
+      button.setAttribute("aria-pressed", "false");
+      button.textContent = node.feature_id + " · " + node.kind +
+        (outputs.has(node.feature_id) ? " · output" : "");
+      button.addEventListener("click", () => showFeature(node));
+      dependencies.className = "feature-tree-dependencies";
+      dependencies.textContent = node.input_feature_ids.length
+        ? "Depends on: " + node.input_feature_ids.join(", ")
+        : "No dependencies";
+      item.append(button, dependencies);
+      featureTree.append(item);
+    }
+    const initial = ordered.find((node) => node.feature_id === selectedFeatureId) || ordered[0];
+    showFeature(initial);
   }
 
   function setConnected(value) {
@@ -507,6 +643,7 @@
         "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(revision)
       );
       snapshotInput.value = JSON.stringify(result.history, null, 2);
+      renderFeatureTree();
       byId("revision-state").textContent = "Loaded revision " + revision;
       setStatus("Loaded immutable source revision " + revision + ".", "good");
       showResult({
@@ -608,6 +745,7 @@
         },
       });
       snapshotInput.value = JSON.stringify(result.history, null, 2);
+      renderFeatureTree();
       setStatus("FeatureHistory JSON generated. Save the revision, then regenerate to validate the solid.", "good");
       showResult({
         template: result.template,
@@ -632,6 +770,8 @@
     setStatus(connected ? "Connected; ready for the next operation." : "Enter your local bearer token and connect to begin.");
   });
 
+  snapshotInput.addEventListener("input", renderFeatureTree);
+
   tokenInput.addEventListener("input", () => {
     bearerToken = "";
     setConnected(false);
@@ -640,4 +780,5 @@
 
   setConnected(false);
   renderProfile();
+  renderFeatureTree();
 })();

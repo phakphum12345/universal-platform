@@ -211,3 +211,17 @@ For the selected triangle, the client computes:
 Pointer drags used for orbit/pan are not treated as selection clicks. Selection and measurement are ephemeral UI state and are not persisted or sent to the API.
 
 **Capability boundary:** this selects a triangle facet in the rendered mesh, not a topological B-rep face or sketch entity. It does not provide edge/vertex selection, persistent selections, dimension constraints, sectioning, face editing, assembly selection or general CAD modelling. The preview caps and fail-closed mesh guards from PR #146 remain unchanged.
+
+
+## 13. Read-only FeatureHistory tree explorer — PR #150
+
+The local workbench renders a bounded read-only structural preview from the JSON snapshot currently in the FeatureHistory editor:
+
+- Parses the snapshot without evaluating code or using HTML injection; feature IDs, kinds, input references and parameter objects are rendered with text-only DOM APIs.
+- Computes a deterministic topological display order from `input_feature_ids`; missing/self dependencies, duplicate node/output IDs, malformed node shapes and cycles prevent tree rendering.
+- Limits the preview to 500 nodes to bound browser work. Oversized or malformed snapshots remain editable as JSON, but no tree is displayed until corrected.
+- Selecting a node displays its ID, kind, dependencies and parameters. Output nodes are labelled. The preview refreshes when the JSON is edited, generated or loaded.
+- This is a read-only view. It does not mutate the FeatureHistory snapshot, save revisions, regenerate geometry or change server validation.
+- CI runs `node --check` against the packaged browser script when that source file exists, without adding a runtime dependency.
+
+**Capability boundary:** this is a dependency-ordered tree inspector, not a graphical DAG editor or feature-editing system. Reordering, parameter editing, feature suppression/deletion, recompute propagation, visual dependency edges and browser-driven regeneration remain OPEN. The backend FeatureHistory constructor and regeneration pipeline remain authoritative.

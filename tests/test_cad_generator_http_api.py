@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from threading import Thread
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -109,6 +110,9 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'id="mesh-validation"' in html
     assert 'id="mesh-selection"' in html
     assert 'id="mesh-clear-selection"' in html
+    assert 'id="feature-tree"' in html
+    assert 'id="feature-tree-state"' in html
+    assert 'id="feature-inspector"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -144,6 +148,13 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'event.key === "Enter" || event.key === " "' in script
     assert "suppressMeshClick" in script
     assert "clearMeshSelection" in script
+    assert "function renderFeatureTree()" in script
+    assert "MAX_FEATURE_TREE_NODES = 500" in script
+    assert "deterministic topological order" in script
+    assert "Feature dependency cycle detected" in script
+    assert "featureInspector.textContent = JSON.stringify" in script
+    assert 'snapshotInput.addEventListener("input", renderFeatureTree)' in script
+    assert "innerHTML" not in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
@@ -324,3 +335,10 @@ def test_api_audit_chain_detects_modified_records(tmp_path):
             ('{"event":"tampered"}',),
         )
     assert not audit.verify()
+
+
+def test_ci_checks_cad_generator_javascript_syntax_without_external_dependencies():
+    workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "engineering-core.yml")
+    content = workflow.read_text(encoding="utf-8")
+    assert "node --check src/universal_platform/engineering/static/cad_generator.js" in content
+    assert "hashFiles('src/universal_platform/engineering/static/cad_generator.js') != ''" in content

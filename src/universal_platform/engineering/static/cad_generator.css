@@ -88,3 +88,15 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
 .mesh-face:focus-visible { outline: none; stroke: #f3d36b; stroke-width: 3; }
 .mesh-face-selected { stroke: #f3d36b; stroke-width: 3; filter: brightness(1.35); }
 .mesh-details { color: #c6d4e2; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; margin: 8px 0 0; }
+
+
+.feature-tree-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid #34495e; }
+.feature-tree-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.feature-tree-list { margin: 0; padding: 0; list-style: none; max-height: 280px; overflow: auto; }
+.feature-tree-list li { margin: 0 0 8px; }
+.feature-tree-node { display: block; width: 100%; text-align: left; overflow-wrap: anywhere; }
+.feature-tree-node[aria-pressed="true"] { border-color: #f3d36b; box-shadow: 0 0 0 1px #f3d36b inset; }
+.feature-tree-dependencies { display: block; padding: 4px 8px 0; color: #91a7bb; font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+.feature-inspector-panel h4 { margin: 0 0 8px; }
+.feature-inspector { margin: 0; padding: 10px; max-height: 280px; overflow: auto; border: 1px solid #34495e; border-radius: 8px; background: #09121b; color: #c6d4e2; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+@media (max-width: 650px) { .feature-tree-layout { grid-template-columns: minmax(0, 1fr); } }
