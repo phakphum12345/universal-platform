@@ -130,6 +130,7 @@ def test_http_api_saves_reads_and_regenerates_exact_history_revision(api):
     status, saved = send(
         base, "/v1/histories", method="POST",
         body={"history": make_history().to_dict(), "expected_revision": 0},
+        extra_headers={"Origin": base},
     )
     assert status == 201
     assert saved["history_id"] == "history.http-api"
