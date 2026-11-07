@@ -4,16 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` (ahead/behind count not recomputed in this audit).
+- Integration HEAD: `da5b34182396c485760aa1940ab2623d52d89cbc` (post-PR #144).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #142 workflow #42382710626 — workflow-sanity PASS, python-tests PASS, **832 passed in 7.91s** (exact merge SHA `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`).
-- Current inventory: 338 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files (recursive tree at the post-PR #142 integration SHA).
+- Latest post-merge CI: PR #144 workflow #42383384086 on exact merge SHA `da5b34182396c485760aa1940ab2623d52d89cbc` — workflow-sanity PASS; python-tests PASS. Test-count detail was not captured in this audit.
+- Current inventory: 300 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files (recursive tree at post-PR #144; truncated=false).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: general n-gon/multi-shell B-rep and arbitrary 3D Boolean, ambiguous branching topology, persistent/interactive CAD generation, full STEP/AP242 and 3MF assembly interchange, broader EDA/circuit simulation, additional validated physics methods, OS-enforced sandboxing and durable API/CLI/UI integration remain incomplete.
+- Remaining scope: interactive orbit/pan/zoom CAD viewport and feature-tree editing; general n-gon/multi-shell B-rep and arbitrary 3D Boolean; ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -228,3 +228,8 @@ The loopback API now serves a same-origin responsive workbench for entering a be
 ## Visual polygon sketch editor (PR #142)
 
 The local CAD workbench now includes a bounded 2D SVG polygon editor with click-to-add, numeric coordinates, undo/clear and extrusion-height input. An authenticated template endpoint builds a strict fixed-coordinate ParametricSketch → Extrusion → Mesh FeatureHistory; the user reviews the JSON, saves an immutable revision, then regenerates to run geometry and watertight-mesh validation. The initial editor is limited to straight-edge polygons, 3–64 vertices and X 0–26 mm / Y 0–15 mm. It is not yet a general sketcher or 3D viewport.
+
+
+## Source-linked isometric mesh preview — PR #144
+
+The workbench now renders a bounded static isometric SVG from the exact MESH FeatureArtifact returned by regeneration. It displays source revision, vertex/triangle counts, content and computation SHA-256 digests, and backend validation flags (valid, watertight, consistently_oriented). Preview limits are 10,000 vertices and 5,000 triangles; the full artifact remains in the operation result. This is not an interactive viewport or CAD certification. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #144 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR144.md).
