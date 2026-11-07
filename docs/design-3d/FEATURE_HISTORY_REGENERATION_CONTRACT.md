@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-Represent a parametric design as a versioned directed acyclic graph (DAG) of immutable feature records and regenerate its supported outputs deterministically from source parameters.
+Represent a parametric design as a versioned directed acyclic graph (DAG) of immutable feature records and regenerate its supported outputs deterministically from source parameters. An optional prior successful in-memory result enables fingerprint-checked reuse of unchanged artifacts.
 
 This is a bounded, offline feature evaluator. It is not yet a full commercial CAD history editor, persistent document service or general geometry kernel.
 
@@ -44,6 +44,8 @@ The complete tested vertical slice is:
 - Sketch constraints must converge before a region can be generated.
 - Mesh output must pass validity, watertightness and consistent-orientation checks.
 - Repeated regeneration of the same history produces identical artifact digests; changing a source dimension changes downstream digests.
+- Incremental regeneration compares a SHA-256 computation signature over feature kind, canonical parameters, ordered input artifact digests and (for sketch features only) solver options. An exact match reuses the prior immutable artifact; a changed source invalidates only that node and descendants whose input artifact digest changes.
+- Results report `reused_feature_ids` and `recomputed_feature_ids` in deterministic execution order. Failure still returns no partial artifacts, even if earlier nodes were reused.
 
 ## 5. Security boundary
 
@@ -51,7 +53,7 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: persistent document storage, incremental recomputation/cache invalidation, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation.
+Not yet implemented: persistent document storage or durable/cross-process cache, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. The current incremental cache is process-local and requires the caller to retain and explicitly pass a prior successful `FeatureRegenerationResult`; it is not a persistent document service.
 
 The current sketch-to-region converter accepts only closed straight-edge loops. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
