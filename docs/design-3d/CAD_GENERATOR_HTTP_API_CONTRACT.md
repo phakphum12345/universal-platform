@@ -131,3 +131,20 @@ This hash chain detects accidental/tampered records when the attacker cannot rew
 - [x] Save, read, list and regenerate an exact FeatureHistory revision.
 - [x] Exact PR-head CI and post-merge CI pass: 822 tests on each exact SHA.
 - [ ] Production-grade rate limiting, TLS, remote authentication, browser session controls and external audit witness remain out of scope.
+
+
+## 8. Same-origin local authoring interface — PR #140
+
+The local server also serves a small static FeatureHistory workflow UI:
+
+- `GET /` — local HTML application shell.
+- `GET /static/cad_generator.css` — packaged stylesheet.
+- `GET /static/cad_generator.js` — packaged application logic.
+
+Static UI assets are intentionally available without a bearer token so a local user can open the page and enter the token. They are still restricted by loopback peer, Host and same-origin checks, and are written to the audit log. Every engineering API operation continues to require the bearer token. No CORS headers are emitted.
+
+The UI supports connecting to the local API, editing/pasting a complete `FeatureHistory.to_dict()` JSON snapshot, appending a revision with optimistic concurrency, listing revisions, loading an exact revision and regenerating the selected revision. It displays the returned provenance and validation JSON.
+
+The bearer token is held only in page memory and is cleared when the page is refreshed or the token field changes. It is not stored in localStorage, cookies, browser URL or request body. The UI uses same-origin `fetch`, `credentials: omit`, no external resources, a restrictive Content-Security-Policy and text-only rendering for API results.
+
+**Capability boundary:** this is a local FeatureHistory JSON/revision workbench, not a graphical sketch editor, CAD viewport, feature tree drag-and-drop editor, or visual solid modeller. It does not generate arbitrary CAD geometry outside the allow-listed FeatureHistory operations. Those visual authoring capabilities remain OPEN.
