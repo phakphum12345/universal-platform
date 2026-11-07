@@ -107,7 +107,7 @@ def workbench(tmp_path):
             page.goto(base, wait_until="domcontentloaded")
             page.locator("#token").fill(TOKEN)
             page.get_by_role("button", name="Connect").click()
-            page.locator("#connection-state").get_by_text("Connected").wait_for()
+            page.wait_for_function("document.querySelector('#connection-state').textContent.trim() === 'Connected'")
             page.get_by_role("button", name="Load revision").click()
             page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
             yield page, service, page_errors
