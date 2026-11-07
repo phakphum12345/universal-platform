@@ -1,11 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `1813cb931876305391eeabe748741be189d5f27b` (post-PR #146).  
+**Current integration HEAD:** `1fb9bc97c22bf0464e154f6963583edb9385d657` (post-PR #148).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #146 workflow #42386519328 on exact merge SHA `1813cb931876305391eeabe748741be189d5f27b` — workflow-sanity PASS; python-tests PASS; **832 passed in 9.09s**.  
-**Current tree:** 339 entries, 109 Markdown, 163 Python, 24 JSON files, 84 Python test files; recursive response truncated=false.  
+**Latest post-merge CI:** PR #148 workflow #42391470608 on exact merge SHA `1fb9bc97c22bf0464e154f6963583edb9385d657` — workflow-sanity PASS; python-tests PASS; **832 passed in 7.59s**.  
+**Current tree:** 340 entries, 110 Markdown, 163 Python, 24 JSON files, 84 Python test files; recursive response truncated=false.  
 **Open PRs:** 0 at this audit; PR #146 merged. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
@@ -995,3 +995,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Preview caps: 10,000 vertices and 5,000 triangles. Malformed/non-finite vertices and malformed triangle indices prevent preview rendering. Backend validation remains authoritative.
 - Capability status: PARTIAL — interactive triangle-mesh viewing exists; feature-tree editing, selection, measurement, sectioning, B-rep editing, assemblies and general CAD-kernel operations remain OPEN.
 - Repository inventory at this SHA: 339 tree entries, 109 Markdown, 163 Python, 24 JSON files and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local working tree and branch protection are UNKNOWN.
+
+
+## CAD Generator triangle selection and measurement — PR #148
+
+- PR #148 merged at exact integration SHA `1fb9bc97c22bf0464e154f6963583edb9385d657`; base SHA `fa59974b40d929c5d1ced34e71554ca1cf4f4975`; exact PR head `43461346e32e1c5146c5beeab79340d7fbc387df`.
+- Exact PR-head workflow #42391405409: both required jobs PASS; **832 passed in 8.59s**.
+- Exact post-merge workflow #42391470608 on `1fb9bc97c22bf0464e154f6963583edb9385d657`: both required jobs PASS; **832 passed in 7.59s**.
+- Adds pointer/keyboard triangle-facet selection, highlight/clear, area via cross-product magnitude and centroid via vertex average. Values use mesh `length_unit` and `frame_id`.
+- UI state is ephemeral and display-only; no source revision, artifact, API or audit mutation. Non-finite measurement values are not displayed.
+- Capability is PARTIAL: triangle facet inspection only; B-rep face/edge selection, sketch dimensions, sectioning, face editing and general CAD kernel remain OPEN. Browser E2E interaction testing is not part of the current workflow.
+- Repository inventory: 340 entries, 110 Markdown, 163 Python, 24 JSON and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
