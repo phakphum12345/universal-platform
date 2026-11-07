@@ -103,12 +103,16 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "CAD Generator" in html
     assert "/static/cad_generator.js" in html
     assert "/static/cad_generator.css" in html
+    assert 'id="profile-canvas"' in html
+    assert "Generate FeatureHistory JSON" in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/javascript")
     assert "localStorage" not in script
     assert "credentials: \"omit\"" in script
+    assert "/v1/templates/polygon-extrusion" in script
+    assert "innerHTML" not in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
