@@ -2,7 +2,7 @@
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
 **Current integration HEAD:** `30deb5290e4a84b8ce86848dcac21309d0b1ad95` (post-PR #128).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 368 ahead / 0 behind).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
 **Latest post-merge CI:** PR #128 workflow #42374839944 on `30deb5290e4a84b8ce86848dcac21309d0b1ad95` — workflow-sanity PASS; python-tests PASS; **801 passed in 3.32s**.  
 **Current tree:** 321 files, 106 Markdown, 152 Python, 22 JSON schemas, 77 Python test files; recursive response not truncated.  
@@ -899,7 +899,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - PR #128 merged into `docs/phase-0-complete-requirements` at `30deb5290e4a84b8ce86848dcac21309d0b1ad95`; exact PR head `5c2690760d77639c0db5795f0c8571c52944c6d9`.
 - Adds deterministic circular-arc tessellation to `sketch_to_planar_regions` with explicit `chord_error` in the sketch length unit (default 0.01), mixed line/arc cycle reconstruction, and bounded total tessellation of 2,048 boundary edges.
 - Retains frame/unit identity, source sketch SHA-256, nested-loop/hole/island classification, and fail-closed PlanarRegion validation.
-- Exact PR-head workflow #42374789822 initially exposed two regressions; both were corrected before merge. Final exact PR-head workflow #42374789822? final head workflow #42374789822 passed 801 tests in 5.34s; workflow-sanity PASS. (The initial run #42374729768 failed and is not acceptance evidence.)
+- Exact PR-head workflow #42374789822 initially exposed two regressions; both were corrected before merge. Final exact PR-head workflow #42374789822 passed both required jobs with 801 tests in 5.34s. (The initial run #42374729768 failed and is not acceptance evidence.)
 - Exact post-merge push workflow #42374839944 on the merge SHA passed workflow-sanity and python-tests: **801 passed in 3.32s**.
 - Approximation only: each circular arc is represented by line segments with a sagitta bound. Predicates validate the represented binary64 polygon, not exact analytic curved geometry. Arc-to-arc tangency, curved Boolean, curved B-rep, splines and manufacturing validation remain OPEN.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion was performed.
