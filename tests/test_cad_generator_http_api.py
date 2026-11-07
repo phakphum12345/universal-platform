@@ -105,6 +105,8 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "/static/cad_generator.css" in html
     assert 'id="profile-canvas"' in html
     assert "Generate FeatureHistory JSON" in html
+    assert 'id="mesh-preview"' in html
+    assert 'id="mesh-validation"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -112,6 +114,8 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "localStorage" not in script
     assert "credentials: \"omit\"" in script
     assert "/v1/templates/polygon-extrusion" in script
+    assert "renderMeshPreview" in script
+    assert "MAX_PREVIEW_TRIANGLES" in script
     assert "innerHTML" not in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
@@ -153,7 +157,11 @@ def test_http_polygon_template_endpoint_generates_and_regenerates_a_profile(api)
     )
     assert status == 200
     assert generated["regeneration"]["status"] == "SUCCESS"
-    assert generated["regeneration"]["artifacts"][-1]["payload"]["validation"]["watertight"] is True
+    mesh_payload = generated["regeneration"]["artifacts"][-1]["payload"]
+    assert mesh_payload["validation"]["watertight"] is True
+    assert len(mesh_payload["mesh"]["vertices"]) >= 4
+    assert len(mesh_payload["mesh"]["triangles"]) >= 4
+    assert len(generated["regeneration"]["artifacts"][-1]["content_sha256"]) == 64
     assert audit.verify()
 
 

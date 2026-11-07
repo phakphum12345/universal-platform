@@ -16,6 +16,9 @@
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
   const svgNamespace = "http://www.w3.org/2000/svg";
+  const meshFaces = byId("mesh-faces");
+  const MAX_PREVIEW_TRIANGLES = 5000;
+  const MAX_PREVIEW_VERTICES = 10000;
   let bearerToken = "";
   let connected = false;
 
@@ -72,6 +75,118 @@
     byId("undo-point").disabled = profilePoints.length === 0;
     byId("clear-profile").disabled = profilePoints.length === 0;
     byId("generate-profile").disabled = !connected || profilePoints.length < 3;
+  }
+
+  function clearMeshPreview(message = "No mesh artifact loaded.") {
+    meshFaces.replaceChildren();
+    byId("mesh-state").textContent = "No mesh preview";
+    byId("mesh-state").className = "state";
+    byId("mesh-validation").textContent = message;
+    byId("mesh-details").textContent = "No mesh artifact loaded.";
+  }
+
+  function renderMeshPreview(run) {
+    const artifacts = run?.regeneration?.artifacts || [];
+    const artifact = artifacts.find((item) => item.kind === "MESH");
+    if (!artifact || !artifact.payload?.mesh || !artifact.payload?.validation) {
+      clearMeshPreview("The selected regeneration result does not contain a mesh artifact.");
+      return;
+    }
+    const mesh = artifact.payload.mesh;
+    const validation = artifact.payload.validation;
+    const vertices = Array.isArray(mesh.vertices) ? mesh.vertices : [];
+    const triangles = Array.isArray(mesh.triangles) ? mesh.triangles : [];
+    const valid = validation.valid === true;
+    const watertight = validation.watertight === true;
+    const oriented = validation.consistently_oriented === true;
+    const allChecks = valid && watertight && oriented;
+    byId("mesh-state").textContent = allChecks ? "Mesh checks passed" : "Mesh validation warning";
+    byId("mesh-state").className = "state " + (allChecks ? "good" : "bad");
+    byId("mesh-validation").textContent =
+      "valid: " + valid + " · watertight: " + watertight +
+      " · consistently oriented: " + oriented +
+      (validation.issues?.length ? " · issues: " + validation.issues.join("; ") : "");
+    byId("mesh-details").textContent =
+      "Revision " + run.source_revision.revision +
+      " · " + vertices.length + " vertices · " + triangles.length + " triangles" +
+      " · content SHA-256 " + artifact.content_sha256 +
+      " · computation SHA-256 " + artifact.computation_sha256;
+    meshFaces.replaceChildren();
+
+    if (!Array.isArray(vertices) || !Array.isArray(triangles) ||
+        vertices.length < 4 || vertices.length > MAX_PREVIEW_VERTICES) {
+      byId("mesh-state").textContent = "Preview unavailable";
+      byId("mesh-validation").textContent += " · Mesh vertex data is outside the preview bounds.";
+      return;
+    }
+    if (triangles.length > MAX_PREVIEW_TRIANGLES) {
+      byId("mesh-state").textContent = "Preview capped";
+      byId("mesh-validation").textContent +=
+        " · Preview is limited to " + MAX_PREVIEW_TRIANGLES + " triangles; full mesh remains in the result JSON.";
+      return;
+    }
+
+    const projected = vertices.map((vertex) => {
+      if (![vertex.x, vertex.y, vertex.z].every(Number.isFinite)) return null;
+      return {
+        u: (vertex.x - vertex.y) * 0.8660254037844386,
+        v: (vertex.x + vertex.y) * 0.5 - vertex.z,
+        depth: vertex.x + vertex.y + vertex.z,
+      };
+    });
+    if (projected.some((point) => point === null)) {
+      byId("mesh-state").textContent = "Preview unavailable";
+      byId("mesh-validation").textContent += " · Non-finite vertex coordinates.";
+      return;
+    }
+    const minU = Math.min(...projected.map((point) => point.u));
+    const maxU = Math.max(...projected.map((point) => point.u));
+    const minV = Math.min(...projected.map((point) => point.v));
+    const maxV = Math.max(...projected.map((point) => point.v));
+    const rangeU = Math.max(maxU - minU, 1e-9);
+    const rangeV = Math.max(maxV - minV, 1e-9);
+    const scale = Math.min(540 / rangeU, 320 / rangeV);
+    const centerU = (minU + maxU) * 0.5;
+    const centerV = (minV + maxV) * 0.5;
+    const screen = projected.map((point) => ({
+      x: 320 + (point.u - centerU) * scale,
+      y: 210 - (point.v - centerV) * scale,
+    }));
+
+    const faces = triangles.map((indices) => {
+      if (!Array.isArray(indices) || indices.length !== 3 ||
+          indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length)) {
+        return null;
+      }
+      const a = vertices[indices[0]], b = vertices[indices[1]], c = vertices[indices[2]];
+      const ab = [b.x - a.x, b.y - a.y, b.z - a.z];
+      const ac = [c.x - a.x, c.y - a.y, c.z - a.z];
+      const normal = [
+        ab[1] * ac[2] - ab[2] * ac[1],
+        ab[2] * ac[0] - ab[0] * ac[2],
+        ab[0] * ac[1] - ab[1] * ac[0],
+      ];
+      const faceClass = normal[2] > 0
+        ? "mesh-face-top"
+        : (normal[0] - normal[1] > 0 ? "mesh-face-side-a" : "mesh-face-side-b");
+      return {
+        points: indices.map((index) => screen[index].x + "," + screen[index].y).join(" "),
+        depth: indices.reduce((sum, index) => sum + projected[index].depth, 0) / 3,
+        faceClass,
+      };
+    }).filter((face) => face !== null).sort((left, right) => right.depth - left.depth);
+
+    if (!faces.length) {
+      byId("mesh-state").textContent = "Preview unavailable";
+      byId("mesh-validation").textContent += " · No valid triangle faces to render.";
+      return;
+    }
+    faces.forEach((face) => {
+      const polygon = document.createElementNS(svgNamespace, "polygon");
+      polygon.setAttribute("points", face.points);
+      polygon.setAttribute("class", "mesh-face " + face.faceClass);
+      meshFaces.append(polygon);
+    });
   }
 
   function addProfilePoint(x, y) {
@@ -264,6 +379,8 @@
         { method: "POST", body: { revision } }
       );
       const success = result.regeneration?.status === "SUCCESS";
+      if (success) renderMeshPreview(result);
+      else clearMeshPreview("Regeneration failed; no successful mesh preview is available.");
       setStatus(
         success ? "Regeneration completed for revision " + revision + "." :
           "Regeneration failed for revision " + revision + ". Inspect the result and limitations.",
@@ -359,6 +476,7 @@
 
   byId("clear-result").addEventListener("click", () => {
     showResult("No operation result displayed.");
+    clearMeshPreview();
     setStatus(connected ? "Connected; ready for the next operation." : "Enter your local bearer token and connect to begin.");
   });
 
