@@ -127,12 +127,21 @@ def test_workbench_starts_without_runtime_errors_and_gates_edit_controls(workben
     assert page.locator("#feature-remove").is_enabled()
     assert service.history_store.load("history.browser-e2e").revision == 1
 
-    # Selecting an earlier immutable revision must disable every edit action.
+    # Create a newer head, refresh the revision list, then load the older snapshot.
+    service.save_history(make_history(height=2.5), expected_revision=1)
+    page.get_by_role("button", name="Refresh revisions").click()
     page.locator("#revision").select_option("1")
     page.get_by_role("button", name="Load revision").click()
     assert page.locator("#feature-add").is_disabled()
     assert page.locator("#feature-apply-edit").is_disabled()
     assert page.locator("#feature-remove").is_disabled()
+
+    # Returning to the latest head restores the allowed edit controls.
+    page.locator("#revision").select_option("2")
+    page.get_by_role("button", name="Load revision").click()
+    assert page.locator("#feature-add").is_enabled()
+    assert page.locator("#feature-apply-edit").is_enabled()
+    assert page.locator("#feature-remove").is_enabled()
     assert page_errors == []
 
 
