@@ -70,7 +70,7 @@ class PlanarRegionSetBooleanResult:
             "area_rounding_error": self.area_rounding_error,
             "limitations": [
                 "DIFFERENCE uses the first region as minuend and the union of remaining regions as subtrahend.",
-                "Point-touching or branching output boundaries fail closed.",
+                "Unambiguous point-only contacts remain separate output components; ambiguous branching, coincident outgoing directions and invalid hole topology fail closed.",
                 "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
                 "Generated intersections are rounded to binary64 and error is reported.",
                 "Resource limits reject the operation; no partial result is returned.",
@@ -123,7 +123,7 @@ class PlanarRegionSetBooleanResult:
             raise InvalidModelError("area does not match the serialized output regions")
         limitations = [
             "DIFFERENCE uses the first region as minuend and the union of remaining regions as subtrahend.",
-            "Point-touching or branching output boundaries fail closed.",
+            "Unambiguous point-only contacts remain separate output components; ambiguous branching, coincident outgoing directions and invalid hole topology fail closed.",
             "Circular arcs, splines, 3D Booleans and B-rep are not supported.",
             "Generated intersections are rounded to binary64 and error is reported.",
             "Resource limits reject the operation; no partial result is returned.",

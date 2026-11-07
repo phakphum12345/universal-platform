@@ -31,6 +31,10 @@ The stitcher then traverses each directed edge exactly once and rejects repeated
 - Ambiguous branching, invalid hole contact and unsupported topology remain fail-closed.
 - The existing 256-edge input bound and frame/unit compatibility requirements remain unchanged.
 
+## 3A. Region-set result semantics
+
+The set-level Boolean result metadata states that unambiguous point-only contacts remain separate output components. Ambiguous branching, coincident outgoing directions, unbalanced incidence and invalid hole topology remain fail-closed. The serialized `limitations` field and its strict round-trip validator must use the same versioned wording as the executable behavior; this metadata is descriptive and does not weaken topology validation.
+
 ## 4. Acceptance evidence
 
 - Two unit squares touching at one point: UNION returns two separate area-1 regions.
