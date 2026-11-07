@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified implementation baseline:** 1a8338ae17eb783a374a36400999ead796f9a79d  
+**Last verified implementation baseline:** 10404099ccaa85cef24adedffa7bce789abd691e  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -51,4 +51,19 @@
 
 ## Next dependency-ready slice
 
-- CAD-EDIT-003 — interactive browser FeatureHistory editing controls using the revision-safe API. Include selected-feature parameter editing, add/remove controls, explicit cascade confirmation, expected-revision conflict handling, safe text-only rendering and browser/API integration tests. Keep the local-only authentication and no-user-code execution boundary.
+## CAD-EDIT-003 — Interactive browser FeatureHistory editing controls
+
+- PR: #156 (merged to integration branch).
+- Exact PR head: 265ca3907e05f958fbae48f48398fbbae8d70ea2.
+- Exact PR-head workflow #42407785969: workflow-sanity PASS; python-tests PASS; 843 passed in 9.40s.
+- Exact merge SHA: 10404099ccaa85cef24adedffa7bce789abd691e.
+- Post-merge workflow #42407835073: workflow-sanity PASS; python-tests PASS; 843 passed in 9.76s.
+- Review submissions: none returned; inline review threads: none; unresolved threads: 0. Automated Codex review did not complete because the review usage limit was reached; no review findings were submitted.
+- Implementation: selected-feature parameter replacement, feature add/remove, explicit cascade checkbox, revision-head guard, immutable revision reload, HTTP 409 stale-write guidance and text-only rendering.
+- A missing UI control-state helper discovered during verification was added; regression assertions now verify that edit controls are enabled only for the loaded current head.
+- Status: PASS for bounded browser editing controls and CI; overall WP-03 remains PARTIAL.
+- Browser E2E interaction testing remains SKIPPED and is not claimed as passed.
+
+## Next dependency-ready slice
+
+- CAD-EDIT-004 — add real browser interaction tests for current-head editing, historical-revision read-only behavior, add/remove/cascade flows, stale revision conflicts, and safe rendering. First inspect available browser tooling; prefer an open-source, local/CI-only test setup without introducing paid services. Keep the same-origin loopback and bearer-token boundaries.
