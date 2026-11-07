@@ -94,8 +94,8 @@
     }
     const mesh = artifact.payload.mesh;
     const validation = artifact.payload.validation;
-    const vertices = mesh.vertices;
-    const triangles = mesh.triangles;
+    const vertices = Array.isArray(mesh.vertices) ? mesh.vertices : [];
+    const triangles = Array.isArray(mesh.triangles) ? mesh.triangles : [];
     const valid = validation.valid === true;
     const watertight = validation.watertight === true;
     const oriented = validation.consistently_oriented === true;
