@@ -73,7 +73,7 @@ The first slice does not yet create a closed PlanarRegion automatically. A later
 
 ## 8. Relational constraint increment
 
-The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. Angle, tangent, radius/diameter, shared-endpoint segment references and richer segment-ID constraint binding remain out of scope; no symbolic or globally unique solution is claimed.
+The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. At that increment, ANGLE and circular-arc constraints were not yet implemented; ANGLE is now specified in section 9 and circular-arc TANGENT/RADIUS in section 10. No symbolic or globally unique solution is claimed.
 
 
 ## 9. Schema v1.1 — directed angle between segments
@@ -88,9 +88,9 @@ The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_L
   vectors must be non-degenerate before solving and remain non-degenerate after
   convergence. This is a local nonlinear equality, not a symbolic or global
   angular solver.
-- The implementation remains straight-segment-only. Arc geometry is not
-  introduced by this increment, so tangent and radius/diameter constraints
-  remain unsupported and must wait for an explicit circular-arc model.
+- This v1.1 increment is straight-segment-only. Circular arc geometry and
+  its tangent/radius constraints are introduced separately in schema v1.2
+  below; no curved region conversion is implied.
 
 
 ## 10. Schema v1.2 — circular arcs, radius and tangent
