@@ -94,7 +94,7 @@ class SQLiteFeatureHistoryStore:
         raw_path = str(database_path)
         if raw_path in {":memory:", ""} or raw_path.startswith("file:"):
             raise ValueError("database_path must be a filesystem path, not a SQLite URI")
-        if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))\n                or not isfinite(timeout_seconds) or timeout_seconds <= 0):
+        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not isfinite(timeout_seconds) or timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be a positive number")
         self.database_path = Path(database_path).expanduser().resolve()
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
