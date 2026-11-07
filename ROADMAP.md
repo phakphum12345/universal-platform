@@ -482,4 +482,15 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Shows source revision, mesh counts, artifact content/computation digests and canonical backend validation flags/issues.
 - Rendering is bounded to 10,000 vertices and 5,000 triangles; full artifact JSON remains available. Backend validation remains authoritative.
 - Exact PR-head run #42383293137 and post-merge run #42383384086 both passed workflow-sanity and python-tests. The post-merge run is tied to exact integration SHA da5b34182396c485760aa1940ab2623d52d89cbc; test-count detail was not captured.
-- Next increment: interactive orbit/pan/zoom controls with bounded rendering and browser regression coverage. General B-rep editing, sectioning, assemblies and arbitrary geometry remain later work.
+- PR #146 completes the bounded interactive orbit/pan/zoom camera controls. Next CAD increments should address feature-tree/selection/measurement or geometry-kernel capabilities as separate, validated slices; sectioning, assemblies and arbitrary geometry remain later work.
+
+
+## CAD Generator interactive mesh viewport — PR #146 MERGED
+
+- Adds client-side pointer-drag orbit, Shift/middle-button pan, wheel/button zoom and reset controls over the exact source-linked MESH FeatureArtifact.
+- Camera pitch, pan and zoom are bounded; zoom range is 0.5×–4×. Camera state is ephemeral and does not mutate FeatureHistory, backend artifacts or audit records.
+- Preview remains capped at 10,000 vertices and 5,000 triangles. Malformed/non-finite vertices and malformed triangle indices fail closed for rendering; backend validation remains authoritative.
+- Exact PR-head SHA `c7c15c9a007a705ef67f650d693f1794c0f104a3`, workflow #42385362330: workflow-sanity PASS and python-tests PASS.
+- Exact post-merge SHA `1813cb931876305391eeabe748741be189d5f27b`, workflow #42386519328: workflow-sanity PASS and python-tests PASS; **832 passed in 9.09s**.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 391 commits ahead and 0 behind at this audit. Local working tree and branch protection remain UNKNOWN.
+- Capability boundary: interactive triangle-mesh viewing only. Feature-tree editing, selection, measurement, sectioning, B-rep editing, assembly view and general CAD-kernel operations remain open.
