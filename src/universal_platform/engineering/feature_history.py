@@ -265,7 +265,7 @@ def _computation_signature(
             {"feature_id": item.feature_id, "content_sha256": item.content_sha256}
             for item in inputs
         ],
-        "solver_options": _solver_options_payload(solver_options),
+        "solver_options": _solver_options_payload(solver_options) if node.kind is FeatureKind.SKETCH_PROFILE else None,
     }
     encoded = dumps(snapshot, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return sha256(encoded.encode("utf-8")).hexdigest()
