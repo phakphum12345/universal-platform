@@ -264,6 +264,9 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 raise _HTTPError(400, "INVALID_REVISION", "expected_revision must be a non-negative integer")
             if not isinstance(body["history"], dict):
                 raise _HTTPError(400, "INVALID_HISTORY", "history must be a JSON object")
+            history_id = body["history"].get("history_id")
+            if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
+                raise _HTTPError(400, "INVALID_HISTORY_ID", "history ID must use lowercase letters, digits, dot, underscore or hyphen")
             revision = self.server.generator_service.save_snapshot(
                 body["history"], expected_revision=expected
             )
