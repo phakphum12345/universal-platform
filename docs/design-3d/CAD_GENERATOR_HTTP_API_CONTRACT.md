@@ -196,3 +196,18 @@ The local mesh preview adds a client-side camera over the exact returned triangl
 - The SVG viewport exposes labelled controls and pointer interactions; touch-action is limited to the viewport so drag gestures do not scroll the page while manipulating the model.
 
 This increment does not implement selection, highlighting, measurement, clipping/section planes, B-rep editing, assembly navigation or browser-driven geometry mutation. It does not change backend validation or certify geometry.
+
+
+## 12. Triangle selection and inspection — PR #148
+
+The mesh preview supports selecting an individual rendered triangle facet by pointer click or keyboard activation (Enter/Space). The selected facet is highlighted and can be cleared without changing the source revision, FeatureArtifact, mesh payload or audit log.
+
+For the selected triangle, the client computes:
+
+- Triangle area from one half of the magnitude of the cross product of its two edge vectors, reported in the square of the mesh `length_unit`.
+- Triangle centroid as the arithmetic mean of its three vertices, reported in the mesh `length_unit` and `frame_id`.
+- Non-finite measurement results are rejected from display; the server-returned mesh and validation report remain authoritative.
+
+Pointer drags used for orbit/pan are not treated as selection clicks. Selection and measurement are ephemeral UI state and are not persisted or sent to the API.
+
+**Capability boundary:** this selects a triangle facet in the rendered mesh, not a topological B-rep face or sketch entity. It does not provide edge/vertex selection, persistent selections, dimension constraints, sectioning, face editing, assembly selection or general CAD modelling. The preview caps and fail-closed mesh guards from PR #146 remain unchanged.
