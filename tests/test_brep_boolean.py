@@ -155,3 +155,42 @@ def test_axis_aligned_brep_boolean_contract_is_indexed():
     index = (root / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
     assert contract.is_file()
     assert "AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md" in index
+
+
+
+def test_axis_aligned_brep_boolean_keeps_vertex_only_contacts_as_separate_components():
+    first = box_brep("first", (0, 0, 0), (1, 1, 1))
+    second = box_brep("second", (1, 1, 1), (2, 2, 2))
+    result = boolean_axis_aligned_brep_solids((first, second), BRepBooleanOperation.UNION)
+    assert len(result.components) == 2
+    assert total_volume(result) == pytest.approx(2.0)
+    assert all(validate_brep_solid(item).valid for item in result.components)
+
+
+def test_axis_aligned_brep_boolean_merges_face_only_contacts_into_one_shell():
+    first = box_brep("first", (0, 0, 0), (1, 1, 1))
+    second = box_brep("second", (1, 0, 0), (2, 1, 1))
+    result = boolean_axis_aligned_brep_solids((first, second), BRepBooleanOperation.UNION)
+    assert len(result.components) == 1
+    validation = validate_brep_solid(result.components[0])
+    assert validation.valid and validation.closed and validation.manifold
+    assert validation.consistently_oriented and validation.connected
+    assert validation.genus == 0
+    assert total_volume(result) == pytest.approx(2.0)
+
+
+def test_axis_aligned_brep_boolean_preserves_three_face_connected_branches_deterministically():
+    center = box_brep("center", (0, 0, 0), (1, 1, 1))
+    x_arm = box_brep("x-arm", (1, 0, 0), (2, 1, 1))
+    y_arm = box_brep("y-arm", (0, 1, 0), (1, 2, 1))
+    z_arm = box_brep("z-arm", (0, 0, 1), (1, 1, 2))
+    operands = (center, x_arm, y_arm, z_arm)
+    result = boolean_axis_aligned_brep_solids(operands, BRepBooleanOperation.UNION)
+    reversed_result = boolean_axis_aligned_brep_solids(tuple(reversed(operands)), BRepBooleanOperation.UNION)
+    assert len(result.components) == 1
+    validation = validate_brep_solid(result.components[0])
+    assert validation.valid and validation.closed and validation.manifold
+    assert validation.consistently_oriented and validation.connected
+    assert validation.genus == 0
+    assert total_volume(result) == pytest.approx(4.0)
+    assert result.result_sha256 == reversed_result.result_sha256
