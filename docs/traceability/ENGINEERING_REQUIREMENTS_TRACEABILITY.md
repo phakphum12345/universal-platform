@@ -229,3 +229,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Implementation and evidence | Remaining boundary |
 |---|---|---|---|
 | CAD-FEATURE-TREE-EDIT-001 | Add, replace and remove FeatureHistory DAG nodes without corrupting dependencies or mutating the source snapshot | IMPLEMENTED bounded backend slice by PR #152. Exact PR head `3c2469a43e48d5ac2fb7e546242d9a450dff1a87`; workflow #42396387520: workflow-sanity PASS, python-tests PASS, 840 passed in 9.23s. Exact merge `1a8338ae17eb783a374a36400999ead796f9a79d`; post-merge workflow #42396453320: both jobs PASS, 840 passed in 8.71s. Tests cover duplicate IDs, missing dependencies, stable-ID replacement, downstream deletion protection, explicit cascade and output invariants. | PARTIAL overall editor: no browser edit controls, HTTP mutation routes, suppression, undo/redo, feature rename migration, branch/merge model or recompute propagation UI. |
+
+
+## FeatureHistory service/API editing traceability — PR #154
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-EDIT-002 | Persist validated FeatureHistory add/replace/remove operations through revision-safe local API | IMPLEMENTED bounded service/API slice by PR #154. Exact PR head `d243fdee6e9fc04925eaf435b4b1e4a4cfb27ae3`; workflow #42397413655: workflow-sanity PASS, python-tests PASS, 843 passed in 9.34s. Exact merge `7046de5cff4a7a575de44de189bbb4fedcbdba58`; post-merge workflow #42397474889: both jobs PASS, 843 passed in 7.14s. Tests cover add/replace/remove, immutable revision reads, stale revision conflicts and strict feature payload parsing. | PARTIAL overall editor: browser controls, interactive browser E2E, suppression, undo/redo, graph branch/merge and recompute propagation UI remain open. |
