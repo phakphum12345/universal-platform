@@ -245,6 +245,8 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         return value
 
     def _dispatch(self) -> tuple[int, dict[str, Any]]:
+        if self.command not in {"GET", "POST"}:
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Only GET and POST are supported")
         parsed = urlsplit(self.path)
         path = unquote(parsed.path)
         if parsed.query and self.command != "GET":
