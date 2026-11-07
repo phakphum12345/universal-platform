@@ -84,4 +84,7 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
 .mesh-face-side-a { fill: #3e7ba7; }
 .mesh-face-side-b { fill: #285675; }
 .mesh-face-other { fill: #557b99; }
+.mesh-face[role="button"] { cursor: pointer; }
+.mesh-face:focus-visible { outline: none; stroke: #f3d36b; stroke-width: 3; }
+.mesh-face-selected { stroke: #f3d36b; stroke-width: 3; filter: brightness(1.35); }
 .mesh-details { color: #c6d4e2; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; margin: 8px 0 0; }
