@@ -392,7 +392,7 @@ Integration baseline: `a17a6359b4689fedbbcfbec769704a0322e027da` (PR #124 merged
 
 Integration baseline: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` (PR #125 merged; post-merge CI PASS, 785 tests). `main` remains unchanged.
 
-- Current branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`.
+- Current branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1` (PR #125 angle work is merged).
 - Adds `SketchArc` with explicit center/start/end point IDs and clockwise direction.
 - `RADIUS` adds start/end radial equations; each arc must have exactly one positive radius constraint.
 - `TANGENT` binds a straight segment to a circular arc at a shared endpoint and solves a normalized orthogonality residual.
