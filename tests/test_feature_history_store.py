@@ -128,6 +128,8 @@ def test_store_rejects_invalid_inputs_and_unknown_histories(tmp_path):
         SQLiteFeatureHistoryStore(":memory:")
     with pytest.raises(ValueError, match="filesystem path"):
         SQLiteFeatureHistoryStore("file:history.db")
+    with pytest.raises(ValueError, match="positive number"):
+        SQLiteFeatureHistoryStore(tmp_path / "invalid.db", timeout_seconds=float("nan"))
     store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
     with pytest.raises(ValueError, match="non-negative"):
         store.save(history(), expected_revision=-1)
