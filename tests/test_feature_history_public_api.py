@@ -21,3 +21,23 @@ def test_feature_history_schema_and_public_api_are_available():
     assert PublicKind is FeatureKind
     assert PublicNode is FeatureNode
     assert public_regenerate is regenerate_feature_history
+
+
+def test_durable_feature_history_store_is_exported_from_engineering_package():
+    from universal_platform.engineering import (
+        FeatureHistoryRevision,
+        FeatureHistoryRevisionConflict,
+        FeatureHistoryStoreIntegrityError,
+        SQLiteFeatureHistoryStore,
+    )
+    from universal_platform.engineering.feature_history_store import (
+        FeatureHistoryRevision as InternalRevision,
+        FeatureHistoryRevisionConflict as InternalConflict,
+        FeatureHistoryStoreIntegrityError as InternalIntegrityError,
+        SQLiteFeatureHistoryStore as InternalStore,
+    )
+
+    assert FeatureHistoryRevision is InternalRevision
+    assert FeatureHistoryRevisionConflict is InternalConflict
+    assert FeatureHistoryStoreIntegrityError is InternalIntegrityError
+    assert SQLiteFeatureHistoryStore is InternalStore
