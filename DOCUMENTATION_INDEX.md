@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Current integration snapshot: 1a8338ae17eb783a374a36400999ead796f9a79d; PR #152 post-merge workflow #42396453320 passed workflow-sanity (including the JavaScript syntax check) and python-tests with 840 tests in 8.71s. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Current tree: 349 entries, 116 Markdown, 165 Python, 24 JSON files and 85 Python test files. See [Repository Audit post-PR #152](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR152.md) for exact evidence and limitations.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited implementation snapshot: 7046de5cff4a7a575de44de189bbb4fedcbdba58; PR #154 post-merge workflow #42397474889 passed workflow-sanity (including the JavaScript syntax check) and python-tests with 843 tests in 7.14s. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Inventory at post-PR #154: 350 entries, 117 Markdown, 165 Python, 24 JSON files and 85 Python test files. See [Repository Audit post-PR #154](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md) for exact evidence and limitations.
 
 ## Repository-level product and governance
 
@@ -226,7 +226,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — bounded read-only FeatureHistory tree preview and selected-node inspection.
 - [Post-PR #150 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md) — exact PR-head/post-merge CI, JavaScript syntax validation, tree inventory and security-audit limitations.
-- Backend immutable add/replace/remove graph operations are implemented by PR #152. Interactive browser/API editing, feature suppression, undo/redo, parameter commit and recompute propagation remain OPEN.
+- Backend immutable add/replace/remove graph operations and revision-safe loopback service/API editing are implemented by PRs #152 and #154. Interactive browser editing controls, feature suppression, undo/redo, parameter editing UI and recompute propagation remain OPEN.
 
 
 ## Documentation-driven execution
@@ -237,3 +237,5 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Pre-execution Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_EXECUTION.md) — verified branch, CI, inventory, known gaps and evidence limitations.
 
 - [Post-PR #152 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR152.md) — exact PR-head and post-merge CI evidence, implementation scope and remaining gates.
+
+- [Post-PR #154 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md) — exact PR-head and post-merge CI evidence for revision-safe FeatureHistory API editing.

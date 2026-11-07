@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Last audited implementation baseline: `1a8338ae17eb783a374a36400999ead796f9a79d` (post-PR #152; subsequent reconciliation changes are documentation-only).
+- Last audited implementation baseline: `7046de5cff4a7a575de44de189bbb4fedcbdba58` (post-PR #154; subsequent reconciliation changes are documentation-only).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #152 workflow #42396453320 on exact merge SHA `1a8338ae17eb783a374a36400999ead796f9a79d` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **840 passed in 8.71s**.
-- Current inventory: 349 entries, 116 Markdown, 165 Python, 24 JSON files, 85 Python test files (recursive tree at post-PR #152; truncated=false).
+- Latest post-merge CI: PR #154 workflow #42397474889 on exact merge SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 7.14s**.
+- Current inventory: 350 entries, 117 Markdown, 165 Python, 24 JSON files, 85 Python test files (recursive tree at post-PR #154; truncated=false).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only). Branch-protection read: UNKNOWN (connected GitHub API returned 403).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
@@ -247,9 +247,14 @@ The local CAD workbench now supports selecting an individual rendered triangle f
 
 ## FeatureHistory tree inspector — PR #150
 
-The local CAD workbench now provides a bounded, read-only FeatureHistory tree preview. It orders nodes deterministically by dependencies, reports malformed/cyclic graph structures without rendering them, caps the preview at 500 nodes, and lets users inspect a selected feature's ID, kind, inputs and parameters. It refreshes from edited, generated or loaded JSON and does not mutate source history. CI validates the browser script with `node --check`. Backend immutable add/replace/remove graph operations were added by PR #152; the browser tree remains read-only and does not yet expose editing controls or commit edits through the HTTP API. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #150 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md).
+The local CAD workbench now provides a bounded, read-only FeatureHistory tree preview. It orders nodes deterministically by dependencies, reports malformed/cyclic graph structures without rendering them, caps the preview at 500 nodes, and lets users inspect a selected feature's ID, kind, inputs and parameters. It refreshes from edited, generated or loaded JSON and does not mutate source history. CI validates the browser script with `node --check`. Backend immutable add/replace/remove graph operations were added by PR #152 and revision-safe service/loopback API editing by PR #154; the browser tree remains read-only and does not yet expose editing controls. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #150 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md).
 
 
 ## FeatureHistory immutable edit operations — PR #152
 
 The engineering core now provides immutable add, replace and remove operations for FeatureHistory DAG documents. Replacement preserves stable feature IDs; deletion refuses to orphan downstream features unless cascade removal is explicitly requested; the output invariant is preserved. The operations return a newly validated document and do not mutate stored revisions. PR #152 exact head `3c2469a43e48d5ac2fb7e546242d9a450dff1a87`: workflow #42396387520 passed workflow-sanity and python-tests (**840 passed in 9.23s**). Exact post-merge workflow #42396453320 on `1a8338ae17eb783a374a36400999ead796f9a79d`: both jobs passed (**840 passed in 8.71s**). This is a backend editing primitive, not yet an interactive editor, suppression/undo system or API mutation workflow. See [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md) and [post-PR #152 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR152.md).
+
+
+## Revision-safe FeatureHistory edit API — PR #154
+
+The CAD Generator service now applies add/replace/remove operations to the caller's expected source revision and appends a new immutable revision using SQLite compare-and-swap. The loopback API exposes `POST /v1/histories/{history_id}/edit`; stale revisions return HTTP 409. The route remains loopback-only, bearer-authenticated and audit-logged, and executes no user code. Exact PR-head workflow #42397413655 passed both jobs with **843 tests in 9.34s**; exact post-merge workflow #42397474889 on `7046de5cff4a7a575de44de189bbb4fedcbdba58` passed both jobs with **843 tests in 7.14s**. The browser tree remains read-only; interactive editing controls and browser E2E remain open. See [CAD Generator HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #154 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md).
