@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `da5b34182396c485760aa1940ab2623d52d89cbc` (post-PR #144).  
+**Current integration HEAD:** `1813cb931876305391eeabe748741be189d5f27b` (post-PR #146).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #144 workflow #42383384086 on `da5b34182396c485760aa1940ab2623d52d89cbc` — workflow-sanity PASS; python-tests PASS. Test-count detail was not captured in this audit.  
-**Current tree:** 300 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files; recursive response truncated=false.  
-**Open PRs:** 0 at this audit; PRs #128–#144 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #146 workflow #42386519328 on exact merge SHA `1813cb931876305391eeabe748741be189d5f27b` — workflow-sanity PASS; python-tests PASS; **832 passed in 9.09s**.  
+**Current tree:** 339 entries, 109 Markdown, 163 Python, 24 JSON files, 84 Python test files; recursive response truncated=false.  
+**Open PRs:** 0 at this audit; PR #146 merged. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -984,3 +984,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Browser-side preview limits: 10,000 vertices and 5,000 triangles. Full artifact JSON remains available in the operation result. Invalid indices/non-finite coordinates prevent rendering; backend validation remains authoritative.
 - Exact PR-head run #42383293137: workflow-sanity PASS and python-tests PASS. Exact post-merge run #42383384086 on the merge SHA: both required jobs PASS. Test-count detail was not captured; do not infer a count from the job status.
 - Capability remains PARTIAL: no orbit/pan/zoom, selection, sectioning, B-rep editing, assembly viewport or general CAD kernel. Main remains 96e75010716226037893155b9fd4b13410fb0d6f and is unchanged. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator interactive mesh viewport — PR #146
+
+- PR #146 merged into `docs/phase-0-complete-requirements` at exact merge/integration SHA `1813cb931876305391eeabe748741be189d5f27b`; parent/base SHA `1fde8904f7e398ff21d6003d30180917eafc4ae3`.
+- Exact PR head `c7c15c9a007a705ef67f650d693f1794c0f104a3`; workflow #42385362330: workflow-sanity PASS and python-tests PASS.
+- Exact post-merge workflow #42386519328 on `1813cb931876305391eeabe748741be189d5f27b`: workflow-sanity PASS; python-tests PASS; **832 passed in 9.09s**.
+- Adds bounded client-side orbit, pan, zoom and reset controls over the returned triangle mesh. Zoom is clamped to 0.5×–4×; pitch and pan are bounded. Camera state is ephemeral and does not alter source history or backend artifacts.
+- Preview caps: 10,000 vertices and 5,000 triangles. Malformed/non-finite vertices and malformed triangle indices prevent preview rendering. Backend validation remains authoritative.
+- Capability status: PARTIAL — interactive triangle-mesh viewing exists; feature-tree editing, selection, measurement, sectioning, B-rep editing, assemblies and general CAD-kernel operations remain OPEN.
+- Repository inventory at this SHA: 339 tree entries, 109 Markdown, 163 Python, 24 JSON files and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local working tree and branch protection are UNKNOWN.
