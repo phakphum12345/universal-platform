@@ -208,3 +208,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Implementation and evidence | Remaining boundary |
 |---|---|---|---|
 | CAD-GENERATOR-VIEWPORT-001 | Bounded interactive viewing of generated mesh artifacts | IMPLEMENTED narrow slice by PR #146 at merge `1813cb931876305391eeabe748741be189d5f27b`. Exact PR-head SHA `c7c15c9a007a705ef67f650d693f1794c0f104a3`, workflow #42385362330: workflow-sanity and python-tests PASS. Exact post-merge workflow #42386519328 on merge SHA: both jobs PASS; 832 tests in 9.09s. Client-side orbit, pan, zoom and reset operate on the exact returned MESH artifact; camera state is ephemeral. | PARTIAL overall CAD viewport: preview caps at 10,000 vertices/5,000 triangles; malformed mesh data fails closed. No feature-tree editing, face/edge selection, measurement, sectioning, B-rep editing, assembly navigation or general CAD kernel. Backend validation remains authoritative. |
+
+
+## CAD Generator triangle inspection traceability — PR #148
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-GENERATOR-TRIANGLE-INSPECTION-001 | Select and inspect generated mesh facets | IMPLEMENTED narrow slice by PR #148 at merge `1fb9bc97c22bf0464e154f6963583edb9385d657`. Exact PR-head workflow #42391405409 on `43461346e32e1c5146c5beeab79340d7fbc387df`: both jobs PASS, 832 tests in 8.59s. Exact post-merge workflow #42391470608 on `1fb9bc97c22bf0464e154f6963583edb9385d657`: both jobs PASS, 832 tests in 7.59s. Accessible pointer/keyboard triangle selection, highlight/clear, area and centroid use mesh unit/frame. | PARTIAL overall CAD inspection: triangle facets only, no B-rep topology, edges/vertices, sketch dimensions, sectioning, face editing or assemblies. Browser E2E interaction tests not yet present. |

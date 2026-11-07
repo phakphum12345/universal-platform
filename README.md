@@ -4,16 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `1813cb931876305391eeabe748741be189d5f27b` (post-PR #146).
+- Integration HEAD: `1fb9bc97c22bf0464e154f6963583edb9385d657` (post-PR #148).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #146 workflow #42386519328 on exact merge SHA `1813cb931876305391eeabe748741be189d5f27b` — workflow-sanity PASS; python-tests PASS; **832 passed in 9.09s**.
-- Current inventory: 339 entries, 109 Markdown, 163 Python, 24 JSON files, 84 Python test files (recursive tree at post-PR #146; truncated=false).
+- Latest post-merge CI: PR #148 workflow #42391470608 on exact merge SHA `1fb9bc97c22bf0464e154f6963583edb9385d657` — workflow-sanity PASS; python-tests PASS; **832 passed in 7.59s**.
+- Current inventory: 340 entries, 110 Markdown, 163 Python, 24 JSON files, 84 Python test files (recursive tree at post-PR #148; truncated=false).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only). Branch-protection read: UNKNOWN (connected GitHub API returned 403).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: CAD feature-tree editing, selection, measurement, sectioning, general n-gon/multi-shell B-rep and arbitrary 3D Boolean; ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
+- Remaining scope: CAD feature-tree editing, B-rep face/edge selection, sectioning, general n-gon/multi-shell B-rep and arbitrary 3D Boolean; ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -238,3 +238,8 @@ The workbench now renders a bounded static isometric SVG from the exact MESH Fea
 ## Interactive mesh viewport — PR #146
 
 The local CAD workbench now supports bounded client-side orbit, pan, zoom and reset controls over the exact source-linked MESH FeatureArtifact. Camera state is ephemeral and does not mutate FeatureHistory or backend geometry. Rendering is limited to 10,000 vertices and 5,000 triangles; malformed vertices and triangle indices fail closed for preview rendering. Backend mesh validation remains authoritative. This is an interactive triangle-mesh viewer, not a general CAD viewport: selection, measurement, sectioning, B-rep editing and assembly navigation remain open. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #146 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR146.md).
+
+
+## Mesh triangle selection and measurement — PR #148
+
+The local CAD workbench now supports selecting an individual rendered triangle facet by pointer click or keyboard activation, highlighting it, clearing the selection and reporting its area and centroid. Measurements use the mesh's declared length unit and frame. The interaction is display-only and does not mutate the source history or generated artifact. This is triangle-facet inspection, not B-rep face selection or general CAD measurement. CI: exact PR-head run #42391405409 passed 832 tests; exact post-merge run #42391470608 passed 832 tests. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #148 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR148.md).
