@@ -227,3 +227,11 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — bounded read-only FeatureHistory tree preview and selected-node inspection.
 - [Post-PR #150 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md) — exact PR-head/post-merge CI, JavaScript syntax validation, tree inventory and security-audit limitations.
 - Editable DAG operations, feature suppression/reordering, parameter commit and recompute propagation remain OPEN.
+
+
+## Documentation-driven execution
+
+- [Master Execution](docs/execution/MASTER_EXECUTION.md) — audit, implementation, PR, verification and documentation synchronization loop.
+- [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) — evidence-based status across the repository work packages.
+- [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md) — immutable add/replace/remove operations and graph-safety rules.
+- [Pre-execution Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_EXECUTION.md) — verified branch, CI, inventory, known gaps and evidence limitations.
