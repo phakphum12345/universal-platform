@@ -74,8 +74,8 @@ def api(tmp_path):
         server.server_close()
 
 
-def send(base, path, *, method="GET", body=None, token=TOKEN):
-    headers = {}
+def send(base, path, *, method="GET", body=None, token=TOKEN, extra_headers=None):
+    headers = dict(extra_headers or {})
     if token is not None:
         headers["Authorization"] = f"Bearer {token}"
     data = None
@@ -90,6 +90,37 @@ def send(base, path, *, method="GET", body=None, token=TOKEN):
         return exc.code, json.loads(exc.read())
 
 
+def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
+    base, audit, _ = api
+    with urlopen(base + "/", timeout=3) as response:
+        html = response.read().decode("utf-8")
+        assert response.status == 200
+        assert response.headers["Content-Type"].startswith("text/html")
+        assert response.headers["X-Frame-Options"] == "DENY"
+        assert response.headers["Referrer-Policy"] == "no-referrer"
+        assert "default-src 'none'" in response.headers["Content-Security-Policy"]
+        assert "Access-Control-Allow-Origin" not in response.headers
+    assert "CAD Generator" in html
+    assert "/static/cad_generator.js" in html
+    assert "/static/cad_generator.css" in html
+
+    with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
+        script = response.read().decode("utf-8")
+        assert response.headers["Content-Type"].startswith("text/javascript")
+    assert "localStorage" not in script
+    assert "credentials: \"omit\"" in script
+
+    with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
+        stylesheet = response.read().decode("utf-8")
+        assert response.headers["Content-Type"].startswith("text/css")
+    assert ".panel" in stylesheet
+
+    status, health = send(base, "/health", extra_headers={"Origin": base})
+    assert status == 200
+    assert health["status"] == "READY"
+    assert audit.verify()
+
+
 def test_http_api_saves_reads_and_regenerates_exact_history_revision(api):
     base, audit, server = api
     status, health = send(base, "/health")
@@ -99,6 +130,7 @@ def test_http_api_saves_reads_and_regenerates_exact_history_revision(api):
     status, saved = send(
         base, "/v1/histories", method="POST",
         body={"history": make_history().to_dict(), "expected_revision": 0},
+        extra_headers={"Origin": base},
     )
     assert status == 201
     assert saved["history_id"] == "history.http-api"
