@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `30deb5290e4a84b8ce86848dcac21309d0b1ad95` (post-PR #128).  
+**Current integration HEAD:** `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523` (post-PR #132).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #128 workflow #42374839944 on `30deb5290e4a84b8ce86848dcac21309d0b1ad95` — workflow-sanity PASS; python-tests PASS; **801 passed in 3.32s**.  
-**Current tree:** 321 files, 106 Markdown, 152 Python, 22 JSON schemas, 77 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PR #128 is merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #132 workflow #42375907153 on `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523` — workflow-sanity PASS; python-tests PASS; **812 passed in 5.54s**.  
+**Current tree:** 325 files, 106 Markdown, 156 Python, 22 JSON schemas, 80 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#132 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -904,3 +904,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Approximation only: each circular arc is represented by line segments with a sagitta bound. Predicates validate the represented binary64 polygon, not exact analytic curved geometry. Arc-to-arc tangency, curved Boolean, curved B-rep, splines and manufacturing validation remain OPEN.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion was performed.
 - Remote GitHub inspection does not establish any developer workstation working-tree state.
+
+
+## Durable FeatureArtifact serialization and local cache — merged PRs #131/#132
+
+- PR #131 adds strict, version-checked `SketchRegionConversionResult.from_dict` and `FeatureArtifact.from_dict` reconstruction for SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH. Payload SHA-256 is verified; mesh validation is recomputed and compared rather than trusted from stored JSON. Exact-head and post-merge CI passed 807 tests.
+- PR #132 adds `SQLiteFeatureArtifactCache`, a standard-library-only local SQLite cache keyed by history ID, feature ID and exact computation signature. Canonical snapshots and record-envelope SHA-256 are checked on every load; conflicting content for an existing immutable key fails closed.
+- `regenerate_feature_history(..., artifact_cache=...)` can reuse persisted artifacts across process/store reopen. Feature evaluator algorithm versions are included in computation signatures to invalidate stale cache records after algorithm changes.
+- Cache writes are idempotent and append-only at the application/database-trigger layer; WAL, FULL synchronous mode and explicit filesystem paths are used.
+- Exact PR-head #132 and exact post-merge workflow #42375907153 passed both required jobs; **812 tests passed in 5.54s** on `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`.
+- Integrity SHA-256 is unkeyed: it detects accidental/partial corruption but is not a signature against an attacker who can rewrite the entire database. Distributed cache, eviction/retention, replication, encryption-at-rest and backup automation remain OPEN.
+- Source FeatureHistory revisions remain a separate SQLite store (PR #124); a combined reopen test that loads a durable source revision and reuses the artifact cache is the next acceptance increment.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.

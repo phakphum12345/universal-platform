@@ -417,3 +417,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head CI: 801 tests PASS on `5c2690760d77639c0db5795f0c8571c52944c6d9`; exact post-merge CI workflow #42374839944: 801 tests PASS on the merge SHA.
 - This is polygonal approximation, not exact curved geometry. Curved Boolean, curved B-rep, arc-to-arc tangent and splines remain OPEN.
 - Next dependency: extend feature-history durable artifact serialization/rehydration and validate the sketch → region → extrusion → mesh pipeline using the new curved-profile input. Keep kernel/curved Boolean selection separate and evidence-driven.
+
+
+## FeatureHistory durable artifact increment — PR #131/#132 MERGED
+
+- PR #131 added strict rehydration for all four allow-listed FeatureArtifact kinds: SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH. Mesh validation is recomputed during restore.
+- PR #132 added an optional local SQLite artifact cache, keyed by history ID, feature ID and algorithm-version-aware computation SHA-256. Cache entries are canonical, idempotent and immutable; cache corruption causes regeneration to fail closed.
+- Exact PR-head and post-merge CI for PR #132 passed both required jobs, 812 tests. Integration merge SHA: `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Source-document revision storage (PR #124) and computed-artifact cache (PR #132) are separate local SQLite stores. Next acceptance increment: reopen both stores in a fresh process, load a selected FeatureHistory revision, regenerate with the artifact cache, and verify all expected outputs/digests without recomputation.
+- Follow-on: CAD generator API/UI and revisioned authoring workflows; suppression and branch/merge editing; cache retention/compaction and backup strategy. Do not claim distributed persistence or signed/tamper-proof storage.

@@ -80,7 +80,7 @@ Documented means represented in specifications. Implemented means source exists.
 
 
 | CAD-SKETCH-REGION-001 | Convert converged closed sketch loops (straight segments and circular arcs) to canonical planar regions with holes and nested islands | [Parametric Sketch Constraint Contract](../design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md); `sketch_to_planar_regions` | IMPLEMENTED — straight loops PR #92; bounded circular-arc tessellation PR #128 merged at `30deb5290e4a84b8ce86848dcac21309d0b1ad95`; exact PR-head and post-merge CI PASS, 801 tests. Curves are polygonal approximations under explicit chord error; curved Boolean/B-rep remain OPEN. |
-| CAD-FEATURE-HISTORY-001 | Versioned feature DAG, deterministic regeneration and source-to-output provenance | [Feature History and Regeneration Contract](../design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md); `feature-history.schema.json`; `feature-history-revision.schema.json`; `feature_history_store.py` | PARTIAL — PR #93 baseline plus incremental in-memory regeneration and a local SQLite source-document revision store on branch `feat/cad-feature-history-durable-revisions-v1` (exact-head CI pending). SHA-256 revision chain and optimistic concurrency are implemented in source. Durable computed-artifact cache/rehydration, suppression and branch/merge editing remain OPEN. |
+| CAD-FEATURE-HISTORY-001 | Versioned feature DAG, deterministic regeneration and source-to-output provenance | [Feature History and Regeneration Contract](../design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md); `feature-history.schema.json`; `feature-history-revision.schema.json`; `feature_history_store.py`; `feature_artifact_store.py` | PARTIAL — PR #124 merged append-only SQLite source-document revisions with SHA-256 chain and optimistic concurrency; PR #131 merged strict artifact rehydration for all four feature kinds; PR #132 merged optional local SQLite artifact cache with algorithm-version-aware computation signatures and fail-closed integrity checks (post-merge 812 tests). Combined source-revision + artifact-cache reopen workflow, cache retention/backup, suppression and branch/merge editing remain OPEN. |
 
 
 | CAD-PLANAR-TOPOLOGY-TOUCH-001 | Deterministic planar Boolean output for point-touching components without figure-eight boundaries | [CAD Boolean Point-Contact Topology Contract](../design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md) | IMPLEMENTED — PR #95 merged at `2eea0bdc9226c8ec3b3d5458e3902ee01b8314f0`; exact-head and post-merge CI PASS, 639 tests. Ambiguous branching and invalid hole topology remain fail-closed. |
@@ -132,3 +132,14 @@ Latest integration SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; post-merge wo
 | CAD-CURVED-BOOLEAN-001 | Boolean operations over analytic curved boundaries | Future curved planar Boolean contract and kernel evaluation | OPEN — PR #128 creates polygonal approximations only; no exact curved Boolean or curved B-rep is claimed. |
 
 Latest integration SHA: `30deb5290e4a84b8ce86848dcac21309d0b1ad95`. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion performed. Post-merge workflow #42374839944 passed both required jobs with 801 tests.
+
+
+## Durable FeatureArtifact cache traceability — post-PR #132
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-FEATURE-ARTIFACT-REHYDRATE-001 | Reconstruct persisted feature artifacts only after schema, digest and geometry validation | PR #131; `FeatureArtifact.from_dict`; `SketchRegionConversionResult.from_dict` | IMPLEMENTED — all four allow-listed feature kinds have strict rehydration; mesh validation is recomputed and compared; tampering/unknown fields fail closed. |
+| CAD-FEATURE-ARTIFACT-CACHE-001 | Reuse deterministic feature outputs across process restarts | PR #132; `SQLiteFeatureArtifactCache`; `regenerate_feature_history(artifact_cache=...)` | IMPLEMENTED — local SQLite cache keyed by history/feature/computation digest; exact algorithm versions participate in computation signatures; reopen and cache-reuse tests pass. |
+| CAD-FEATURE-DURABLE-E2E-001 | Load a durable FeatureHistory revision and regenerate using a reopened artifact cache in a fresh process | PR #124 + PR #132; future integrated acceptance test | OPEN — the source revision store and artifact cache are separate verified components; combined reopen workflow has not yet been accepted. |
+
+Latest integration SHA: `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42375907153 passed both required jobs with 812 tests.
