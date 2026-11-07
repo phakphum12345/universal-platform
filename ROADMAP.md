@@ -473,4 +473,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Users review generated JSON, append an immutable revision, then explicitly regenerate. The regeneration pipeline remains responsible for self-intersection and watertight mesh validation.
 - Bounds: 3–64 vertices, X 0–26 mm, Y 0–15 mm; straight edges only.
 - Exact-head and post-merge CI passed both required jobs; 832 tests. Integration SHA: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`; main remains unchanged.
-- Next: source-linked 3D mesh preview in the local UI, showing vertices/faces and mesh validation/provenance without claiming a full CAD kernel.
+- Next: interactive mesh viewport controls (orbit, pan and zoom) with bounded input/rendering and browser-level regression tests. Keep the static preview available as a safe fallback; do not imply B-rep editing or a general CAD kernel.
+
+
+## CAD Generator source-linked mesh preview — PR #144 MERGED
+
+- Added a static isometric SVG preview sourced from the exact MESH FeatureArtifact returned by regeneration; no geometry is reconstructed from the sketch.
+- Shows source revision, mesh counts, artifact content/computation digests and canonical backend validation flags/issues.
+- Rendering is bounded to 10,000 vertices and 5,000 triangles; full artifact JSON remains available. Backend validation remains authoritative.
+- Exact PR-head run #42383293137 and post-merge run #42383384086 both passed workflow-sanity and python-tests. The post-merge run is tied to exact integration SHA da5b34182396c485760aa1940ab2623d52d89cbc; test-count detail was not captured.
+- Next increment: interactive orbit/pan/zoom controls with bounded rendering and browser regression coverage. General B-rep editing, sectioning, assemblies and arbitrary geometry remain later work.

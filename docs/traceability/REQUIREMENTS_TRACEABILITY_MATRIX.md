@@ -193,6 +193,16 @@ Latest integration SHA: `f3abe346a259f2f3f3ed767889dba32be6a284b9`; main remains
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
 | CAD-VISUAL-SKETCH-001 | Interactive visual 2D sketch authoring | PR #142; SVG canvas; polygon template builder; template API integration tests | PARTIAL — bounded straight-edge polygon editor with click/numeric input, undo/clear, fixed coordinate constraints and Sketch → Extrusion → Mesh FeatureHistory generation. Exact-head and post-merge CI PASS, 832 tests. |
-| CAD-VISUAL-VIEWPORT-001 | Source-linked 3D mesh viewport and validation display | Future SVG/WebGL renderer and browser acceptance tests | OPEN — mesh and validation are returned as structured JSON but no 3D viewport is rendered. |
+| CAD-VISUAL-VIEWPORT-001 | Source-linked 3D mesh viewport and validation display | PR #144; renderMeshPreview; exact MESH artifact vertices/triangles, source revision, content/computation digests and backend validation flags | PARTIAL — static isometric SVG preview is rendered from the exact returned MESH artifact, with bounded 10,000-vertex/5,000-triangle rendering and validation warnings. Orbit/pan/zoom, selection, sectioning, B-rep editing and assembly view remain OPEN. |
 
-Latest integration SHA: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42382710626 passed both required jobs with 832 tests.
+Latest integration SHA: `da5b34182396c485760aa1940ab2623d52d89cbc`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42383384086 passed both required jobs; test-count detail was not captured.
+
+
+## CAD mesh preview evidence — PR #144
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-MESH-PREVIEW-001 | Display generated mesh with source/artifact provenance and backend validation | PR #144; exact MESH FeatureArtifact; static SVG renderer; API/UI wiring assertions; exact-head run #42383293137; post-merge run #42383384086 | IMPLEMENTED — static isometric preview only, capped at 10,000 vertices and 5,000 triangles. It displays source revision, mesh counts, content/computation digests and backend validation flags/issues. It is not a certification or general CAD viewport. |
+| CAD-VIEWPORT-INTERACTION-001 | Interactive orbit/pan/zoom mesh viewport | Future bounded interaction and browser regression tests | OPEN — static projection only; no interactive camera controls. |
+
+Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 96e75010716226037893155b9fd4b13410fb0d6f. Post-merge workflow #42383384086 passed both required jobs.

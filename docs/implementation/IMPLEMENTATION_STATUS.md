@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` (post-PR #142).  
+**Current integration HEAD:** `da5b34182396c485760aa1940ab2623d52d89cbc` (post-PR #144).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #142 workflow #42382710626 on `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` — workflow-sanity PASS; python-tests PASS; **832 passed in 7.91s**.  
-**Current tree:** 338 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#142 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #144 workflow #42383384086 on `da5b34182396c485760aa1940ab2623d52d89cbc` — workflow-sanity PASS; python-tests PASS. Test-count detail was not captured in this audit.  
+**Current tree:** 300 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files; recursive response truncated=false.  
+**Open PRs:** 0 at this audit; PRs #128–#144 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -975,3 +975,12 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **832 passed in 9.43s** on `ce1dc61066bebace97f4da9acf9bb249bd0db86f`.
 - Exact post-merge CI: workflow #42382710626; both required jobs PASS; **832 passed in 7.91s** on `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`.
 - Next: 3D mesh preview with source revision/artifact provenance and explicit mesh validation status. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator mesh preview — PR #144
+
+- PR #144 merged into docs/phase-0-complete-requirements at exact merge/integration SHA da5b34182396c485760aa1940ab2623d52d89cbc.
+- The local workbench renders the exact MESH FeatureArtifact vertex and triangle arrays as a static isometric SVG. It displays source revision, vertex/triangle counts, content/computation SHA-256 and backend valid, watertight and consistently_oriented flags, including validation issues.
+- Browser-side preview limits: 10,000 vertices and 5,000 triangles. Full artifact JSON remains available in the operation result. Invalid indices/non-finite coordinates prevent rendering; backend validation remains authoritative.
+- Exact PR-head run #42383293137: workflow-sanity PASS and python-tests PASS. Exact post-merge run #42383384086 on the merge SHA: both required jobs PASS. Test-count detail was not captured; do not infer a count from the job status.
+- Capability remains PARTIAL: no orbit/pan/zoom, selection, sectioning, B-rep editing, assembly viewport or general CAD kernel. Main remains 96e75010716226037893155b9fd4b13410fb0d6f and is unchanged. Local workstation working-tree state remains UNKNOWN.

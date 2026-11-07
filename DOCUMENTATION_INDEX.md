@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Current integration snapshot: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; PR #118 post-merge workflow #42282428283 passed `workflow-sanity` and `python-tests` with 755 tests in 2.83s. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 265 ahead / 0 behind. Current tree: 279 files, 105 Markdown, 149 Python, 21 JSON schemas and 75 test files. PRs #116–#118 are integrated on `docs/phase-0-complete-requirements`; no open PRs at this audit. Local working-tree state is UNKNOWN because the audit used GitHub API only. See [Repository Audit post-PR #118](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR118.md).
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Current integration snapshot: da5b34182396c485760aa1940ab2623d52d89cbc; PR #144 post-merge workflow #42383384086 passed workflow-sanity and python-tests. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Current tree: 300 files, 108 Markdown, 163 Python, 22 JSON schemas and 84 Python test files. No open PRs at this audit. Local working-tree state is UNKNOWN because the audit used GitHub API only. See [Repository Audit post-PR #144](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR144.md).
 
 ## Repository-level product and governance
 
@@ -199,3 +199,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the bounded polygon template endpoint and same-origin visual sketch workflow.
 - [CAD Generator implementation](docs/implementation/IMPLEMENTATION_STATUS.md) — exact PR-head/post-merge CI evidence and remaining visual CAD scope.
 - The editor creates straight-edge polygon FeatureHistory snapshots; arcs, holes, general constraints and 3D viewport remain OPEN.
+
+
+## Source-linked mesh preview — PR #144
+
+- [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — static isometric SVG preview, exact artifact provenance and backend validation display.
+- [Post-PR #144 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR144.md) — exact integration/main SHAs, PR #144 CI and current capability boundary.
+- Interactive orbit/pan/zoom, selection, sectioning and general CAD viewport remain OPEN.
