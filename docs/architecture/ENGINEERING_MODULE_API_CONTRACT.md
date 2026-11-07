@@ -116,3 +116,10 @@ This is a local development interface, not a remote service or production authen
 The local HTTP server serves packaged same-origin HTML/CSS/JS for a FeatureHistory JSON/revision workbench. The page supports bearer-token connection, source JSON editing/paste, immutable revision append, revision list/load and exact-revision regeneration. Static files are restricted to the validated loopback origin and protected by a restrictive CSP; API requests still require the bearer token. The token is not persisted by the UI.
 
 This interface is not a graphical sketch editor, CAD viewport or visual modelling tool. Interactive geometry authoring remains a separate requirement. See the local UI section in the [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
+
+
+## Bounded visual polygon sketch workflow (PR #142)
+
+The local FeatureHistory workbench now offers a bounded SVG canvas for straight-edge polygons. The authenticated polygon template endpoint builds a fixed-coordinate ParametricSketch v1.2 and a Sketch → Extrusion → Mesh history. The user reviews the returned JSON, saves an immutable source revision and explicitly requests regeneration. Geometry and watertight mesh validation are returned as artifacts and evidence; the drawing canvas alone does not certify the shape.
+
+The editor is deliberately limited to 3–64 vertices within X 0–26 mm and Y 0–15 mm. It does not implement arcs, holes, dimensional/automatic constraints, drag solving or a 3D viewport. See [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
