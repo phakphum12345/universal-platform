@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Universal Platform · CAD Generator</title>
+  <link rel="stylesheet" href="/static/cad_generator.css">
+  <script src="/static/cad_generator.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">UNIVERSAL PLATFORM / ENGINEERING</div>
+      <h1>CAD Generator</h1>
+      <p class="lede">Local FeatureHistory authoring, revision storage and geometry regeneration.</p>
+      <p class="local-only"><span aria-hidden="true">●</span> Local-only interface · API bound to 127.0.0.1</p>
+    </header>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">01 / CONNECTION</div><h2 id="connection-heading">Connect to local API</h2></div>
+        <span id="connection-state" class="state" role="status">Not connected</span>
+      </div>
+      <label for="token">Local bearer token</label>
+      <div class="inline">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the token supplied by the local service">
+        <button id="connect" class="primary">Connect</button>
+      </div>
+      <p class="hint">The token stays in this page's memory only. It is not written to local storage, cookies or the URL. Refreshing the page clears it.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="history-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">02 / SOURCE DOCUMENT</div><h2 id="history-heading">FeatureHistory</h2></div>
+        <span id="revision-state" class="state">No revision loaded</span>
+      </div>
+      <div class="two-column">
+        <div>
+          <label for="history-id">History ID</label>
+          <input id="history-id" value="history.example" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="expected-revision">Expected current revision</label>
+          <input id="expected-revision" type="number" min="0" step="1" value="0">
+        </div>
+      </div>
+      <label for="snapshot">FeatureHistory JSON snapshot</label>
+      <textarea id="snapshot" rows="16" spellcheck="false" autocomplete="off" placeholder='Paste a complete FeatureHistory.to_dict() JSON snapshot here. Required fields: schema_version, history_id, nodes, output_feature_ids.'></textarea>
+      <div class="actions">
+        <button id="save" class="primary" disabled>Save new revision</button>
+        <button id="list" disabled>Refresh revisions</button>
+      </div>
+      <p class="hint">Saving appends an immutable revision. Use the current head revision as the expected revision; stale writes are rejected instead of overwriting existing history.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="revision-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">03 / REVISION & REGENERATION</div><h2 id="revision-heading">Inspect and regenerate</h2></div>
+      </div>
+      <div class="inline revision-controls">
+        <div class="grow">
+          <label for="revision">Source revision</label>
+          <select id="revision" disabled><option value="">No revisions</option></select>
+        </div>
+        <button id="load" disabled>Load revision</button>
+        <button id="regenerate" class="primary" disabled>Regenerate</button>
+      </div>
+      <p class="hint">Regeneration always targets the selected immutable source revision and returns its provenance, artifact digests and validation results.</p>
+    </section>
+
+    <section class="panel result-panel" aria-labelledby="result-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">04 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
+        <button id="clear-result" class="quiet">Clear</button>
+      </div>
+      <div id="status-message" class="status-message" role="status" aria-live="polite">Enter your local bearer token and connect to begin.</div>
+      <pre id="result" class="result" aria-label="API response">No operation has been run.</pre>
+    </section>
+
+    <footer>
+      <span>Universal Platform · CAD Generator API v1.0</span>
+      <span>Loopback only · No remote access · No physical device control</span>
+    </footer>
+  </main>
+</body>
+</html>
