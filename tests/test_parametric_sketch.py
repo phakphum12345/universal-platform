@@ -109,7 +109,8 @@ def test_sketch_schema_is_strict_and_matches_serialized_top_level_contract():
     schema = json.loads((Path(__file__).parents[1] / "schemas" / "geometry" /
                          "parametric-sketch.schema.json").read_text(encoding="utf-8"))
     snapshot = rectangle_sketch().to_dict()
-    assert set(snapshot) == set(schema["required"])
+    assert set(snapshot) == set(schema["required"]) | {"arcs"}
+    assert schema["properties"]["arcs"]["type"] == "array"
     assert schema["additionalProperties"] is False
     assert schema["properties"]["schema_version"]["enum"] == ["1.0", "1.1", "1.2"]
     assert "arc" in schema["$defs"]
