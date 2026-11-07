@@ -169,7 +169,7 @@ def test_cad_generator_service_edit_requires_current_revision_and_valid_operatio
     with pytest.raises(InvalidModelError, match="does not accept"):
         service.edit_history(
             saved.history_id,
-            expected_revision=1,
+            expected_revision=2,
             operation="add",
             feature=feature,
             cascade=True,
