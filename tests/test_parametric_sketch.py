@@ -380,7 +380,7 @@ def test_arc_and_tangent_models_reject_invalid_references_and_degenerate_geometr
         )
 
 
-def test_sketch_region_conversion_fails_closed_for_circular_arcs():
+def test_sketch_region_conversion_rejects_open_circular_arc_topology():
     from universal_platform.engineering.sketch_region import sketch_to_planar_regions
 
     sketch = ParametricSketch(
@@ -393,7 +393,7 @@ def test_sketch_region_conversion_fails_closed_for_circular_arcs():
     )
     solved = solve_parametric_sketch(sketch)
 
-    with pytest.raises(InvalidModelError, match="does not yet support circular arcs"):
+    with pytest.raises(InvalidModelError, match="requires degree 2"):
         sketch_to_planar_regions(sketch, solved)
 
 
