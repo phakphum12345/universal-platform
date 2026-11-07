@@ -12,6 +12,7 @@ from universal_platform.engineering.parametric_sketch import (
     SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
+    SketchArc,
     solve_parametric_sketch,
 )
 
@@ -108,9 +109,12 @@ def test_sketch_schema_is_strict_and_matches_serialized_top_level_contract():
     schema = json.loads((Path(__file__).parents[1] / "schemas" / "geometry" /
                          "parametric-sketch.schema.json").read_text(encoding="utf-8"))
     snapshot = rectangle_sketch().to_dict()
-    assert set(snapshot) == set(schema["required"])
+    assert set(snapshot) == set(schema["required"]) | {"arcs"}
+    assert schema["properties"]["arcs"]["type"] == "array"
     assert schema["additionalProperties"] is False
-    assert schema["properties"]["schema_version"]["enum"] == ["1.0", "1.1"]
+    assert schema["properties"]["schema_version"]["enum"] == ["1.0", "1.1", "1.2"]
+    assert "arc" in schema["$defs"]
+    assert {"ANGLE", "TANGENT", "RADIUS"}.issubset(set(schema["$defs"]["constraint"]["properties"]["kind"]["enum"]))
 
 
 def test_sketch_rejects_duplicate_ids_and_dangling_segment_or_constraint_references():
@@ -218,7 +222,7 @@ def test_angle_constraint_solves_signed_directed_angle_between_named_segments(ta
 
     assert result.converged
     assert points["d"].y == pytest.approx(expected_y, abs=1e-7)
-    assert sketch.to_dict()["schema_version"] == "1.1"
+    assert sketch.to_dict()["schema_version"] == "1.2"
     angle_snapshot = next(item for item in sketch.to_dict()["constraints"]
                           if item["constraint_id"] == "directed-angle")
     assert angle_snapshot["segment_ids"] == ["base", "arm"]
@@ -256,12 +260,174 @@ def test_angle_constraint_rejects_degenerate_segments_and_out_of_range_angles():
         solve_parametric_sketch(sketch)
 
 
-def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_1_extension():
+def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_2_extension():
     original = rectangle_sketch()
     legacy = original.to_dict()
     legacy["schema_version"] = "1.0"
+    legacy.pop("arcs")
 
     restored = ParametricSketch.from_dict(legacy)
 
     assert restored == original
-    assert restored.to_dict()["schema_version"] == "1.1"
+    assert restored.to_dict()["schema_version"] == "1.2"
+
+
+def test_arc_radius_constraint_solves_both_arc_endpoints_to_the_same_radius():
+    sketch = ParametricSketch(
+        "arc.radius", "part.xy", "mm",
+        (
+            SketchPoint("center", 0.0, 0.0),
+            SketchPoint("start", 2.1, 0.0),
+            SketchPoint("end", 0.3, 1.8),
+        ),
+        constraints=(
+            SketchConstraint("center-x", Kind.FIX_X, ("center",), 0.0),
+            SketchConstraint("center-y", Kind.FIX_Y, ("center",), 0.0),
+            SketchConstraint("start-y", Kind.FIX_Y, ("start",), 0.0),
+            SketchConstraint("end-x", Kind.FIX_X, ("end",), 0.0),
+            SketchConstraint("arc-radius", Kind.RADIUS, (), 2.0, arc_ids=("outer-arc",)),
+        ),
+        arcs=(SketchArc("outer-arc", "center", "start", "end"),),
+    )
+
+    result = solve_parametric_sketch(sketch)
+    points = {point.point_id: point for point in result.points}
+
+    assert result.converged
+    assert points["start"].x == pytest.approx(2.0, abs=1e-7)
+    assert points["end"].y == pytest.approx(2.0, abs=1e-7)
+    assert sketch.to_dict()["schema_version"] == "1.2"
+    assert ParametricSketch.from_dict(sketch.to_dict()) == sketch
+
+
+def test_tangent_constraint_solves_line_to_be_tangent_at_shared_arc_endpoint():
+    sketch = ParametricSketch(
+        "arc.tangent", "part.xy", "mm",
+        (
+            SketchPoint("center", 0.0, 0.0),
+            SketchPoint("contact", 1.8, 0.2),
+            SketchPoint("arc-end", 0.3, 1.8),
+            SketchPoint("line-end", 3.0, 1.0),
+        ),
+        (SketchSegment("tangent-line", "contact", "line-end"),),
+        (
+            SketchConstraint("center-x", Kind.FIX_X, ("center",), 0.0),
+            SketchConstraint("center-y", Kind.FIX_Y, ("center",), 0.0),
+            SketchConstraint("contact-y", Kind.FIX_Y, ("contact",), 0.0),
+            SketchConstraint("arc-end-x", Kind.FIX_X, ("arc-end",), 0.0),
+            SketchConstraint("line-end-y", Kind.FIX_Y, ("line-end",), 1.0),
+            SketchConstraint("radius", Kind.RADIUS, (), 2.0, arc_ids=("arc",)),
+            SketchConstraint("tangent", Kind.TANGENT, ("contact",),
+                             segment_ids=("tangent-line",), arc_ids=("arc",)),
+        ),
+        arcs=(SketchArc("arc", "center", "contact", "arc-end"),),
+    )
+
+    result = solve_parametric_sketch(sketch)
+    points = {point.point_id: point for point in result.points}
+
+    assert result.converged
+    assert points["contact"].x == pytest.approx(2.0, abs=1e-7)
+    assert points["arc-end"].y == pytest.approx(2.0, abs=1e-7)
+    assert points["line-end"].x == pytest.approx(2.0, abs=1e-7)
+
+
+def test_arc_and_tangent_models_reject_invalid_references_and_degenerate_geometry():
+    with pytest.raises(InvalidModelError, match="radius must be finite and positive"):
+        SketchConstraint("zero-radius", Kind.RADIUS, (), 0.0, arc_ids=("arc",))
+    with pytest.raises(InvalidModelError, match="references must be distinct"):
+        SketchArc("bad", "center", "center", "end")
+    with pytest.raises(InvalidModelError, match="clockwise must be boolean"):
+        SketchArc("bad", "center", "start", "end", clockwise=1)
+    with pytest.raises(InvalidModelError, match="non-zero angular sweep"):
+        ParametricSketch(
+            "zero-sweep", "plane", "mm",
+            (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0),
+             SketchPoint("end", 2, 0)),
+            constraints=(SketchConstraint("radius", Kind.RADIUS, (), 1.0,
+                                          arc_ids=("arc",)),),
+            arcs=(SketchArc("arc", "center", "start", "end"),),
+        )
+
+    with pytest.raises(InvalidModelError, match="unknown point"):
+        ParametricSketch(
+            "bad.arc", "plane", "mm",
+            (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0)),
+            arcs=(SketchArc("arc", "center", "start", "missing"),),
+        )
+
+    with pytest.raises(InvalidModelError, match="exactly one RADIUS"):
+        ParametricSketch(
+            "missing.radius", "plane", "mm",
+            (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0),
+             SketchPoint("end", 0, 1)),
+            arcs=(SketchArc("arc", "center", "start", "end"),),
+        )
+
+    with pytest.raises(InvalidModelError, match="shared by the segment and arc"):
+        ParametricSketch(
+            "bad.tangent", "plane", "mm",
+            (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0),
+             SketchPoint("end", 0, 1), SketchPoint("line-a", 2, 0),
+             SketchPoint("line-b", 2, 1)),
+            (SketchSegment("line", "line-a", "line-b"),),
+            (
+                SketchConstraint("radius", Kind.RADIUS, (), 1.0, arc_ids=("arc",)),
+                SketchConstraint("tangent", Kind.TANGENT, ("line-a",),
+                                 segment_ids=("line",), arc_ids=("arc",)),
+            ),
+            (SketchArc("arc", "center", "start", "end"),),
+        )
+
+
+def test_sketch_region_conversion_fails_closed_for_circular_arcs():
+    from universal_platform.engineering.sketch_region import sketch_to_planar_regions
+
+    sketch = ParametricSketch(
+        "arc.no-region", "plane", "mm",
+        (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0),
+         SketchPoint("end", 0, 1)),
+        constraints=(SketchConstraint("radius", Kind.RADIUS, (), 1.0,
+                                      arc_ids=("arc",)),),
+        arcs=(SketchArc("arc", "center", "start", "end"),),
+    )
+    solved = solve_parametric_sketch(sketch)
+
+    with pytest.raises(InvalidModelError, match="does not yet support circular arcs"):
+        sketch_to_planar_regions(sketch, solved)
+
+
+def test_v1_1_angle_snapshot_remains_readable_under_v1_2_model():
+    angle = SketchConstraint("angle", Kind.ANGLE, (), pi / 2,
+                             segment_ids=("base", "arm"))
+    legacy = {
+        "schema_version": "1.1",
+        "sketch_id": "legacy.angle",
+        "frame_id": "plane",
+        "length_unit": "mm",
+        "points": [
+            {"point_id": "a", "x": 0.0, "y": 0.0},
+            {"point_id": "b", "x": 1.0, "y": 0.0},
+            {"point_id": "c", "x": 0.0, "y": 1.0},
+            {"point_id": "d", "x": 1.0, "y": 1.0},
+        ],
+        "segments": [
+            {"segment_id": "base", "start_point_id": "a", "end_point_id": "b"},
+            {"segment_id": "arm", "start_point_id": "c", "end_point_id": "d"},
+        ],
+        "constraints": [{
+            "constraint_id": "angle", "kind": "ANGLE", "point_ids": [],
+            "value": pi / 2, "tolerance": 1e-8, "segment_ids": ["base", "arm"]
+        }],
+    }
+
+    restored = ParametricSketch.from_dict(legacy)
+
+    assert restored.constraints == (angle,)
+    assert restored.to_dict()["schema_version"] == "1.2"
+
+
+def test_sketch_arc_is_exported_from_engineering_public_api():
+    from universal_platform.engineering import SketchArc as PublicSketchArc
+
+    assert PublicSketchArc is SketchArc

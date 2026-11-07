@@ -386,3 +386,15 @@ Integration baseline: `a17a6359b4689fedbbcfbec769704a0322e027da` (PR #124 merged
 - Angle constraints are bounded to non-degenerate straight segments and the existing local nonlinear solver. They do not imply tangent/radius or curved geometry support.
 - Tangent and radius/diameter remain OPEN until a versioned circular-arc model and independent geometry references exist.
 - Exact-head CI and post-merge CI are mandatory; this branch remains unverified until its exact SHA completes both jobs.
+
+
+## CAD parametric sketch continuation — post-PR #125
+
+Integration baseline: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` (PR #125 merged; post-merge CI PASS, 785 tests). `main` remains unchanged.
+
+- Current branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1` (PR #125 angle work is merged).
+- Adds `SketchArc` with explicit center/start/end point IDs and clockwise direction.
+- `RADIUS` adds start/end radial equations; each arc must have exactly one positive radius constraint.
+- `TANGENT` binds a straight segment to a circular arc at a shared endpoint and solves a normalized orthogonality residual.
+- Straight-line sketch-to-region conversion now fails closed when arcs are present; it must not silently drop curved geometry.
+- Exact-head CI is pending. Curved-loop topology, curved planar Boolean, mesh tessellation and curved B-rep are separate future increments.

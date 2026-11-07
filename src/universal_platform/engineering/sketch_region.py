@@ -97,6 +97,8 @@ def sketch_to_planar_regions(
         sketch.sketch_id, sketch.frame_id, sketch.length_unit
     ):
         raise InvalidModelError("solved sketch identity, frame and unit must match source sketch")
+    if sketch.arcs:
+        raise InvalidModelError("sketch-to-region conversion does not yet support circular arcs")
     if not solved.converged:
         raise InvalidModelError("cannot convert a sketch whose constraints did not converge")
     point_ids = {point.point_id for point in sketch.points}

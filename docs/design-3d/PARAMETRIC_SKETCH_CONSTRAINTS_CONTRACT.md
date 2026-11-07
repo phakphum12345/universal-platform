@@ -1,4 +1,4 @@
-# Parametric Sketch Constraint Contract v1.1
+# Parametric Sketch Constraint Contract v1.2
 
 **Status:** Bounded implementation — PR #90 baseline; relational constraints added in this feature PR.  
 **Merge SHA:** `e2d631b49910e3d7f05fea6337742fd87385fb81`.  
@@ -57,7 +57,7 @@ Every scalar residual has its own positive tolerance. Distance is non-negative; 
 
 ## 6. Explicit limitations / future increments
 
-Not yet supported: arcs, splines, construction geometry, tangent, radius/diameter, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
+Not yet supported: splines, construction geometry, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
 
 The first slice does not yet create a closed PlanarRegion automatically. A later, separately tested adapter must validate closed boundary topology, winding, self-intersection, holes and frame/unit before creating a region.
 
@@ -73,7 +73,7 @@ The first slice does not yet create a closed PlanarRegion automatically. A later
 
 ## 8. Relational constraint increment
 
-The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. Angle, tangent, radius/diameter, shared-endpoint segment references and richer segment-ID constraint binding remain out of scope; no symbolic or globally unique solution is claimed.
+The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. At that increment, ANGLE and circular-arc constraints were not yet implemented; ANGLE is now specified in section 9 and circular-arc TANGENT/RADIUS in section 10. No symbolic or globally unique solution is claimed.
 
 
 ## 9. Schema v1.1 — directed angle between segments
@@ -88,6 +88,33 @@ The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_L
   vectors must be non-degenerate before solving and remain non-degenerate after
   convergence. This is a local nonlinear equality, not a symbolic or global
   angular solver.
-- The implementation remains straight-segment-only. Arc geometry is not
-  introduced by this increment, so tangent and radius/diameter constraints
-  remain unsupported and must wait for an explicit circular-arc model.
+- This v1.1 increment is straight-segment-only. Circular arc geometry and
+  its tangent/radius constraints are introduced separately in schema v1.2
+  below; no curved region conversion is implied.
+
+
+## 10. Schema v1.2 — circular arcs, radius and tangent
+
+- `SketchArc` references one center point, a start point and an end point,
+  plus an explicit `clockwise` direction flag. The three point IDs must be
+  distinct, all references must resolve, both radial vectors and the endpoint
+  chord must be non-degenerate, and start/end may not define a zero angular sweep.
+- Each arc must have exactly one `RADIUS` constraint. The positive radius
+  target is expressed in the sketch's `length_unit` and creates two scalar
+  residuals: center-to-start and center-to-end distance minus the requested
+  radius. This keeps both endpoints on the same circle during solving.
+- `TANGENT` references one existing straight segment, one circular arc and
+  their shared endpoint. It contributes the normalized dot product between
+  the line direction and the center-to-contact radial vector; the residual
+  must be zero. Contact must be a segment endpoint and an arc endpoint.
+- Arc IDs, segment IDs and point IDs are explicit references. Unknown,
+  duplicate, malformed and degenerate references fail closed.
+- Schema v1.0 and v1.1 snapshots remain readable. v1.0 cannot contain segment
+  references or new constraints; v1.1 supports ANGLE only; v1.2 carries the
+  arc collection and arc-aware constraints.
+- The solver remains the existing bounded local nonlinear equality solver.
+  It does not infer arcs, prove global uniqueness, or certify manufacturing
+  geometry.
+- `sketch_to_planar_regions` explicitly rejects sketches containing arcs.
+  Curved-loop topology, arc tessellation, Boolean operations over curved
+  profiles and CAD-kernel B-rep conversion remain OPEN.

@@ -35,6 +35,8 @@ class SketchConstraintKind(str, Enum):
     PERPENDICULAR = "PERPENDICULAR"
     EQUAL_LENGTH = "EQUAL_LENGTH"
     ANGLE = "ANGLE"
+    TANGENT = "TANGENT"
+    RADIUS = "RADIUS"
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +68,25 @@ class SketchSegment:
 
 
 @dataclass(frozen=True, slots=True)
+class SketchArc:
+    arc_id: str
+    center_point_id: str
+    start_point_id: str
+    end_point_id: str
+    clockwise: bool = False
+
+    def __post_init__(self) -> None:
+        if any(not isinstance(value, str) or not value.strip()
+               for value in (self.arc_id, self.center_point_id,
+                             self.start_point_id, self.end_point_id)):
+            raise InvalidModelError("sketch arc identifiers must be non-empty")
+        if len({self.center_point_id, self.start_point_id, self.end_point_id}) != 3:
+            raise InvalidModelError("sketch arc center, start and end point references must be distinct")
+        if not isinstance(self.clockwise, bool):
+            raise InvalidModelError("sketch arc clockwise must be boolean")
+
+
+@dataclass(frozen=True, slots=True)
 class SketchConstraint:
     constraint_id: str
     kind: SketchConstraintKind
@@ -73,6 +94,7 @@ class SketchConstraint:
     value: float | None = None
     tolerance: float = 1e-8
     segment_ids: tuple[str, ...] = ()
+    arc_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.constraint_id, str) or not self.constraint_id.strip():
@@ -83,8 +105,10 @@ class SketchConstraint:
             not isinstance(item, str) or not item.strip() for item in self.point_ids
         ):
             raise InvalidModelError("sketch point_ids must be an immutable tuple of identifiers")
-        if self.kind is SketchConstraintKind.ANGLE:
+        if self.kind in (SketchConstraintKind.ANGLE, SketchConstraintKind.RADIUS):
             expected = 0
+        elif self.kind is SketchConstraintKind.TANGENT:
+            expected = 1
         elif self.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
             expected = 4
         else:
@@ -95,9 +119,18 @@ class SketchConstraint:
             not isinstance(item, str) or not item.strip() for item in self.segment_ids
         ):
             raise InvalidModelError("sketch segment_ids must be an immutable tuple of identifiers")
-        expected_segments = 2 if self.kind is SketchConstraintKind.ANGLE else 0
+        expected_segments = 2 if self.kind is SketchConstraintKind.ANGLE else (
+            1 if self.kind is SketchConstraintKind.TANGENT else 0
+        )
         if len(self.segment_ids) != expected_segments or len(set(self.segment_ids)) != len(self.segment_ids):
             raise InvalidModelError(f"{self.kind.value} requires {expected_segments} distinct segment identifier(s)")
+        if not isinstance(self.arc_ids, tuple) or any(
+            not isinstance(item, str) or not item.strip() for item in self.arc_ids
+        ):
+            raise InvalidModelError("sketch arc_ids must be an immutable tuple of identifiers")
+        expected_arcs = 1 if self.kind in (SketchConstraintKind.TANGENT, SketchConstraintKind.RADIUS) else 0
+        if len(self.arc_ids) != expected_arcs or len(set(self.arc_ids)) != len(self.arc_ids):
+            raise InvalidModelError(f"{self.kind.value} requires {expected_arcs} distinct arc identifier(s)")
         if len(set(self.point_ids)) != len(self.point_ids):
             raise InvalidModelError("a sketch constraint cannot repeat a point")
         needs_value = self.kind in (
@@ -107,9 +140,10 @@ class SketchConstraint:
             SketchConstraintKind.FIX_X,
             SketchConstraintKind.FIX_Y,
             SketchConstraintKind.ANGLE,
+            SketchConstraintKind.RADIUS,
         )
         if needs_value != (self.value is not None):
-            raise InvalidModelError("constraint value is required only for dimensional/fixed/angle constraints")
+            raise InvalidModelError("constraint value is required only for dimensional/fixed/angle/radius constraints")
         if self.value is not None and (
             isinstance(self.value, bool) or not isinstance(self.value, (int, float))
             or not isfinite(float(self.value))
@@ -119,6 +153,8 @@ class SketchConstraint:
             raise InvalidModelError("distance must be non-negative")
         if self.kind is SketchConstraintKind.ANGLE and self.value is not None and not -3.141592653589793 <= self.value <= 3.141592653589793:
             raise InvalidModelError("angle must be expressed in radians within [-pi, pi]")
+        if self.kind is SketchConstraintKind.RADIUS and self.value is not None and self.value <= 0:
+            raise InvalidModelError("radius must be finite and positive")
         if isinstance(self.tolerance, bool) or not isinstance(self.tolerance, (int, float)) or (
             not isfinite(float(self.tolerance)) or self.tolerance <= 0
         ):
@@ -133,9 +169,10 @@ class ParametricSketch:
     points: tuple[SketchPoint, ...]
     segments: tuple[SketchSegment, ...] = ()
     constraints: tuple[SketchConstraint, ...] = ()
+    arcs: tuple[SketchArc, ...] = ()
 
-    SCHEMA_VERSION: ClassVar[str] = "1.1"
-    SUPPORTED_SCHEMA_VERSIONS: ClassVar[tuple[str, ...]] = ("1.0", "1.1")
+    SCHEMA_VERSION: ClassVar[str] = "1.2"
+    SUPPORTED_SCHEMA_VERSIONS: ClassVar[tuple[str, ...]] = ("1.0", "1.1", "1.2")
 
     def __post_init__(self) -> None:
         if any(not isinstance(value, str) or not value.strip()
@@ -160,25 +197,65 @@ class ParametricSketch:
             not isinstance(item, SketchConstraint) for item in self.constraints
         ):
             raise InvalidModelError("constraints must be an immutable tuple of SketchConstraint")
+        if not isinstance(self.arcs, tuple) or any(
+            not isinstance(item, SketchArc) for item in self.arcs
+        ):
+            raise InvalidModelError("arcs must be an immutable tuple of SketchArc")
         point_ids = [item.point_id for item in self.points]
         segment_ids = [item.segment_id for item in self.segments]
         constraint_ids = [item.constraint_id for item in self.constraints]
+        arc_ids = [item.arc_id for item in self.arcs]
         if len(point_ids) != len(set(point_ids)):
             raise InvalidModelError("sketch point identifiers must be unique")
         if len(segment_ids) != len(set(segment_ids)):
             raise InvalidModelError("sketch segment identifiers must be unique")
         if len(constraint_ids) != len(set(constraint_ids)):
             raise InvalidModelError("sketch constraint identifiers must be unique")
+        if len(arc_ids) != len(set(arc_ids)):
+            raise InvalidModelError("sketch arc identifiers must be unique")
         known = set(point_ids)
         for segment in self.segments:
             if segment.start_point_id not in known or segment.end_point_id not in known:
                 raise InvalidModelError("sketch segment references an unknown point")
-        known_segments = set(segment_ids)
+        for arc in self.arcs:
+            if any(point_id not in known for point_id in (
+                arc.center_point_id, arc.start_point_id, arc.end_point_id
+            )):
+                raise InvalidModelError("sketch arc references an unknown point")
+            center = next(point for point in self.points if point.point_id == arc.center_point_id)
+            start = next(point for point in self.points if point.point_id == arc.start_point_id)
+            end = next(point for point in self.points if point.point_id == arc.end_point_id)
+            sx, sy = start.x - center.x, start.y - center.y
+            ex, ey = end.x - center.x, end.y - center.y
+            start_radius, end_radius = hypot(sx, sy), hypot(ex, ey)
+            if min(start_radius, end_radius, hypot(end.x - start.x, end.y - start.y)) <= 1e-12:
+                raise InvalidModelError("sketch arc requires distinct, non-degenerate radial endpoints")
+            cross, dot = sx * ey - sy * ex, sx * ex + sy * ey
+            if abs(cross) <= 1e-12 * start_radius * end_radius and dot > 0:
+                raise InvalidModelError("sketch arc start and end must define a non-zero angular sweep")
+        known_segments, known_arcs = set(segment_ids), set(arc_ids)
         for constraint in self.constraints:
             if any(point_id not in known for point_id in constraint.point_ids):
                 raise InvalidModelError("sketch constraint references an unknown point")
             if any(segment_id not in known_segments for segment_id in constraint.segment_ids):
                 raise InvalidModelError("sketch constraint references an unknown segment")
+            if any(arc_id not in known_arcs for arc_id in constraint.arc_ids):
+                raise InvalidModelError("sketch constraint references an unknown arc")
+            if constraint.kind is SketchConstraintKind.TANGENT:
+                segment = next(item for item in self.segments if item.segment_id == constraint.segment_ids[0])
+                arc = next(item for item in self.arcs if item.arc_id == constraint.arc_ids[0])
+                contact = constraint.point_ids[0]
+                if contact not in (segment.start_point_id, segment.end_point_id) or contact not in (
+                    arc.start_point_id, arc.end_point_id
+                ):
+                    raise InvalidModelError("tangent contact point must be shared by the segment and arc endpoints")
+        for arc in self.arcs:
+            radius_count = sum(
+                constraint.kind is SketchConstraintKind.RADIUS and constraint.arc_ids == (arc.arc_id,)
+                for constraint in self.constraints
+            )
+            if radius_count != 1:
+                raise InvalidModelError("each sketch arc requires exactly one RADIUS constraint")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -194,8 +271,15 @@ class ParametricSketch:
             "constraints": [
                 ({"constraint_id": c.constraint_id, "kind": c.kind.value,
                   "point_ids": list(c.point_ids), "value": c.value, "tolerance": float(c.tolerance),
-                  **({"segment_ids": list(c.segment_ids)} if c.segment_ids else {})})
+                  **({"segment_ids": list(c.segment_ids)} if c.segment_ids else {}),
+                  **({"arc_ids": list(c.arc_ids)} if c.arc_ids else {})})
                 for c in self.constraints
+            ],
+            "arcs": [
+                {"arc_id": arc.arc_id, "center_point_id": arc.center_point_id,
+                 "start_point_id": arc.start_point_id, "end_point_id": arc.end_point_id,
+                 "clockwise": arc.clockwise}
+                for arc in self.arcs
             ],
         }
 
@@ -203,13 +287,17 @@ class ParametricSketch:
     def from_dict(cls, value: Mapping[str, object]) -> "ParametricSketch":
         required = {"schema_version", "sketch_id", "frame_id", "length_unit",
                     "points", "segments", "constraints"}
-        if not isinstance(value, Mapping) or set(value) != required:
+        if not isinstance(value, Mapping) or value.get("schema_version") not in cls.SUPPORTED_SCHEMA_VERSIONS:
+            raise InvalidModelError("ParametricSketch snapshot has missing or unsupported schema_version")
+        schema_version = value["schema_version"]
+        expected_fields = required | ({"arcs"} if schema_version == "1.2" else set())
+        if set(value) != expected_fields:
             raise InvalidModelError("ParametricSketch snapshot has missing or unknown fields")
-        if value["schema_version"] not in cls.SUPPORTED_SCHEMA_VERSIONS:
-            raise InvalidModelError("unsupported ParametricSketch schema_version")
         raw_points, raw_segments, raw_constraints = value["points"], value["segments"], value["constraints"]
-        if not isinstance(raw_points, (list, tuple)) or not isinstance(raw_segments, (list, tuple)) or not isinstance(raw_constraints, (list, tuple)):
-            raise InvalidModelError("ParametricSketch points, segments and constraints must be arrays")
+        raw_arcs = value.get("arcs", [])
+        if (not isinstance(raw_points, (list, tuple)) or not isinstance(raw_segments, (list, tuple))
+                or not isinstance(raw_constraints, (list, tuple)) or not isinstance(raw_arcs, (list, tuple))):
+            raise InvalidModelError("ParametricSketch points, segments, constraints and arcs must be arrays")
         points = []
         for raw in raw_points:
             if not isinstance(raw, Mapping) or set(raw) != {"point_id", "x", "y"}:
@@ -223,28 +311,44 @@ class ParametricSketch:
         constraints = []
         for raw in raw_constraints:
             required_constraint_fields = {"constraint_id", "kind", "point_ids", "value", "tolerance"}
-            if not isinstance(raw, Mapping) or set(raw) not in (
-                required_constraint_fields, required_constraint_fields | {"segment_ids"}
-            ):
+            allowed_constraint_fields = (
+                required_constraint_fields,
+                required_constraint_fields | {"segment_ids"},
+                required_constraint_fields | {"arc_ids"},
+                required_constraint_fields | {"segment_ids", "arc_ids"},
+            )
+            if not isinstance(raw, Mapping) or set(raw) not in allowed_constraint_fields:
                 raise InvalidModelError("ParametricSketch constraint has missing or unknown fields")
-            if value["schema_version"] == "1.0" and "segment_ids" in raw:
-                raise InvalidModelError("ParametricSketch v1.0 cannot contain segment_ids")
+            if schema_version == "1.0" and ({"segment_ids", "arc_ids"} & set(raw)):
+                raise InvalidModelError("ParametricSketch v1.0 cannot contain segment_ids or arc_ids")
+            if schema_version == "1.1" and "arc_ids" in raw:
+                raise InvalidModelError("ParametricSketch v1.1 cannot contain arc_ids")
             if not isinstance(raw["point_ids"], (list, tuple)):
                 raise InvalidModelError("ParametricSketch constraint point_ids must be an array")
             try:
                 kind = SketchConstraintKind(raw["kind"])
             except (TypeError, ValueError) as exc:
                 raise InvalidModelError("unsupported ParametricSketch constraint kind") from exc
-            segment_ids = raw.get("segment_ids", ())
-            if not isinstance(segment_ids, (list, tuple)):
-                raise InvalidModelError("ParametricSketch constraint segment_ids must be an array")
+            segment_ids, arc_ids = raw.get("segment_ids", ()), raw.get("arc_ids", ())
+            if not isinstance(segment_ids, (list, tuple)) or not isinstance(arc_ids, (list, tuple)):
+                raise InvalidModelError("ParametricSketch constraint segment_ids and arc_ids must be arrays")
             constraints.append(SketchConstraint(
                 raw["constraint_id"], kind, tuple(raw["point_ids"]),
-                raw["value"], raw["tolerance"], tuple(segment_ids),
+                raw["value"], raw["tolerance"], tuple(segment_ids), tuple(arc_ids),
+            ))
+        arcs = []
+        for raw in raw_arcs:
+            if not isinstance(raw, Mapping) or set(raw) != {
+                "arc_id", "center_point_id", "start_point_id", "end_point_id", "clockwise"
+            }:
+                raise InvalidModelError("ParametricSketch arc has missing or unknown fields")
+            arcs.append(SketchArc(
+                raw["arc_id"], raw["center_point_id"], raw["start_point_id"],
+                raw["end_point_id"], raw["clockwise"],
             ))
         return cls(
             value["sketch_id"], value["frame_id"], value["length_unit"],
-            tuple(points), tuple(segments), tuple(constraints),
+            tuple(points), tuple(segments), tuple(constraints), tuple(arcs),
         )
 
 
@@ -272,7 +376,7 @@ class ParametricSketchSolveResult:
             "solver": self.solver.to_dict(),
             "converged": self.converged,
             "limitations": [
-                "2D points and straight segments only; no arcs, splines or construction geometry",
+                "2D points, straight segments and circular-arc references; no splines or construction geometry",
                 "Local nonlinear solve; no uniqueness or global convergence guarantee",
                 "Rank is threshold-dependent; underconstrained sketches may have multiple valid solutions",
                 "No automatic constraint inference, drag solver, or CAD feature history",
@@ -300,6 +404,7 @@ def solve_parametric_sketch(
     }
     point_by_id = {point.point_id: point for point in sketch.points}
     segment_by_id = {segment.segment_id: segment for segment in sketch.segments}
+    arc_by_id = {arc.arc_id: arc for arc in sketch.arcs}
     equations: list[NonlinearConstraint] = []
 
     def coordinate(state: Mapping[str, float], point_id: str, axis: str) -> float:
@@ -359,6 +464,62 @@ def solve_parametric_sketch(
                           coordinate(v, d, "y") - coordinate(v, c, "y"))
                 )
             equations.append(NonlinearConstraint(item.constraint_id, residual, tolerance=tol))
+        elif item.kind is SketchConstraintKind.RADIUS:
+            arc = arc_by_id[item.arc_ids[0]]
+            center_id, start_id, end_id = (
+                arc.center_point_id, arc.start_point_id, arc.end_point_id
+            )
+            center, start, end = point_by_id[center_id], point_by_id[start_id], point_by_id[end_id]
+            if hypot(start.x - center.x, start.y - center.y) <= 1e-12 or hypot(
+                end.x - center.x, end.y - center.y
+            ) <= 1e-12:
+                raise InvalidModelError("radius constraint requires non-degenerate arc endpoints")
+            target = float(item.value)
+            equations.extend((
+                NonlinearConstraint(
+                    item.constraint_id + "::start",
+                    lambda v, c=center_id, p=start_id, r=target: hypot(
+                        coordinate(v, p, "x") - coordinate(v, c, "x"),
+                        coordinate(v, p, "y") - coordinate(v, c, "y"),
+                    ) - r,
+                    tolerance=tol,
+                ),
+                NonlinearConstraint(
+                    item.constraint_id + "::end",
+                    lambda v, c=center_id, p=end_id, r=target: hypot(
+                        coordinate(v, p, "x") - coordinate(v, c, "x"),
+                        coordinate(v, p, "y") - coordinate(v, c, "y"),
+                    ) - r,
+                    tolerance=tol,
+                ),
+            ))
+        elif item.kind is SketchConstraintKind.TANGENT:
+            segment = segment_by_id[item.segment_ids[0]]
+            arc = arc_by_id[item.arc_ids[0]]
+            contact = item.point_ids[0]
+            line_start, line_end, center = (
+                segment.start_point_id, segment.end_point_id, arc.center_point_id
+            )
+            line = (
+                point_by_id[line_end].x - point_by_id[line_start].x,
+                point_by_id[line_end].y - point_by_id[line_start].y,
+            )
+            radial = (
+                point_by_id[contact].x - point_by_id[center].x,
+                point_by_id[contact].y - point_by_id[center].y,
+            )
+            if hypot(*line) <= 1e-12 or hypot(*radial) <= 1e-12:
+                raise InvalidModelError("tangent constraint requires non-degenerate line and radius vectors")
+
+            def tangent_residual(v, a=line_start, b=line_end, c=center, p=contact):
+                ux = coordinate(v, b, "x") - coordinate(v, a, "x")
+                uy = coordinate(v, b, "y") - coordinate(v, a, "y")
+                rx = coordinate(v, p, "x") - coordinate(v, c, "x")
+                ry = coordinate(v, p, "y") - coordinate(v, c, "y")
+                denominator = hypot(ux, uy) * hypot(rx, ry)
+                return (ux * rx + uy * ry) / max(denominator, 1e-24)
+
+            equations.append(NonlinearConstraint(item.constraint_id, tangent_residual, tolerance=tol))
         elif item.kind is SketchConstraintKind.ANGLE:
             first, second = (segment_by_id[key] for key in item.segment_ids)
             a, b = first.start_point_id, first.end_point_id
@@ -420,7 +581,34 @@ def solve_parametric_sketch(
         raise SolverError("Parametric sketch requires at least one supported constraint")
     solved = solve_nonlinear_constraints(names, initial, equations, options=options)
     values = solved.values
+    for arc in sketch.arcs:
+        center, start, end = arc.center_point_id, arc.start_point_id, arc.end_point_id
+        start_radius = hypot(values[f"{start}.x"] - values[f"{center}.x"], values[f"{start}.y"] - values[f"{center}.y"])
+        end_radius = hypot(values[f"{end}.x"] - values[f"{center}.x"], values[f"{end}.y"] - values[f"{center}.y"])
+        chord = hypot(values[f"{end}.x"] - values[f"{start}.x"], values[f"{end}.y"] - values[f"{start}.y"])
+        if min(start_radius, end_radius, chord) <= 1e-12:
+            raise SolverError("arc constraints produced degenerate radial endpoints or a zero-length chord")
     for item in sketch.constraints:
+        if item.kind is SketchConstraintKind.RADIUS:
+            arc = arc_by_id[item.arc_ids[0]]
+            center, start, end = (
+                arc.center_point_id, arc.start_point_id, arc.end_point_id
+            )
+            for point_id in (start, end):
+                if hypot(values[f"{point_id}.x"] - values[f"{center}.x"],
+                         values[f"{point_id}.y"] - values[f"{center}.y"]) <= 1e-12:
+                    raise SolverError("radius constraint produced a degenerate arc endpoint")
+        if item.kind is SketchConstraintKind.TANGENT:
+            segment = segment_by_id[item.segment_ids[0]]
+            arc = arc_by_id[item.arc_ids[0]]
+            a, b, c, p = (
+                segment.start_point_id, segment.end_point_id,
+                arc.center_point_id, item.point_ids[0]
+            )
+            line_length = hypot(values[f"{b}.x"] - values[f"{a}.x"], values[f"{b}.y"] - values[f"{a}.y"])
+            radial_length = hypot(values[f"{p}.x"] - values[f"{c}.x"], values[f"{p}.y"] - values[f"{c}.y"])
+            if line_length <= 1e-12 or radial_length <= 1e-12:
+                raise SolverError("tangent constraint produced a degenerate line or radius vector")
         if item.kind is SketchConstraintKind.ANGLE:
             first, second = (segment_by_id[key] for key in item.segment_ids)
             for segment in (first, second):
