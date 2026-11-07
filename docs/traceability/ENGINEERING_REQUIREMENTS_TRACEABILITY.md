@@ -201,3 +201,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | CAD-BREP-001 | Closed faceted B-rep topology and deterministic mesh bridge | PR #117 merge `2dbddba4899246c1c75a169224154b9d8ec21402`; exact-head and post-merge CI passed 742 tests. `BRepSolid` v1.0 validates triangular planar single-shell topology, oriented edge uses, closed two-face incidence, connectedness, Euler/genus and positive signed volume. | No n-gons, face inner loops, multiple shells, shell healing, arbitrary curved surfaces or proof of geometric self-intersection freedom. |
 | CAD-BREP-BOOLEAN-001 | Bounded 3D Boolean operations over axis-aligned box B-reps | PR #118 merge `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; exact-head and post-merge workflow #42282428283 passed 755 tests in 2.83s. Supports UNION, INTERSECTION, first-minus-rest DIFFERENCE and odd/even SYMMETRIC_DIFFERENCE over 2–16 validated boxes, with 32,768 maximum grid cells and deterministic closed output components. | Not a general CSG/B-rep kernel. Point/edge contacts remain separate components; fully enclosed cavities, arbitrary faceted solids, rotated boxes, cylinders and curved surfaces fail closed. |
 
+
+
+## CAD Generator interactive viewport traceability — PR #146
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-GENERATOR-VIEWPORT-001 | Bounded interactive viewing of generated mesh artifacts | IMPLEMENTED narrow slice by PR #146 at merge `1813cb931876305391eeabe748741be189d5f27b`. Exact PR-head SHA `c7c15c9a007a705ef67f650d693f1794c0f104a3`, workflow #42385362330: workflow-sanity and python-tests PASS. Exact post-merge workflow #42386519328 on merge SHA: both jobs PASS; 832 tests in 9.09s. Client-side orbit, pan, zoom and reset operate on the exact returned MESH artifact; camera state is ephemeral. | PARTIAL overall CAD viewport: preview caps at 10,000 vertices/5,000 triangles; malformed mesh data fails closed. No feature-tree editing, face/edge selection, measurement, sectioning, B-rep editing, assembly navigation or general CAD kernel. Backend validation remains authoritative. |
