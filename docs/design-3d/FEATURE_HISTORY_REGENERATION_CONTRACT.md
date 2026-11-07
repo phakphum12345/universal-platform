@@ -139,4 +139,11 @@ encryption-at-rest, backup scheduler, or distributed consensus in this slice.
 - Change a source parameter and confirm only the affected feature branch is recomputed.
 - Reject invalid IDs, unsupported database modes, corrupted record envelopes and schema/geometry mismatch.
 - Exact PR-head and post-merge CI for PR #132 passed 812 tests.
-- **OPEN:** combined acceptance that reopens the separate SQLite source-document store and artifact cache, loads a specific source revision, and regenerates the complete Sketch → Region → Extrusion → Mesh output in a fresh process.
+- PR #134 implements the combined acceptance in a separate Python interpreter: it reopens the source revision store and artifact cache, loads the exact source revision, reuses all three feature artifacts without recomputation, compares artifact digests and verifies watertight/consistent mesh orientation. Exact PR-head and post-merge CI passed 813 tests.
+
+
+### Cross-process acceptance boundary after PR #134
+
+- The verified workflow is local to one machine and uses two explicit SQLite filesystem databases.
+- The source document revision and computed artifact cache remain separate stores; no distributed transaction spans them. A source revision can be loaded even if its cache entries are missing; regeneration then recomputes and attempts to populate the cache.
+- This does not claim a distributed cache, remote synchronization, signed evidence, backup/restore, encryption-at-rest, or production API/UI.
