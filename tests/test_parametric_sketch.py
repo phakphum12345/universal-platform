@@ -1,4 +1,5 @@
 import json
+from math import pi
 from pathlib import Path
 
 import pytest
@@ -109,7 +110,7 @@ def test_sketch_schema_is_strict_and_matches_serialized_top_level_contract():
     snapshot = rectangle_sketch().to_dict()
     assert set(snapshot) == set(schema["required"])
     assert schema["additionalProperties"] is False
-    assert schema["properties"]["schema_version"]["const"] == "1.0"
+    assert schema["properties"]["schema_version"]["enum"] == ["1.0", "1.1"]
 
 
 def test_sketch_rejects_duplicate_ids_and_dangling_segment_or_constraint_references():
@@ -183,3 +184,85 @@ def test_relational_segment_constraints_require_four_distinct_points_and_no_zero
     )
     with pytest.raises(InvalidModelError, match="non-degenerate"):
         solve_parametric_sketch(sketch)
+
+
+@pytest.mark.parametrize(("target", "expected_y"), [(pi / 4, 5.0), (-pi / 4, -1.0)])
+def test_angle_constraint_solves_signed_directed_angle_between_named_segments(target, expected_y):
+    sketch = ParametricSketch(
+        "angle.sketch", "part.xy", "mm",
+        (
+            SketchPoint("a", 0.0, 0.0),
+            SketchPoint("b", 2.0, 0.0),
+            SketchPoint("c", 0.0, 2.0),
+            SketchPoint("d", 3.0, 4.0),
+        ),
+        (
+            SketchSegment("base", "a", "b"),
+            SketchSegment("arm", "c", "d"),
+        ),
+        (
+            SketchConstraint("a-x", Kind.FIX_X, ("a",), 0.0),
+            SketchConstraint("a-y", Kind.FIX_Y, ("a",), 0.0),
+            SketchConstraint("b-x", Kind.FIX_X, ("b",), 2.0),
+            SketchConstraint("b-y", Kind.FIX_Y, ("b",), 0.0),
+            SketchConstraint("c-x", Kind.FIX_X, ("c",), 0.0),
+            SketchConstraint("c-y", Kind.FIX_Y, ("c",), 2.0),
+            SketchConstraint("d-x", Kind.FIX_X, ("d",), 3.0),
+            SketchConstraint("directed-angle", Kind.ANGLE, (), target,
+                             segment_ids=("base", "arm")),
+        ),
+    )
+
+    result = solve_parametric_sketch(sketch)
+    points = {point.point_id: point for point in result.points}
+
+    assert result.converged
+    assert points["d"].y == pytest.approx(expected_y, abs=1e-7)
+    assert sketch.to_dict()["schema_version"] == "1.1"
+    angle_snapshot = next(item for item in sketch.to_dict()["constraints"]
+                          if item["constraint_id"] == "directed-angle")
+    assert angle_snapshot["segment_ids"] == ["base", "arm"]
+
+
+def test_angle_constraint_rejects_missing_or_repeated_segment_references():
+    with pytest.raises(InvalidModelError, match="requires 2 distinct segment"):
+        SketchConstraint("bad", Kind.ANGLE, (), pi / 2, segment_ids=("one",))
+    with pytest.raises(InvalidModelError, match="requires 2 distinct segment"):
+        SketchConstraint("bad", Kind.ANGLE, (), pi / 2, segment_ids=("one", "one"))
+
+    sketch = ParametricSketch(
+        "bad.angle", "plane", "mm",
+        (SketchPoint("a", 0, 0), SketchPoint("b", 1, 0)),
+        (SketchSegment("known", "a", "b"),),
+        (SketchConstraint("angle", Kind.ANGLE, (), pi / 2,
+                          segment_ids=("known", "missing")),),
+    )
+    with pytest.raises(InvalidModelError, match="unknown segment"):
+        sketch.to_dict()  # construction itself rejects the dangling reference
+
+
+def test_angle_constraint_rejects_degenerate_segments_and_out_of_range_angles():
+    with pytest.raises(InvalidModelError, match="within"):
+        SketchConstraint("bad-angle", Kind.ANGLE, (), 4 * pi,
+                         segment_ids=("first", "second"))
+    sketch = ParametricSketch(
+        "degenerate.angle", "plane", "mm",
+        (SketchPoint("a", 0, 0), SketchPoint("b", 0, 0),
+         SketchPoint("c", 0, 1), SketchPoint("d", 1, 1)),
+        (SketchSegment("first", "a", "b"), SketchSegment("second", "c", "d")),
+        (SketchConstraint("angle", Kind.ANGLE, (), pi / 2,
+                          segment_ids=("first", "second")),),
+    )
+    with pytest.raises(InvalidModelError, match="non-degenerate"):
+        solve_parametric_sketch(sketch)
+
+
+def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_1_extension():
+    original = rectangle_sketch()
+    legacy = original.to_dict()
+    legacy["schema_version"] = "1.0"
+
+    restored = ParametricSketch.from_dict(legacy)
+
+    assert restored == original
+    assert restored.to_dict()["schema_version"] == "1.1"
