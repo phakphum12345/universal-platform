@@ -79,6 +79,18 @@ The complete `history` object must satisfy `FeatureHistory.from_dict`. The API i
 
 Returns HTTP 201 with history ID, revision number, parent digest, content digest and creation timestamp.
 
+### `POST /v1/histories/{history_id}/edit`
+
+Appends one revision after applying exactly one allow-listed graph operation. The body uses strict operation-specific fields:
+
+- Add: `expected_revision`, `operation: "add"`, `feature`, optional `make_output`.
+- Replace: `expected_revision`, `operation: "replace"`, `feature_id`, `feature`.
+- Remove: `expected_revision`, `operation: "remove"`, `feature_id`, optional `cascade`.
+
+A feature snapshot contains exactly `feature_id`, `kind`, `input_feature_ids` and `parameters`. The complete candidate graph is reconstructed through FeatureHistory validation. Replacement preserves stable feature IDs. Removal refuses dependent nodes unless cascade is explicitly true; output invariants still apply.
+
+Returns HTTP 201 with the new immutable revision envelope. A stale expected revision returns HTTP 409 / `REVISION_CONFLICT`. Invalid operation fields or graph changes return HTTP 400. The endpoint never executes user code, plugins, shell commands or physical device actions.
+
 ### `GET /v1/histories/{history_id}/revisions`
 
 Returns the ordered immutable revision numbers.
