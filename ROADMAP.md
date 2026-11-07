@@ -392,9 +392,18 @@ Integration baseline: `a17a6359b4689fedbbcfbec769704a0322e027da` (PR #124 merged
 
 Integration baseline: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` (PR #125 merged; post-merge CI PASS, 785 tests). `main` remains unchanged.
 
-- Current branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1` (PR #125 angle work is merged).
+- PR #126 merged circular arcs with RADIUS and endpoint TANGENT. Next increment is bounded curved-loop tessellation and PlanarRegion conversion.
 - Adds `SketchArc` with explicit center/start/end point IDs and clockwise direction.
 - `RADIUS` adds start/end radial equations; each arc must have exactly one positive radius constraint.
 - `TANGENT` binds a straight segment to a circular arc at a shared endpoint and solves a normalized orthogonality residual.
 - Straight-line sketch-to-region conversion now fails closed when arcs are present; it must not silently drop curved geometry.
 - Exact-head CI is pending. Curved-loop topology, curved planar Boolean, mesh tessellation and curved B-rep are separate future increments.
+
+
+## CAD sketch baseline — post-PR #126
+
+Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged; post-merge CI PASS, 791 tests). `main` remains unchanged.
+
+- ParametricSketch v1.2 supports stable circular arc references, one positive RADIUS constraint per arc, and straight-segment-to-arc endpoint TANGENT.
+- The existing straight-line sketch-to-region converter rejects arcs; no curved geometry is silently discarded.
+- Next: explicit chord-error-bounded arc tessellation, cycle reconstruction and curved-profile PlanarRegion conversion, with source digest and deviation evidence. Curved Boolean/B-rep remain separate work.
