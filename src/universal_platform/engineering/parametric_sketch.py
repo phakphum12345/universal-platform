@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from math import hypot, isfinite
+from math import atan2, hypot, isfinite
 from typing import ClassVar, Mapping
 
 from .errors import InvalidModelError, SolverError
@@ -109,7 +109,7 @@ class SketchConstraint:
             SketchConstraintKind.ANGLE,
         )
         if needs_value != (self.value is not None):
-            raise InvalidModelError("constraint value is required only for dimensional/fixed constraints")
+            raise InvalidModelError("constraint value is required only for dimensional/fixed/angle constraints")
         if self.value is not None and (
             isinstance(self.value, bool) or not isinstance(self.value, (int, float))
             or not isfinite(float(self.value))
@@ -374,7 +374,7 @@ def solve_parametric_sketch(
                 uy = coordinate(v, b, "y") - coordinate(v, a, "y")
                 vx = coordinate(v, d, "x") - coordinate(v, c, "x")
                 vy = coordinate(v, d, "y") - coordinate(v, c, "y")
-                return __import__("math").atan2(ux * vy - uy * vx, ux * vx + uy * vy) - target
+                return atan2(ux * vy - uy * vx, ux * vx + uy * vy) - target
 
             equations.append(NonlinearConstraint(item.constraint_id, angle_residual, tolerance=tol))
         elif item.kind is SketchConstraintKind.DISTANCE:
