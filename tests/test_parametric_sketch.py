@@ -411,3 +411,9 @@ def test_v1_1_angle_snapshot_remains_readable_under_v1_2_model():
 
     assert restored.constraints == (angle,)
     assert restored.to_dict()["schema_version"] == "1.2"
+
+
+def test_sketch_arc_is_exported_from_engineering_public_api():
+    from universal_platform.engineering import SketchArc as PublicSketchArc
+
+    assert PublicSketchArc is SketchArc
