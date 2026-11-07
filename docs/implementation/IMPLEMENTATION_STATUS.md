@@ -1,11 +1,11 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited implementation baseline:** `1a8338ae17eb783a374a36400999ead796f9a79d` (post-PR #152; subsequent reconciliation changes are documentation-only).  
+**Last audited implementation baseline:** `7046de5cff4a7a575de44de189bbb4fedcbdba58` (post-PR #154; subsequent reconciliation changes are documentation-only).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #152 workflow #42396453320 on exact merge SHA `1a8338ae17eb783a374a36400999ead796f9a79d` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **840 passed in 8.71s**.  
-**Current tree:** 349 entries, 116 Markdown, 165 Python, 24 JSON files, 85 Python test files; recursive response truncated=false.  
+**Latest post-merge CI:** PR #154 workflow #42397474889 on exact merge SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 7.14s**.  
+**Current tree:** 350 entries, 117 Markdown, 165 Python, 24 JSON files, 85 Python test files; recursive response truncated=false.  
 **Open PRs:** 0 at this audit; PR #152 merged after PRs #148–#150. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
@@ -1014,7 +1014,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head workflow #42392209579: workflow-sanity PASS including Node.js syntax check; python-tests PASS; **833 passed in 9.15s**.
 - Exact post-merge workflow #42392264691 on `da16967de5f387f4e98d9642134626982644d479`: both jobs PASS; **833 passed in 8.73s**.
 - Adds bounded (500-node) read-only FeatureHistory tree preview in deterministic topological dependency order, safe text-only DOM rendering, selected-node inspection and malformed/cycle fail-closed behavior.
-- This does not edit or regenerate FeatureHistory. Backend immutable add/replace/remove operations are implemented by PR #152. Interactive browser/API editing, feature suppression, undo/redo and recompute propagation remain OPEN.
+- This does not edit or regenerate FeatureHistory. Backend immutable add/replace/remove operations are implemented by PR #152; revision-safe service and loopback API editing are implemented by PR #154. Interactive browser controls, feature suppression, undo/redo and recompute propagation remain OPEN.
 - Inventory: 341 entries, 111 Markdown, 163 Python, 24 JSON, 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 
 
@@ -1025,3 +1025,12 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge workflow #42396453320 on the merge SHA: both jobs PASS; **840 passed in 8.71s**.
 - Adds immutable add/replace/remove helpers with strict FeatureHistory reconstruction, stable-ID replacement, downstream dependency protection and explicit cascade deletion.
 - No interactive GUI/API editing, suppression, undo/redo, graph branching/merging or recompute UI is claimed.
+
+
+## CAD FeatureHistory revision-safe edit API — PR #154
+
+- PR #154 merged at exact integration SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58`; base SHA `6eed0a43089607013d8c7a840e1213264db9be93`; exact PR head `d243fdee6e9fc04925eaf435b4b1e4a4cfb27ae3`.
+- Exact PR-head workflow #42397413655: workflow-sanity PASS including JavaScript syntax check; python-tests PASS; **843 passed in 9.34s**.
+- Exact post-merge workflow #42397474889 on the merge SHA: both jobs PASS; **843 passed in 7.14s**.
+- Adds revision-checked service and HTTP edit operations for add/replace/remove. SQLite compare-and-swap protects against stale writes; HTTP 409 reports revision conflicts.
+- Browser edit controls and browser E2E remain open; overall CAD and repository status remain PARTIAL / INCOMPLETE.
