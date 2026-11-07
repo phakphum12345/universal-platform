@@ -147,3 +147,12 @@ encryption-at-rest, backup scheduler, or distributed consensus in this slice.
 - The verified workflow is local to one machine and uses two explicit SQLite filesystem databases.
 - The source document revision and computed artifact cache remain separate stores; no distributed transaction spans them. A source revision can be loaded even if its cache entries are missing; regeneration then recomputes and attempts to populate the cache.
 - This does not claim a distributed cache, remote synchronization, signed evidence, backup/restore, encryption-at-rest, or production API/UI.
+
+
+## 11. CAD Generator service integration — PR #136
+
+The transport-neutral `CADGeneratorService` is implemented in `engineering/cad_generator_service.py` and exported from `universal_platform.engineering`. See [CAD Generator Service Contract](CAD_GENERATOR_SERVICE_CONTRACT.md).
+
+It combines the immutable source revision store and local artifact cache. It supports typed/snapshot save, revision read/list, explicit revision regeneration and a provenance-bearing `CADGeneratorRun` response. The complete source+cache cross-process acceptance is covered by PR #134.
+
+**Transport remains OPEN:** no HTTP listener, CLI command surface or UI is included. A future transport adapter must define authentication, authorization, request-size/time limits, audit, cancellation, structured errors and loopback-only defaults before enabling any network listener.
