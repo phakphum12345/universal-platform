@@ -148,3 +148,23 @@ The UI supports connecting to the local API, editing/pasting a complete `Feature
 The bearer token is held only in page memory and is cleared when the page is refreshed or the token field changes. It is not stored in localStorage, cookies, browser URL or request body. The UI uses same-origin `fetch`, `credentials: omit`, no external resources, a restrictive Content-Security-Policy and text-only rendering for API results.
 
 **Capability boundary:** this is a local FeatureHistory JSON/revision workbench, not a graphical sketch editor, CAD viewport, feature tree drag-and-drop editor, or visual solid modeller. It does not generate arbitrary CAD geometry outside the allow-listed FeatureHistory operations. Those visual authoring capabilities remain OPEN.
+
+
+## 9. Bounded polygon sketch authoring — PR #142
+
+The same-origin workbench adds a bounded 2D polygon canvas and a template endpoint:
+
+### `POST /v1/templates/polygon-extrusion`
+
+Request fields:
+
+- `history_id` — stable lowercase history identifier.
+- `points` — ordered array of `[x, y]` coordinate pairs.
+- `height` — finite positive extrusion height.
+- `length_unit` — optional length unit; defaults to `mm`.
+
+The builder accepts 3–64 unique finite vertices, rejects adjacent/repeated closing vertices and zero signed area, and creates a strict FeatureHistory with a v1.2 ParametricSketch, closed straight segments, explicit FIX_X/FIX_Y constraints, one extrusion and one mesh output. The resulting snapshot is returned to the UI; it is not saved automatically. The user reviews the generated JSON, then explicitly saves a revision and requests regeneration.
+
+The canvas supports mouse/touch click-to-add and exact numeric coordinate entry within X 0–26 mm and Y 0–15 mm, undo-last and clear. The extrusion height is entered separately. The service still performs geometry/mesh validation during regeneration; the canvas does not certify a profile as valid.
+
+**Capability boundary:** only a bounded straight-edge polygon template is generated. The editor does not yet support arcs, splines, automatic constraints, dimensions/relations beyond fixed coordinates, negative or out-of-range coordinates, holes, Boolean feature authoring, a 3D viewport, drag-based constraint solving or a general CAD kernel. Self-intersection must be rejected by the normal geometry pipeline, not inferred from the drawing alone.
