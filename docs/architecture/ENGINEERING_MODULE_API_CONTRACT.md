@@ -102,3 +102,10 @@ The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profile
 A transport-neutral in-process `CADGeneratorService` now provides the CAD-specific application boundary over versioned FeatureHistory documents, the local SQLite revision store, the validated FeatureArtifact cache and the allow-listed regeneration engine. The service supports typed and strict snapshot writes, explicit revision reads, regeneration and a provenance-bearing response envelope. It is exported from `universal_platform.engineering`.
 
 The service does not expose a transport and does not grant network authority. HTTP/CLI/UI remain OPEN. Any future listener must define authentication, authorization, request-size/time limits, audit evidence, cancellation, structured errors and loopback-only default binding. Remote access must be an explicit, separately reviewed capability.
+
+
+## CAD Generator local HTTP transport (PR #138)
+
+The revision-aware `CADGeneratorService` is now exposed through an explicit-start, same-origin local HTTP adapter. The API provides authenticated health, immutable FeatureHistory save, revision list/read and exact-revision regeneration. It binds only to IPv4 loopback (`127.0.0.1`) and uses port 0 by default for OS-selected dynamic allocation. The request boundary validates bearer authorization, loopback peer/Host/Origin, strict JSON, body limits, socket timeout and allowed methods. Request lifecycle metadata is appended to a local SQLite SHA-256 audit chain without storing credentials or model bodies.
+
+This is a local development interface, not a remote service or production authentication system. No CORS permission, public/LAN bind, TLS endpoint, rate limiting, browser session management or remote access is included. See [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md). A same-origin local authoring UI remains a separate OPEN requirement.
