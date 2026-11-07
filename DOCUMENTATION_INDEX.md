@@ -192,3 +192,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the same-origin local FeatureHistory workbench, token handling, CSP and capability boundaries.
 - Static UI assets: `src/universal_platform/engineering/static/cad_generator.html`, `cad_generator.css`, `cad_generator.js`.
 - The current workbench edits FeatureHistory JSON and manages revisions; graphical sketch editing and a CAD viewport remain OPEN.
+
+
+## Visual polygon sketch editor — PR #142
+
+- [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the bounded polygon template endpoint and same-origin visual sketch workflow.
+- [CAD Generator implementation](docs/implementation/IMPLEMENTATION_STATUS.md) — exact PR-head/post-merge CI evidence and remaining visual CAD scope.
+- The editor creates straight-edge polygon FeatureHistory snapshots; arcs, holes, general constraints and 3D viewport remain OPEN.
