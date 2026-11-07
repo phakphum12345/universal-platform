@@ -494,3 +494,14 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact post-merge SHA `1813cb931876305391eeabe748741be189d5f27b`, workflow #42386519328: workflow-sanity PASS and python-tests PASS; **832 passed in 9.09s**.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 391 commits ahead and 0 behind at this audit. Local working tree and branch protection remain UNKNOWN.
 - Capability boundary: interactive triangle-mesh viewing only. Feature-tree editing, selection, measurement, sectioning, B-rep editing, assembly view and general CAD-kernel operations remain open.
+
+
+## CAD Generator triangle selection and measurement — PR #148 MERGED
+
+- Adds accessible pointer/keyboard selection for rendered triangle facets, selected-facet highlighting and a clear-selection action.
+- Reports triangle area using the cross-product formula and centroid using the original mesh vertices, in the mesh-declared length unit and frame.
+- Selection and measurements are ephemeral client-side state; they do not mutate FeatureHistory, FeatureArtifacts, API data or audit records.
+- Exact PR-head SHA `43461346e32e1c5146c5beeab79340d7fbc387df`, workflow #42391405409: workflow-sanity PASS; python-tests PASS; **832 passed in 8.59s**.
+- Exact post-merge SHA `1fb9bc97c22bf0464e154f6963583edb9385d657`, workflow #42391470608: workflow-sanity PASS; python-tests PASS; **832 passed in 7.59s**.
+- Capability boundary: triangle-facet inspection only, not B-rep topology selection, sketch dimensions, sectioning, face editing or general CAD kernel.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 393 commits ahead and 0 behind. Local working tree and branch protection remain UNKNOWN.
