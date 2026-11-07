@@ -182,6 +182,17 @@ Latest integration SHA: `674b6a52c725b6e3f4b4e083b602aab3a138104e`; main remains
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
 | CAD-GEN-WORKBENCH-001 | Local FeatureHistory revision workbench | PR #140; static assets; same-origin HTTP integration tests | IMPLEMENTED — JSON snapshot editing/paste, optimistic revision save, revision list/load and exact revision regeneration. Token memory-only; CSP/no CORS. Exact-head and post-merge CI PASS, 823 tests. |
-| CAD-VISUAL-SKETCH-001 | Interactive 2D sketch editor and geometry preview | Future canvas/SVG editor, generated FeatureHistory and geometry/mesh acceptance tests | OPEN — current interface is not a visual sketch editor or CAD viewport. |
+| CAD-VISUAL-SKETCH-001 | Interactive visual 2D sketch authoring | PR #142; SVG canvas; polygon template endpoint; `tests/test_cad_generator_templates.py`; HTTP integration tests | PARTIAL — bounded straight-edge polygon editor with click/numeric input, undo/clear, fixed X/Y constraints and validated Sketch → Extrusion → Mesh generation. Exact-head and post-merge CI PASS, 832 tests. Arcs, holes, automatic/dimensional constraints, drag solver and general sketch topology remain OPEN. |
+| CAD-VISUAL-VIEWPORT-001 | Source-linked 3D mesh viewport and validation display | Future mesh renderer and browser integration tests | OPEN — the UI returns mesh artifacts/provenance as JSON but does not yet render a 3D viewport. |
 
 Latest integration SHA: `f3abe346a259f2f3f3ed767889dba32be6a284b9`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42381936401 passed both required jobs with 823 tests.
+
+
+## Visual polygon sketch traceability — post-PR #142
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-VISUAL-SKETCH-001 | Interactive visual 2D sketch authoring | PR #142; SVG canvas; polygon template builder; template API integration tests | PARTIAL — bounded straight-edge polygon editor with click/numeric input, undo/clear, fixed coordinate constraints and Sketch → Extrusion → Mesh FeatureHistory generation. Exact-head and post-merge CI PASS, 832 tests. |
+| CAD-VISUAL-VIEWPORT-001 | Source-linked 3D mesh viewport and validation display | Future SVG/WebGL renderer and browser acceptance tests | OPEN — mesh and validation are returned as structured JSON but no 3D viewport is rendered. |
+
+Latest integration SHA: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42382710626 passed both required jobs with 832 tests.
