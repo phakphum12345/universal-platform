@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Baseline commit:** fabb8a9dd797e15f739fba172c016b7ec9a3d66a  
+**Last verified implementation baseline:** 1a8338ae17eb783a374a36400999ead796f9a79d  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service and read-only tree explorer exist; editable DAG operations and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, read-only tree explorer and immutable backend add/replace/remove operations exist; interactive editing, suppression, undo/redo and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -29,4 +29,13 @@
 - Tests: tests/test_feature_history_editor.py.
 - Contract: docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md.
 - Acceptance: immutable transforms; stable IDs; strict dependency/cycle validation; explicit cascade removal; at least one output retained.
-- Status before CI: IMPLEMENTATION ADDED; TESTS PENDING CI.
+- PR: #152 (merged to integration branch).
+- Exact PR head: 3c2469a43e48d5ac2fb7e546242d9a450dff1a87.
+- Exact PR-head workflow #42396387520: workflow-sanity PASS; python-tests PASS; 840 passed in 9.23s.
+- Exact merge SHA: 1a8338ae17eb783a374a36400999ead796f9a79d.
+- Post-merge workflow #42396453320: both jobs PASS; 840 passed in 8.71s.
+- Status: PASS for this bounded backend editing slice; overall WP-03 remains PARTIAL.
+
+## Next dependency-ready slice
+
+- CAD-EDIT-002 — expose safe edit operations through the local CAD Generator service and workbench, with expected-revision conflict handling, preview/validation, explicit cascade confirmation, and browser/API integration tests. Keep feature execution allow-listed and do not add user-code execution.
