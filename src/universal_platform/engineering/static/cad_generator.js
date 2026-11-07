@@ -105,7 +105,7 @@
     byId("mesh-validation").textContent =
       "valid: " + valid + " · watertight: " + watertight +
       " · consistently oriented: " + oriented +
-      (validation.errors?.length ? " · errors: " + validation.errors.join("; ") : "");
+      (validation.issues?.length ? " · issues: " + validation.issues.join("; ") : "");
     byId("mesh-details").textContent =
       "Revision " + run.source_revision.revision +
       " · " + vertices.length + " vertices · " + triangles.length + " triangles" +
