@@ -1,6 +1,6 @@
 # FeatureHistory Editing Contract
 
-**Status:** Initial implementation slice — immutable graph-edit operations.  
+**Status:** Backend graph editing and local workbench controls implemented in bounded slices (PRs #152, #154 and current UI slice).  
 **Scope:** Source FeatureHistory document editing; not geometry-kernel editing or a complete interactive CAD editor.
 
 ## 1. Purpose
@@ -29,7 +29,7 @@ The operations are pure transformations: the input FeatureHistory is never mutat
 
 ## 4. Explicit limitations
 
-This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, browser GUI edit controls, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Feature order for execution remains deterministic topological order, not the stored tuple order.
+This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Browser controls provide basic add/replace/remove operations only; browser automation/E2E interaction coverage remains unimplemented. Feature order for execution remains deterministic topological order, not the stored tuple order.
 
 ## 5. Acceptance criteria
 
@@ -41,4 +41,7 @@ This slice does not implement feature suppression, reordering semantics, undo/re
 - At least one valid output remains.
 - Unit tests cover success and failure paths.
 - Service/API tests verify append-only revision creation, stale-writer conflicts and strict request parsing.
-- Browser UI remains read-only; interactive edit controls are a separate follow-on.
+- Browser UI exposes parameter replacement, feature add and feature removal through the revision-safe local API.
+- Historical revisions are read-only in the UI; edits are allowed only when the selected revision equals the current head.
+- Cascade removal requires an explicit confirmation checkbox.
+- Browser E2E interaction tests remain a separate quality gate.
