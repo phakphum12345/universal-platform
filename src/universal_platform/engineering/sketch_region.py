@@ -185,6 +185,8 @@ def _cycle_points(
     chord_error: float,
 ) -> tuple[Vec2, ...]:
     output: list[Vec2] = []
+    previous_endpoint: Vec2 | None = None
+    first_point: Vec2 | None = None
     for edge in cycle:
         if edge.kind == "segment":
             samples = (point_by_id[edge.start_point_id], point_by_id[edge.end_point_id])
@@ -195,9 +197,14 @@ def _cycle_points(
                 samples = tuple(reversed(samples))
         if samples[0] != point_by_id[edge.start_point_id] or samples[-1] != point_by_id[edge.end_point_id]:
             raise InvalidModelError("sketch boundary edge endpoints do not match the solved sketch")
-        if output and output[-1] != samples[0]:
+        if previous_endpoint is not None and previous_endpoint != samples[0]:
             raise InvalidModelError("sketch boundary edges do not share the same solved endpoint")
+        if first_point is None:
+            first_point = samples[0]
         output.extend(samples[:-1])
+        previous_endpoint = samples[-1]
+    if previous_endpoint != first_point:
+        raise InvalidModelError("sketch boundary cycle does not close")
     if len(output) < 3:
         raise InvalidModelError("tessellated sketch loop requires at least three vertices")
     return tuple(output)
