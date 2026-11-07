@@ -106,7 +106,48 @@
             <pre id="feature-inspector" class="feature-inspector">Select a feature to inspect its inputs and parameters.</pre>
           </div>
         </div>
-        <p class="hint">Read-only structural preview in deterministic dependency order. Editing and backend validation remain separate operations.</p>
+        <div class="feature-edit-controls">
+          <h4>Edit selected feature</h4>
+          <label for="feature-edit-parameters">Parameters JSON</label>
+          <textarea id="feature-edit-parameters" rows="5" spellcheck="false" autocomplete="off" disabled>{}</textarea>
+          <div class="actions">
+            <button id="feature-apply-edit" disabled>Apply parameter edit</button>
+            <button id="feature-remove" class="quiet" disabled>Remove selected feature</button>
+          </div>
+          <h4>Add feature</h4>
+          <div class="two-column">
+            <div>
+              <label for="feature-add-id">New feature ID</label>
+              <input id="feature-add-id" autocomplete="off" spellcheck="false" placeholder="feature.new">
+            </div>
+            <div>
+              <label for="feature-add-kind">Feature kind</label>
+              <select id="feature-add-kind">
+                <option value="SKETCH_PROFILE">SKETCH_PROFILE</option>
+                <option value="PLANAR_BOOLEAN">PLANAR_BOOLEAN</option>
+                <option value="EXTRUSION">EXTRUSION</option>
+                <option value="MESH">MESH</option>
+              </select>
+            </div>
+          </div>
+          <label for="feature-add-inputs">Input feature IDs (comma-separated)</label>
+          <input id="feature-add-inputs" autocomplete="off" spellcheck="false" placeholder="profile.base, profile.other">
+          <label for="feature-add-parameters">New feature parameters JSON</label>
+          <textarea id="feature-add-parameters" rows="5" spellcheck="false" autocomplete="off">{}</textarea>
+          <label class="checkbox-label" for="feature-add-output">
+            <input id="feature-add-output" type="checkbox">
+            Also make this feature a history output
+          </label>
+          <div class="actions">
+            <button id="feature-add" disabled>Add feature</button>
+          </div>
+          <label class="checkbox-label" for="feature-remove-cascade">
+            <input id="feature-remove-cascade" type="checkbox">
+            Confirm cascade removal of all dependent features
+          </label>
+          <p class="hint">Edits append a new immutable revision. Editing is limited to the current head revision; stale writes are rejected. Cascade removal is explicit and may remove downstream features.</p>
+        </div>
+        <p class="hint">Feature tree order is deterministic dependency order. Geometry regeneration remains a separate operation.</p>
       </div>
       <div class="actions">
         <button id="save" class="primary" disabled>Save new revision</button>
