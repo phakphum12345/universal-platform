@@ -121,7 +121,12 @@
         <div><div class="eyebrow">05 / GENERATED GEOMETRY</div><h2 id="mesh-heading">Isometric mesh preview</h2></div>
         <span id="mesh-state" class="state">No mesh preview</span>
       </div>
-      <svg id="mesh-preview" class="mesh-preview" viewBox="0 0 640 420" role="img" aria-label="Isometric preview of the generated triangle mesh">
+      <div class="mesh-controls" role="group" aria-label="Mesh viewport controls">
+        <button id="mesh-zoom-in" type="button" disabled aria-label="Zoom in">Zoom in</button>
+        <button id="mesh-zoom-out" type="button" disabled aria-label="Zoom out">Zoom out</button>
+        <button id="mesh-reset-view" type="button" disabled>Reset view</button>
+      </div>
+      <svg id="mesh-preview" class="mesh-preview" viewBox="0 0 640 420" role="group" aria-label="Interactive generated mesh viewport">
         <defs>
           <pattern id="mesh-grid" width="24" height="24" patternUnits="userSpaceOnUse">
             <path d="M 24 0 L 0 0 0 24" class="grid-line"></path>
@@ -133,7 +138,7 @@
       </svg>
       <p id="mesh-validation" class="hint">Run regeneration for a source revision to display its generated mesh and validation report.</p>
       <p id="mesh-details" class="mesh-details">No mesh artifact loaded.</p>
-      <p class="hint">This is a static isometric triangle-mesh preview, not a full CAD viewport. Face rendering is capped at 5,000 triangles; geometry and validation values remain available in the operation result.</p>
+      <p class="hint">Drag to orbit; hold Shift while dragging (or use the middle mouse button) to pan. Use the wheel or Zoom buttons to zoom, and Reset view to restore the default camera. Camera controls affect display only; backend geometry and validation are unchanged. Rendering is capped at 10,000 vertices and 5,000 triangles.</p>
     </section>
 
     <section class="panel result-panel" aria-labelledby="result-heading">

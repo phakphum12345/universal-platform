@@ -116,11 +116,28 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "/v1/templates/polygon-extrusion" in script
     assert "renderMeshPreview" in script
     assert "MAX_PREVIEW_TRIANGLES" in script
+    assert "MAX_PREVIEW_VERTICES" in script
     assert "innerHTML" not in script
+    assert 'id="mesh-zoom-in"' in html
+    assert 'id="mesh-zoom-out"' in html
+    assert 'id="mesh-reset-view"' in html
+    assert 'meshPreview.addEventListener("pointerdown"' in script
+    assert 'meshPreview.addEventListener("pointermove"' in script
+    assert 'meshPreview.addEventListener("wheel"' in script
+    assert "meshCamera.pitch = clamp" in script
+    assert "meshCamera.zoom * factor, 0.5, 4" in script
+    assert "meshCamera.yaw += dx * 0.01" in script
+    assert "meshCamera.panX + dx, -600, 600" in script
+    assert "meshCamera.panY + dy, -400, 400" in script
+    assert "Malformed triangle indices prevent rendering" in script
+    assert "function disableMeshPreview()" in script
+    assert 'byId("mesh-validation").textContent += " ·' in script
+    assert "pointercancel" in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/css")
+    assert "touch-action: none" in stylesheet
     assert ".panel" in stylesheet
 
     status, health = send(base, "/health", extra_headers={"Origin": base})

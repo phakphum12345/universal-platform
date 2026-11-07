@@ -17,10 +17,16 @@
   const profileGeometry = byId("profile-geometry");
   const svgNamespace = "http://www.w3.org/2000/svg";
   const meshFaces = byId("mesh-faces");
+  const meshPreview = byId("mesh-preview");
+  const meshControlButtons = ["mesh-zoom-in", "mesh-zoom-out", "mesh-reset-view"].map(byId);
   const MAX_PREVIEW_TRIANGLES = 5000;
   const MAX_PREVIEW_VERTICES = 10000;
   let bearerToken = "";
   let connected = false;
+  let activeMesh = null;
+  const defaultMeshCamera = { yaw: 0.7853981633974483, pitch: 0.6154797086703874, zoom: 1, panX: 0, panY: 0 };
+  let meshCamera = { ...defaultMeshCamera };
+  let meshDrag = null;
 
   function setStatus(message, kind = "") {
     statusMessage.textContent = message;
@@ -77,12 +83,80 @@
     byId("generate-profile").disabled = !connected || profilePoints.length < 3;
   }
 
-  function clearMeshPreview(message = "No mesh artifact loaded.") {
+  function clamp(value, minimum, maximum) {
+    return Math.min(maximum, Math.max(minimum, value));
+  }
+
+  function disableMeshPreview() {
+    activeMesh = null;
+    meshDrag = null;
     meshFaces.replaceChildren();
+    meshCamera = { ...defaultMeshCamera };
+    meshControlButtons.forEach((button) => { button.disabled = true; });
+  }
+
+  function clearMeshPreview(message = "No mesh artifact loaded.") {
+    disableMeshPreview();
     byId("mesh-state").textContent = "No mesh preview";
     byId("mesh-state").className = "state";
     byId("mesh-validation").textContent = message;
     byId("mesh-details").textContent = "No mesh artifact loaded.";
+  }
+
+  function drawMeshPreview() {
+    if (!activeMesh) return;
+    const { vertices, triangles } = activeMesh;
+    const cosYaw = Math.cos(meshCamera.yaw), sinYaw = Math.sin(meshCamera.yaw);
+    const cosPitch = Math.cos(meshCamera.pitch), sinPitch = Math.sin(meshCamera.pitch);
+    const projected = vertices.map((vertex) => {
+      const x = cosYaw * vertex.x - sinYaw * vertex.y;
+      const y = sinYaw * vertex.x + cosYaw * vertex.y;
+      const z = vertex.z;
+      return {
+        u: x,
+        v: cosPitch * y - sinPitch * z,
+        depth: sinPitch * y + cosPitch * z,
+      };
+    });
+    const minU = Math.min(...projected.map((point) => point.u));
+    const maxU = Math.max(...projected.map((point) => point.u));
+    const minV = Math.min(...projected.map((point) => point.v));
+    const maxV = Math.max(...projected.map((point) => point.v));
+    const rangeU = Math.max(maxU - minU, 1e-9);
+    const rangeV = Math.max(maxV - minV, 1e-9);
+    const scale = Math.min(540 / rangeU, 320 / rangeV) * meshCamera.zoom;
+    const centerU = (minU + maxU) * 0.5;
+    const centerV = (minV + maxV) * 0.5;
+    const screen = projected.map((point) => ({
+      x: 320 + (point.u - centerU) * scale + meshCamera.panX,
+      y: 210 - (point.v - centerV) * scale + meshCamera.panY,
+    }));
+    const faces = triangles.map((indices) => {
+      if (!Array.isArray(indices) || indices.length !== 3 ||
+          indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length)) return null;
+      const a = vertices[indices[0]], b = vertices[indices[1]], c = vertices[indices[2]];
+      const ab = [b.x - a.x, b.y - a.y, b.z - a.z];
+      const ac = [c.x - a.x, c.y - a.y, c.z - a.z];
+      const normal = [
+        ab[1] * ac[2] - ab[2] * ac[1],
+        ab[2] * ac[0] - ab[0] * ac[2],
+        ab[0] * ac[1] - ab[1] * ac[0],
+      ];
+      const faceClass = normal[2] > 0 ? "mesh-face-top" :
+        (normal[0] - normal[1] > 0 ? "mesh-face-side-a" : "mesh-face-side-b");
+      return {
+        points: indices.map((index) => screen[index].x + "," + screen[index].y).join(" "),
+        depth: indices.reduce((sum, index) => sum + projected[index].depth, 0) / 3,
+        faceClass,
+      };
+    }).filter((face) => face !== null).sort((left, right) => right.depth - left.depth);
+    meshFaces.replaceChildren();
+    faces.forEach((face) => {
+      const polygon = document.createElementNS(svgNamespace, "polygon");
+      polygon.setAttribute("points", face.points);
+      polygon.setAttribute("class", "mesh-face " + face.faceClass);
+      meshFaces.append(polygon);
+    });
   }
 
   function renderMeshPreview(run) {
@@ -111,84 +185,83 @@
       " · " + vertices.length + " vertices · " + triangles.length + " triangles" +
       " · content SHA-256 " + artifact.content_sha256 +
       " · computation SHA-256 " + artifact.computation_sha256;
-    meshFaces.replaceChildren();
-
     if (!Array.isArray(vertices) || !Array.isArray(triangles) ||
         vertices.length < 4 || vertices.length > MAX_PREVIEW_VERTICES) {
-      byId("mesh-state").textContent = "Preview unavailable";
+      disableMeshPreview();
       byId("mesh-validation").textContent += " · Mesh vertex data is outside the preview bounds.";
-      return;
-    }
-    if (triangles.length > MAX_PREVIEW_TRIANGLES) {
-      byId("mesh-state").textContent = "Preview capped";
-      byId("mesh-validation").textContent +=
-        " · Preview is limited to " + MAX_PREVIEW_TRIANGLES + " triangles; full mesh remains in the result JSON.";
-      return;
-    }
-
-    const projected = vertices.map((vertex) => {
-      if (![vertex.x, vertex.y, vertex.z].every(Number.isFinite)) return null;
-      return {
-        u: (vertex.x - vertex.y) * 0.8660254037844386,
-        v: (vertex.x + vertex.y) * 0.5 - vertex.z,
-        depth: vertex.x + vertex.y + vertex.z,
-      };
-    });
-    if (projected.some((point) => point === null)) {
       byId("mesh-state").textContent = "Preview unavailable";
-      byId("mesh-validation").textContent += " · Non-finite vertex coordinates.";
       return;
     }
-    const minU = Math.min(...projected.map((point) => point.u));
-    const maxU = Math.max(...projected.map((point) => point.u));
-    const minV = Math.min(...projected.map((point) => point.v));
-    const maxV = Math.max(...projected.map((point) => point.v));
-    const rangeU = Math.max(maxU - minU, 1e-9);
-    const rangeV = Math.max(maxV - minV, 1e-9);
-    const scale = Math.min(540 / rangeU, 320 / rangeV);
-    const centerU = (minU + maxU) * 0.5;
-    const centerV = (minV + maxV) * 0.5;
-    const screen = projected.map((point) => ({
-      x: 320 + (point.u - centerU) * scale,
-      y: 210 - (point.v - centerV) * scale,
-    }));
-
-    const faces = triangles.map((indices) => {
-      if (!Array.isArray(indices) || indices.length !== 3 ||
-          indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length)) {
-        return null;
-      }
-      const a = vertices[indices[0]], b = vertices[indices[1]], c = vertices[indices[2]];
-      const ab = [b.x - a.x, b.y - a.y, b.z - a.z];
-      const ac = [c.x - a.x, c.y - a.y, c.z - a.z];
-      const normal = [
-        ab[1] * ac[2] - ab[2] * ac[1],
-        ab[2] * ac[0] - ab[0] * ac[2],
-        ab[0] * ac[1] - ab[1] * ac[0],
-      ];
-      const faceClass = normal[2] > 0
-        ? "mesh-face-top"
-        : (normal[0] - normal[1] > 0 ? "mesh-face-side-a" : "mesh-face-side-b");
-      return {
-        points: indices.map((index) => screen[index].x + "," + screen[index].y).join(" "),
-        depth: indices.reduce((sum, index) => sum + projected[index].depth, 0) / 3,
-        faceClass,
-      };
-    }).filter((face) => face !== null).sort((left, right) => right.depth - left.depth);
-
-    if (!faces.length) {
+    if (triangles.length === 0 || triangles.length > MAX_PREVIEW_TRIANGLES) {
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Preview is limited to 1–5,000 triangles; full mesh remains in the result JSON.";
       byId("mesh-state").textContent = "Preview unavailable";
-      byId("mesh-validation").textContent += " · No valid triangle faces to render.";
       return;
     }
-    faces.forEach((face) => {
-      const polygon = document.createElementNS(svgNamespace, "polygon");
-      polygon.setAttribute("points", face.points);
-      polygon.setAttribute("class", "mesh-face " + face.faceClass);
-      meshFaces.append(polygon);
-    });
+    if (triangles.some((indices) => !Array.isArray(indices) || indices.length !== 3 ||
+        indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length))) {
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Malformed triangle indices prevent rendering this mesh.";
+      byId("mesh-state").textContent = "Preview unavailable";
+      return;
+    }
+    if (vertices.some((vertex) => !vertex || ![vertex.x, vertex.y, vertex.z].every(Number.isFinite))) {
+      disableMeshPreview();
+      byId("mesh-validation").textContent += " · Non-finite or malformed vertex coordinates prevent rendering.";
+      byId("mesh-state").textContent = "Preview unavailable";
+      return;
+    }
+    activeMesh = { vertices, triangles };
+    meshCamera = { ...defaultMeshCamera };
+    meshControlButtons.forEach((button) => { button.disabled = false; });
+    drawMeshPreview();
   }
 
+  function updateMeshZoom(factor) {
+    if (!activeMesh) return;
+    meshCamera.zoom = clamp(meshCamera.zoom * factor, 0.5, 4);
+    drawMeshPreview();
+  }
+
+  byId("mesh-zoom-in").addEventListener("click", () => updateMeshZoom(1.2));
+  byId("mesh-zoom-out").addEventListener("click", () => updateMeshZoom(1 / 1.2));
+  byId("mesh-reset-view").addEventListener("click", () => {
+    meshCamera = { ...defaultMeshCamera };
+    drawMeshPreview();
+  });
+
+  meshPreview.addEventListener("pointerdown", (event) => {
+    if (!activeMesh || (event.button !== 0 && event.button !== 1)) return;
+    meshDrag = {
+      pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+      mode: event.shiftKey || event.button === 1 ? "pan" : "orbit",
+    };
+    meshPreview.setPointerCapture(event.pointerId);
+  });
+  meshPreview.addEventListener("pointermove", (event) => {
+    if (!meshDrag || meshDrag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - meshDrag.x, dy = event.clientY - meshDrag.y;
+    meshDrag.x = event.clientX;
+    meshDrag.y = event.clientY;
+    if (meshDrag.mode === "pan") {
+      meshCamera.panX = clamp(meshCamera.panX + dx, -600, 600);
+      meshCamera.panY = clamp(meshCamera.panY + dy, -400, 400);
+    } else {
+      meshCamera.yaw += dx * 0.01;
+      meshCamera.pitch = clamp(meshCamera.pitch + dy * 0.01, -1.35, 1.35);
+    }
+    drawMeshPreview();
+  });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
+    meshPreview.addEventListener(eventName, (event) => {
+      if (meshDrag && meshDrag.pointerId === event.pointerId) meshDrag = null;
+    });
+  });
+  meshPreview.addEventListener("wheel", (event) => {
+    if (!activeMesh) return;
+    event.preventDefault();
+    updateMeshZoom(event.deltaY < 0 ? 1.1 : 1 / 1.1);
+  }, { passive: false });
   function addProfilePoint(x, y) {
     if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 26 || y < 0 || y > 15) {
       throw new Error("Profile coordinates must be within X 0–26 mm and Y 0–15 mm.");
