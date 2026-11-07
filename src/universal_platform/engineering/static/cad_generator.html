@@ -116,9 +116,29 @@
       <p class="hint">Regeneration always targets the selected immutable source revision and returns its provenance, artifact digests and validation results.</p>
     </section>
 
+    <section class="panel" aria-labelledby="mesh-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">05 / GENERATED GEOMETRY</div><h2 id="mesh-heading">Isometric mesh preview</h2></div>
+        <span id="mesh-state" class="state">No mesh preview</span>
+      </div>
+      <svg id="mesh-preview" class="mesh-preview" viewBox="0 0 640 420" role="img" aria-label="Isometric preview of the generated triangle mesh">
+        <defs>
+          <pattern id="mesh-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M 24 0 L 0 0 0 24" class="grid-line"></path>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="640" height="420" class="grid-background"></rect>
+        <rect x="20" y="20" width="600" height="380" fill="url(#mesh-grid)"></rect>
+        <g id="mesh-faces"></g>
+      </svg>
+      <p id="mesh-validation" class="hint">Run regeneration for a source revision to display its generated mesh and validation report.</p>
+      <p id="mesh-details" class="mesh-details">No mesh artifact loaded.</p>
+      <p class="hint">This is a static isometric triangle-mesh preview, not a full CAD viewport. Face rendering is capped at 5,000 triangles; geometry and validation values remain available in the operation result.</p>
+    </section>
+
     <section class="panel result-panel" aria-labelledby="result-heading">
       <div class="section-heading">
-        <div><div class="eyebrow">05 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
+        <div><div class="eyebrow">06 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
         <button id="clear-result" class="quiet">Clear</button>
       </div>
       <div id="status-message" class="status-message" role="status" aria-live="polite">Enter your local bearer token and connect to begin.</div>
