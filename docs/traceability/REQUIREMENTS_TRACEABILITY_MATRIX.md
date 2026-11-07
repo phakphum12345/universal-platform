@@ -140,6 +140,16 @@ Latest integration SHA: `30deb5290e4a84b8ce86848dcac21309d0b1ad95`. Main remains
 |---|---|---|---|
 | CAD-FEATURE-ARTIFACT-REHYDRATE-001 | Reconstruct persisted feature artifacts only after schema, digest and geometry validation | PR #131; `FeatureArtifact.from_dict`; `SketchRegionConversionResult.from_dict` | IMPLEMENTED — all four allow-listed feature kinds have strict rehydration; mesh validation is recomputed and compared; tampering/unknown fields fail closed. |
 | CAD-FEATURE-ARTIFACT-CACHE-001 | Reuse deterministic feature outputs across process restarts | PR #132; `SQLiteFeatureArtifactCache`; `regenerate_feature_history(artifact_cache=...)` | IMPLEMENTED — local SQLite cache keyed by history/feature/computation digest; exact algorithm versions participate in computation signatures; reopen and cache-reuse tests pass. |
-| CAD-FEATURE-DURABLE-E2E-001 | Load a durable FeatureHistory revision and regenerate using a reopened artifact cache in a fresh process | PR #124 + PR #132; future integrated acceptance test | OPEN — the source revision store and artifact cache are separate verified components; combined reopen workflow has not yet been accepted. |
+| CAD-FEATURE-DURABLE-E2E-001 | Load a durable FeatureHistory revision and regenerate using a reopened artifact cache in a fresh process | PR #124, #132, #134; `tests/test_feature_history_durable_e2e.py` | IMPLEMENTED — PR #134 runs a child Python interpreter, reopens both SQLite stores, loads the exact source revision, reuses profile/extrusion/mesh with zero recomputation, preserves all artifact digests and confirms a watertight consistently oriented mesh; exact-head and post-merge CI PASS, 813 tests. |
 
 Latest integration SHA: `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42375907153 passed both required jobs with 812 tests.
+
+
+## Durable FeatureHistory + cache fresh-process acceptance — post-PR #134
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-FEATURE-DURABLE-E2E-001 | Load a durable source revision and reuse persisted computed artifacts in a separate process | PR #124/#132/#134; `tests/test_feature_history_durable_e2e.py` | IMPLEMENTED — subprocess reopens both SQLite databases, loads revision 1, reuses all three feature artifacts with zero recomputation, verifies identical SHA-256 outputs and watertight/orientation checks. Exact-head and post-merge CI pass, 813 tests. |
+| CAD-GEN-API-001 | Provide a governed CAD generator API/service over versioned FeatureHistory and regeneration | FeatureHistory contract; future API contract and integration tests | OPEN — library, revision store and local artifact cache exist; a stable service/API contract, request validation, revision selection, provenance response and end-to-end API tests are not yet implemented. |
+
+Latest integration SHA: `e4a1add528e4fd77c88df96d428ff629e2f4b655`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42376427587 passed both required jobs with 813 tests.
