@@ -222,3 +222,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Implementation and evidence | Remaining boundary |
 |---|---|---|---|
 | CAD-FEATURE-TREE-INSPECTOR-001 | Inspect FeatureHistory dependency structure and node parameters | IMPLEMENTED narrow read-only slice by PR #150 at merge `da16967de5f387f4e98d9642134626982644d479`. Exact PR-head workflow #42392209579: both jobs PASS, 833 tests in 9.15s; Node.js syntax check PASS. Exact post-merge workflow #42392264691: both jobs PASS, 833 tests in 8.73s. | PARTIAL overall feature-tree capability: 500-node preview only; no editing, suppression, reorder, parameter commit, recompute propagation or visual dependency edges. |
+
+
+## FeatureHistory editing traceability — PR #152
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-EDIT-001 | Add, replace and remove FeatureHistory DAG nodes without corrupting dependencies or mutating the source snapshot | IMPLEMENTED bounded backend slice by PR #152. Exact PR head `3c2469a43e48d5ac2fb7e546242d9a450dff1a87`; workflow #42396387520: workflow-sanity PASS, python-tests PASS, 840 passed in 9.23s. Exact merge `1a8338ae17eb783a374a36400999ead796f9a79d`; post-merge workflow #42396453320: both jobs PASS, 840 passed in 8.71s. Tests cover duplicate IDs, missing dependencies, stable-ID replacement, downstream deletion protection, explicit cascade and output invariants. | PARTIAL overall editor: no browser edit controls, HTTP mutation routes, suppression, undo/redo, feature rename migration, branch/merge model or recompute propagation UI. |
