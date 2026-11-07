@@ -12,11 +12,14 @@ from .errors import InvalidModelError
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history import (
     FeatureHistory,
+    FeatureNode,
     FeatureRegenerationResult,
     regenerate_feature_history,
 )
+from .feature_history_editor import add_feature, remove_feature, replace_feature
 from .feature_history_store import (
     FeatureHistoryRevision,
+    FeatureHistoryRevisionConflict,
     SQLiteFeatureHistoryStore,
 )
 from .nonlinear_solver import NonlinearSolverOptions
@@ -94,6 +97,53 @@ class CADGeneratorService:
             raise InvalidModelError("FeatureHistory snapshot must be an object")
         history = FeatureHistory.from_dict(snapshot)
         return self.save_history(history, expected_revision=expected_revision)
+
+    def edit_history(
+        self,
+        history_id: str,
+        *,
+        expected_revision: int,
+        operation: str,
+        feature: FeatureNode | None = None,
+        feature_id: str | None = None,
+        cascade: bool = False,
+        make_output: bool = False,
+    ) -> FeatureHistoryRevision:
+        """Apply one validated graph edit and append a new immutable revision.
+
+        The latest source revision must equal expected_revision before editing.
+        SQLite compare-and-swap on save closes the race between this read and
+        the append, so concurrent writers cannot silently overwrite each other.
+        """
+        if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
+            raise InvalidModelError("expected_revision must be a positive integer for an edit")
+        if not isinstance(operation, str) or operation not in {"add", "replace", "remove"}:
+            raise InvalidModelError("operation must be add, replace or remove")
+        if not isinstance(cascade, bool) or not isinstance(make_output, bool):
+            raise InvalidModelError("cascade and make_output must be booleans")
+
+        current = self.history_store.load(history_id)
+        if current.revision != expected_revision:
+            raise FeatureHistoryRevisionConflict(
+                history_id, expected_revision, current.revision
+            )
+
+        if operation == "add":
+            if not isinstance(feature, FeatureNode) or feature_id is not None or cascade:
+                raise InvalidModelError("add requires feature and does not accept feature_id or cascade")
+            updated = add_feature(current.history, feature, make_output=make_output)
+        elif operation == "replace":
+            if not isinstance(feature, FeatureNode) or not isinstance(feature_id, str):
+                raise InvalidModelError("replace requires feature and feature_id")
+            if cascade or make_output:
+                raise InvalidModelError("replace does not accept cascade or make_output")
+            updated = replace_feature(current.history, feature_id, feature)
+        else:
+            if feature is not None or not isinstance(feature_id, str) or make_output:
+                raise InvalidModelError("remove requires feature_id and does not accept feature or make_output")
+            updated = remove_feature(current.history, feature_id, cascade=cascade)
+
+        return self.history_store.save(updated, expected_revision=expected_revision)
 
     def get_revision(
         self,

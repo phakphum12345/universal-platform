@@ -22,6 +22,7 @@ from uuid import uuid4
 from .cad_generator_service import CADGeneratorService
 from .cad_generator_templates import build_polygon_extrusion_history
 from .errors import InvalidModelError
+from .feature_history import FeatureKind, FeatureNode
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history_store import (
     FeatureHistoryRevisionConflict,
@@ -51,6 +52,24 @@ def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_json_constant(value: str) -> None:
     raise ValueError(f"non-finite JSON number is not allowed: {value}")
+
+
+def _parse_feature_node(value: object) -> FeatureNode:
+    required = {"feature_id", "kind", "input_feature_ids", "parameters"}
+    if not isinstance(value, dict) or set(value) != required:
+        raise _HTTPError(
+            400, "INVALID_FEATURE",
+            "feature must contain exactly feature_id, kind, input_feature_ids and parameters",
+        )
+    if not isinstance(value["input_feature_ids"], list) or not isinstance(value["parameters"], dict):
+        raise _HTTPError(400, "INVALID_FEATURE", "feature inputs must be an array and parameters must be an object")
+    try:
+        kind = FeatureKind(value["kind"])
+    except (TypeError, ValueError) as exc:
+        raise _HTTPError(400, "INVALID_FEATURE", "feature kind is unsupported") from exc
+    return FeatureNode.create(
+        value["feature_id"], kind, tuple(value["input_feature_ids"]), value["parameters"]
+    )
 
 
 class CADAPIAuditIntegrityError(RuntimeError):
@@ -363,6 +382,62 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 "content_sha256": revision.content_sha256,
                 "created_at": revision.created_at,
                 "history": revision.history.to_dict(),
+            }
+
+        if self.command == "POST" and len(parts) == 2 and parts[1] == "edit":
+            body = self._read_json()
+            operation = body.get("operation")
+            expected = body.get("expected_revision")
+            if isinstance(expected, bool) or not isinstance(expected, int) or expected < 1:
+                raise _HTTPError(400, "INVALID_REVISION", "expected_revision must be a positive integer")
+
+            feature = None
+            feature_id = None
+            cascade = False
+            make_output = False
+            if operation == "add":
+                if set(body) not in (
+                    {"expected_revision", "operation", "feature"},
+                    {"expected_revision", "operation", "feature", "make_output"},
+                ):
+                    raise _HTTPError(400, "INVALID_FIELDS", "add requires expected_revision, operation, feature and optional make_output")
+                feature = _parse_feature_node(body["feature"])
+                make_output = body.get("make_output", False)
+                if not isinstance(make_output, bool):
+                    raise _HTTPError(400, "INVALID_FIELDS", "make_output must be a boolean")
+            elif operation == "replace":
+                if set(body) != {"expected_revision", "operation", "feature_id", "feature"}:
+                    raise _HTTPError(400, "INVALID_FIELDS", "replace requires expected_revision, operation, feature_id and feature")
+                feature_id = body["feature_id"]
+                feature = _parse_feature_node(body["feature"])
+            elif operation == "remove":
+                if set(body) not in (
+                    {"expected_revision", "operation", "feature_id"},
+                    {"expected_revision", "operation", "feature_id", "cascade"},
+                ):
+                    raise _HTTPError(400, "INVALID_FIELDS", "remove requires expected_revision, operation, feature_id and optional cascade")
+                feature_id = body["feature_id"]
+                cascade = body.get("cascade", False)
+                if not isinstance(cascade, bool):
+                    raise _HTTPError(400, "INVALID_FIELDS", "cascade must be a boolean")
+            else:
+                raise _HTTPError(400, "INVALID_OPERATION", "operation must be add, replace or remove")
+
+            revision = self.server.generator_service.edit_history(
+                history_id,
+                expected_revision=expected,
+                operation=operation,
+                feature=feature,
+                feature_id=feature_id,
+                cascade=cascade,
+                make_output=make_output,
+            )
+            return 201, {
+                "history_id": revision.history_id,
+                "revision": revision.revision,
+                "parent_sha256": revision.parent_sha256,
+                "content_sha256": revision.content_sha256,
+                "created_at": revision.created_at,
             }
 
         if self.command == "POST" and len(parts) == 2 and parts[1] == "regenerate":
