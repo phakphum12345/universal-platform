@@ -33,6 +33,7 @@
     connectionState.textContent = value ? "Connected" : "Not connected";
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
+    renderProfile();
   }
 
   function profileToCanvas(point) {
