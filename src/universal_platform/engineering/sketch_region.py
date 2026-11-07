@@ -106,7 +106,9 @@ def _extract_cycles(sketch: ParametricSketch) -> tuple[tuple[_BoundaryEdge, ...]
         current_edge = first
         visited_points = {start}
         while True:
-            cycle.append(current_edge)
+            cycle.append(_BoundaryEdge(
+                current_edge.kind, current_edge.edge_id, previous_point, current_point
+            ))
             if current_point == start:
                 break
             if current_point in visited_points:
@@ -184,29 +186,21 @@ def _cycle_points(
 ) -> tuple[Vec2, ...]:
     output: list[Vec2] = []
     for edge in cycle:
-        forward = True
-        # The traversal orientation is recovered from the preceding endpoint.
-        if output:
-            previous = output[-1]
-            start = point_by_id[edge.start_point_id]
-            end = point_by_id[edge.end_point_id]
-            if previous == end:
-                forward = False
-            elif previous != start:
-                raise InvalidModelError("sketch boundary traversal has inconsistent endpoint identity")
         if edge.kind == "segment":
             samples = (point_by_id[edge.start_point_id], point_by_id[edge.end_point_id])
         else:
-            samples = _arc_points(arc_by_id[edge.edge_id], point_by_id, chord_error=chord_error)
-        if not forward:
-            samples = tuple(reversed(samples))
+            arc = arc_by_id[edge.edge_id]
+            samples = _arc_points(arc, point_by_id, chord_error=chord_error)
+            if edge.start_point_id != arc.start_point_id:
+                samples = tuple(reversed(samples))
+        if samples[0] != point_by_id[edge.start_point_id] or samples[-1] != point_by_id[edge.end_point_id]:
+            raise InvalidModelError("sketch boundary edge endpoints do not match the solved sketch")
         if not output:
             output.extend(samples[:-1])
         else:
             if output[-1] != samples[0]:
                 raise InvalidModelError("sketch boundary edges do not share the same solved endpoint")
             output.extend(samples[1:-1])
-        # Keep the final endpoint implicit; the next edge contributes it as its start.
     if len(output) < 3:
         raise InvalidModelError("tessellated sketch loop requires at least three vertices")
     return tuple(output)
