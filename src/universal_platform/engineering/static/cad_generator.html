@@ -94,6 +94,20 @@
       </div>
       <label for="snapshot">FeatureHistory JSON snapshot</label>
       <textarea id="snapshot" rows="16" spellcheck="false" autocomplete="off" placeholder='Paste a complete FeatureHistory.to_dict() JSON snapshot here. Required fields: schema_version, history_id, nodes, output_feature_ids.'></textarea>
+      <div class="feature-tree-panel" aria-labelledby="feature-tree-heading">
+        <div class="section-heading">
+          <h3 id="feature-tree-heading">Feature tree preview</h3>
+          <span id="feature-tree-state" class="state" role="status" aria-live="polite">No FeatureHistory snapshot.</span>
+        </div>
+        <div class="feature-tree-layout">
+          <ol id="feature-tree" class="feature-tree-list" aria-label="Feature nodes"></ol>
+          <div class="feature-inspector-panel">
+            <h4>Selected feature</h4>
+            <pre id="feature-inspector" class="feature-inspector">Select a feature to inspect its inputs and parameters.</pre>
+          </div>
+        </div>
+        <p class="hint">Read-only structural preview in deterministic dependency order. Editing and backend validation remain separate operations.</p>
+      </div>
       <div class="actions">
         <button id="save" class="primary" disabled>Save new revision</button>
         <button id="list" disabled>Refresh revisions</button>
