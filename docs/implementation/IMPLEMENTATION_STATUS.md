@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` (post-PR #125).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 334 ahead / 0 behind).  
+**Current integration HEAD:** `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (post-PR #126).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 368 ahead / 0 behind).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #125 workflow #42336694017 on `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` — workflow-sanity PASS; python-tests PASS; **785 passed in 4.65s**.  
+**Latest post-merge CI:** PR #126 workflow #42337494844 on `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` — workflow-sanity PASS; python-tests PASS; **791 passed in 3.82s**.  
 **Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
-**Open PRs:** 0 at post-PR #125 audit (before the next arc increment). **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Open PRs:** 0 at post-PR #126 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -876,11 +876,19 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Local workstation working-tree state remains UNKNOWN from remote repository inspection.
 
 
-## Circular sketch geometry increment — pending exact-head validation
+## Circular sketch geometry increment — merged PR #126
 
-- Branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on integration SHA `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9`.
+- Branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`; merged at `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd`.
 - Adds `SketchArc` with stable center/start/end point references and clockwise metadata; requires one positive `RADIUS` constraint per arc.
 - Adds a two-endpoint radial equality for RADIUS and a normalized orthogonality residual for TANGENT at a shared segment/arc endpoint.
 - Extends ParametricSketch to v1.2 while retaining v1.0/v1.1 snapshot reads.
 - Straight-line sketch-to-region conversion rejects arc-containing sketches; curved-loop conversion is not implemented.
-- Exact-head CI and post-merge CI are pending. No PASS is claimed for this branch.
+- Exact PR-head CI and post-merge CI both passed 791 tests. Curved-loop conversion remains OPEN.
+
+
+## Current CAD sketch baseline — post-PR #126
+
+- Integration HEAD: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration 368 ahead / 0 behind.
+- PR #126 merged ParametricSketch schema v1.2, circular arc references, positive RADIUS equations and endpoint TANGENT constraints. Exact PR-head and post-merge CI passed 791 tests.
+- The straight-line `sketch_to_planar_regions` converter fails closed on arc-containing sketches. Curved-loop tessellation, curved PlanarRegion construction, curved Boolean and curved B-rep remain OPEN.
+- Durable source FeatureHistory revisions are implemented by PR #124; durable computed-artifact serialization/rehydration remains OPEN.
