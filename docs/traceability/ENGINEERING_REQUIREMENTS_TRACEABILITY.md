@@ -215,3 +215,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Implementation and evidence | Remaining boundary |
 |---|---|---|---|
 | CAD-GENERATOR-TRIANGLE-INSPECTION-001 | Select and inspect generated mesh facets | IMPLEMENTED narrow slice by PR #148 at merge `1fb9bc97c22bf0464e154f6963583edb9385d657`. Exact PR-head workflow #42391405409 on `43461346e32e1c5146c5beeab79340d7fbc387df`: both jobs PASS, 832 tests in 8.59s. Exact post-merge workflow #42391470608 on `1fb9bc97c22bf0464e154f6963583edb9385d657`: both jobs PASS, 832 tests in 7.59s. Accessible pointer/keyboard triangle selection, highlight/clear, area and centroid use mesh unit/frame. | PARTIAL overall CAD inspection: triangle facets only, no B-rep topology, edges/vertices, sketch dimensions, sectioning, face editing or assemblies. Browser E2E interaction tests not yet present. |
+
+
+## FeatureHistory tree inspection traceability — PR #150
+
+| ID | Requirement | Implementation and evidence | Remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-INSPECTOR-001 | Inspect FeatureHistory dependency structure and node parameters | IMPLEMENTED narrow read-only slice by PR #150 at merge `da16967de5f387f4e98d9642134626982644d479`. Exact PR-head workflow #42392209579: both jobs PASS, 833 tests in 9.15s; Node.js syntax check PASS. Exact post-merge workflow #42392264691: both jobs PASS, 833 tests in 8.73s. | PARTIAL overall feature-tree capability: 500-node preview only; no editing, suppression, reorder, parameter commit, recompute propagation or visual dependency edges. |
