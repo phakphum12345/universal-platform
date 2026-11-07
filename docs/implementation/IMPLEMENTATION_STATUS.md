@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `1fb9bc97c22bf0464e154f6963583edb9385d657` (post-PR #148).  
+**Current integration HEAD:** `da16967de5f387f4e98d9642134626982644d479` (post-PR #150).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #148 workflow #42391470608 on exact merge SHA `1fb9bc97c22bf0464e154f6963583edb9385d657` — workflow-sanity PASS; python-tests PASS; **832 passed in 7.59s**.  
-**Current tree:** 340 entries, 110 Markdown, 163 Python, 24 JSON files, 84 Python test files; recursive response truncated=false.  
-**Open PRs:** 0 at this audit; PR #146 merged. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
+**Latest post-merge CI:** PR #150 workflow #42392264691 on exact merge SHA `da16967de5f387f4e98d9642134626982644d479` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **833 passed in 8.73s**.  
+**Current tree:** 341 entries, 111 Markdown, 163 Python, 24 JSON files, 84 Python test files; recursive response truncated=false.  
+**Open PRs:** 0 at this audit; PRs #148–#150 merged. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1006,3 +1006,13 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - UI state is ephemeral and display-only; no source revision, artifact, API or audit mutation. Non-finite measurement values are not displayed.
 - Capability is PARTIAL: triangle facet inspection only; B-rep face/edge selection, sketch dimensions, sectioning, face editing and general CAD kernel remain OPEN. Browser E2E interaction testing is not part of the current workflow.
 - Repository inventory: 340 entries, 110 Markdown, 163 Python, 24 JSON and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+
+
+## CAD Generator FeatureHistory tree inspector — PR #150
+
+- PR #150 merged at exact integration SHA `da16967de5f387f4e98d9642134626982644d479`; base SHA `b59160677cf36438f38a37735d2708a57e6d92e4`; exact PR head `2958c270eebbbba884b59ed06714946622adeb67`.
+- Exact PR-head workflow #42392209579: workflow-sanity PASS including Node.js syntax check; python-tests PASS; **833 passed in 9.15s**.
+- Exact post-merge workflow #42392264691 on `da16967de5f387f4e98d9642134626982644d479`: both jobs PASS; **833 passed in 8.73s**.
+- Adds bounded (500-node) read-only FeatureHistory tree preview in deterministic topological dependency order, safe text-only DOM rendering, selected-node inspection and malformed/cycle fail-closed behavior.
+- This does not edit or regenerate FeatureHistory. Editable DAG, parametric operations, feature suppression and recompute propagation remain OPEN.
+- Inventory: 341 entries, 111 Markdown, 163 Python, 24 JSON, 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
