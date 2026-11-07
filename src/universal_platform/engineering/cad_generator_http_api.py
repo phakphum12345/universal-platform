@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 from uuid import uuid4
 
 from .cad_generator_service import CADGeneratorService
+from .cad_generator_templates import build_polygon_extrusion_history
 from .errors import InvalidModelError
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history_store import (
@@ -276,6 +277,29 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             raise _HTTPError(400, "UNEXPECTED_QUERY", "Query parameters are only accepted on GET")
         if self.command == "GET" and path == "/health":
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
+
+        if self.command == "POST" and path == "/v1/templates/polygon-extrusion":
+            body = self._read_json()
+            required = {"history_id", "points", "height"}
+            if set(body) not in (required, required | {"length_unit"}):
+                raise _HTTPError(
+                    400, "INVALID_FIELDS",
+                    "Expected history_id, points, height and optional length_unit",
+                )
+            history = build_polygon_extrusion_history(
+                body["history_id"], body["points"],
+                height=body["height"], length_unit=body.get("length_unit", "mm"),
+            )
+            return 200, {
+                "template": "polygon-extrusion-v1",
+                "history": history.to_dict(),
+                "limitations": [
+                    "Straight-edge closed polygon only; no arcs, splines or construction geometry",
+                    "Vertices are fixed by explicit X/Y constraints; no automatic constraint inference",
+                    "Self-intersection and solid validity are decided by the regeneration pipeline",
+                    "Maximum 64 vertices; this is not a general CAD kernel",
+                ],
+            }
 
         prefix = "/v1/histories/"
         if self.command == "POST" and path == "/v1/histories":

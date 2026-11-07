@@ -103,12 +103,16 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "CAD Generator" in html
     assert "/static/cad_generator.js" in html
     assert "/static/cad_generator.css" in html
+    assert 'id="profile-canvas"' in html
+    assert "Generate FeatureHistory JSON" in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/javascript")
     assert "localStorage" not in script
     assert "credentials: \"omit\"" in script
+    assert "/v1/templates/polygon-extrusion" in script
+    assert "innerHTML" not in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
@@ -119,6 +123,52 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert status == 200
     assert health["status"] == "READY"
     assert audit.verify()
+
+
+def test_http_polygon_template_endpoint_generates_and_regenerates_a_profile(api):
+    base, audit, _ = api
+    status, template = send(
+        base, "/v1/templates/polygon-extrusion", method="POST",
+        body={
+            "history_id": "history.from-canvas",
+            "points": [[0, 0], [12, 0], [12, 8], [0, 8]],
+            "height": 4,
+            "length_unit": "mm",
+        },
+    )
+    assert status == 200
+    assert template["template"] == "polygon-extrusion-v1"
+    history = template["history"]
+    assert history["history_id"] == "history.from-canvas"
+    assert len(history["nodes"][0]["parameters"]["sketch"]["points"]) == 4
+
+    status, saved = send(
+        base, "/v1/histories", method="POST",
+        body={"history": history, "expected_revision": 0},
+    )
+    assert status == 201
+    status, generated = send(
+        base, "/v1/histories/history.from-canvas/regenerate",
+        method="POST", body={"revision": saved["revision"]},
+    )
+    assert status == 200
+    assert generated["regeneration"]["status"] == "SUCCESS"
+    assert generated["regeneration"]["artifacts"][-1]["payload"]["validation"]["watertight"] is True
+    assert audit.verify()
+
+
+def test_http_polygon_template_rejects_invalid_profile_points(api):
+    base, _, _ = api
+    status, result = send(
+        base, "/v1/templates/polygon-extrusion", method="POST",
+        body={
+            "history_id": "history.invalid-profile",
+            "points": [[0, 0], [1, 1]],
+            "height": 2,
+        },
+    )
+    assert status == 400
+    assert result["error"]["code"] == "INVALID_REQUEST"
 
 
 def test_http_api_saves_reads_and_regenerates_exact_history_revision(api):

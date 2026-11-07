@@ -11,7 +11,11 @@
   const revisionSelect = byId("revision");
   const statusMessage = byId("status-message");
   const resultOutput = byId("result");
-  const buttons = ["save", "list", "load", "regenerate"].map(byId);
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile"].map(byId);
+  const profilePoints = [];
+  const profileCanvas = byId("profile-canvas");
+  const profileGeometry = byId("profile-geometry");
+  const svgNamespace = "http://www.w3.org/2000/svg";
   let bearerToken = "";
   let connected = false;
 
@@ -29,6 +33,60 @@
     connectionState.textContent = value ? "Connected" : "Not connected";
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
+    renderProfile();
+  }
+
+  function profileToCanvas(point) {
+    return { x: 40 + point.x * 20, y: 320 - point.y * 20 };
+  }
+
+  function renderProfile() {
+    profileGeometry.replaceChildren();
+    const screenPoints = profilePoints.map(profileToCanvas);
+    if (screenPoints.length >= 3) {
+      const polygon = document.createElementNS(svgNamespace, "polygon");
+      polygon.setAttribute("points", screenPoints.map((point) => point.x + "," + point.y).join(" "));
+      polygon.setAttribute("class", "profile-edge");
+      profileGeometry.append(polygon);
+    } else if (screenPoints.length === 2) {
+      const line = document.createElementNS(svgNamespace, "polyline");
+      line.setAttribute("points", screenPoints.map((point) => point.x + "," + point.y).join(" "));
+      line.setAttribute("class", "profile-open-edge");
+      profileGeometry.append(line);
+    }
+    screenPoints.forEach((point, index) => {
+      const marker = document.createElementNS(svgNamespace, "circle");
+      marker.setAttribute("cx", String(point.x));
+      marker.setAttribute("cy", String(point.y));
+      marker.setAttribute("r", "5");
+      marker.setAttribute("class", "profile-vertex");
+      profileGeometry.append(marker);
+      const label = document.createElementNS(svgNamespace, "text");
+      label.setAttribute("x", String(point.x + 8));
+      label.setAttribute("y", String(point.y - 8));
+      label.setAttribute("class", "profile-vertex-label");
+      label.textContent = "P" + index;
+      profileGeometry.append(label);
+    });
+    byId("profile-state").textContent = profilePoints.length + " vertices";
+    byId("undo-point").disabled = profilePoints.length === 0;
+    byId("clear-profile").disabled = profilePoints.length === 0;
+    byId("generate-profile").disabled = !connected || profilePoints.length < 3;
+  }
+
+  function addProfilePoint(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 26 || y < 0 || y > 15) {
+      throw new Error("Profile coordinates must be within X 0–26 mm and Y 0–15 mm.");
+    }
+    if (profilePoints.length >= 64) {
+      throw new Error("The bounded polygon editor supports at most 64 vertices.");
+    }
+    const duplicate = profilePoints.some((point) =>
+      Math.abs(point.x - x) <= 1e-9 && Math.abs(point.y - y) <= 1e-9
+    );
+    if (duplicate) throw new Error("A profile vertex already exists at this coordinate.");
+    profilePoints.push({ x, y });
+    renderProfile();
   }
 
   async function api(path, options = {}) {
@@ -218,6 +276,83 @@
     }
   });
 
+  byId("add-point").addEventListener("click", () => {
+    try {
+      const x = Number(byId("sketch-x").value);
+      const y = Number(byId("sketch-y").value);
+      addProfilePoint(x, y);
+      setStatus("Added profile vertex " + profilePoints.length + ".", "good");
+    } catch (error) {
+      setStatus(error.message, "bad");
+    }
+  });
+
+  byId("undo-point").addEventListener("click", () => {
+    profilePoints.pop();
+    renderProfile();
+    setStatus("Removed the last profile vertex.");
+  });
+
+  byId("clear-profile").addEventListener("click", () => {
+    profilePoints.length = 0;
+    renderProfile();
+    setStatus("Cleared the sketch profile.");
+  });
+
+  profileCanvas.addEventListener("click", (event) => {
+    const matrix = profileCanvas.getScreenCTM();
+    if (!matrix) return;
+    const cursor = profileCanvas.createSVGPoint();
+    cursor.x = event.clientX;
+    cursor.y = event.clientY;
+    const local = cursor.matrixTransform(matrix.inverse());
+    const x = Math.round(((local.x - 40) / 20) * 10) / 10;
+    const y = Math.round(((320 - local.y) / 20) * 10) / 10;
+    if (x < 0 || x > 26 || y < 0 || y > 15) return;
+    try {
+      addProfilePoint(x, y);
+      byId("sketch-x").value = String(x);
+      byId("sketch-y").value = String(y);
+      setStatus("Added profile vertex " + profilePoints.length + ".", "good");
+    } catch (error) {
+      setStatus(error.message, "bad");
+    }
+  });
+
+  byId("generate-profile").addEventListener("click", async () => {
+    try {
+      const id = currentHistoryId();
+      const height = Number(byId("extrusion-height").value);
+      if (!Number.isFinite(height) || height <= 0) {
+        throw new Error("Extrusion height must be a finite positive number.");
+      }
+      if (profilePoints.length < 3) {
+        throw new Error("Add at least three profile vertices before generating.");
+      }
+      const result = await api("/v1/templates/polygon-extrusion", {
+        method: "POST",
+        body: {
+          history_id: id,
+          points: profilePoints.map((point) => [point.x, point.y]),
+          height,
+          length_unit: "mm",
+        },
+      });
+      snapshotInput.value = JSON.stringify(result.history, null, 2);
+      setStatus("FeatureHistory JSON generated. Save the revision, then regenerate to validate the solid.", "good");
+      showResult({
+        template: result.template,
+        history_id: result.history.history_id,
+        point_count: profilePoints.length,
+        extrusion_height_mm: height,
+        limitations: result.limitations,
+      });
+    } catch (error) {
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+    }
+  });
+
   revisionSelect.addEventListener("change", () => {
     byId("revision-state").textContent = "Selected revision " + revisionSelect.value;
   });
@@ -234,4 +369,5 @@
   });
 
   setConnected(false);
+  renderProfile();
 })();
