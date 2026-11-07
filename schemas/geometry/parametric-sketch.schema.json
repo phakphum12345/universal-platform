@@ -432,7 +432,12 @@
                   {
                     "properties": {
                       "kind": {
-                        "const": "ANGLE"
+                        "const": "ANGLE",
+                        "enum": [
+                          "ANGLE",
+                          "TANGENT",
+                          "RADIUS"
+                        ]
                       }
                     },
                     "required": [
@@ -443,10 +448,18 @@
                     "required": [
                       "segment_ids"
                     ]
+                  },
+                  {
+                    "required": [
+                      "arc_ids"
+                    ]
                   }
                 ]
               }
             }
+          },
+          "arcs": {
+            "maxItems": 0
           }
         }
       }
@@ -489,6 +502,9 @@
                 ]
               }
             }
+          },
+          "arcs": {
+            "maxItems": 0
           }
         }
       }
