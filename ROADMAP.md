@@ -517,3 +517,14 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head SHA `2958c270eebbbba884b59ed06714946622adeb67`, workflow #42392209579: workflow-sanity PASS and python-tests PASS; **833 passed in 9.15s**.
 - Exact post-merge SHA `da16967de5f387f4e98d9642134626982644d479`, workflow #42392264691: both jobs PASS; **833 passed in 8.73s**.
 - Capability boundary: read-only feature-tree inspector, not a graphical DAG editor or parametric feature editing/recompute system. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+
+
+## CAD Generator interactive FeatureHistory editing — PR #156 MERGED
+
+- Adds selected-feature parameter replacement, feature add and feature removal to the local same-origin CAD workbench.
+- Operations call the revision-safe loopback API and append immutable source revisions. Historical revisions are read-only; editing controls are gated to the loaded current head.
+- Dependent deletion requires an explicit cascade checkbox. Stale revision conflicts are surfaced with refresh guidance.
+- The browser code uses text-only rendering; no user code or new feature kinds are introduced.
+- Exact PR head `265ca3907e05f958fbae48f48398fbbae8d70ea2`: workflow-sanity PASS; python-tests PASS; 843 passed in 9.40s.
+- Exact merge SHA `10404099ccaa85cef24adedffa7bce789abd691e`: post-merge workflow #42407835073 passed both jobs; 843 passed in 9.76s.
+- Remaining: browser E2E interaction tests, suppression, reorder semantics, undo/redo, branch/merge history, expression parameters, B-rep editing and geometry recomputation propagation. This PR is a bounded source-history editor, not a complete CAD editor.
