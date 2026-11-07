@@ -117,13 +117,16 @@
             "HORIZONTAL_DISTANCE",
             "VERTICAL_DISTANCE",
             "FIX_X",
-            "FIX_Y"
+            "FIX_Y",
+            "PARALLEL",
+            "PERPENDICULAR",
+            "EQUAL_LENGTH"
           ]
         },
         "point_ids": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 2,
+          "maxItems": 4,
           "items": {
             "type": "string",
             "minLength": 1
@@ -214,6 +217,33 @@
               "point_ids": {
                 "minItems": 2,
                 "maxItems": 2
+              },
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "PARALLEL",
+                  "PERPENDICULAR",
+                  "EQUAL_LENGTH"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "point_ids": {
+                "minItems": 4,
+                "maxItems": 4
               },
               "value": {
                 "type": "null"
