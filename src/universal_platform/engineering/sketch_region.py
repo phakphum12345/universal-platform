@@ -57,23 +57,23 @@ def _extract_cycles(sketch: ParametricSketch) -> tuple[tuple[_BoundaryEdge, ...]
     if not sketch.segments and not sketch.arcs:
         raise InvalidModelError("sketch-to-region conversion requires closed segments or arcs")
     adjacency: dict[str, list[_BoundaryEdge]] = {}
-    edge_keys: set[tuple[str, str]] = set()
+    edge_kinds: dict[tuple[str, str], set[str]] = {}
     center_ids = {arc.center_point_id for arc in sketch.arcs}
     for segment in sketch.segments:
         edge = _BoundaryEdge("segment", segment.segment_id,
                              segment.start_point_id, segment.end_point_id)
         key = tuple(sorted((edge.start_point_id, edge.end_point_id)))
-        if key in edge_keys:
+        if "segment" in edge_kinds.setdefault(key, set()):
             raise InvalidModelError("duplicate undirected sketch boundary edges are ambiguous")
-        edge_keys.add(key)
+        edge_kinds[key].add("segment")
         adjacency.setdefault(edge.start_point_id, []).append(edge)
         adjacency.setdefault(edge.end_point_id, []).append(edge)
     for arc in sketch.arcs:
         edge = _BoundaryEdge("arc", arc.arc_id, arc.start_point_id, arc.end_point_id)
         key = tuple(sorted((edge.start_point_id, edge.end_point_id)))
-        if key in edge_keys:
+        if "arc" in edge_kinds.setdefault(key, set()):
             raise InvalidModelError("duplicate undirected sketch boundary edges are ambiguous")
-        edge_keys.add(key)
+        edge_kinds[key].add("arc")
         adjacency.setdefault(edge.start_point_id, []).append(edge)
         adjacency.setdefault(edge.end_point_id, []).append(edge)
 
@@ -125,8 +125,6 @@ def _extract_cycles(sketch: ParametricSketch) -> tuple[tuple[_BoundaryEdge, ...]
             )
             if len(cycle) > len(adjacency):
                 raise InvalidModelError("sketch loop traversal exceeded the vertex bound")
-        if len(cycle) < 3:
-            raise InvalidModelError("closed sketch loops require at least three boundary edges")
         remaining.difference_update(visited_points)
         cycles.append(tuple(cycle))
     return tuple(cycles)
