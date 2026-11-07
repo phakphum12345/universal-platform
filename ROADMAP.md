@@ -407,3 +407,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - ParametricSketch v1.2 supports stable circular arc references, one positive RADIUS constraint per arc, and straight-segment-to-arc endpoint TANGENT.
 - The existing straight-line sketch-to-region converter rejects arcs; no curved geometry is silently discarded.
 - Next: explicit chord-error-bounded arc tessellation, cycle reconstruction and curved-profile PlanarRegion conversion, with source digest and deviation evidence. Curved Boolean/B-rep remain separate work.
+
+
+## CAD curved sketch-to-region increment — PR #128 MERGED
+
+- Integration merge SHA: `30deb5290e4a84b8ce86848dcac21309d0b1ad95`; main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Adds deterministic chord-error-bounded tessellation for circular arcs and cycle reconstruction for closed loops containing segments, arcs, or mixed boundaries.
+- The conversion preserves frame/unit, source sketch digest, nested-loop and hole semantics, and rejects open, branching, duplicate, self-intersecting, touching or over-limit topology.
+- Exact PR-head CI: 801 tests PASS on `5c2690760d77639c0db5795f0c8571c52944c6d9`; exact post-merge CI workflow #42374839944: 801 tests PASS on the merge SHA.
+- This is polygonal approximation, not exact curved geometry. Curved Boolean, curved B-rep, arc-to-arc tangent and splines remain OPEN.
+- Next dependency: extend feature-history durable artifact serialization/rehydration and validate the sketch → region → extrusion → mesh pipeline using the new curved-profile input. Keep kernel/curved Boolean selection separate and evidence-driven.
