@@ -1,7 +1,7 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `1a8338ae17eb783a374a36400999ead796f9a79d` (post-PR #152).  
+**Last audited implementation baseline:** `1a8338ae17eb783a374a36400999ead796f9a79d` (post-PR #152; subsequent reconciliation changes are documentation-only).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
 **Latest post-merge CI:** PR #152 workflow #42396453320 on exact merge SHA `1a8338ae17eb783a374a36400999ead796f9a79d` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **840 passed in 8.71s**.  
