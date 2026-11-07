@@ -455,3 +455,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact-head CI passed both required jobs with 822 tests; exact post-merge workflow #42380918862 passed both required jobs with 822 tests.
 - Integration SHA: `674b6a52c725b6e3f4b4e083b602aab3a138104e`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 - Next implementation slice: same-origin local CAD authoring UI served by the loopback API; remote/public exposure remains prohibited and outside this increment.
+
+
+## Local CAD Generator workbench — PR #140 MERGED
+
+- Added a same-origin static FeatureHistory workbench served by the loopback API.
+- Users can paste/edit strict FeatureHistory JSON, append immutable revisions, list/load exact revisions and regenerate the selected revision.
+- Token remains in memory only; static assets use restrictive CSP, no external resources, no CORS and same-origin requests.
+- Exact-head and post-merge CI passed both required jobs; 823 tests. Integration SHA: `f3abe346a259f2f3f3ed767889dba32be6a284b9`; main remains unchanged.
+- The workbench is not yet a visual CAD editor. Next increment: a bounded 2D polygon sketch editor that constructs validated FeatureHistory records, followed by mesh preview and explicit validation. Arc editing, general B-rep and complex topology remain later increments.
