@@ -177,6 +177,7 @@ class FeatureArtifact:
     feature_id: str
     kind: FeatureKind
     content_sha256: str
+    computation_sha256: str
     payload_json: str
     value: object
 
@@ -185,6 +186,7 @@ class FeatureArtifact:
             "feature_id": self.feature_id,
             "kind": self.kind.value,
             "content_sha256": self.content_sha256,
+            "computation_sha256": self.computation_sha256,
             "payload": loads(self.payload_json),
         }
 
@@ -197,6 +199,8 @@ class FeatureRegenerationResult:
     artifacts: tuple[FeatureArtifact, ...]
     failed_feature_id: str | None = None
     error: str | None = None
+    reused_feature_ids: tuple[str, ...] = ()
+    recomputed_feature_ids: tuple[str, ...] = ()
 
     @property
     def successful(self) -> bool:
@@ -211,19 +215,60 @@ class FeatureRegenerationResult:
             "artifacts": [item.to_dict() for item in self.artifacts],
             "failed_feature_id": self.failed_feature_id,
             "error": self.error,
+            "reused_feature_ids": list(self.reused_feature_ids),
+            "recomputed_feature_ids": list(self.recomputed_feature_ids),
             "limitations": [
                 "Only built-in allow-listed SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH operations execute",
                 "No user code, plugin, shell, network or physical device execution",
-                "No persistent document store, incremental recompute cache, suppression or branch/merge history",
+                "Incremental reuse is in-memory and requires a prior successful result; no durable cache, persistent document store, suppression or branch/merge history",
                 "Geometry remains bounded by the source PlanarRegion and mesh kernel limitations",
             ],
         }
 
 
-def _make_artifact(feature_id: str, kind: FeatureKind, value: object, payload: dict[str, object]) -> FeatureArtifact:
+def _make_artifact(
+    feature_id: str,
+    kind: FeatureKind,
+    value: object,
+    payload: dict[str, object],
+    computation_sha256: str,
+) -> FeatureArtifact:
     payload_json = dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     digest = sha256(payload_json.encode("utf-8")).hexdigest()
-    return FeatureArtifact(feature_id, kind, digest, payload_json, value)
+    return FeatureArtifact(feature_id, kind, digest, computation_sha256, payload_json, value)
+
+
+def _solver_options_payload(options: NonlinearSolverOptions | None) -> dict[str, object] | None:
+    if options is None:
+        return None
+    return {
+        "max_iterations": options.max_iterations,
+        "finite_difference_step": options.finite_difference_step,
+        "step_tolerance": options.step_tolerance,
+        "initial_damping": options.initial_damping,
+        "maximum_damping": options.maximum_damping,
+        "jacobian_method": options.jacobian_method.value,
+        "rank_tolerance": options.rank_tolerance,
+        "column_scale_disparity_threshold": options.column_scale_disparity_threshold,
+    }
+
+
+def _computation_signature(
+    node: FeatureNode,
+    inputs: list[FeatureArtifact],
+    solver_options: NonlinearSolverOptions | None,
+) -> str:
+    snapshot = {
+        "kind": node.kind.value,
+        "parameters": node.parameters,
+        "inputs": [
+            {"feature_id": item.feature_id, "content_sha256": item.content_sha256}
+            for item in inputs
+        ],
+        "solver_options": _solver_options_payload(solver_options) if node.kind is FeatureKind.SKETCH_PROFILE else None,
+    }
+    encoded = dumps(snapshot, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return sha256(encoded.encode("utf-8")).hexdigest()
 
 
 def _regions_from_artifact(artifact: FeatureArtifact) -> tuple:
@@ -236,21 +281,42 @@ def regenerate_feature_history(
     history: FeatureHistory,
     *,
     solver_options: NonlinearSolverOptions | None = None,
+    previous_result: FeatureRegenerationResult | None = None,
 ) -> FeatureRegenerationResult:
-    """Recompute the entire feature DAG in deterministic topological order.
+    """Regenerate a feature DAG, reusing only artifacts with matching input fingerprints.
 
     Any expected feature/model/solver failure aborts the run and discards all
-    partial artifacts from the returned result.
+    partial artifacts from the returned result. Reuse is process-local: callers
+    must retain a prior successful result and pass it explicitly.
     """
     if not isinstance(history, FeatureHistory):
         raise InvalidModelError("regenerate_feature_history requires a FeatureHistory")
+    if previous_result is not None:
+        if not isinstance(previous_result, FeatureRegenerationResult):
+            raise InvalidModelError("previous_result must be a FeatureRegenerationResult")
+        if previous_result.history_id != history.history_id:
+            raise InvalidModelError("previous_result belongs to a different feature history")
+        if not previous_result.successful:
+            raise InvalidModelError("previous_result must be successful before it can be reused")
+    previous = {
+        item.feature_id: item for item in (previous_result.artifacts if previous_result else ())
+    }
     by_id = {node.feature_id: node for node in history.nodes}
     computed: dict[str, FeatureArtifact] = {}
     completed: list[str] = []
+    reused: list[str] = []
+    recomputed: list[str] = []
     for feature_id in history.topological_order():
         node = by_id[feature_id]
         parameters = node.parameters
         inputs = [computed[item] for item in node.input_feature_ids]
+        signature = _computation_signature(node, inputs, solver_options)
+        cached = previous.get(feature_id)
+        if cached is not None and cached.kind is node.kind and cached.computation_sha256 == signature:
+            computed[feature_id] = cached
+            completed.append(feature_id)
+            reused.append(feature_id)
+            continue
         try:
             if node.kind is FeatureKind.SKETCH_PROFILE:
                 if inputs or set(parameters) != {"sketch"} or not isinstance(parameters["sketch"], Mapping):
@@ -299,14 +365,17 @@ def regenerate_feature_history(
                 payload = {"mesh": mesh.to_dict(), "validation": validation.to_dict()}
             else:
                 raise InvalidModelError("feature kind is not executable")
-            computed[feature_id] = _make_artifact(feature_id, node.kind, value, payload)
+            computed[feature_id] = _make_artifact(feature_id, node.kind, value, payload, signature)
             completed.append(feature_id)
+            recomputed.append(feature_id)
         except (InvalidModelError, SolverError, TypeError, ValueError, KeyError) as exc:
             return FeatureRegenerationResult(
                 history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
-                feature_id, str(exc),
+                feature_id, str(exc), tuple(reused), tuple(recomputed),
             )
     return FeatureRegenerationResult(
         history.history_id, RegenerationStatus.SUCCESS, tuple(completed),
         tuple(computed[item] for item in history.topological_order()),
+        reused_feature_ids=tuple(reused),
+        recomputed_feature_ids=tuple(recomputed),
     )

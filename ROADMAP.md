@@ -322,7 +322,7 @@ Next dependency order: closed-loop sketch-to-region adapter → feature DAG/hist
 - Merge SHA: `0983de4c8839070e2a27cd7b8e704f975d176abf`.
 - Exact PR-head run #42263173745 and post-merge run #42263296016 both passed both required jobs, 636 tests.
 - Adds a deterministic DAG and allow-listed SKETCH_PROFILE → PLANAR_BOOLEAN → EXTRUSION → MESH regeneration pipeline with per-feature SHA-256, cycle/dangling-reference validation and all-or-nothing failure semantics.
-- No arbitrary code execution, persistence service, incremental recompute, B-rep or general 3D Boolean.
+- No arbitrary code execution, persistent document service, durable/cross-process cache, suppression/branch history, B-rep or general 3D Boolean. The follow-on incremental cache is process-local and requires a prior successful result.
 
 Next: extend sketch constraint families and arc/spline support; add feature edit/recompute semantics and persistent document contracts; then resolve planar point-contact topology before B-rep/3D Boolean and STEP/3MF.
 
@@ -361,7 +361,7 @@ Integration HEAD `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; `main` remains `96e
 1. **Boolean topology robustness:** extend the planar rotation-system and B-rep boundary tests for ambiguous branching/coincident outgoing edges, vertex/edge contacts, thin features and invalid incidence. Preserve deterministic fail-closed behavior until an independently generated exact reference corpus passes. Planar point-only contact handling is implemented by PR #95; it does not resolve ambiguous branching.
 2. **General faceted B-rep:** add n-gon face loops and inner loops, then multi-shell solid semantics for enclosed cavities. Require exact topology invariants, orientation/containment checks and independent fixtures before changing the schema.
 3. **General 3D Boolean:** add arbitrary faceted-solid splitting and arrangement classification only after multi-shell topology and a precision/tolerance policy exist. Include coplanar overlap, tangency, edge/vertex contact, near-degenerate and thin-feature references with resource ceilings.
-4. **Parametric CAD depth:** extend sketch constraints beyond the current eight point/straight-line kinds; add arcs/splines and solver diagnostics. Extend feature history with persistent revisioned documents, incremental recompute/cache invalidation, suppression and edit/branch history.
+4. **Parametric CAD depth:** extend sketch constraints beyond the current eight point/straight-line kinds; add arcs/splines and solver diagnostics. Extend feature history with persistent revisioned documents, durable cache, suppression and edit/branch history. Incremental in-memory cache reuse with dependency-digest invalidation is now implemented in a bounded follow-on.
 5. **CAD generator workflow:** connect sketch → feature history → solid → mesh/interchange to durable documents, API, interactive UI and revisioned export workflows. Driver generation already exists as a separate capability to inventory/reuse; do not duplicate it.
 6. **Interchange completeness:** retain bounded STEP AP214 faceted triangle-shell and single-object 3MF Core support; add external application round-trip validation, full STEP/AP242 and 3MF assemblies only with explicit profile/tolerance contracts.
 7. **Hardware EDA:** native schematic/PCB/library interchange, datasheet-backed electrical constraints, pin/footprint reconciliation, BOM lifecycle and circuit simulation.

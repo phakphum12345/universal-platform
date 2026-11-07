@@ -153,3 +153,89 @@ def test_parametric_sketch_strict_snapshot_import_rejects_unknown_fields():
     assert restored.to_dict() == sketch.to_dict()
     with pytest.raises(InvalidModelError, match="missing or unknown"):
         ParametricSketch.from_dict(dict(sketch.to_dict(), extra=True))
+
+
+def feature_history_for_two_profiles(left_width=4.0, right_width=4.0):
+    left = square_sketch("left", left_width, 3.0, 0.0)
+    right = square_sketch("right", right_width, 3.0, 8.0)
+    return FeatureHistory(
+        "history.two-profiles",
+        (
+            FeatureNode.create("left.profile", FeatureKind.SKETCH_PROFILE, (), {"sketch": left.to_dict()}),
+            FeatureNode.create("right.profile", FeatureKind.SKETCH_PROFILE, (), {"sketch": right.to_dict()}),
+            FeatureNode.create("union", FeatureKind.PLANAR_BOOLEAN,
+                               ("left.profile", "right.profile"), {"operation": "UNION"}),
+            FeatureNode.create("extrusion", FeatureKind.EXTRUSION, ("union",),
+                               {"solid_id": "solid.two-profiles", "height": 2.0}),
+            FeatureNode.create("mesh", FeatureKind.MESH, ("extrusion",)),
+        ),
+        ("mesh",),
+    )
+
+
+def test_incremental_regeneration_reuses_every_unchanged_artifact():
+    history = feature_history_for_square()
+    first = regenerate_feature_history(history)
+    second = regenerate_feature_history(history, previous_result=first)
+    assert first.successful and second.successful
+    assert second.reused_feature_ids == ("sketch.profile", "extrude.final", "mesh.final")
+    assert second.recomputed_feature_ids == ()
+    assert all(a is b for a, b in zip(first.artifacts, second.artifacts))
+    assert second.to_dict()["reused_feature_ids"] == ["sketch.profile", "extrude.final", "mesh.final"]
+
+
+def test_incremental_regeneration_invalidates_only_changed_branch_and_dependents():
+    first_history = feature_history_for_two_profiles(left_width=4.0, right_width=4.0)
+    changed_history = feature_history_for_two_profiles(left_width=5.0, right_width=4.0)
+    first = regenerate_feature_history(first_history)
+    changed = regenerate_feature_history(changed_history, previous_result=first)
+    assert first.successful and changed.successful
+    assert changed.reused_feature_ids == ("right.profile",)
+    assert changed.recomputed_feature_ids == ("left.profile", "union", "extrusion", "mesh")
+    artifacts = {item.feature_id: item for item in changed.artifacts}
+    original = {item.feature_id: item for item in first.artifacts}
+    assert artifacts["right.profile"] is original["right.profile"]
+    assert artifacts["left.profile"].content_sha256 != original["left.profile"].content_sha256
+    assert artifacts["mesh"].content_sha256 != original["mesh"].content_sha256
+
+
+def test_incremental_regeneration_rejects_failed_or_foreign_previous_results():
+    history = feature_history_for_square()
+    successful = regenerate_feature_history(history)
+    failed_history = FeatureHistory(
+        "history.plate",
+        (
+            FeatureNode.create("profile", FeatureKind.SKETCH_PROFILE, (),
+                               {"sketch": square_sketch().to_dict()}),
+            FeatureNode.create("bad-extrusion", FeatureKind.EXTRUSION, ("profile",),
+                               {"solid_id": "solid.bad", "height": -1.0}),
+        ),
+        ("bad-extrusion",),
+    )
+    failed = regenerate_feature_history(failed_history)
+    with pytest.raises(InvalidModelError, match="different feature history"):
+        regenerate_feature_history(FeatureHistory("other", history.nodes, history.output_feature_ids),
+                                   previous_result=successful)
+    with pytest.raises(InvalidModelError, match="must be successful"):
+        regenerate_feature_history(history, previous_result=failed)
+
+
+def test_incremental_regeneration_failure_still_discards_all_partial_artifacts():
+    initial = regenerate_feature_history(feature_history_for_square())
+    broken = FeatureHistory(
+        "history.plate",
+        (
+            FeatureNode.create("sketch.profile", FeatureKind.SKETCH_PROFILE, (),
+                               {"sketch": square_sketch().to_dict()}),
+            FeatureNode.create("extrude.final", FeatureKind.EXTRUSION, ("sketch.profile",),
+                               {"solid_id": "solid.plate", "height": -2.0}),
+            FeatureNode.create("mesh.final", FeatureKind.MESH, ("extrude.final",)),
+        ),
+        ("mesh.final",),
+    )
+    result = regenerate_feature_history(broken, previous_result=initial)
+    assert result.status is RegenerationStatus.FAILED
+    assert result.failed_feature_id == "extrude.final"
+    assert result.artifacts == ()
+    assert result.reused_feature_ids == ("sketch.profile",)
+    assert result.recomputed_feature_ids == ()

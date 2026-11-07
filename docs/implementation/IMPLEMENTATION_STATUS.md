@@ -831,8 +831,8 @@ Passing tests validate only the code and contracts present at the exact tested S
 ### CAD / 3D — PARTIAL
 - STEP AP214 faceted-BREP single connected triangle-shell interchange (PR #99); not a general B-rep kernel.
 - ParametricSketch v1.0: eight initial point/line constraint families; no arcs/splines or uniqueness/global convergence guarantee.
-- FeatureHistory v1.0: deterministic allow-listed DAG for sketch profile, planar Boolean, extrusion and mesh; no persistent documents or incremental recompute.
-- Remaining: ambiguous branching Boolean topology, broader sketch solver, persistent/incremental feature history, general B-rep/3D Boolean, full STEP/AP242 and 3MF assemblies, CAD generator UI/API/persistence.
+- FeatureHistory v1.0: deterministic allow-listed DAG for sketch profile, planar Boolean, extrusion and mesh. Incremental in-memory regeneration reuses unchanged artifacts using canonical parameter/input-digest/solver-option signatures and invalidates affected descendants. No persistent documents or durable/cross-process cache.
+- Remaining: ambiguous branching Boolean topology, broader sketch solver, persistent revisioned feature documents and durable cache, general B-rep/3D Boolean, full STEP/AP242 and 3MF assemblies, CAD generator UI/API/persistence.
 
 ### Hardware / EDA — PARTIAL
 - Schematic connectivity, deterministic SVG rendering, static ERC and metadata-only driver interface/pin binding exist.
