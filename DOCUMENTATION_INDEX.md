@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Current integration snapshot: 1813cb931876305391eeabe748741be189d5f27b; PR #146 post-merge workflow #42386519328 passed workflow-sanity and python-tests with 832 tests in 9.09s. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Current tree: 339 entries, 109 Markdown, 163 Python, 24 JSON files and 84 Python test files. No open PRs at this audit. Local working-tree state and branch-protection state are UNKNOWN. See [Repository Audit post-PR #146](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR146.md).
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Current integration snapshot: 1fb9bc97c22bf0464e154f6963583edb9385d657; PR #148 post-merge workflow #42391470608 passed workflow-sanity and python-tests with 832 tests in 7.59s. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Current tree: 340 entries, 110 Markdown, 163 Python, 24 JSON files and 84 Python test files. No open PRs at this audit. Local working-tree state and branch-protection state are UNKNOWN. See [Repository Audit post-PR #148](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR148.md).
 
 ## Repository-level product and governance
 
@@ -213,3 +213,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — bounded client-side orbit, pan, zoom and reset controls over the generated mesh artifact.
 - [Post-PR #146 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR146.md) — exact integration/main SHAs, exact PR-head and post-merge CI evidence, repository inventory and audit limitations.
 - Feature-tree editing, selection, measurement, sectioning, B-rep editing and general CAD-kernel operations remain OPEN.
+
+
+## Mesh triangle selection and measurement — PR #148
+
+- [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — accessible triangle-facet selection, highlighting, area and centroid display using mesh units and frame.
+- [Post-PR #148 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR148.md) — exact PR-head/post-merge CI evidence, current tree inventory and remaining capability limits.
+- B-rep face/edge selection, sectioning, editing and general CAD-kernel operations remain OPEN.
