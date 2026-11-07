@@ -6,6 +6,7 @@ SQLite transactions provide atomic commits and cross-process optimistic locking.
 """
 from __future__ import annotations
 
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -110,7 +111,7 @@ class SQLiteFeatureHistoryStore:
         return connection
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("PRAGMA journal_mode = WAL")
             connection.execute(
                 """
@@ -214,7 +215,7 @@ class SQLiteFeatureHistoryStore:
             isinstance(revision, bool) or not isinstance(revision, int) or revision < 1
         ):
             raise ValueError("revision must be a positive integer")
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             head = connection.execute(
                 "SELECT revision FROM feature_history_heads WHERE history_id = ?",
                 (history_id,),
@@ -273,7 +274,7 @@ class SQLiteFeatureHistoryStore:
         """Return immutable revision numbers currently stored for a history."""
         if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
             raise ValueError("history_id must be a stable lowercase identifier")
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             rows = connection.execute(
                 "SELECT revision FROM feature_history_revisions "
                 "WHERE history_id = ? ORDER BY revision",
