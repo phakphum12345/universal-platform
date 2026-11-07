@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
+from math import isfinite
 from pathlib import Path
 import re
 import sqlite3
@@ -93,7 +94,7 @@ class SQLiteFeatureHistoryStore:
         raw_path = str(database_path)
         if raw_path in {":memory:", ""} or raw_path.startswith("file:"):
             raise ValueError("database_path must be a filesystem path, not a SQLite URI")
-        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
+        if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))\n                or not isfinite(timeout_seconds) or timeout_seconds <= 0):
             raise ValueError("timeout_seconds must be a positive number")
         self.database_path = Path(database_path).expanduser().resolve()
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,6 +113,9 @@ class SQLiteFeatureHistoryStore:
 
     def _initialize(self) -> None:
         with closing(self._connect()) as connection:
+            existing_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+            if existing_version > _STORE_SCHEMA_VERSION:
+                raise FeatureHistoryStoreIntegrityError("database schema version is newer than this implementation")
             connection.execute("PRAGMA journal_mode = WAL")
             connection.execute(
                 """
