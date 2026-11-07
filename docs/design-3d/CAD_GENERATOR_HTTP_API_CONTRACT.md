@@ -1,6 +1,6 @@
 # CAD Generator Loopback HTTP API Contract v1.0
 
-**Status:** Implemented local transport adapter; exact-head CI pending.  
+**Status:** Implemented and merged in PR #138; exact-head and post-merge CI PASS (822 tests).  
 **Implementation:** `engineering/cad_generator_http_api.py`.  
 **Dependency:** `CADGeneratorService`, explicit `SQLiteCADAPIAuditLog`, caller-supplied bearer token.  
 **Transport:** HTTP over IPv4 loopback only; no public listener, TLS endpoint, CORS permission or remote access.
@@ -129,5 +129,5 @@ This hash chain detects accidental/tampered records when the attacker cannot rew
 - [x] Strict JSON parsing, route allow-list and structured errors.
 - [x] Append-only local audit chain with integrity verification.
 - [x] Save, read, list and regenerate an exact FeatureHistory revision.
-- [ ] Exact PR-head CI and post-merge CI pass before promotion.
+- [x] Exact PR-head CI and post-merge CI pass: 822 tests on each exact SHA.
 - [ ] Production-grade rate limiting, TLS, remote authentication, browser session controls and external audit witness remain out of scope.

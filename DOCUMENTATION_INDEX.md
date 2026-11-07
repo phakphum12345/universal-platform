@@ -178,3 +178,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Axis-Aligned Faceted B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md) — bounded exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-rep inputs.
 - [B-rep Boolean Result Schema](schemas/geometry/brep-boolean-result.schema.json) — strict result envelope, source digests and component shells.
+
+
+## CAD Generator local API — PR #138
+
+- [CAD Generator Service Contract](docs/design-3d/CAD_GENERATOR_SERVICE_CONTRACT.md) — revision-aware in-process service, durable source revisions and artifact cache.
+- [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — implemented authenticated, loopback-only local HTTP adapter, dynamic port, strict request bounds and append-only local audit evidence.
+- [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) — exact integration SHA, current CI evidence and remaining work.
