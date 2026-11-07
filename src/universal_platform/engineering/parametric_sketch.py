@@ -31,6 +31,9 @@ class SketchConstraintKind(str, Enum):
     VERTICAL_DISTANCE = "VERTICAL_DISTANCE"
     FIX_X = "FIX_X"
     FIX_Y = "FIX_Y"
+    PARALLEL = "PARALLEL"
+    PERPENDICULAR = "PERPENDICULAR"
+    EQUAL_LENGTH = "EQUAL_LENGTH"
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,7 +81,10 @@ class SketchConstraint:
             not isinstance(item, str) or not item.strip() for item in self.point_ids
         ):
             raise InvalidModelError("sketch point_ids must be an immutable tuple of identifiers")
-        expected = 1 if self.kind in (SketchConstraintKind.FIX_X, SketchConstraintKind.FIX_Y) else 2
+        if self.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
+            expected = 4
+        else:
+            expected = 1 if self.kind in (SketchConstraintKind.FIX_X, SketchConstraintKind.FIX_Y) else 2
         if len(self.point_ids) != expected:
             raise InvalidModelError(f"{self.kind.value} requires {expected} point identifier(s)")
         if len(set(self.point_ids)) != len(self.point_ids):
@@ -293,6 +299,38 @@ def solve_parametric_sketch(
                     lambda v, a=ids[0], b=ids[1]: coordinate(v, b, "y") - coordinate(v, a, "y"),
                     tolerance=tol),
             ))
+        elif item.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
+            a, b, c, d = ids
+            first = point_by_id[b]
+            first_start = point_by_id[a]
+            second_start = point_by_id[c]
+            second_end = point_by_id[d]
+            if hypot(first.x - first_start.x, first.y - first_start.y) <= 1e-12 or hypot(
+                second_end.x - second_start.x, second_end.y - second_start.y
+            ) <= 1e-12:
+                raise InvalidModelError("relational sketch constraints require non-degenerate segment vectors")
+            if item.kind is SketchConstraintKind.PARALLEL:
+                residual = lambda v, a=a, b=b, c=c, d=d: (
+                    (coordinate(v, b, "x") - coordinate(v, a, "x")) *
+                    (coordinate(v, d, "y") - coordinate(v, c, "y")) -
+                    (coordinate(v, b, "y") - coordinate(v, a, "y")) *
+                    (coordinate(v, d, "x") - coordinate(v, c, "x"))
+                )
+            elif item.kind is SketchConstraintKind.PERPENDICULAR:
+                residual = lambda v, a=a, b=b, c=c, d=d: (
+                    (coordinate(v, b, "x") - coordinate(v, a, "x")) *
+                    (coordinate(v, d, "x") - coordinate(v, c, "x")) +
+                    (coordinate(v, b, "y") - coordinate(v, a, "y")) *
+                    (coordinate(v, d, "y") - coordinate(v, c, "y"))
+                )
+            else:
+                residual = lambda v, a=a, b=b, c=c, d=d: (
+                    hypot(coordinate(v, b, "x") - coordinate(v, a, "x"),
+                          coordinate(v, b, "y") - coordinate(v, a, "y")) -
+                    hypot(coordinate(v, d, "x") - coordinate(v, c, "x"),
+                          coordinate(v, d, "y") - coordinate(v, c, "y"))
+                )
+            equations.append(NonlinearConstraint(item.constraint_id, residual, tolerance=tol))
         elif item.kind is SketchConstraintKind.DISTANCE:
             target = float(item.value)
             equations.append(NonlinearConstraint(
@@ -336,6 +374,13 @@ def solve_parametric_sketch(
         raise SolverError("Parametric sketch requires at least one supported constraint")
     solved = solve_nonlinear_constraints(names, initial, equations, options=options)
     values = solved.values
+    for item in sketch.constraints:
+        if item.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
+            a, b, c, d = item.point_ids
+            first_length = hypot(values[f"{b}.x"] - values[f"{a}.x"], values[f"{b}.y"] - values[f"{a}.y"])
+            second_length = hypot(values[f"{d}.x"] - values[f"{c}.x"], values[f"{d}.y"] - values[f"{c}.y"])
+            if first_length <= 1e-12 or second_length <= 1e-12:
+                raise SolverError("relational sketch constraint produced a degenerate segment")
     points = tuple(
         SketchPoint(point.point_id, values[f"{point.point_id}.x"], values[f"{point.point_id}.y"])
         for point in sketch.points
