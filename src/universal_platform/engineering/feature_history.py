@@ -226,10 +226,49 @@ class FeatureRegenerationResult:
         }
 
 
-def _make_artifact(feature_id: str, kind: FeatureKind, value: object, payload: dict[str, object]) -> FeatureArtifact:
+def _make_artifact(
+    feature_id: str,
+    kind: FeatureKind,
+    value: object,
+    payload: dict[str, object],
+    computation_sha256: str,
+) -> FeatureArtifact:
     payload_json = dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     digest = sha256(payload_json.encode("utf-8")).hexdigest()
-    return FeatureArtifact(feature_id, kind, digest, payload_json, value)
+    return FeatureArtifact(feature_id, kind, digest, computation_sha256, payload_json, value)
+
+
+def _solver_options_payload(options: NonlinearSolverOptions | None) -> dict[str, object] | None:
+    if options is None:
+        return None
+    return {
+        "max_iterations": options.max_iterations,
+        "finite_difference_step": options.finite_difference_step,
+        "step_tolerance": options.step_tolerance,
+        "initial_damping": options.initial_damping,
+        "maximum_damping": options.maximum_damping,
+        "jacobian_method": options.jacobian_method.value,
+        "rank_tolerance": options.rank_tolerance,
+        "column_scale_disparity_threshold": options.column_scale_disparity_threshold,
+    }
+
+
+def _computation_signature(
+    node: FeatureNode,
+    inputs: list[FeatureArtifact],
+    solver_options: NonlinearSolverOptions | None,
+) -> str:
+    snapshot = {
+        "kind": node.kind.value,
+        "parameters": node.parameters,
+        "inputs": [
+            {"feature_id": item.feature_id, "content_sha256": item.content_sha256}
+            for item in inputs
+        ],
+        "solver_options": _solver_options_payload(solver_options),
+    }
+    encoded = dumps(snapshot, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return sha256(encoded.encode("utf-8")).hexdigest()
 
 
 def _regions_from_artifact(artifact: FeatureArtifact) -> tuple:
