@@ -95,3 +95,10 @@ The engineering package exports BoxSolid, CylinderSolid, FramedBounds3 and Primi
 ## Profile extrusion (PR #49)
 
 The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profiles are immutable simple polygons extruded along local +Z with explicit height/unit. The model rejects self-intersection and degenerate area.
+
+
+## CAD Generator application service (PR #136)
+
+A transport-neutral in-process `CADGeneratorService` now provides the CAD-specific application boundary over versioned FeatureHistory documents, the local SQLite revision store, the validated FeatureArtifact cache and the allow-listed regeneration engine. The service supports typed and strict snapshot writes, explicit revision reads, regeneration and a provenance-bearing response envelope. It is exported from `universal_platform.engineering`.
+
+The service does not expose a transport and does not grant network authority. HTTP/CLI/UI remain OPEN. Any future listener must define authentication, authorization, request-size/time limits, audit evidence, cancellation, structured errors and loopback-only default binding. Remote access must be an explicit, separately reviewed capability.
