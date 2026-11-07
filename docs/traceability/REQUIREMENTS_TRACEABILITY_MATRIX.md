@@ -150,6 +150,17 @@ Latest integration SHA: `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`; main remains
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
 | CAD-FEATURE-DURABLE-E2E-001 | Load a durable source revision and reuse persisted computed artifacts in a separate process | PR #124/#132/#134; `tests/test_feature_history_durable_e2e.py` | IMPLEMENTED — subprocess reopens both SQLite databases, loads revision 1, reuses all three feature artifacts with zero recomputation, verifies identical SHA-256 outputs and watertight/orientation checks. Exact-head and post-merge CI pass, 813 tests. |
-| CAD-GEN-API-001 | Provide a governed CAD generator API/service over versioned FeatureHistory and regeneration | FeatureHistory contract; future API contract and integration tests | OPEN — library, revision store and local artifact cache exist; a stable service/API contract, request validation, revision selection, provenance response and end-to-end API tests are not yet implemented. |
+| CAD-GEN-SERVICE-001 | Provide a revision-aware CAD generator application service over versioned FeatureHistory and regeneration | PR #136; `CADGeneratorService`; `CADGeneratorRun`; `CAD_GENERATOR_SERVICE_CONTRACT.md` | IMPLEMENTED — strict snapshot/typed save, revision selection, local artifact-cache regeneration and provenance response; public exports and service tests; exact-head and post-merge CI PASS, 817 tests. No transport/network listener is included. |
+| CAD-GEN-HTTP-API-001 | Provide a governed HTTP/CLI transport for the CAD generator service | Future transport contract and integration tests | OPEN — authentication, authorization, request limits, audit, cancellation, structured errors and loopback-only binding must be designed and tested before any listener is enabled. |
 
 Latest integration SHA: `e4a1add528e4fd77c88df96d428ff629e2f4b655`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42376427587 passed both required jobs with 813 tests.
+
+
+## CAD Generator service traceability — post-PR #136
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-GEN-SERVICE-001 | Revision-aware application service for durable CAD history and regeneration | PR #136; `cad_generator_service.py`; public exports; service contract | IMPLEMENTED — strict snapshot save, optimistic revision writes, exact revision reads, local cache-backed regeneration and provenance-bearing response. Exact-head and post-merge CI PASS, 817 tests. |
+| CAD-GEN-HTTP-API-001 | Governed transport adapter for remote/local client requests | Future HTTP/CLI API contract | OPEN — no HTTP listener is present. Authentication, authorization, request bounds, audit/cancellation, structured errors and loopback-only defaults remain prerequisites. |
+
+Latest integration SHA: `ab0006c1ead3e6848f90e30c804d38a3029218f3`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42376951014 passed both required jobs with 817 tests.
