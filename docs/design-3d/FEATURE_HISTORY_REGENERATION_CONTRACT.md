@@ -53,9 +53,9 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: durable computed-artifact cache or geometry rehydration, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation remains an in-memory cache: the caller must retain and explicitly pass a prior successful `FeatureRegenerationResult`. The durable document store described below does not persist or reconstruct computed artifact objects.
+Not yet implemented: combined durable source-revision plus artifact-cache workflow acceptance, cache eviction/retention and backup automation, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Without an optional artifact cache, incremental reuse remains process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`.
 
-The current sketch-to-region converter accepts only closed straight-edge loops. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
+The sketch-to-region converter accepts closed straight-edge and circular-arc loops through bounded polygonal tessellation (PR #128); exact analytic curved topology is not provided. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
 ## 7. Acceptance evidence
 
@@ -112,3 +112,31 @@ encryption-at-rest, backup scheduler, or distributed consensus in this slice.
 - Rejection of invalid identifiers, in-memory/URI database modes, invalid
   expected revisions, and unknown documents.
 - Exact-head CI must pass before this branch can be considered integrated.
+
+
+## 10. Durable FeatureArtifact rehydration and local cache (PR #131/#132)
+
+### Artifact rehydration
+
+- `FeatureArtifact.from_dict` requires the exact snapshot field set, stable feature ID, supported kind, lowercase SHA-256 digests and finite canonical JSON payload.
+- The payload digest is verified before kind-specific reconstruction.
+- SKETCH_PROFILE reconstructs `SketchRegionConversionResult` and each canonical `PlanarRegion`; PLANAR_BOOLEAN reconstructs `PlanarRegionSetBooleanResult`; EXTRUSION reconstructs `PlanarRegionExtrusionResult`; MESH reconstructs `TriangleMesh` and reruns `validate_triangle_mesh`.
+- Stored mesh validation fields are compared against the recomputed report; persisted JSON is not trusted as validation evidence.
+- Unknown fields, unsupported versions, mismatched digests, invalid geometry and mismatched mesh reports fail closed.
+
+### SQLiteFeatureArtifactCache
+
+- The optional `SQLiteFeatureArtifactCache` stores canonical FeatureArtifact snapshots in a local filesystem SQLite database using WAL, FULL synchronous mode and a busy timeout.
+- Cache key: `(history_id, feature_id, computation_sha256)`. Identical writes are idempotent; conflicting content for an existing key is rejected. Update/delete triggers make the cache append-only through ordinary SQL operations.
+- Each record stores an unkeyed SHA-256 envelope digest over schema version, key fields and artifact snapshot. Loads verify canonical JSON, envelope digest, FeatureArtifact content digest and kind-specific rehydration.
+- `regenerate_feature_history(..., artifact_cache=cache)` loads only exact key matches and records them as reused; missing entries are computed and persisted. Cache load/save/integrity failures return FAILED and no partial artifacts.
+- Computation signatures include a per-feature algorithm version as well as kind, canonical parameters, ordered input artifact digests and sketch solver options. Increment the appropriate algorithm version whenever evaluator semantics change.
+- The cache is local and unencrypted. SHA-256 is not a signature or proof against full database rewrite. There is no distributed cache, replication, eviction, compaction, backup scheduler or cross-machine coordination.
+
+### Acceptance evidence
+
+- Reopen a new cache instance and reuse all matching artifacts without recomputation.
+- Change a source parameter and confirm only the affected feature branch is recomputed.
+- Reject invalid IDs, unsupported database modes, corrupted record envelopes and schema/geometry mismatch.
+- Exact PR-head and post-merge CI for PR #132 passed 812 tests.
+- **OPEN:** combined acceptance that reopens the separate SQLite source-document store and artifact cache, loads a specific source revision, and regenerates the complete Sketch → Region → Extrusion → Mesh output in a fresh process.
