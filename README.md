@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `674b6a52c725b6e3f4b4e083b602aab3a138104e` (ahead/behind count not recomputed in this audit).
+- Integration HEAD: `f3abe346a259f2f3f3ed767889dba32be6a284b9` (ahead/behind count not recomputed in this audit).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #138 workflow #42380918862 — workflow-sanity PASS, python-tests PASS, **822 passed in 6.95s** (exact merge SHA `674b6a52c725b6e3f4b4e083b602aab3a138104e`).
-- Current inventory: 332 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files (recursive tree at the post-PR #138 integration SHA).
+- Latest post-merge CI: PR #140 workflow #42381936401 — workflow-sanity PASS, python-tests PASS, **823 passed in 8.08s** (exact merge SHA `f3abe346a259f2f3f3ed767889dba32be6a284b9`).
+- Current inventory: 335 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files (recursive tree at the post-PR #140 integration SHA).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
@@ -218,3 +218,8 @@ PR #107 integrates the bounded runtime foundation: resource registry, bounded lo
 The revision-aware `CADGeneratorService` now has a local HTTP adapter with explicit startup, IPv4 loopback-only binding, dynamic port by default, bearer authentication, strict JSON/body/time limits, immutable revision save/read/list and exact-revision regeneration. A local SQLite audit log records request lifecycle metadata in a SHA-256 hash chain without storing credentials or model bodies.
 
 The HTTP adapter is not a public or remote service. Do not expose it through LAN binding, SSH/port forwarding, reverse proxies or firewall rules. TLS, rate limiting, browser session management and remote access are not implemented. The API contract and current verification evidence are linked in [Documentation Index](DOCUMENTATION_INDEX.md).
+
+
+## Local CAD Generator workbench (PR #140)
+
+The loopback API now serves a same-origin responsive workbench for entering a bearer token, pasting/editing FeatureHistory JSON, appending immutable revisions, listing and loading revisions, and regenerating an exact revision. The token is held in page memory only. The UI uses restrictive CSP, no external resources and no CORS. This is a JSON/revision workbench, not yet a graphical sketch editor or CAD viewport. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
