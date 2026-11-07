@@ -125,6 +125,7 @@
         <button id="mesh-zoom-in" type="button" disabled aria-label="Zoom in">Zoom in</button>
         <button id="mesh-zoom-out" type="button" disabled aria-label="Zoom out">Zoom out</button>
         <button id="mesh-reset-view" type="button" disabled>Reset view</button>
+        <button id="mesh-clear-selection" type="button" disabled>Clear selection</button>
       </div>
       <svg id="mesh-preview" class="mesh-preview" viewBox="0 0 640 420" role="group" aria-label="Interactive generated mesh viewport">
         <defs>
@@ -138,7 +139,8 @@
       </svg>
       <p id="mesh-validation" class="hint">Run regeneration for a source revision to display its generated mesh and validation report.</p>
       <p id="mesh-details" class="mesh-details">No mesh artifact loaded.</p>
-      <p class="hint">Drag to orbit; hold Shift while dragging (or use the middle mouse button) to pan. Use the wheel or Zoom buttons to zoom, and Reset view to restore the default camera. Camera controls affect display only; backend geometry and validation are unchanged. Rendering is capped at 10,000 vertices and 5,000 triangles.</p>
+      <p id="mesh-selection" class="mesh-details" role="status" aria-live="polite">Select a triangle to inspect its area and centroid.</p>
+      <p class="hint">Drag to orbit; hold Shift while dragging (or use the middle mouse button) to pan. Use the wheel or Zoom buttons to zoom. Select a triangle to inspect its area and centroid in the mesh coordinate frame; selection is a display-only triangle facet, not a B-rep face. Camera and selection state do not mutate backend geometry. Rendering is capped at 10,000 vertices and 5,000 triangles.</p>
     </section>
 
     <section class="panel result-panel" aria-labelledby="result-heading">

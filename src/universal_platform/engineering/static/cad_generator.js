@@ -19,6 +19,8 @@
   const meshFaces = byId("mesh-faces");
   const meshPreview = byId("mesh-preview");
   const meshControlButtons = ["mesh-zoom-in", "mesh-zoom-out", "mesh-reset-view"].map(byId);
+  const meshSelection = byId("mesh-selection");
+  const meshClearSelectionButton = byId("mesh-clear-selection");
   const MAX_PREVIEW_TRIANGLES = 5000;
   const MAX_PREVIEW_VERTICES = 10000;
   let bearerToken = "";
@@ -27,6 +29,8 @@
   const defaultMeshCamera = { yaw: 0.7853981633974483, pitch: 0.6154797086703874, zoom: 1, panX: 0, panY: 0 };
   let meshCamera = { ...defaultMeshCamera };
   let meshDrag = null;
+  let selectedMeshTriangleIndex = null;
+  let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
     statusMessage.textContent = message;
@@ -90,9 +94,13 @@
   function disableMeshPreview() {
     activeMesh = null;
     meshDrag = null;
+    selectedMeshTriangleIndex = null;
+    suppressMeshClick = false;
     meshFaces.replaceChildren();
     meshCamera = { ...defaultMeshCamera };
     meshControlButtons.forEach((button) => { button.disabled = true; });
+    meshClearSelectionButton.disabled = true;
+    meshSelection.textContent = "Select a triangle to inspect its area and centroid.";
   }
 
   function clearMeshPreview(message = "No mesh artifact loaded.") {
@@ -101,6 +109,47 @@
     byId("mesh-state").className = "state";
     byId("mesh-validation").textContent = message;
     byId("mesh-details").textContent = "No mesh artifact loaded.";
+  }
+
+  function formatMeshMeasurement(value) {
+    return value === 0 ? "0" : Number(value.toPrecision(8)).toString();
+  }
+
+  function selectMeshTriangle(index) {
+    if (!activeMesh || !Number.isInteger(index) || index < 0 || index >= activeMesh.triangles.length) return;
+    const triangle = activeMesh.triangles[index];
+    const [a, b, c] = triangle.map((vertexIndex) => activeMesh.vertices[vertexIndex]);
+    const ab = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z };
+    const ac = { x: c.x - a.x, y: c.y - a.y, z: c.z - a.z };
+    const nx = ab.y * ac.z - ab.z * ac.y;
+    const ny = ab.z * ac.x - ab.x * ac.z;
+    const nz = ab.x * ac.y - ab.y * ac.x;
+    const area = 0.5 * Math.hypot(nx, ny, nz);
+    const centroid = {
+      x: (a.x + b.x + c.x) / 3,
+      y: (a.y + b.y + c.y) / 3,
+      z: (a.z + b.z + c.z) / 3,
+    };
+    if (![area, centroid.x, centroid.y, centroid.z].every(Number.isFinite)) {
+      meshSelection.textContent = "Triangle measurement unavailable: result is outside the finite numeric range.";
+      meshClearSelectionButton.disabled = true;
+      return;
+    }
+    selectedMeshTriangleIndex = index;
+    const unit = activeMesh.lengthUnit;
+    meshSelection.textContent =
+      "Triangle " + (index + 1) + " · area " + formatMeshMeasurement(area) + " " + unit + "²" +
+      " · centroid (" + [centroid.x, centroid.y, centroid.z].map(formatMeshMeasurement).join(", ") + ") " + unit +
+      " · frame " + activeMesh.frameId;
+    meshClearSelectionButton.disabled = false;
+    drawMeshPreview();
+  }
+
+  function clearMeshSelection() {
+    selectedMeshTriangleIndex = null;
+    meshClearSelectionButton.disabled = true;
+    meshSelection.textContent = "Select a triangle to inspect its area and centroid.";
+    if (activeMesh) drawMeshPreview();
   }
 
   function drawMeshPreview() {
@@ -131,7 +180,7 @@
       x: 320 + (point.u - centerU) * scale + meshCamera.panX,
       y: 210 - (point.v - centerV) * scale + meshCamera.panY,
     }));
-    const faces = triangles.map((indices) => {
+    const faces = triangles.map((indices, triangleIndex) => {
       if (!Array.isArray(indices) || indices.length !== 3 ||
           indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length)) return null;
       const a = vertices[indices[0]], b = vertices[indices[1]], c = vertices[indices[2]];
@@ -148,13 +197,33 @@
         points: indices.map((index) => screen[index].x + "," + screen[index].y).join(" "),
         depth: indices.reduce((sum, index) => sum + projected[index].depth, 0) / 3,
         faceClass,
+        triangleIndex,
       };
     }).filter((face) => face !== null).sort((left, right) => right.depth - left.depth);
     meshFaces.replaceChildren();
     faces.forEach((face) => {
       const polygon = document.createElementNS(svgNamespace, "polygon");
       polygon.setAttribute("points", face.points);
-      polygon.setAttribute("class", "mesh-face " + face.faceClass);
+      polygon.setAttribute("class", "mesh-face " + face.faceClass +
+        (selectedMeshTriangleIndex === face.triangleIndex ? " mesh-face-selected" : ""));
+      polygon.setAttribute("data-triangle-index", String(face.triangleIndex));
+      polygon.setAttribute("role", "button");
+      polygon.setAttribute("tabindex", "0");
+      polygon.setAttribute("aria-label", "Select mesh triangle " + (face.triangleIndex + 1));
+      polygon.setAttribute("aria-pressed", String(selectedMeshTriangleIndex === face.triangleIndex));
+      polygon.addEventListener("click", () => {
+        if (suppressMeshClick) {
+          suppressMeshClick = false;
+          return;
+        }
+        selectMeshTriangle(face.triangleIndex);
+      });
+      polygon.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectMeshTriangle(face.triangleIndex);
+        }
+      });
       meshFaces.append(polygon);
     });
   }
@@ -211,7 +280,10 @@
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
-    activeMesh = { vertices, triangles };
+    activeMesh = { vertices, triangles, lengthUnit: mesh.length_unit, frameId: mesh.frame_id };
+    selectedMeshTriangleIndex = null;
+    meshClearSelectionButton.disabled = true;
+    meshSelection.textContent = "Select a triangle to inspect its area and centroid.";
     meshCamera = { ...defaultMeshCamera };
     meshControlButtons.forEach((button) => { button.disabled = false; });
     drawMeshPreview();
@@ -229,12 +301,15 @@
     meshCamera = { ...defaultMeshCamera };
     drawMeshPreview();
   });
+  meshClearSelectionButton.addEventListener("click", clearMeshSelection);
 
   meshPreview.addEventListener("pointerdown", (event) => {
     if (!activeMesh || (event.button !== 0 && event.button !== 1)) return;
+    suppressMeshClick = false;
     meshDrag = {
       pointerId: event.pointerId, x: event.clientX, y: event.clientY,
       mode: event.shiftKey || event.button === 1 ? "pan" : "orbit",
+      moved: false,
     };
     meshPreview.setPointerCapture(event.pointerId);
   });
@@ -243,6 +318,7 @@
     const dx = event.clientX - meshDrag.x, dy = event.clientY - meshDrag.y;
     meshDrag.x = event.clientX;
     meshDrag.y = event.clientY;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) meshDrag.moved = true;
     if (meshDrag.mode === "pan") {
       meshCamera.panX = clamp(meshCamera.panX + dx, -600, 600);
       meshCamera.panY = clamp(meshCamera.panY + dy, -400, 400);
@@ -254,7 +330,10 @@
   });
   ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
     meshPreview.addEventListener(eventName, (event) => {
-      if (meshDrag && meshDrag.pointerId === event.pointerId) meshDrag = null;
+      if (meshDrag && meshDrag.pointerId === event.pointerId) {
+        suppressMeshClick = eventName === "pointerup" && meshDrag.moved;
+        meshDrag = null;
+      }
     });
   });
   meshPreview.addEventListener("wheel", (event) => {

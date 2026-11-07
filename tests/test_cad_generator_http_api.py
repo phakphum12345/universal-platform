@@ -107,6 +107,8 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "Generate FeatureHistory JSON" in html
     assert 'id="mesh-preview"' in html
     assert 'id="mesh-validation"' in html
+    assert 'id="mesh-selection"' in html
+    assert 'id="mesh-clear-selection"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -133,11 +135,21 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "function disableMeshPreview()" in script
     assert 'byId("mesh-validation").textContent += " ·' in script
     assert "pointercancel" in script
+    assert "function selectMeshTriangle(index)" in script
+    assert "Math.hypot(nx, ny, nz)" in script
+    assert "mesh.length_unit" in script
+    assert "mesh.frame_id" in script
+    assert 'polygon.setAttribute("aria-pressed"' in script
+    assert 'polygon.setAttribute("data-triangle-index"' in script
+    assert 'event.key === "Enter" || event.key === " "' in script
+    assert "suppressMeshClick" in script
+    assert "clearMeshSelection" in script
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/css")
     assert "touch-action: none" in stylesheet
+    assert ".mesh-face-selected" in stylesheet
     assert ".panel" in stylesheet
 
     status, health = send(base, "/health", extra_headers={"Origin": base})
