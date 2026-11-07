@@ -89,6 +89,7 @@
 
   function clearMeshPreview(message = "No mesh artifact loaded.") {
     activeMesh = null;
+    meshDrag = null;
     meshFaces.replaceChildren();
     meshCamera = { ...defaultMeshCamera };
     meshControlButtons.forEach((button) => { button.disabled = true; });
@@ -188,6 +189,12 @@
     }
     if (triangles.length === 0 || triangles.length > MAX_PREVIEW_TRIANGLES) {
       clearMeshPreview("Preview is limited to 1–5,000 triangles; full mesh remains in the result JSON.");
+      byId("mesh-state").textContent = "Preview unavailable";
+      return;
+    }
+    if (triangles.some((indices) => !Array.isArray(indices) || indices.length !== 3 ||
+        indices.some((index) => !Number.isInteger(index) || index < 0 || index >= vertices.length))) {
+      clearMeshPreview("Malformed triangle indices prevent rendering this mesh.");
       byId("mesh-state").textContent = "Preview unavailable";
       return;
     }
