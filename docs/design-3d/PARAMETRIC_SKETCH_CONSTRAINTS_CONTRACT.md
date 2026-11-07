@@ -1,6 +1,6 @@
 # Parametric Sketch Constraint Contract v1.0
 
-**Status:** Bounded implementation — PR #90 merged to the integration branch.  
+**Status:** Bounded implementation — PR #90 baseline; relational constraints added in this feature PR.  
 **Merge SHA:** `e2d631b49910e3d7f05fea6337742fd87385fb81`.  
 **Exact PR-head CI:** run #42260796531 — `workflow-sanity` PASS; `python-tests` PASS, 618 tests.  
 **Post-merge CI:** run #42260977543 — both required jobs PASS, 618 tests.  
@@ -35,12 +35,12 @@ This is not a full interactive sketcher, symbolic constraint engine, CAD kernel,
 | FIX_X | (x_a=x) |
 | FIX_Y | (y_a=y) |
 
-Every scalar residual has its own positive tolerance. Distance is non-negative; signed horizontal and vertical distances are allowed. Unsupported kinds and invalid arity/value combinations are rejected.
+Every scalar residual has its own positive tolerance. Distance is non-negative; signed horizontal and vertical distances are allowed. Relational constraints identify two segments using four distinct point IDs; zero-length segment vectors are rejected before solving and after convergence. Parallel includes same- and opposite-direction vectors. Unsupported kinds and invalid arity/value combinations are rejected.
 
 ## 4. Solver contract
 
 - Variables are ordered deterministically by sketch point order, x then y.
-- Residuals are ordered by sketch constraint order; COINCIDENT expands to x then y.
+- Residuals are ordered by sketch constraint order; COINCIDENT expands to x then y. Relational constraints contribute one scalar cross-product, dot-product or length-difference residual.
 - The adapter calls `solve_nonlinear_constraints`; it does not fork or silently alter the solver.
 - Convergence is true only when the underlying solver reports CONVERGED and every original residual passes its own tolerance.
 - Solver rank and scale diagnostics are propagated in the nested result snapshot when computed.
@@ -57,7 +57,7 @@ Every scalar residual has its own positive tolerance. Distance is non-negative; 
 
 ## 6. Explicit limitations / future increments
 
-Not yet supported: arcs, splines, construction geometry, angle, tangent, parallel, perpendicular, equal-length, radius/diameter, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
+Not yet supported: arcs, splines, construction geometry, angle, tangent, radius/diameter, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
 
 The first slice does not yet create a closed PlanarRegion automatically. A later, separately tested adapter must validate closed boundary topology, winding, self-intersection, holes and frame/unit before creating a region.
 
@@ -69,3 +69,8 @@ The first slice does not yet create a closed PlanarRegion automatically. A later
 - Invalid references, duplicate IDs, invalid arity, negative distance and invalid tolerance fail closed.
 - Deterministic JSON-compatible result snapshot and strict input schema.
 - Full repository Python suite: 618 passed on exact PR head and post-merge integration SHA.
+
+
+## 8. Relational constraint increment
+
+The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. Angle, tangent, radius/diameter, shared-endpoint segment references and richer segment-ID constraint binding remain out of scope; no symbolic or globally unique solution is claimed.
