@@ -444,3 +444,14 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Public exports added: `CADGeneratorService`, `CADGeneratorRun`, `SQLiteFeatureArtifactCache`, `FeatureArtifactCacheIntegrityError`.
 - Exact-head and post-merge CI passed both required jobs; 817 tests. Integration SHA: `ab0006c1ead3e6848f90e30c804d38a3029218f3`; main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`.
 - Next implementation increment: transport adapter (HTTP or CLI) with explicit request/response schemas, authentication/authorization, size/time limits, audit, cancellation, structured errors and loopback-only binding by default. Remote/public access must require explicit separate approval. Add UI only after transport contracts stabilize.
+
+
+## CAD Generator loopback API — PR #138 MERGED
+
+- Implemented an explicit-start local HTTP adapter for the revision-aware CAD Generator service.
+- Provides authenticated health, immutable history save, revision list/read and exact-revision regeneration.
+- Uses IPv4 loopback only (`127.0.0.1`), dynamic port by default, bearer token, strict JSON/body/time limits and same-origin checks.
+- Adds SQLite append-only request lifecycle audit with SHA-256 chain verification. It does not log credentials or model payloads.
+- Exact-head CI passed both required jobs with 822 tests; exact post-merge workflow #42380918862 passed both required jobs with 822 tests.
+- Integration SHA: `674b6a52c725b6e3f4b4e083b602aab3a138104e`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Next implementation slice: same-origin local CAD authoring UI served by the loopback API; remote/public exposure remains prohibited and outside this increment.
