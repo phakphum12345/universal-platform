@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `a17a6359b4689fedbbcfbec769704a0322e027da` (post-PR #124).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 322 ahead / 0 behind).  
+**Current integration HEAD:** `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` (post-PR #125).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 334 ahead / 0 behind).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #124 workflow #42336306301 on `a17a6359b4689fedbbcfbec769704a0322e027da` — workflow-sanity PASS; python-tests PASS; **780 passed in 4.34s**.  
+**Latest post-merge CI:** PR #125 workflow #42336694017 on `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9` — workflow-sanity PASS; python-tests PASS; **785 passed in 4.65s**.  
 **Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
-**Open PRs:** 0 at post-PR #124 audit (before the next sketch increment). **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Open PRs:** 0 at post-PR #125 audit (before the next arc increment). **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -864,4 +864,13 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - PR #124 adds SQLite source-document revisions for FeatureHistory. Exact PR-head checks passed 780 tests; post-merge workflow #42336306301 on the exact integration SHA passed both `workflow-sanity` and `python-tests`, 780 tests in 4.34s.
 - Durable FeatureArtifact/geometry/solver cache and rehydration remain OPEN; the SQLite store persists source DAG documents only.
 - Next sketch increment branch: `feat/cad-parametric-sketch-angle-constraint-v1`, based on the exact integration SHA above. It adds a signed directed angle constraint between two existing segment IDs and reads legacy v1.0 sketch snapshots. Exact-head CI is pending; do not mark this branch PASS before the run completes.
+- Local workstation working-tree state remains UNKNOWN from remote repository inspection.
+
+
+## Latest integration — post-PR #125
+
+- Integration HEAD: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 334 ahead / 0 behind.
+- PR #125 added signed directed ANGLE between two stable segment IDs and ParametricSketch schema v1.1 with v1.0 snapshot compatibility. Exact PR-head and post-merge CI both passed 785 tests; post-merge workflow #42336694017 passed both required jobs.
+- Next implementation branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on the exact integration SHA above. It adds circular arc references, positive RADIUS constraints, endpoint TANGENT constraints, and explicit fail-closed behavior in the straight-line region converter. Exact-head CI is pending.
+- The arc implementation is not a curved-profile CAD kernel: arc tessellation, curved planar regions, curved Boolean operations and B-rep conversion remain OPEN.
 - Local workstation working-tree state remains UNKNOWN from remote repository inspection.
