@@ -438,7 +438,6 @@
                   {
                     "properties": {
                       "kind": {
-                        "const": "ANGLE",
                         "enum": [
                           "ANGLE",
                           "TANGENT",
