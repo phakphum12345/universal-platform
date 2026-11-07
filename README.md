@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `f3abe346a259f2f3f3ed767889dba32be6a284b9` (ahead/behind count not recomputed in this audit).
+- Integration HEAD: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` (ahead/behind count not recomputed in this audit).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #140 workflow #42381936401 — workflow-sanity PASS, python-tests PASS, **823 passed in 8.08s** (exact merge SHA `f3abe346a259f2f3f3ed767889dba32be6a284b9`).
-- Current inventory: 335 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files (recursive tree at the post-PR #140 integration SHA).
+- Latest post-merge CI: PR #142 workflow #42382710626 — workflow-sanity PASS, python-tests PASS, **832 passed in 7.91s** (exact merge SHA `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`).
+- Current inventory: 338 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files (recursive tree at the post-PR #142 integration SHA).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
@@ -223,3 +223,8 @@ The HTTP adapter is not a public or remote service. Do not expose it through LAN
 ## Local CAD Generator workbench (PR #140)
 
 The loopback API now serves a same-origin responsive workbench for entering a bearer token, pasting/editing FeatureHistory JSON, appending immutable revisions, listing and loading revisions, and regenerating an exact revision. The token is held in page memory only. The UI uses restrictive CSP, no external resources and no CORS. This is a JSON/revision workbench, not yet a graphical sketch editor or CAD viewport. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
+
+
+## Visual polygon sketch editor (PR #142)
+
+The local CAD workbench now includes a bounded 2D SVG polygon editor with click-to-add, numeric coordinates, undo/clear and extrusion-height input. An authenticated template endpoint builds a strict fixed-coordinate ParametricSketch → Extrusion → Mesh FeatureHistory; the user reviews the JSON, saves an immutable revision, then regenerates to run geometry and watertight-mesh validation. The initial editor is limited to straight-edge polygons, 3–64 vertices and X 0–26 mm / Y 0–15 mm. It is not yet a general sketcher or 3D viewport.
