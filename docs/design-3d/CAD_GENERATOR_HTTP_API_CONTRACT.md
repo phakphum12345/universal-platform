@@ -180,4 +180,19 @@ After successful regeneration, the local UI locates the `MESH` FeatureArtifact i
 - Uses a painter-sorted static isometric projection. The preview is capped at 10,000 vertices and 5,000 triangles to bound browser work; full artifact JSON remains available in the operation result.
 - Malformed indices or non-finite coordinates prevent rendering; the preview does not change the backend validation result.
 
-**Capability boundary:** this is a static isometric mesh preview, not an interactive CAD viewport. No orbit/pan/zoom, selection, sectioning, B-rep face editing, dimensioning, assemblies or general CAD-kernel operations are implemented. Backend validation remains authoritative; a rendered mesh is not engineering certification.
+**Capability boundary:** this is a bounded interactive triangle-mesh viewer, not a full CAD viewport. It supports pointer-drag orbit (yaw/pitch), Shift-drag or middle-button pan, wheel/button zoom and reset-to-default camera. Zoom is clamped to 0.5×–4×; pitch and pan are bounded. These controls only change the client-side projection and never mutate source FeatureHistory or backend artifacts. There is no face/edge selection, sectioning, B-rep editing, dimensioning, assembly view, persistence of camera state or general CAD-kernel operation. Backend validation remains authoritative; a rendered mesh is not engineering certification.
+
+
+## 11. Interactive mesh camera controls — PR #146
+
+The local mesh preview adds a client-side camera over the exact returned triangle mesh:
+
+- Drag with the primary pointer to orbit using yaw and pitch; pitch is clamped to avoid a pole singularity.
+- Hold Shift while dragging, or use the middle mouse button, to pan within bounded screen offsets.
+- Use the wheel or Zoom in/Zoom out controls to scale between 0.5× and 4×.
+- Reset view restores the deterministic default camera.
+- Controls are disabled until a bounded, structurally valid mesh artifact is loaded. Malformed/non-finite vertices or invalid triangle indices fail closed for preview rendering.
+- Rendering remains capped at 10,000 vertices and 5,000 triangles. Camera state is ephemeral and is not written to FeatureHistory, SQLite, the API or the audit log.
+- The SVG viewport exposes labelled controls and pointer interactions; touch-action is limited to the viewport so drag gestures do not scroll the page while manipulating the model.
+
+This increment does not implement selection, highlighting, measurement, clipping/section planes, B-rep editing, assembly navigation or browser-driven geometry mutation. It does not change backend validation or certify geometry.
