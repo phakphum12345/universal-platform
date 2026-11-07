@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `674b6a52c725b6e3f4b4e083b602aab3a138104e` (post-PR #138).  
+**Current integration HEAD:** `f3abe346a259f2f3f3ed767889dba32be6a284b9` (post-PR #140).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #138 workflow #42380918862 on `674b6a52c725b6e3f4b4e083b602aab3a138104e` — workflow-sanity PASS; python-tests PASS; **822 passed in 6.95s**.  
-**Current tree:** 332 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#138 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #140 workflow #42381936401 on `f3abe346a259f2f3f3ed767889dba32be6a284b9` — workflow-sanity PASS; python-tests PASS; **823 passed in 8.08s**.  
+**Current tree:** 335 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#140 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -951,3 +951,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
 - Remaining API hardening: rate limiting, TLS/remote authentication (only if remote service is separately authorized), browser session controls and external audit witness are not implemented.
 - Next: same-origin local CAD authoring UI served by this loopback service; no remote browser access.
+
+
+## Local CAD Generator FeatureHistory workbench — merged PR #140
+
+- Serves packaged HTML/CSS/JS from the same-origin loopback HTTP server; static assets are available without a bearer token only to the validated local origin so the user can enter the token.
+- API operations still require bearer authentication. The token remains in page memory and is not persisted in localStorage, cookies, URL or request body.
+- UI supports FeatureHistory JSON editing/paste, immutable revision save, revision list, exact revision load and regeneration with provenance/validation display.
+- Security: restrictive CSP, no external resources, no CORS, no HTML rendering of API responses, credentials omitted, static asset packaging in setuptools.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **823 passed in 7.99s** on `04d67f9302263ed7514daf8f1012c183a05ada21`.
+- Exact post-merge CI: workflow #42381936401; both required jobs PASS; **823 passed in 8.08s** on `f3abe346a259f2f3f3ed767889dba32be6a284b9`.
+- Capability boundary: this is a local JSON/revision workbench, not a graphical sketch editor, interactive 2D constraint editor, CAD viewport or visual solid modeller.
+- Next: bounded polygon sketch editor with explicit coordinates/constraints and an inspectable extrusion/mesh preview, then extend to arcs and broader visual authoring only after geometry validation.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
