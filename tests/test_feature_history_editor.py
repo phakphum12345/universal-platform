@@ -36,9 +36,7 @@ def test_add_feature_returns_new_history_and_can_add_an_output():
         "base", "branch", "leaf", "independent", "extra"
     ]
     assert updated.output_feature_ids == ("leaf", "independent", "extra")
-    assert updated.topological_order() == ("base", "branch", "extra", "independent", "leaf") or set(updated.topological_order()) == {
-        "base", "branch", "extra", "independent", "leaf"
-    }
+    assert updated.topological_order() == ("base", "branch", "independent", "extra", "leaf")
 
 
 def test_add_feature_rejects_duplicate_ids_and_missing_dependencies():
