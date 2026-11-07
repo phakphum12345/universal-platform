@@ -30,9 +30,56 @@
       <p class="hint">The token stays in this page's memory only. It is not written to local storage, cookies or the URL. Refreshing the page clears it.</p>
     </section>
 
+    <section class="panel" aria-labelledby="sketch-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">02 / 2D PROFILE</div><h2 id="sketch-heading">Polygon sketch editor</h2></div>
+        <span id="profile-state" class="state">0 vertices</span>
+      </div>
+      <p class="hint">Click the grid or enter coordinates to add vertices. Coordinates use millimetres; the editor is bounded to X 0–26 mm and Y 0–15 mm. The closing edge is generated automatically.</p>
+      <svg id="profile-canvas" class="sketch-canvas" viewBox="0 0 600 360" role="application" aria-label="2D polygon sketch canvas. Click to add profile vertices.">
+        <defs>
+          <pattern id="sketch-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" class="grid-line"></path>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="600" height="360" class="grid-background"></rect>
+        <rect x="40" y="20" width="520" height="300" fill="url(#sketch-grid)"></rect>
+        <line x1="40" y1="320" x2="560" y2="320" class="axis-line"></line>
+        <line x1="40" y1="20" x2="40" y2="320" class="axis-line"></line>
+        <text x="565" y="324" class="axis-label">X · mm</text>
+        <text x="14" y="17" class="axis-label">Y · mm</text>
+        <g id="profile-geometry"></g>
+      </svg>
+      <div class="two-column sketch-inputs">
+        <div>
+          <label for="sketch-x">X coordinate (mm)</label>
+          <input id="sketch-x" type="number" min="0" max="26" step="0.1" value="0">
+        </div>
+        <div>
+          <label for="sketch-y">Y coordinate (mm)</label>
+          <input id="sketch-y" type="number" min="0" max="15" step="0.1" value="0">
+        </div>
+      </div>
+      <div class="two-column sketch-inputs">
+        <div>
+          <label for="extrusion-height">Extrusion height (mm)</label>
+          <input id="extrusion-height" type="number" min="0.01" step="0.1" value="4">
+        </div>
+        <div class="actions sketch-actions">
+          <button id="add-point">Add point</button>
+          <button id="undo-point">Undo point</button>
+          <button id="clear-profile" class="quiet">Clear profile</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="generate-profile" class="primary" disabled>Generate FeatureHistory JSON</button>
+      </div>
+      <p class="hint">The template creates a closed straight-edge sketch with fixed X/Y constraints, then an extrusion and mesh feature. Self-intersection and solid validity are checked by the regeneration pipeline, not assumed by the drawing canvas.</p>
+    </section>
+
     <section class="panel" aria-labelledby="history-heading">
       <div class="section-heading">
-        <div><div class="eyebrow">02 / SOURCE DOCUMENT</div><h2 id="history-heading">FeatureHistory</h2></div>
+        <div><div class="eyebrow">03 / SOURCE DOCUMENT</div><h2 id="history-heading">FeatureHistory</h2></div>
         <span id="revision-state" class="state">No revision loaded</span>
       </div>
       <div class="two-column">
@@ -56,7 +103,7 @@
 
     <section class="panel" aria-labelledby="revision-heading">
       <div class="section-heading">
-        <div><div class="eyebrow">03 / REVISION & REGENERATION</div><h2 id="revision-heading">Inspect and regenerate</h2></div>
+        <div><div class="eyebrow">04 / REVISION & REGENERATION</div><h2 id="revision-heading">Inspect and regenerate</h2></div>
       </div>
       <div class="inline revision-controls">
         <div class="grow">
@@ -71,7 +118,7 @@
 
     <section class="panel result-panel" aria-labelledby="result-heading">
       <div class="section-heading">
-        <div><div class="eyebrow">04 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
+        <div><div class="eyebrow">05 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
         <button id="clear-result" class="quiet">Clear</button>
       </div>
       <div id="status-message" class="status-message" role="status" aria-live="polite">Enter your local bearer token and connect to begin.</div>
