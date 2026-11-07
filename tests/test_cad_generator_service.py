@@ -144,7 +144,7 @@ def test_cad_generator_service_edits_and_appends_revision_without_mutating_prior
     assert service.get_revision(first.history_id, revision=1).history.nodes[1].parameters["height"] == 2.0
     regenerated = service.regenerate(first.history_id, revision=2)
     assert regenerated.successful
-    assert regenerated.regeneration.artifacts[-1].value[0].is_watertight
+    assert regenerated.regeneration.artifacts[-1].to_dict()["payload"]["validation"]["watertight"] is True
 
 
 def test_cad_generator_service_edit_requires_current_revision_and_valid_operation(tmp_path):
