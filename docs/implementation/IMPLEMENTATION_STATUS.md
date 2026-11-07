@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308` (post-PR #123).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 305 ahead / 0 behind).  
+**Current integration HEAD:** `a17a6359b4689fedbbcfbec769704a0322e027da` (post-PR #124).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 322 ahead / 0 behind).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #123 workflow #42329222239 on `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308` — workflow-sanity PASS; python-tests PASS; **770 passed in 3.80s**.  
+**Latest post-merge CI:** PR #124 workflow #42336306301 on `a17a6359b4689fedbbcfbec769704a0322e027da` — workflow-sanity PASS; python-tests PASS; **780 passed in 4.34s**.  
 **Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
-**Open PRs:** 0 at post-PR #118 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Open PRs:** 0 at post-PR #124 audit (before the next sketch increment). **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -856,3 +856,12 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Test coverage added for reopen durability, append-only revisions, stale and concurrent writers, tampering, missing links, invalid identifiers and unsupported database modes.
 - This branch has not yet passed exact-head CI or been merged. Its source-document store does not persist/rehydrate `FeatureArtifact.value`; durable computed-artifact cache remains OPEN.
 - Local working-tree state cannot be inferred from GitHub API; no claim is made about any developer workstation.
+
+
+## Latest integration — post-PR #124
+
+- Integration HEAD: `a17a6359b4689fedbbcfbec769704a0322e027da`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`, integration 322 ahead / 0 behind.
+- PR #124 adds SQLite source-document revisions for FeatureHistory. Exact PR-head checks passed 780 tests; post-merge workflow #42336306301 on the exact integration SHA passed both `workflow-sanity` and `python-tests`, 780 tests in 4.34s.
+- Durable FeatureArtifact/geometry/solver cache and rehydration remain OPEN; the SQLite store persists source DAG documents only.
+- Next sketch increment branch: `feat/cad-parametric-sketch-angle-constraint-v1`, based on the exact integration SHA above. It adds a signed directed angle constraint between two existing segment IDs and reads legacy v1.0 sketch snapshots. Exact-head CI is pending; do not mark this branch PASS before the run completes.
+- Local workstation working-tree state remains UNKNOWN from remote repository inspection.
