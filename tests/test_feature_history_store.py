@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 import pytest
 
@@ -72,13 +74,20 @@ def test_concurrent_store_instances_serialize_writes_with_sqlite_transactions(tm
     left = SQLiteFeatureHistoryStore(path)
     right = SQLiteFeatureHistoryStore(path)
     left.save(history("mesh-a"), expected_revision=0)
+    barrier = Barrier(2)
 
-    outcomes = []
-    for store, candidate in ((left, history("mesh-b")), (right, history("mesh-c"))):
+    def write(store, candidate):
+        barrier.wait(timeout=5)
         try:
-            outcomes.append(store.save(candidate, expected_revision=1).revision)
+            return store.save(candidate, expected_revision=1).revision
         except FeatureHistoryRevisionConflict:
-            outcomes.append("conflict")
+            return "conflict"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(pool.map(
+            lambda pair: write(*pair),
+            ((left, history("mesh-b")), (right, history("mesh-c"))),
+        ))
 
     assert sorted(outcomes, key=str) == [2, "conflict"]
     assert left.list_revisions("document.part") == (1, 2)
@@ -136,3 +145,16 @@ def test_store_rejects_future_revision_without_changing_head(tmp_path):
     with pytest.raises(KeyError):
         store.load("document.part", revision=2)
     assert store.list_revisions("document.part") == (1,)
+
+def test_store_detects_head_pointer_digest_tampering(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    store.save(history(), expected_revision=0)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE feature_history_heads SET content_sha256 = ? WHERE history_id = ?",
+            ("0" * 64, "document.part"),
+        )
+
+    with pytest.raises(FeatureHistoryStoreIntegrityError, match="head digest"):
+        store.load("document.part")
