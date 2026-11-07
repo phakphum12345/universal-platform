@@ -1034,3 +1034,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge workflow #42397474889 on the merge SHA: both jobs PASS; **843 passed in 7.14s**.
 - Adds revision-checked service and HTTP edit operations for add/replace/remove. SQLite compare-and-swap protects against stale writes; HTTP 409 reports revision conflicts.
 - Browser edit controls and browser E2E remain open; overall CAD and repository status remain PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #156
+
+- Integration baseline: `10404099ccaa85cef24adedffa7bce789abd691e` on `docs/phase-0-complete-requirements`.
+- PR #156 adds local FeatureHistory browser controls for selected-feature parameter replacement, add/remove, explicit cascade confirmation and current-head revision gating.
+- Exact PR head `265ca3907e05f958fbae48f48398fbbae8d70ea2`: workflow #42407785969 — workflow-sanity PASS; python-tests PASS; 843 passed in 9.40s.
+- Exact post-merge SHA `10404099ccaa85cef24adedffa7bce789abd691e`: workflow #42407835073 — workflow-sanity PASS; python-tests PASS; 843 passed in 9.76s.
+- The documentation-only marker step was SKIPPED and is not counted as a pass.
+- WP-03 remains PARTIAL. Browser E2E, feature suppression, reordering, undo/redo, B-rep editing and broader CAD/kernel capabilities remain open.
+- Repository-wide completion remains INCOMPLETE; see `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md`.

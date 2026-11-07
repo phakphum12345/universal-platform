@@ -4,12 +4,12 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Last audited implementation baseline: `7046de5cff4a7a575de44de189bbb4fedcbdba58` (post-PR #154; subsequent reconciliation changes are documentation-only).
+- Last audited implementation baseline: `10404099ccaa85cef24adedffa7bce789abd691e` (post-PR #156).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #154 workflow #42397474889 on exact merge SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 7.14s**.
-- Current inventory: 350 entries, 117 Markdown, 165 Python, 24 JSON files, 85 Python test files (recursive tree at post-PR #154; truncated=false).
+- Latest post-merge CI: PR #156 workflow #42407835073 on exact merge SHA `10404099ccaa85cef24adedffa7bce789abd691e` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 9.76s**.
+- Current inventory: 351 entries, 118 Markdown, 165 Python, 24 JSON files, 85 Python test files (recursive tree at post-PR #156; truncated=false).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only). Branch-protection read: UNKNOWN (connected GitHub API returned 403).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
@@ -258,3 +258,8 @@ The engineering core now provides immutable add, replace and remove operations f
 ## Revision-safe FeatureHistory edit API — PR #154
 
 The CAD Generator service now applies add/replace/remove operations to the caller's expected source revision and appends a new immutable revision using SQLite compare-and-swap. The loopback API exposes `POST /v1/histories/{history_id}/edit`; stale revisions return HTTP 409. The route remains loopback-only, bearer-authenticated and audit-logged, and executes no user code. Exact PR-head workflow #42397413655 passed both jobs with **843 tests in 9.34s**; exact post-merge workflow #42397474889 on `7046de5cff4a7a575de44de189bbb4fedcbdba58` passed both jobs with **843 tests in 7.14s**. The browser tree remains read-only; interactive editing controls and browser E2E remain open. See [CAD Generator HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #154 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md).
+
+
+## Interactive FeatureHistory editing controls — PR #156
+
+The local CAD workbench now exposes bounded FeatureHistory editing controls through the revision-safe loopback API: replace the selected feature's parameters, add a feature from the existing allow-list, and remove a feature with explicit cascade confirmation when needed. Edits append immutable revisions; historical revisions remain read-only and stale writes are rejected. The editor uses text-only DOM rendering and does not execute user code. The browser E2E interaction suite is still open and is not claimed as verified. PR #156 exact head `265ca3907e05f958fbae48f48398fbbae8d70ea2` passed workflow-sanity and python-tests (**843 passed in 9.40s**); exact post-merge SHA `10404099ccaa85cef24adedffa7bce789abd691e` passed both jobs (**843 passed in 9.76s**). See [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), and [post-PR #156 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md).
