@@ -97,12 +97,12 @@ The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_L
 
 - `SketchArc` references one center point, a start point and an end point,
   plus an explicit `clockwise` direction flag. The three point IDs must be
-  distinct, all references must resolve, and both radial vectors and the
-  endpoint chord must be non-degenerate.
+  distinct, all references must resolve, both radial vectors and the endpoint
+  chord must be non-degenerate, and start/end may not define a zero angular sweep.
 - Each arc must have exactly one `RADIUS` constraint. The positive radius
-  target creates two scalar residuals: center-to-start and center-to-end
-  distance minus the requested radius. This keeps both endpoints on the same
-  circle during solving.
+  target is expressed in the sketch's `length_unit` and creates two scalar
+  residuals: center-to-start and center-to-end distance minus the requested
+  radius. This keeps both endpoints on the same circle during solving.
 - `TANGENT` references one existing straight segment, one circular arc and
   their shared endpoint. It contributes the normalized dot product between
   the line direction and the center-to-contact radial vector; the residual
