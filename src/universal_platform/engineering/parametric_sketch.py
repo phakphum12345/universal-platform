@@ -311,12 +311,12 @@ class ParametricSketch:
         constraints = []
         for raw in raw_constraints:
             required_constraint_fields = {"constraint_id", "kind", "point_ids", "value", "tolerance"}
-            allowed_constraint_fields = {
+            allowed_constraint_fields = (
                 required_constraint_fields,
                 required_constraint_fields | {"segment_ids"},
                 required_constraint_fields | {"arc_ids"},
                 required_constraint_fields | {"segment_ids", "arc_ids"},
-            }
+            )
             if not isinstance(raw, Mapping) or set(raw) not in allowed_constraint_fields:
                 raise InvalidModelError("ParametricSketch constraint has missing or unknown fields")
             if schema_version == "1.0" and ({"segment_ids", "arc_ids"} & set(raw)):
