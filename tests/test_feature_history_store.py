@@ -92,7 +92,7 @@ def test_store_detects_snapshot_tampering(tmp_path):
         connection.execute(
             "UPDATE feature_history_revisions SET snapshot_json = ? "
             "WHERE history_id = ? AND revision = 1",
-            ('{"schema_version":"1.0","history_id":"document.part","nodes":[],"output_feature_ids":["mesh"]}', "document.part"),
+            ('{"history_id":"document.part","nodes":[],"output_feature_ids":["mesh"],"schema_version":"1.0"}', "document.part"),
         )
 
     with pytest.raises(FeatureHistoryStoreIntegrityError, match="digest mismatch"):
