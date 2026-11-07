@@ -126,6 +126,11 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'meshPreview.addEventListener("wheel"' in script
     assert "meshCamera.pitch = clamp" in script
     assert "meshCamera.zoom * factor, 0.5, 4" in script
+    assert "meshCamera.yaw += dx * 0.01" in script
+    assert "meshCamera.panX + dx, -600, 600" in script
+    assert "meshCamera.panY + dy, -400, 400" in script
+    assert "Malformed triangle indices prevent rendering" in script
+    assert "pointercancel" in script
     assert "touch-action: none" in stylesheet
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
