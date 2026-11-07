@@ -230,15 +230,14 @@ def test_angle_constraint_rejects_missing_or_repeated_segment_references():
     with pytest.raises(InvalidModelError, match="requires 2 distinct segment"):
         SketchConstraint("bad", Kind.ANGLE, (), pi / 2, segment_ids=("one", "one"))
 
-    sketch = ParametricSketch(
-        "bad.angle", "plane", "mm",
-        (SketchPoint("a", 0, 0), SketchPoint("b", 1, 0)),
-        (SketchSegment("known", "a", "b"),),
-        (SketchConstraint("angle", Kind.ANGLE, (), pi / 2,
-                          segment_ids=("known", "missing")),),
-    )
     with pytest.raises(InvalidModelError, match="unknown segment"):
-        sketch.to_dict()  # construction itself rejects the dangling reference
+        ParametricSketch(
+            "bad.angle", "plane", "mm",
+            (SketchPoint("a", 0, 0), SketchPoint("b", 1, 0)),
+            (SketchSegment("known", "a", "b"),),
+            (SketchConstraint("angle", Kind.ANGLE, (), pi / 2,
+                              segment_ids=("known", "missing")),),
+        )
 
 
 def test_angle_constraint_rejects_degenerate_segments_and_out_of_range_angles():
