@@ -44,6 +44,32 @@ class SketchRegionConversionResult:
             "regions": [region.to_dict() for region in self.regions],
         }
 
+    @classmethod
+    def from_dict(cls, value: object) -> "SketchRegionConversionResult":
+        required = {
+            "schema_version", "algorithm_version", "source_sketch_id",
+            "source_sketch_sha256", "regions",
+        }
+        if not isinstance(value, dict) or set(value) != required:
+            raise InvalidModelError("SketchRegionConversionResult snapshot has missing or unknown fields")
+        if value["schema_version"] != cls.SCHEMA_VERSION or value["algorithm_version"] != cls.ALGORITHM_VERSION:
+            raise InvalidModelError("unsupported SketchRegionConversionResult version")
+        source_id, digest, raw_regions = (
+            value["source_sketch_id"], value["source_sketch_sha256"], value["regions"]
+        )
+        if not isinstance(source_id, str) or not source_id.strip():
+            raise InvalidModelError("source_sketch_id must be a non-empty string")
+        if (not isinstance(digest, str) or len(digest) != 64
+                or any(ch not in "0123456789abcdef" for ch in digest)):
+            raise InvalidModelError("source_sketch_sha256 must be a lowercase SHA-256 digest")
+        if not isinstance(raw_regions, (list, tuple)):
+            raise InvalidModelError("SketchRegionConversionResult regions must be an array")
+        regions = tuple(PlanarRegion.from_dict(item) for item in raw_regions)
+        result = cls(source_id, digest, regions)
+        if result.to_dict() != value:
+            raise InvalidModelError("SketchRegionConversionResult snapshot is not canonical")
+        return result
+
 
 @dataclass(frozen=True, slots=True)
 class _BoundaryEdge:
