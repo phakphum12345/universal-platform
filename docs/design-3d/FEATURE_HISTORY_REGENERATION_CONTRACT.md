@@ -53,7 +53,7 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: persistent document storage or durable/cross-process cache, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation is bounded to an in-memory cache: the caller must retain and explicitly pass a prior successful `FeatureRegenerationResult`; it is not a persistent document service.
+Not yet implemented: durable computed-artifact cache or geometry rehydration, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation remains an in-memory cache: the caller must retain and explicitly pass a prior successful `FeatureRegenerationResult`. The durable document store described below does not persist or reconstruct computed artifact objects.
 
 The current sketch-to-region converter accepts only closed straight-edge loops. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
@@ -66,3 +66,49 @@ The current sketch-to-region converter accepts only closed straight-edge loops. 
 - Two sketches → planar UNION → extrusion → mesh end-to-end regeneration.
 - Failed extrusion returns FAILED and no partial artifacts.
 - Exact PR-head and post-merge CI each pass 636 tests.
+
+
+## 8. Durable revisioned source documents
+
+The implementation branch `feat/cad-feature-history-durable-revisions-v1` adds
+`SQLiteFeatureHistoryStore` as a local-first persistence layer for source
+`FeatureHistory` documents. It is intentionally separate from regeneration
+and computed-artifact caching.
+
+- Each save appends an immutable, monotonically numbered revision; prior
+  snapshots are retained.
+- Callers supply `expected_revision` (0 for initial creation). A SQLite
+  `BEGIN IMMEDIATE` transaction checks the current head and appends the new
+  revision atomically. A stale writer receives
+  `FeatureHistoryRevisionConflict`; it cannot silently overwrite another
+  writer's update.
+- Each revision stores canonical JSON, a SHA-256 digest over the revision
+  envelope, and the preceding revision digest. Reads verify canonical encoding,
+  schema round-trip, contiguous revision numbering, parent links, every
+  revision digest, and the latest head pointer.
+- The database uses SQLite WAL mode, a full synchronous durability setting,
+  a busy timeout, and the standard library only. The caller chooses the local
+  filesystem database path; in-memory/URI modes are rejected.
+- History identifiers are data keys, never filesystem paths. Stored snapshots
+  are parsed as data and never executed.
+- `load(history_id, revision=...)` can read an earlier immutable revision;
+  `list_revisions(history_id)` lists retained revision numbers.
+
+**Boundary:** this persists the source feature DAG only. It does not persist
+`FeatureArtifact.value`, solver state, mesh objects, or a durable computation
+cache. Those values require explicit versioned serializers and trusted
+rehydration contracts before cross-process artifact reuse can be claimed.
+There is no suppression, rollback mutation, branch/merge model, replication,
+encryption-at-rest, backup scheduler, or distributed consensus in this slice.
+
+## 9. Durable-store acceptance evidence
+
+- Source document round-trip after reopening the SQLite database.
+- Append-only revision history and retrieval of earlier revisions.
+- Optimistic compare-and-swap conflict across independent store instances.
+- Concurrent writer serialization through SQLite transactions.
+- Detection of modified snapshot bytes, missing revision links, and a tampered
+  latest-head digest.
+- Rejection of invalid identifiers, in-memory/URI database modes, invalid
+  expected revisions, and unknown documents.
+- Exact-head CI must pass before this branch can be considered integrated.

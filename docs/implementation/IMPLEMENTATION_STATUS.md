@@ -1,10 +1,10 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (post-PR #118).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 265 ahead / 0 behind).  
+**Current integration HEAD:** `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308` (post-PR #123).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 305 ahead / 0 behind).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #118 workflow #42282428283 on `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` — workflow-sanity PASS; python-tests PASS; **755 passed in 2.83s**.  
+**Latest post-merge CI:** PR #123 workflow #42329222239 on `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308` — workflow-sanity PASS; python-tests PASS; **770 passed in 3.80s**.  
 **Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
 **Open PRs:** 0 at post-PR #118 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
@@ -846,3 +846,13 @@ Passing tests validate only the code and contracts present at the exact tested S
 - All listed required jobs passed; skipped documentation-only steps are not counted as passes.
 
 See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
+
+
+## Feature History durable source-document store — implementation branch
+
+- Branch: `feat/cad-feature-history-durable-revisions-v1`; base integration SHA: `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308`.
+- Adds `SQLiteFeatureHistoryStore` using the Python standard library; no paid service or external database dependency.
+- Immutable document revisions, expected-revision compare-and-swap, SQLite write transactions, SHA-256 parent chain, strict snapshot round-trip and tamper/head-pointer detection are implemented in source.
+- Test coverage added for reopen durability, append-only revisions, stale and concurrent writers, tampering, missing links, invalid identifiers and unsupported database modes.
+- This branch has not yet passed exact-head CI or been merged. Its source-document store does not persist/rehydrate `FeatureArtifact.value`; durable computed-artifact cache remains OPEN.
+- Local working-tree state cannot be inferred from GitHub API; no claim is made about any developer workstation.
