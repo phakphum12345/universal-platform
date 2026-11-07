@@ -14,7 +14,10 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "sketch_id": {
       "type": "string",
@@ -120,12 +123,13 @@
             "FIX_Y",
             "PARALLEL",
             "PERPENDICULAR",
-            "EQUAL_LENGTH"
+            "EQUAL_LENGTH",
+            "ANGLE"
           ]
         },
         "point_ids": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "maxItems": 4,
           "items": {
             "type": "string",
@@ -141,6 +145,14 @@
         "tolerance": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "segment_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "allOf": [
@@ -247,6 +259,37 @@
               },
               "value": {
                 "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ANGLE"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "segment_ids"
+            ],
+            "properties": {
+              "point_ids": {
+                "maxItems": 0
+              },
+              "segment_ids": {
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "value": {
+                "type": "number",
+                "minimum": -3.141592653589793,
+                "maximum": 3.141592653589793
               }
             }
           }
