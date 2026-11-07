@@ -14,7 +14,8 @@
   const featureTree = byId("feature-tree");
   const featureTreeState = byId("feature-tree-state");
   const featureInspector = byId("feature-inspector");
-  const buttons = ["save", "list", "load", "regenerate", "generate-profile"].map(byId);
+  const featureEditParametersInput = byId("feature-edit-parameters");
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
@@ -46,7 +47,19 @@
     resultOutput.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   }
 
+  function updateFeatureEditorControls(hasSelection) {
+    const expected = Number(expectedRevisionInput.value);
+    const canEditCurrentHead = connected &&
+      Number.isSafeInteger(expected) && expected >= 1 &&
+      !revisionSelect.disabled && revisionSelect.value === String(expected);
+    featureEditParametersInput.disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-apply-edit").disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-add").disabled = !canEditCurrentHead;
+  }
+
   function renderFeatureTree() {
+    updateFeatureEditorControls(false);
     featureTree.replaceChildren();
     featureInspector.textContent = "Select a feature to inspect its inputs and parameters.";
     const raw = snapshotInput.value.trim();
@@ -148,6 +161,8 @@
       featureTree.querySelectorAll("button[data-feature-id]").forEach((button) => {
         button.setAttribute("aria-pressed", String(button.dataset.featureId === selectedFeatureId));
       });
+      featureEditParametersInput.value = JSON.stringify(node.parameters, null, 2);
+      updateFeatureEditorControls(true);
       featureInspector.textContent = JSON.stringify({
         feature_id: node.feature_id,
         kind: node.kind,
@@ -183,6 +198,7 @@
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
     renderProfile();
+    renderFeatureTree();
   }
 
   function profileToCanvas(point) {
@@ -525,6 +541,53 @@
     return id;
   }
 
+  function parseObjectField(id, label) {
+    let value;
+    try {
+      value = JSON.parse(byId(id).value);
+    } catch (_) {
+      throw new Error(label + " must be valid JSON.");
+    }
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error(label + " must be a JSON object.");
+    }
+    return value;
+  }
+
+  async function commitFeatureEdit(operation, fields) {
+    const id = currentHistoryId();
+    const expected = Number(expectedRevisionInput.value);
+    if (!Number.isSafeInteger(expected) || expected < 1) {
+      throw new Error("A saved current head revision is required before editing.");
+    }
+    if (revisionSelect.disabled || revisionSelect.value !== String(expected)) {
+      throw new Error("Load the current head revision before editing; historical revisions are read-only.");
+    }
+    const result = await api("/v1/histories/" + encodeURIComponent(id) + "/edit", {
+      method: "POST",
+      body: { expected_revision: expected, operation, ...fields },
+    });
+    await refreshRevisions(result.revision);
+    const loaded = await api(
+      "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
+    );
+    snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+    renderFeatureTree();
+    byId("revision-state").textContent = "Loaded edited head revision " + result.revision;
+    setStatus("Saved " + operation + " as immutable revision " + result.revision + ".", "good");
+    showResult(result);
+    return result;
+  }
+
+  function reportFeatureEditError(error) {
+    if (error.status === 409) {
+      setStatus("Revision conflict. Refresh revisions and load the latest head before retrying.", "bad");
+    } else {
+      setStatus(error.message, "bad");
+    }
+    showResult(error.payload || error.message);
+  }
+
   async function refreshRevisions(selectRevision = null) {
     const id = currentHistoryId();
     const result = await api("/v1/histories/" + encodeURIComponent(id) + "/revisions");
@@ -540,6 +603,7 @@
       byId("regenerate").disabled = true;
       expectedRevisionInput.value = "0";
       byId("revision-state").textContent = "No revision loaded";
+      updateFeatureEditorControls(false);
       return result;
     }
     revisions.forEach((number) => {
@@ -556,6 +620,7 @@
     byId("load").disabled = false;
     byId("regenerate").disabled = false;
     byId("revision-state").textContent = "Head revision " + head;
+    updateFeatureEditorControls(false);
     return result;
   }
 
@@ -760,8 +825,54 @@
     }
   });
 
+  byId("feature-apply-edit").addEventListener("click", async () => {
+    try {
+      const snapshot = JSON.parse(snapshotInput.value);
+      const node = snapshot.nodes.find((item) => item.feature_id === selectedFeatureId);
+      if (!node) throw new Error("Select a feature from the current FeatureHistory snapshot.");
+      const parameters = parseObjectField("feature-edit-parameters", "Feature parameters");
+      const feature = { ...node, parameters };
+      await commitFeatureEdit("replace", { feature_id: selectedFeatureId, feature });
+    } catch (error) {
+      reportFeatureEditError(error);
+    }
+  });
+
+  byId("feature-add").addEventListener("click", async () => {
+    try {
+      const featureId = byId("feature-add-id").value.trim();
+      const inputs = byId("feature-add-inputs").value.trim();
+      const feature = {
+        feature_id: featureId,
+        kind: byId("feature-add-kind").value,
+        input_feature_ids: inputs ? inputs.split(",").map((value) => value.trim()) : [],
+        parameters: parseObjectField("feature-add-parameters", "New feature parameters"),
+      };
+      const makeOutput = byId("feature-add-output").checked;
+      await commitFeatureEdit("add", { feature, make_output: makeOutput });
+      byId("feature-add-id").value = "";
+      byId("feature-add-inputs").value = "";
+      byId("feature-add-parameters").value = "{}";
+      byId("feature-add-output").checked = false;
+    } catch (error) {
+      reportFeatureEditError(error);
+    }
+  });
+
+  byId("feature-remove").addEventListener("click", async () => {
+    try {
+      if (!selectedFeatureId) throw new Error("Select a feature to remove.");
+      const cascade = byId("feature-remove-cascade").checked;
+      await commitFeatureEdit("remove", { feature_id: selectedFeatureId, cascade });
+      byId("feature-remove-cascade").checked = false;
+    } catch (error) {
+      reportFeatureEditError(error);
+    }
+  });
+
   revisionSelect.addEventListener("change", () => {
     byId("revision-state").textContent = "Selected revision " + revisionSelect.value;
+    renderFeatureTree();
   });
 
   byId("clear-result").addEventListener("click", () => {

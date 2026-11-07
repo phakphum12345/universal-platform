@@ -113,6 +113,13 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'id="feature-tree"' in html
     assert 'id="feature-tree-state"' in html
     assert 'id="feature-inspector"' in html
+    assert 'id="feature-edit-parameters"' in html
+    assert 'id="feature-apply-edit"' in html
+    assert 'id="feature-add"' in html
+    assert 'id="feature-add-kind"' in html
+    assert 'id="feature-add-output"' in html
+    assert 'id="feature-remove"' in html
+    assert 'id="feature-remove-cascade"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -153,6 +160,16 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "deterministic topological order" in script
     assert "Feature dependency cycle detected" in script
     assert "featureInspector.textContent = JSON.stringify" in script
+    assert "function commitFeatureEdit(operation, fields)" in script
+    assert '"/v1/histories/" + encodeURIComponent(id) + "/edit"' in script
+    assert 'commitFeatureEdit("replace"' in script
+    assert 'commitFeatureEdit("add"' in script
+    assert 'commitFeatureEdit("remove"' in script
+    assert "revisionSelect.value !== String(expected)" in script
+    assert "function updateFeatureEditorControls(hasSelection)" in script
+    assert "revisionSelect.value === String(expected)" in script
+    assert 'byId("feature-add").disabled = !canEditCurrentHead' in script
+    assert 'byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection)' in script
     assert 'snapshotInput.addEventListener("input", renderFeatureTree)' in script
     assert "innerHTML" not in script
 
