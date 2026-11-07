@@ -505,3 +505,15 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact post-merge SHA `1fb9bc97c22bf0464e154f6963583edb9385d657`, workflow #42391470608: workflow-sanity PASS; python-tests PASS; **832 passed in 7.59s**.
 - Capability boundary: triangle-facet inspection only, not B-rep topology selection, sketch dimensions, sectioning, face editing or general CAD kernel.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 393 commits ahead and 0 behind. Local working tree and branch protection remain UNKNOWN.
+
+
+## CAD Generator FeatureHistory tree inspector — PR #150 MERGED
+
+- Adds a read-only structural preview of the current FeatureHistory JSON snapshot.
+- Computes deterministic topological order from feature dependencies; malformed nodes, duplicate IDs, invalid outputs, missing/self references and cycles fail closed for the preview.
+- Preview is bounded to 500 nodes and displays feature IDs, kinds, dependency references and selected-node parameters using text-only DOM APIs.
+- Refreshes after JSON input, template generation and revision loading; it does not edit, save or regenerate the model.
+- CI adds `node --check` for the packaged CAD Generator browser script without a new dependency.
+- Exact PR-head SHA `2958c270eebbbba884b59ed06714946622adeb67`, workflow #42392209579: workflow-sanity PASS and python-tests PASS; **833 passed in 9.15s**.
+- Exact post-merge SHA `da16967de5f387f4e98d9642134626982644d479`, workflow #42392264691: both jobs PASS; **833 passed in 8.73s**.
+- Capability boundary: read-only feature-tree inspector, not a graphical DAG editor or parametric feature editing/recompute system. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
