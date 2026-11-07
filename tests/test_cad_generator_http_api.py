@@ -131,11 +131,11 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "meshCamera.panY + dy, -400, 400" in script
     assert "Malformed triangle indices prevent rendering" in script
     assert "pointercancel" in script
-    assert "touch-action: none" in stylesheet
 
     with urlopen(base + "/static/cad_generator.css", timeout=3) as response:
         stylesheet = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/css")
+    assert "touch-action: none" in stylesheet
     assert ".panel" in stylesheet
 
     status, health = send(base, "/health", extra_headers={"Origin": base})
