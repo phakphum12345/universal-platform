@@ -185,3 +185,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD Generator Service Contract](docs/design-3d/CAD_GENERATOR_SERVICE_CONTRACT.md) — revision-aware in-process service, durable source revisions and artifact cache.
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — implemented authenticated, loopback-only local HTTP adapter, dynamic port, strict request bounds and append-only local audit evidence.
 - [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) — exact integration SHA, current CI evidence and remaining work.
+
+
+## CAD Generator local workbench — PR #140
+
+- [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the same-origin local FeatureHistory workbench, token handling, CSP and capability boundaries.
+- Static UI assets: `src/universal_platform/engineering/static/cad_generator.html`, `cad_generator.css`, `cad_generator.js`.
+- The current workbench edits FeatureHistory JSON and manages revisions; graphical sketch editing and a CAD viewport remain OPEN.

@@ -171,6 +171,17 @@ Latest integration SHA: `ab0006c1ead3e6848f90e30c804d38a3029218f3`; main remains
 | ID | Requirement | Evidence | Current state |
 |---|---|---|---|
 | CAD-GEN-HTTP-API-001 | Governed local transport for versioned CAD Generator operations | PR #138; `cad_generator_http_api.py`; `CAD_GENERATOR_HTTP_API_CONTRACT.md`; HTTP integration tests | IMPLEMENTED — loopback-only explicit-start HTTP server; bearer token; Host/Origin/peer validation; strict JSON; bounded request size/time; revision save/read/list/regenerate; append-only SQLite audit chain. Exact-head and post-merge CI PASS, 822 tests. |
-| CAD-GEN-UI-001 | Local CAD authoring UI integrated with the revision-aware API | Future same-origin UI and browser integration tests | OPEN — API is available locally but no authoring UI is implemented or served. UI must not introduce CORS or remote access. |
+| CAD-GEN-WORKBENCH-001 | Local FeatureHistory revision workbench integrated with the API | PR #140; packaged HTML/CSS/JS; HTTP static-asset integration tests | IMPLEMENTED — token-in-memory local UI supports strict JSON editing/paste, immutable revision save, list/load and exact-revision regeneration. Exact-head and post-merge CI PASS, 823 tests. |
+| CAD-VISUAL-SKETCH-001 | Interactive visual 2D sketch editor with validated geometry and constraints | Future browser interaction and geometry acceptance tests | OPEN — current UI is a JSON/revision workbench; no graphical point/segment/arc editor or CAD viewport is claimed. |
 
 Latest integration SHA: `674b6a52c725b6e3f4b4e083b602aab3a138104e`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42380918862 passed both required jobs with 822 tests.
+
+
+## CAD Generator UI traceability — post-PR #140
+
+| ID | Requirement | Evidence | Current state |
+|---|---|---|---|
+| CAD-GEN-WORKBENCH-001 | Local FeatureHistory revision workbench | PR #140; static assets; same-origin HTTP integration tests | IMPLEMENTED — JSON snapshot editing/paste, optimistic revision save, revision list/load and exact revision regeneration. Token memory-only; CSP/no CORS. Exact-head and post-merge CI PASS, 823 tests. |
+| CAD-VISUAL-SKETCH-001 | Interactive 2D sketch editor and geometry preview | Future canvas/SVG editor, generated FeatureHistory and geometry/mesh acceptance tests | OPEN — current interface is not a visual sketch editor or CAD viewport. |
+
+Latest integration SHA: `f3abe346a259f2f3f3ed767889dba32be6a284b9`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Post-merge workflow #42381936401 passed both required jobs with 823 tests.

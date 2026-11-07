@@ -109,3 +109,10 @@ The service does not expose a transport and does not grant network authority. HT
 The revision-aware `CADGeneratorService` is now exposed through an explicit-start, same-origin local HTTP adapter. The API provides authenticated health, immutable FeatureHistory save, revision list/read and exact-revision regeneration. It binds only to IPv4 loopback (`127.0.0.1`) and uses port 0 by default for OS-selected dynamic allocation. The request boundary validates bearer authorization, loopback peer/Host/Origin, strict JSON, body limits, socket timeout and allowed methods. Request lifecycle metadata is appended to a local SQLite SHA-256 audit chain without storing credentials or model bodies.
 
 This is a local development interface, not a remote service or production authentication system. No CORS permission, public/LAN bind, TLS endpoint, rate limiting, browser session management or remote access is included. See [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md). A same-origin local authoring UI remains a separate OPEN requirement.
+
+
+## Local FeatureHistory workbench (PR #140)
+
+The local HTTP server serves packaged same-origin HTML/CSS/JS for a FeatureHistory JSON/revision workbench. The page supports bearer-token connection, source JSON editing/paste, immutable revision append, revision list/load and exact-revision regeneration. Static files are restricted to the validated loopback origin and protected by a restrictive CSP; API requests still require the bearer token. The token is not persisted by the UI.
+
+This interface is not a graphical sketch editor, CAD viewport or visual modelling tool. Interactive geometry authoring remains a separate requirement. See the local UI section in the [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).

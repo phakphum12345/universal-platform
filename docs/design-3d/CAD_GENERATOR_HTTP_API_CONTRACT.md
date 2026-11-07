@@ -1,6 +1,6 @@
 # CAD Generator Loopback HTTP API Contract v1.0
 
-**Status:** Implemented and merged in PR #138; exact-head and post-merge CI PASS (822 tests).  
+**Status:** Local HTTP API merged in PR #138; same-origin FeatureHistory workbench merged in PR #140; exact-head and post-merge CI PASS (823 tests).  
 **Implementation:** `engineering/cad_generator_http_api.py`.  
 **Dependency:** `CADGeneratorService`, explicit `SQLiteCADAPIAuditLog`, caller-supplied bearer token.  
 **Transport:** HTTP over IPv4 loopback only; no public listener, TLS endpoint, CORS permission or remote access.
