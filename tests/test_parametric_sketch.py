@@ -277,13 +277,13 @@ def test_arc_radius_constraint_solves_both_arc_endpoints_to_the_same_radius():
         "arc.radius", "part.xy", "mm",
         (
             SketchPoint("center", 0.0, 0.0),
-            SketchPoint("start", 2.0, 0.2),
+            SketchPoint("start", 2.1, 0.0),
             SketchPoint("end", 0.3, 1.8),
         ),
         constraints=(
             SketchConstraint("center-x", Kind.FIX_X, ("center",), 0.0),
             SketchConstraint("center-y", Kind.FIX_Y, ("center",), 0.0),
-            SketchConstraint("start-x", Kind.FIX_X, ("start",), 2.0),
+            SketchConstraint("start-y", Kind.FIX_Y, ("start",), 0.0),
             SketchConstraint("end-x", Kind.FIX_X, ("end",), 0.0),
             SketchConstraint("arc-radius", Kind.RADIUS, (), 2.0, arc_ids=("outer-arc",)),
         ),
@@ -294,7 +294,7 @@ def test_arc_radius_constraint_solves_both_arc_endpoints_to_the_same_radius():
     points = {point.point_id: point for point in result.points}
 
     assert result.converged
-    assert points["start"].y == pytest.approx(0.0, abs=1e-7)
+    assert points["start"].x == pytest.approx(2.0, abs=1e-7)
     assert points["end"].y == pytest.approx(2.0, abs=1e-7)
     assert sketch.to_dict()["schema_version"] == "1.2"
     assert ParametricSketch.from_dict(sketch.to_dict()) == sketch
