@@ -1,4 +1,4 @@
-# Parametric Sketch Constraint Contract v1.0
+# Parametric Sketch Constraint Contract v1.1
 
 **Status:** Bounded implementation — PR #90 baseline; relational constraints added in this feature PR.  
 **Merge SHA:** `e2d631b49910e3d7f05fea6337742fd87385fb81`.  
@@ -57,7 +57,7 @@ Every scalar residual has its own positive tolerance. Distance is non-negative; 
 
 ## 6. Explicit limitations / future increments
 
-Not yet supported: arcs, splines, construction geometry, angle, tangent, radius/diameter, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
+Not yet supported: arcs, splines, construction geometry, tangent, radius/diameter, symmetry, midpoint, point-on-object, block/fix-whole-entity, inequality/contact constraints, symbolic solving, interactive dragging, automatic constraint inference, sketch import/export and persistent document editing.
 
 The first slice does not yet create a closed PlanarRegion automatically. A later, separately tested adapter must validate closed boundary topology, winding, self-intersection, holes and frame/unit before creating a region.
 
@@ -74,3 +74,20 @@ The first slice does not yet create a closed PlanarRegion automatically. A later
 ## 8. Relational constraint increment
 
 The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_LENGTH` for two non-degenerate segments identified by four distinct point IDs. These are scalar nonlinear equalities and inherit the solver's local-convergence and rank limitations. Angle, tangent, radius/diameter, shared-endpoint segment references and richer segment-ID constraint binding remain out of scope; no symbolic or globally unique solution is claimed.
+
+
+## 9. Schema v1.1 — directed angle between segments
+
+- `ParametricSketch` schema v1.1 adds the `ANGLE` constraint and an optional
+  `segment_ids` reference array on constraints. Existing v1.0 snapshots remain
+  readable; newly serialized snapshots use v1.1.
+- `ANGLE` references exactly two distinct existing segment IDs and no point
+  IDs. The target is a signed directed angle in radians in the inclusive range
+  [-π, π]. Segment direction is from each segment's start point to its end point.
+- The residual is `atan2(cross(u, v), dot(u, v)) - target`. Both segment
+  vectors must be non-degenerate before solving and remain non-degenerate after
+  convergence. This is a local nonlinear equality, not a symbolic or global
+  angular solver.
+- The implementation remains straight-segment-only. Arc geometry is not
+  introduced by this increment, so tangent and radius/diameter constraints
+  remain unsupported and must wait for an explicit circular-arc model.

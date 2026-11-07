@@ -375,3 +375,14 @@ Integration HEAD `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; `main` remains `96e
 - Do not claim overall completion until requirements traceability, security review, platform matrix, persistent workflow and end-to-end acceptance evidence all pass.
 
 See [Repository Audit post-PR #118](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR118.md).
+
+
+## CAD parametric sketch continuation — post-PR #124
+
+Integration baseline: `a17a6359b4689fedbbcfbec769704a0322e027da` (PR #124 merged; post-merge CI PASS, 780 tests). `main` remains unchanged.
+
+- Current increment branch: `feat/cad-parametric-sketch-angle-constraint-v1`.
+- Adds signed directed `ANGLE` between two stable segment references, measured in radians in [-π, π], and extends ParametricSketch schema to v1.1 while retaining v1.0 snapshot reads.
+- Angle constraints are bounded to non-degenerate straight segments and the existing local nonlinear solver. They do not imply tangent/radius or curved geometry support.
+- Tangent and radius/diameter remain OPEN until a versioned circular-arc model and independent geometry references exist.
+- Exact-head CI and post-merge CI are mandatory; this branch remains unverified until its exact SHA completes both jobs.
