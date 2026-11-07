@@ -4,14 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Integration HEAD: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (253 commits ahead / 0 behind `main`).
+- Integration HEAD: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4` (265 commits ahead / 0 behind `main`).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
-- Latest post-merge CI: PR #113 merge workflow #42279521637 — workflow-sanity PASS, python-tests PASS, 732 passed.
-- Current inventory: 268 files, 102 Markdown, 143 Python, 19 schemas, 71 Python test files.
+- Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
+- Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
+- Latest post-merge CI: PR #118 merge workflow #42282428283 — workflow-sanity PASS, python-tests PASS, 755 passed in 2.83s (exact merge SHA `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`).
+- Current inventory: 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files (recursive tree at the post-PR #118 integration SHA).
 - Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only).
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: general B-rep/3D Boolean, complete CAD generator workflow, broader EDA/circuit simulation, multi-method physics, OS sandboxing and durable API/CLI/UI integration remain incomplete.
+- Remaining scope: general n-gon/multi-shell B-rep and arbitrary 3D Boolean, ambiguous branching topology, persistent/interactive CAD generation, full STEP/AP242 and 3MF assembly interchange, broader EDA/circuit simulation, additional validated physics methods, OS-enforced sandboxing and durable API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -56,7 +58,7 @@ Install and run the initial tests:
     python -m pip install -e ".[dev]"
     python -m pytest -q
 
-This is an initial foundation, not a completed universal engineering system. General CAD/B-rep, mesh/STEP/STL export, FEA/CFD, nonlinear and multiphysics solving, general inverse/closed-loop kinematics, collision/dynamics analysis, hardware schematic intelligence and generic driver generation remain unimplemented or require separate audited adapters. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md).
+This remains an incremental engineering foundation, not a completed universal platform. Narrow capabilities now include planar Boolean topology, bounded parametric sketch/feature regeneration, faceted triangular B-rep, axis-aligned box 3D Booleans, binary STL export, bounded STEP AP214 and single-object 3MF Core interchange, schematic rendering/static ERC, and three registered analytical physics solvers. These do not establish a general CAD kernel, full EDA suite, multiphysics solver, secure OS sandbox, or complete platform UI/runtime. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [post-PR #118 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR118.md).
 
 ## Core goals
 - Learn from authorized documentation, source code, APIs, datasheets, and datasets.
@@ -123,6 +125,8 @@ This is an initial foundation, not a completed universal engineering system. Gen
 - [CAD to Manufacturing](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md)
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md)
 - [2D Convex Profile Boolean Topology](docs/design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md)
+- [Faceted B-rep Topology](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md)
+- [Axis-Aligned Faceted B-rep Boolean](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md)
 
 ### Hardware, laboratories, governance
 - [Device Intelligence](docs/hardware/DEVICE_INTELLIGENCE.md)
@@ -149,7 +153,7 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 
 ### CAD-neutral geometry
 
-- Analytic Box/Cylinder primitives, straight/curved profile extrusion, through-holes, and convex 2D profile UNION/INTERSECTION/DIFFERENCE (PR #61); general planar region topology is specified but not implemented (PR #62). PR #64 adds deterministic Box/Cylinder triangle meshes; PR #66 adds straight concave/convex profile meshes; PR #68 adds polygonal through-hole meshes; PR #70 adds circular-arc outer/hole boundary tessellation under explicit chordal tolerance. PR #71 adds the curved-hole mesh regression; post-merge CI passed 516 tests. Mesh validation now includes structural checks plus PR #77 topology diagnostics; geometric self-intersection remains UNKNOWN, and repair, 3D Booleans, B-rep and STEP/STL/3MF import remain unsupported. PR #73 defines the binary STL export/sidecar contract; PR #74 implements deterministic binary STL export with a strict metadata sidecar (523-test post-merge CI PASS). PR #75 adds independent bounds/signed-volume and corrupt-record references (524-test post-merge CI PASS). PR #76 defines the mesh topology-analysis contract; PR #77 implements connected shells, vertex fans and duplicate/coincident coordinate diagnostics (533-test post-merge CI PASS). Triangle-mesh self-intersection analysis is implemented additively by PR #80 as MeshIntersectionAnalysis v1.0; the older MeshTopologyAnalysis v1.0 self_intersection_status field remains UNKNOWN for backward compatibility. Arbitrary STL import, external CAD reopen, STEP and 3MF remain unsupported.
+- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: n-gon/inner loops, multiple shells/cavities, arbitrary faceted solids, rotated solids, curved surfaces, general 3D arrangements, ambiguous branching, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
 - Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
 - Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.
 

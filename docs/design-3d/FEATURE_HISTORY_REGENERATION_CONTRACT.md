@@ -53,7 +53,7 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 Not yet implemented: persistent document storage, incremental recomputation/cache invalidation, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation.
 
-The current sketch-to-region converter accepts only closed straight-edge loops. The current planar Boolean engine remains bounded and fails closed on point-touching/branching outputs. The current extrusion and mesh operations retain their documented straight-edged limits.
+The current sketch-to-region converter accepts only closed straight-edge loops. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
 ## 7. Acceptance evidence
 

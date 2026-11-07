@@ -347,25 +347,31 @@ See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POI
 See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
 
 
-## Current integration status — 2026-11-07 (post-PR #113)
+## Current integration status — 2026-11-07 (post-PR #118)
 
-Integration HEAD `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`. Integration is 253 ahead / 0 behind. Latest post-merge workflow #42279521637 passed workflow-sanity and python-tests with 732 tests. The current recursive tree contains 268 files, 102 Markdown, 143 Python, 19 schemas and 71 test files. Local working tree is UNKNOWN.
+Integration HEAD `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. Integration is 265 ahead / 0 behind. Historical pre-PR #116 integration baseline (post-PR #113): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`. Historical post-PR #113 workflow #42279521637 passed both required jobs with 732 tests in 3.79s. PR #116–#118 are integrated on `docs/phase-0-complete-requirements`. Post-merge workflow #42282428283 on the exact integration SHA passed `workflow-sanity` and `python-tests` with **755 tests in 2.83s**. Recursive tree: 279 files, 105 Markdown, 149 Python, 21 JSON schemas and 75 test files. No open PRs at audit time. Local working-tree state is UNKNOWN (GitHub API inspection only).
 
-### Integrated increments
-- PR #99 — bounded STEP AP214 Faceted BREP triangle-shell import/export; exact-head and post-merge CI passed 664 tests.
-- PR #107 — integrated runtime resource/recovery foundation from the dependency stack #100–#106; exact-head 697, post-merge 717 tests.
-- PR #110 — central PhysicsSolverRegistry with three bounded analytical adapters; exact-head 672 tests. Its source is included in later post-merge 717/732 suites.
-- PR #113 — runtime adapter router, local cross-process evidence locking/hash chain and threshold health monitor; exact-head and post-merge CI passed 732 tests.
+### Latest integrated increments
+- PR #116 — opt-in adapter fallback during recovery; exact-head 737 tests and post-merge 747 tests.
+- PR #117 — faceted triangular B-rep topology and mesh bridge; exact-head and post-merge 742 tests.
+- PR #118 — bounded exact-grid 3D Boolean operations for axis-aligned box B-reps; exact-head and post-merge 755 tests.
+- Main has not been updated or promoted.
 
 ### Remaining work packages — continue in dependency order
-1. CAD Boolean: deterministic handling for ambiguous branching/coincident outgoing edges, with exact reference corpus and fail-closed limits.
-2. Parametric sketch: extend beyond eight point/line constraints; add arcs/splines, robust convergence/reference cases and explicit constraint diagnostics.
-3. Feature history: persistent revisioned documents, incremental recompute/cache invalidation, suppression and edit/branch history.
-4. B-rep and 3D Boolean: define topology/precision/validity contracts, then implement bounded operations with independent exact/reference tests. STEP AP214 faceted interchange is not a B-rep kernel.
-5. CAD generator: connect sketch/feature/solid/mesh pipeline to API, interactive UI, revisioned persistence and export workflows.
-6. Hardware EDA: library and native interchange, datasheet constraints, pin/footprint mapping, BOM lifecycle and circuit simulation.
-7. Physics: add validated solver families by domain/method, dimensional/conservation/reference checks, numerical convergence and uncertainty evidence.
-8. Runtime security: OS/container sandbox, OS quotas, Windows process-tree containment, checkpoint/heartbeat/restart, durable distributed state and signed/remote evidence.
-9. Platform integration: permissions/approval, secure module runtime, API/CLI/UI, durable storage, audit and end-to-end operational tests.
+1. **Boolean topology robustness:** extend the planar rotation-system and B-rep boundary tests for ambiguous branching/coincident outgoing edges, vertex/edge contacts, thin features and invalid incidence. Preserve deterministic fail-closed behavior until an independently generated exact reference corpus passes. Planar point-only contact handling is implemented by PR #95; it does not resolve ambiguous branching.
+2. **General faceted B-rep:** add n-gon face loops and inner loops, then multi-shell solid semantics for enclosed cavities. Require exact topology invariants, orientation/containment checks and independent fixtures before changing the schema.
+3. **General 3D Boolean:** add arbitrary faceted-solid splitting and arrangement classification only after multi-shell topology and a precision/tolerance policy exist. Include coplanar overlap, tangency, edge/vertex contact, near-degenerate and thin-feature references with resource ceilings.
+4. **Parametric CAD depth:** extend sketch constraints beyond the current eight point/straight-line kinds; add arcs/splines and solver diagnostics. Extend feature history with persistent revisioned documents, incremental recompute/cache invalidation, suppression and edit/branch history.
+5. **CAD generator workflow:** connect sketch → feature history → solid → mesh/interchange to durable documents, API, interactive UI and revisioned export workflows. Driver generation already exists as a separate capability to inventory/reuse; do not duplicate it.
+6. **Interchange completeness:** retain bounded STEP AP214 faceted triangle-shell and single-object 3MF Core support; add external application round-trip validation, full STEP/AP242 and 3MF assemblies only with explicit profile/tolerance contracts.
+7. **Hardware EDA:** native schematic/PCB/library interchange, datasheet-backed electrical constraints, pin/footprint reconciliation, BOM lifecycle and circuit simulation.
+8. **Multi-method physics:** add validated analytical/numerical/simulation solvers by domain, with dimensional and conservation checks, convergence evidence, uncertainty propagation and independent reference/cross-check suites.
+9. **Runtime and platform integration:** OS/container sandbox, OS-enforced CPU/memory/disk/network quotas, Windows process-tree containment, checkpoint/heartbeat/restart, durable state, signed evidence, approval/permission integration, secure module invocation and API/CLI/UI end-to-end tests.
 
-Unsupported capabilities remain OPEN or UNKNOWN, never PASS. No physical actuation, firmware writes, manufacturing, certification or deployment is implied. See [post-PR #113 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
+### Release and governance gates
+- One bounded concern per PR; exact base/head SHA, reviews, unresolved threads and exact-head CI must be inspected before merge consideration.
+- Require post-merge CI on the exact integration SHA; missing or skipped checks are not PASS.
+- No promotion to `main`, deployment, physical actuation, firmware write, or privileged operation without explicit human approval.
+- Do not claim overall completion until requirements traceability, security review, platform matrix, persistent workflow and end-to-end acceptance evidence all pass.
+
+See [Repository Audit post-PR #118](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR118.md).

@@ -68,7 +68,7 @@ Documented means represented in specifications. Implemented means source exists.
 | MECH-PLANAR-MOBILITY-001 | Explicit plane-frame geometric mobility | PLANAR_PLANE_FRAME_MOBILITY_CONTRACT | IMPLEMENTED — PR #56; PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests. |
 
 
-| CAD-PLANAR-BOOLEAN-001 | Pairwise Boolean operations over validated PlanarRegion inputs, with multiple output components and holes | CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT; PlanarRegionBooleanResult schema | IMPLEMENTED — PR #84 merged at `1b75e2dab5b64d2d089e410bba02187d28772193`; exact PR-head and post-merge CI PASS, 580 tests each. Pairwise only; 256 total input-edge limit; point-touching/branching output fails closed; region-set aggregation and B-rep remain PLANNED. |
+| CAD-PLANAR-BOOLEAN-001 | Pairwise and set Boolean operations over validated PlanarRegion inputs, with multiple components, holes and bounded point-contact handling | CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT; CAD_BOOLEAN_POINT_CONTACT_CONTRACT; PlanarRegionBooleanResult schemas | IMPLEMENTED — PR #84 merge SHA `1b75e2dab5b64d2d089e410bba02187d28772193`; PRs #84/#87/#95 merged with exact-head and post-merge CI PASS (580/600/639 tests respectively). Point-only contacts are represented as separate components. Ambiguous branching, coincident outgoing directions, unbalanced incidence and invalid hole topology remain fail-closed; this is not a general 3D Boolean kernel. |
 
 
 | CAD-PLANAR-SET-001 | Set Boolean operations over two or more PlanarRegion inputs | PlanarRegion Set Boolean contract / result schema | IMPLEMENTED — PR #87 merged at `316e0d6c3166470bc839d3c880a38720bd854577`; PR/push and post-merge CI PASS, 600 tests. |
@@ -113,3 +113,11 @@ Documented means represented in specifications. Implemented means source exists.
 | RT-008 | Secure module runtime and platform API/CLI/UI | Future integration work | OPEN — OS sandbox, durable governance and full product integration not implemented |
 
 Latest integration SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; post-merge workflow #42279521637 passed 732 tests. Integration is 253 ahead / 0 behind main; main remains unchanged. Acceptance requires source, schemas, tests, exact-SHA CI and explicit limits for every requirement; documentation alone is not PASS.
+
+
+## B-rep topology and bounded 3D Boolean — PR #117/#118
+
+| ID | Requirement | Primary specification / implementation | Current state |
+|---|---|---|---|
+| CAD-BREP-TOPOLOGY-001 | Versioned closed faceted B-rep shell with mesh bridge and exact topology validation | `docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md`; `schemas/geometry/faceted-brep-solid.schema.json`; `src/universal_platform/engineering/brep.py`; `tests/test_brep.py` | IMPLEMENTED — PR #117 merged at `2dbddba4899246c1c75a169224154b9d8ec21402`; exact-head and post-merge CI PASS, 742 tests. Single connected shell of triangular planar faces only; n-gons, inner loops, multiple shells and shell healing remain OPEN. |
+| CAD-BREP-BOOLEAN-AXIS-001 | Deterministic 3D Boolean operations for bounded axis-aligned box B-reps | `docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md`; `schemas/geometry/brep-boolean-result.schema.json`; `src/universal_platform/engineering/brep_boolean.py`; `tests/test_brep_boolean.py` | IMPLEMENTED — PR #118 merged at `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; exact-head and post-merge CI PASS, 755 tests. Limited to 2–16 axis-aligned box shells and 32,768 grid cells; arbitrary faceted solids, rotated/curved geometry and enclosed cavities remain OPEN. |
