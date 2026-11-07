@@ -177,6 +177,7 @@ class FeatureArtifact:
     feature_id: str
     kind: FeatureKind
     content_sha256: str
+    computation_sha256: str
     payload_json: str
     value: object
 
@@ -185,6 +186,7 @@ class FeatureArtifact:
             "feature_id": self.feature_id,
             "kind": self.kind.value,
             "content_sha256": self.content_sha256,
+            "computation_sha256": self.computation_sha256,
             "payload": loads(self.payload_json),
         }
 
@@ -197,6 +199,8 @@ class FeatureRegenerationResult:
     artifacts: tuple[FeatureArtifact, ...]
     failed_feature_id: str | None = None
     error: str | None = None
+    reused_feature_ids: tuple[str, ...] = ()
+    recomputed_feature_ids: tuple[str, ...] = ()
 
     @property
     def successful(self) -> bool:
@@ -211,10 +215,12 @@ class FeatureRegenerationResult:
             "artifacts": [item.to_dict() for item in self.artifacts],
             "failed_feature_id": self.failed_feature_id,
             "error": self.error,
+            "reused_feature_ids": list(self.reused_feature_ids),
+            "recomputed_feature_ids": list(self.recomputed_feature_ids),
             "limitations": [
                 "Only built-in allow-listed SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH operations execute",
                 "No user code, plugin, shell, network or physical device execution",
-                "No persistent document store, incremental recompute cache, suppression or branch/merge history",
+                "Incremental reuse is in-memory and requires a prior successful result; no durable cache, persistent document store, suppression or branch/merge history",
                 "Geometry remains bounded by the source PlanarRegion and mesh kernel limitations",
             ],
         }
