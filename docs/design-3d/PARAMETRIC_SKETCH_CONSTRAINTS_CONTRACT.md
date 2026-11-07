@@ -115,6 +115,16 @@ The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_L
 - The solver remains the existing bounded local nonlinear equality solver.
   It does not infer arcs, prove global uniqueness, or certify manufacturing
   geometry.
-- `sketch_to_planar_regions` explicitly rejects sketches containing arcs.
-  Curved-loop topology, arc tessellation, Boolean operations over curved
-  profiles and CAD-kernel B-rep conversion remain OPEN.
+- `sketch_to_planar_regions` supports closed line/arc loops through the bounded
+  polygonal tessellation described in section 11 (PR #128). Exact analytic
+  curved topology, curved Boolean operations and curved B-rep remain OPEN.
+
+
+## 11. Curved loop conversion — bounded implementation (PR #128)
+
+- `sketch_to_planar_regions(sketch, solved, chord_error=0.01)` accepts closed cycles made from straight segments and circular arcs.
+- `chord_error` is a finite positive length expressed in the sketch's declared `length_unit`; it must be smaller than each arc radius. The deterministic segment count is selected from the circular sagitta bound.
+- Boundary graph degree, edge uniqueness, endpoint identity, closure, center-point separation, same-circle radii, self-intersection, inter-loop contact, winding, containment, holes and nested islands are validated. Invalid or ambiguous topology fails closed.
+- Total tessellated boundary size is bounded by `MAX_PLANAR_BOUNDARY_EDGES` (2,048). No implicit unit conversion, frame transform, snapping or geometry repair is performed.
+- The output remains PlanarRegion v1.0 polygonal geometry. Its exact-rational predicates apply to the represented binary64 tessellation coordinates, not the underlying analytic circle. Source sketch SHA-256 remains attached to the conversion result.
+- PR #128 exact-head and post-merge CI passed 801 tests. Curved Boolean, arc-to-arc tangent, spline geometry, curved B-rep and manufacturing validation remain unsupported.

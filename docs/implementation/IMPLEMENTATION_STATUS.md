@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (post-PR #126).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; integration 368 ahead / 0 behind).  
+**Current integration HEAD:** `30deb5290e4a84b8ce86848dcac21309d0b1ad95` (post-PR #128).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #126 workflow #42337494844 on `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` — workflow-sanity PASS; python-tests PASS; **791 passed in 3.82s**.  
-**Current tree:** 279 files, 105 Markdown, 149 Python, 21 JSON schemas, 75 Python test files; recursive response not truncated.  
-**Open PRs:** 0 at post-PR #126 audit. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #128 workflow #42374839944 on `30deb5290e4a84b8ce86848dcac21309d0b1ad95` — workflow-sanity PASS; python-tests PASS; **801 passed in 3.32s**.  
+**Current tree:** 321 files, 106 Markdown, 152 Python, 22 JSON schemas, 77 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PR #128 is merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -892,3 +892,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - PR #126 merged ParametricSketch schema v1.2, circular arc references, positive RADIUS equations and endpoint TANGENT constraints. Exact PR-head and post-merge CI passed 791 tests.
 - The straight-line `sketch_to_planar_regions` converter fails closed on arc-containing sketches. Curved-loop tessellation, curved PlanarRegion construction, curved Boolean and curved B-rep remain OPEN.
 - Durable source FeatureHistory revisions are implemented by PR #124; durable computed-artifact serialization/rehydration remains OPEN.
+
+
+## Curved sketch-to-region conversion — merged PR #128
+
+- PR #128 merged into `docs/phase-0-complete-requirements` at `30deb5290e4a84b8ce86848dcac21309d0b1ad95`; exact PR head `5c2690760d77639c0db5795f0c8571c52944c6d9`.
+- Adds deterministic circular-arc tessellation to `sketch_to_planar_regions` with explicit `chord_error` in the sketch length unit (default 0.01), mixed line/arc cycle reconstruction, and bounded total tessellation of 2,048 boundary edges.
+- Retains frame/unit identity, source sketch SHA-256, nested-loop/hole/island classification, and fail-closed PlanarRegion validation.
+- Exact PR-head workflow #42374789822 initially exposed two regressions; both were corrected before merge. Final exact PR-head workflow #42374789822 passed both required jobs with 801 tests in 5.34s. (The initial run #42374729768 failed and is not acceptance evidence.)
+- Exact post-merge push workflow #42374839944 on the merge SHA passed workflow-sanity and python-tests: **801 passed in 3.32s**.
+- Approximation only: each circular arc is represented by line segments with a sagitta bound. Predicates validate the represented binary64 polygon, not exact analytic curved geometry. Arc-to-arc tangency, curved Boolean, curved B-rep, splines and manufacturing validation remain OPEN.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion was performed.
+- Remote GitHub inspection does not establish any developer workstation working-tree state.
