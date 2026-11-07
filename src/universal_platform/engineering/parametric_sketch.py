@@ -225,10 +225,14 @@ class ParametricSketch:
             center = next(point for point in self.points if point.point_id == arc.center_point_id)
             start = next(point for point in self.points if point.point_id == arc.start_point_id)
             end = next(point for point in self.points if point.point_id == arc.end_point_id)
-            if hypot(start.x - center.x, start.y - center.y) <= 1e-12 or hypot(
-                end.x - center.x, end.y - center.y
-            ) <= 1e-12 or hypot(end.x - start.x, end.y - start.y) <= 1e-12:
+            sx, sy = start.x - center.x, start.y - center.y
+            ex, ey = end.x - center.x, end.y - center.y
+            start_radius, end_radius = hypot(sx, sy), hypot(ex, ey)
+            if min(start_radius, end_radius, hypot(end.x - start.x, end.y - start.y)) <= 1e-12:
                 raise InvalidModelError("sketch arc requires distinct, non-degenerate radial endpoints")
+            cross, dot = sx * ey - sy * ex, sx * ex + sy * ey
+            if abs(cross) <= 1e-12 * start_radius * end_radius and dot > 0:
+                raise InvalidModelError("sketch arc start and end must define a non-zero angular sweep")
         known_segments, known_arcs = set(segment_ids), set(arc_ids)
         for constraint in self.constraints:
             if any(point_id not in known for point_id in constraint.point_ids):
