@@ -119,3 +119,57 @@ def test_cad_generator_service_requires_explicit_local_store_dependencies(tmp_pa
         CADGeneratorService(SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"), object())
 
     assert FeatureArtifactCacheIntegrityError.__name__ == "FeatureArtifactCacheIntegrityError"
+
+
+def test_cad_generator_service_edits_and_appends_revision_without_mutating_prior_snapshot(tmp_path):
+    service = make_service(tmp_path)
+    first = service.save_history(make_history(), expected_revision=0)
+
+    replacement = FeatureNode.create(
+        "extrusion", FeatureKind.EXTRUSION, ("profile",),
+        {"solid_id": "solid.service", "height": 3.0},
+    )
+    second = service.edit_history(
+        first.history_id,
+        expected_revision=first.revision,
+        operation="replace",
+        feature_id="extrusion",
+        feature=replacement,
+    )
+
+    assert second.revision == 2
+    assert second.parent_sha256 == first.content_sha256
+    assert first.history.nodes[1].parameters["height"] == 2.0
+    assert second.history.nodes[1].parameters["height"] == 3.0
+    assert service.get_revision(first.history_id, revision=1).history.nodes[1].parameters["height"] == 2.0
+    regenerated = service.regenerate(first.history_id, revision=2)
+    assert regenerated.successful
+    assert regenerated.regeneration.artifacts[-1].value[0].is_watertight
+
+
+def test_cad_generator_service_edit_requires_current_revision_and_valid_operation(tmp_path):
+    service = make_service(tmp_path)
+    saved = service.save_history(make_history(), expected_revision=0)
+    feature = FeatureNode.create("extra.mesh", FeatureKind.MESH, ("extrusion",))
+
+    with pytest.raises(FeatureHistoryRevisionConflict):
+        service.edit_history(
+            saved.history_id,
+            expected_revision=0,
+            operation="add",
+            feature=feature,
+        )
+    with pytest.raises(InvalidModelError, match="operation must be"):
+        service.edit_history(
+            saved.history_id,
+            expected_revision=1,
+            operation="execute",
+        )
+    with pytest.raises(InvalidModelError, match="does not accept"):
+        service.edit_history(
+            saved.history_id,
+            expected_revision=1,
+            operation="add",
+            feature=feature,
+            cascade=True,
+        )
