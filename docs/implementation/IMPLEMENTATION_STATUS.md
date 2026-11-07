@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `e4a1add528e4fd77c88df96d428ff629e2f4b655` (post-PR #134).  
+**Current integration HEAD:** `ab0006c1ead3e6848f90e30c804d38a3029218f3` (post-PR #136).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #134 workflow #42376427587 on `e4a1add528e4fd77c88df96d428ff629e2f4b655` — workflow-sanity PASS; python-tests PASS; **813 passed in 4.49s**.  
-**Current tree:** 326 files, 106 Markdown, 157 Python, 22 JSON schemas, 81 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#134 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #136 workflow #42376951014 on `ab0006c1ead3e6848f90e30c804d38a3029218f3` — workflow-sanity PASS; python-tests PASS; **817 passed in 5.66s**.  
+**Current tree:** 329 files, 107 Markdown, 159 Python, 22 JSON schemas, 82 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#136 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -925,4 +925,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head and exact post-merge workflow #42376427587 passed both required jobs; **813 tests passed in 4.49s** on `e4a1add528e4fd77c88df96d428ff629e2f4b655`.
 - This proves local single-machine cross-process persistence for the bounded workflow. It does not prove distributed storage, signed tamper evidence, backup/restore operations, or production CAD authoring UI/API.
 - Next: CAD generator API/UI and revisioned authoring workflow; keep cache retention/backup and suppression/branch history as separate requirements.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator application service — merged PR #136
+
+- Adds transport-neutral `CADGeneratorService` over the durable `SQLiteFeatureHistoryStore` and `SQLiteFeatureArtifactCache`.
+- Supports typed FeatureHistory save, strict JSON snapshot save, immutable revision list/read and regeneration of an explicitly selected revision.
+- `CADGeneratorRun` returns source revision metadata/digest, execution status, artifacts, content/computation digests, reused/recomputed IDs and limitations.
+- Exports `CADGeneratorService`, `CADGeneratorRun`, `SQLiteFeatureArtifactCache` and `FeatureArtifactCacheIntegrityError` through `universal_platform.engineering`.
+- Service is in-process and transport-neutral: no HTTP listener, network bind, default database path, dynamic code, shell, firmware or physical-device operation.
+- Exact PR-head and post-merge workflow #42376951014 passed both required jobs; **817 tests passed in 5.66s** on `ab0006c1ead3e6848f90e30c804d38a3029218f3`.
+- Next: separate HTTP/CLI/UI transport contract with authentication, authorization, request limits, loopback-only defaults and no public/SSH exposure. No listener is enabled by PR #136.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
