@@ -53,7 +53,7 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: persistent document storage or durable/cross-process cache, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. The current incremental cache is process-local and requires the caller to retain and explicitly pass a prior successful `FeatureRegenerationResult`; it is not a persistent document service.
+Not yet implemented: persistent document storage or durable/cross-process cache, feature suppression, rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation is bounded to an in-memory cache: the caller must retain and explicitly pass a prior successful `FeatureRegenerationResult`; it is not a persistent document service.
 
 The current sketch-to-region converter accepts only closed straight-edge loops. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
