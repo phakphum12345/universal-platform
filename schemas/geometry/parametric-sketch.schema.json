@@ -307,6 +307,9 @@
                 "type": "number",
                 "minimum": -3.141592653589793,
                 "maximum": 3.141592653589793
+              },
+              "arc_ids": {
+                "maxItems": 0
               }
             }
           }
@@ -334,6 +337,9 @@
               "value": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "segment_ids": {
+                "maxItems": 0
               }
             },
             "required": [
