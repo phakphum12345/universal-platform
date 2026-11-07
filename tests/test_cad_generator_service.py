@@ -151,18 +151,19 @@ def test_cad_generator_service_edit_requires_current_revision_and_valid_operatio
     service = make_service(tmp_path)
     saved = service.save_history(make_history(), expected_revision=0)
     feature = FeatureNode.create("extra.mesh", FeatureKind.MESH, ("extrusion",))
+    service.save_history(make_history(5.0), expected_revision=saved.revision)
 
     with pytest.raises(FeatureHistoryRevisionConflict):
         service.edit_history(
             saved.history_id,
-            expected_revision=0,
+            expected_revision=1,
             operation="add",
             feature=feature,
         )
     with pytest.raises(InvalidModelError, match="operation must be"):
         service.edit_history(
             saved.history_id,
-            expected_revision=1,
+            expected_revision=2,
             operation="execute",
         )
     with pytest.raises(InvalidModelError, match="does not accept"):
