@@ -423,6 +423,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             )
         except Exception:
             status = 503
+            static_asset = None
             payload = {
                 "error": {"code": "AUDIT_UNAVAILABLE", "message": "Audit completion could not be recorded"},
                 "request_id": request_id,
