@@ -143,7 +143,7 @@ class SketchConstraint:
             SketchConstraintKind.RADIUS,
         )
         if needs_value != (self.value is not None):
-            raise InvalidModelError("constraint value is required only for dimensional/fixed/angle constraints")
+            raise InvalidModelError("constraint value is required only for dimensional/fixed/angle/radius constraints")
         if self.value is not None and (
             isinstance(self.value, bool) or not isinstance(self.value, (int, float))
             or not isfinite(float(self.value))
@@ -372,7 +372,7 @@ class ParametricSketchSolveResult:
             "solver": self.solver.to_dict(),
             "converged": self.converged,
             "limitations": [
-                "2D points and straight segments only; no arcs, splines or construction geometry",
+                "2D points, straight segments and circular-arc references; no splines or construction geometry",
                 "Local nonlinear solve; no uniqueness or global convergence guarantee",
                 "Rank is threshold-dependent; underconstrained sketches may have multiple valid solutions",
                 "No automatic constraint inference, drag solver, or CAD feature history",
