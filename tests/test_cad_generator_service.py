@@ -1,0 +1,121 @@
+import pytest
+
+from universal_platform.engineering import (
+    CADGeneratorRun,
+    CADGeneratorService,
+    FeatureArtifactCacheIntegrityError,
+    SQLiteFeatureArtifactCache,
+)
+from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.feature_history import (
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+)
+from universal_platform.engineering.feature_history_store import (
+    FeatureHistoryRevisionConflict,
+    SQLiteFeatureHistoryStore,
+)
+from universal_platform.engineering.parametric_sketch import (
+    ParametricSketch,
+    SketchConstraint,
+    SketchConstraintKind as Kind,
+    SketchPoint,
+    SketchSegment,
+)
+
+
+def make_history(width=4.0):
+    coordinates = ((0.0, 0.0), (width, 0.0), (width, 3.0), (0.0, 3.0))
+    ids = ("p0", "p1", "p2", "p3")
+    points = tuple(SketchPoint(key, x, y) for key, (x, y) in zip(ids, coordinates))
+    segments = tuple(SketchSegment(f"edge.{i}", ids[i], ids[(i + 1) % 4]) for i in range(4))
+    constraints = tuple(
+        constraint
+        for key, (x, y) in zip(ids, coordinates)
+        for constraint in (
+            SketchConstraint(f"x.{key}", Kind.FIX_X, (key,), x),
+            SketchConstraint(f"y.{key}", Kind.FIX_Y, (key,), y),
+        )
+    )
+    sketch = ParametricSketch("profile", "part.xy", "mm", points, segments, constraints)
+    return FeatureHistory(
+        "history.cad-service",
+        (
+            FeatureNode.create("mesh", FeatureKind.MESH, ("extrusion",)),
+            FeatureNode.create(
+                "extrusion", FeatureKind.EXTRUSION, ("profile",),
+                {"solid_id": "solid.service", "height": 2.0},
+            ),
+            FeatureNode.create(
+                "profile", FeatureKind.SKETCH_PROFILE, (), {"sketch": sketch.to_dict()}
+            ),
+        ),
+        ("mesh",),
+    )
+
+
+def make_service(tmp_path):
+    return CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
+    )
+
+
+def test_cad_generator_service_saves_snapshot_regenerates_and_returns_provenance(tmp_path):
+    service = make_service(tmp_path)
+    saved = service.save_snapshot(make_history().to_dict(), expected_revision=0)
+
+    assert saved.history_id == "history.cad-service"
+    assert saved.revision == 1
+    assert service.list_revisions(saved.history_id) == (1,)
+
+    run = service.regenerate(saved.history_id, revision=1)
+    assert isinstance(run, CADGeneratorRun)
+    assert run.successful
+    assert run.source_revision.content_sha256 == saved.content_sha256
+    assert run.regeneration.recomputed_feature_ids == ("profile", "extrusion", "mesh")
+    assert run.regeneration.reused_feature_ids == ()
+
+    payload = run.to_dict()
+    assert payload["source_revision"]["revision"] == 1
+    assert payload["regeneration"]["status"] == "SUCCESS"
+    assert payload["regeneration"]["artifacts"][-1]["payload"]["validation"]["watertight"] is True
+
+
+def test_cad_generator_service_reuses_cache_and_supports_immutable_revision_selection(tmp_path):
+    service = make_service(tmp_path)
+    first = service.save_history(make_history(4.0), expected_revision=0)
+    first_run = service.regenerate(first.history_id, revision=first.revision)
+    second = service.save_history(make_history(5.0), expected_revision=first.revision)
+
+    assert second.revision == 2
+    assert service.list_revisions(first.history_id) == (1, 2)
+
+    restored_first = service.regenerate(first.history_id, revision=1)
+    restored_second = service.regenerate(first.history_id, revision=2)
+
+    assert restored_first.successful and restored_second.successful
+    assert restored_first.regeneration.reused_feature_ids == ("profile", "extrusion", "mesh")
+    assert restored_first.regeneration.recomputed_feature_ids == ()
+    assert restored_second.regeneration.recomputed_feature_ids == ("profile", "extrusion", "mesh")
+    assert restored_first.regeneration.artifacts[-1].content_sha256 == first_run.regeneration.artifacts[-1].content_sha256
+
+
+def test_cad_generator_service_surfaces_revision_conflicts_and_rejects_invalid_snapshots(tmp_path):
+    service = make_service(tmp_path)
+    service.save_history(make_history(), expected_revision=0)
+
+    with pytest.raises(FeatureHistoryRevisionConflict):
+        service.save_history(make_history(5.0), expected_revision=0)
+    with pytest.raises(InvalidModelError):
+        service.save_snapshot({"history_id": "bad", "unknown": True}, expected_revision=1)
+
+
+def test_cad_generator_service_requires_explicit_local_store_dependencies(tmp_path):
+    with pytest.raises(InvalidModelError, match="SQLiteFeatureHistoryStore"):
+        CADGeneratorService(object(), SQLiteFeatureArtifactCache(tmp_path / "cache.sqlite3"))
+    with pytest.raises(InvalidModelError, match="SQLiteFeatureArtifactCache"):
+        CADGeneratorService(SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"), object())
+
+    assert FeatureArtifactCacheIntegrityError.__name__ == "FeatureArtifactCacheIntegrityError"
