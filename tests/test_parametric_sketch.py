@@ -260,7 +260,7 @@ def test_angle_constraint_rejects_degenerate_segments_and_out_of_range_angles():
         solve_parametric_sketch(sketch)
 
 
-def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_1_extension():
+def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_2_extension():
     original = rectangle_sketch()
     legacy = original.to_dict()
     legacy["schema_version"] = "1.0"
@@ -269,7 +269,7 @@ def test_parametric_sketch_v1_0_snapshot_remains_readable_after_v1_1_extension()
     restored = ParametricSketch.from_dict(legacy)
 
     assert restored == original
-    assert restored.to_dict()["schema_version"] == "1.1"
+    assert restored.to_dict()["schema_version"] == "1.2"
 
 
 def test_arc_radius_constraint_solves_both_arc_endpoints_to_the_same_radius():
