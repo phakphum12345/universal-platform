@@ -512,7 +512,8 @@ def solve_parametric_sketch(
                 uy = coordinate(v, b, "y") - coordinate(v, a, "y")
                 rx = coordinate(v, p, "x") - coordinate(v, c, "x")
                 ry = coordinate(v, p, "y") - coordinate(v, c, "y")
-                return (ux * rx + uy * ry) / (hypot(ux, uy) * hypot(rx, ry))
+                denominator = hypot(ux, uy) * hypot(rx, ry)
+                return (ux * rx + uy * ry) / max(denominator, 1e-24)
 
             equations.append(NonlinearConstraint(item.constraint_id, tangent_residual, tolerance=tol))
         elif item.kind is SketchConstraintKind.ANGLE:
