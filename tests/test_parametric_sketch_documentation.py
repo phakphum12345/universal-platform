@@ -19,9 +19,9 @@ def test_sketch_status_documents_exact_evidence_and_bounded_scope():
     roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
     status = (ROOT / "docs" / "implementation" / "IMPLEMENTATION_STATUS.md").read_text(encoding="utf-8")
     traceability = (ROOT / "docs" / "traceability" / "REQUIREMENTS_TRACEABILITY_MATRIX.md").read_text(encoding="utf-8")
-    for text in (contract, roadmap, status):
-        assert "e2d631b49910e3d7f05fea6337742fd87385fb81" in text
-        assert "618" in text
+    assert "ANGLE" in contract
+    assert "signed directed angle in radians" in contract
+    assert "a17a6359b4689fedbbcfbec769704a0322e027da" in status
     assert "CAD-SKETCH-001" in traceability
     assert "unique" in contract.lower()
     assert "B-rep" in roadmap
