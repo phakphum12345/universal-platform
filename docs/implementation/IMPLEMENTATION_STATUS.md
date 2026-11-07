@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523` (post-PR #132).  
+**Current integration HEAD:** `e4a1add528e4fd77c88df96d428ff629e2f4b655` (post-PR #134).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #132 workflow #42375907153 on `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523` — workflow-sanity PASS; python-tests PASS; **812 passed in 5.54s**.  
-**Current tree:** 325 files, 106 Markdown, 156 Python, 22 JSON schemas, 80 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#132 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #134 workflow #42376427587 on `e4a1add528e4fd77c88df96d428ff629e2f4b655` — workflow-sanity PASS; python-tests PASS; **813 passed in 4.49s**.  
+**Current tree:** 326 files, 106 Markdown, 157 Python, 22 JSON schemas, 81 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#134 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -915,4 +915,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head #132 and exact post-merge workflow #42375907153 passed both required jobs; **812 tests passed in 5.54s** on `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`.
 - Integrity SHA-256 is unkeyed: it detects accidental/partial corruption but is not a signature against an attacker who can rewrite the entire database. Distributed cache, eviction/retention, replication, encryption-at-rest and backup automation remain OPEN.
 - Source FeatureHistory revisions remain a separate SQLite store (PR #124); a combined reopen test that loads a durable source revision and reuses the artifact cache is the next acceptance increment.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## Durable FeatureHistory + FeatureArtifact fresh-process acceptance — merged PR #134
+
+- PR #134 adds a subprocess acceptance test that persists a FeatureHistory revision through `SQLiteFeatureHistoryStore`, populates `SQLiteFeatureArtifactCache`, starts a separate Python interpreter, reopens both databases, loads the exact source revision and calls `regenerate_feature_history` with the reopened cache.
+- The child process reuses `profile`, `extrusion` and `mesh` with zero recomputation; all artifact content digests match the first run and the final mesh remains watertight and consistently oriented.
+- Exact PR-head and exact post-merge workflow #42376427587 passed both required jobs; **813 tests passed in 4.49s** on `e4a1add528e4fd77c88df96d428ff629e2f4b655`.
+- This proves local single-machine cross-process persistence for the bounded workflow. It does not prove distributed storage, signed tamper evidence, backup/restore operations, or production CAD authoring UI/API.
+- Next: CAD generator API/UI and revisioned authoring workflow; keep cache retention/backup and suppression/branch history as separate requirements.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
