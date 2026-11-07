@@ -115,9 +115,9 @@ The follow-on relational increment adds `PARALLEL`, `PERPENDICULAR` and `EQUAL_L
 - The solver remains the existing bounded local nonlinear equality solver.
   It does not infer arcs, prove global uniqueness, or certify manufacturing
   geometry.
-- `sketch_to_planar_regions` explicitly rejects sketches containing arcs.
-  Curved-loop topology, arc tessellation, Boolean operations over curved
-  profiles and CAD-kernel B-rep conversion remain OPEN.
+- `sketch_to_planar_regions` supports closed line/arc loops through the bounded
+  polygonal tessellation described in section 11 (PR #128). Exact analytic
+  curved topology, curved Boolean operations and curved B-rep remain OPEN.
 
 
 ## 11. Curved loop conversion — bounded implementation (PR #128)
