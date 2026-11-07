@@ -435,3 +435,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI passed both required jobs, **813 tests**. Integration SHA: `e4a1add528e4fd77c88df96d428ff629e2f4b655`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 - The next implementation priority is the CAD generator workflow: a narrow API/service layer that accepts a versioned FeatureHistory snapshot, stores revisions, runs allow-listed regeneration with the local artifact cache, and returns revision/artifact provenance and validation. Add an interactive UI only after API contracts and error states are stable.
 - Still OPEN: cache retention/compaction, backup/restore, encryption-at-rest, signed evidence, suppression, branch/merge editing, general B-rep/curved Boolean and manufacturing validation.
+
+
+## CAD Generator application service — PR #136 MERGED
+
+- `CADGeneratorService` now joins immutable source revisions, local artifact caching and allow-listed regeneration without exposing a transport.
+- It accepts typed histories or strict JSON snapshots, persists with optimistic revision checks, reads exact revisions, regenerates with the local cache and returns revision/artifact provenance.
+- Public exports added: `CADGeneratorService`, `CADGeneratorRun`, `SQLiteFeatureArtifactCache`, `FeatureArtifactCacheIntegrityError`.
+- Exact-head and post-merge CI passed both required jobs; 817 tests. Integration SHA: `ab0006c1ead3e6848f90e30c804d38a3029218f3`; main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Next implementation increment: transport adapter (HTTP or CLI) with explicit request/response schemas, authentication/authorization, size/time limits, audit, cancellation, structured errors and loopback-only binding by default. Remote/public access must require explicit separate approval. Add UI only after transport contracts stabilize.
