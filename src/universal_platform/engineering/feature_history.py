@@ -13,7 +13,7 @@ from typing import ClassVar, Mapping
 import re
 
 from .errors import InvalidModelError, SolverError
-from .mesh import tessellate_extruded_profile, validate_triangle_mesh
+from .mesh import TriangleMesh, tessellate_extruded_profile, validate_triangle_mesh
 from .nonlinear_solver import NonlinearSolverOptions
 from .parametric_sketch import ParametricSketch, solve_parametric_sketch
 from .planar_boolean import PlanarRegionBooleanOperation
@@ -189,6 +189,65 @@ class FeatureArtifact:
             "computation_sha256": self.computation_sha256,
             "payload": loads(self.payload_json),
         }
+
+    @classmethod
+    def from_dict(cls, value: object) -> "FeatureArtifact":
+        required = {
+            "feature_id", "kind", "content_sha256", "computation_sha256", "payload"
+        }
+        if not isinstance(value, Mapping) or set(value) != required:
+            raise InvalidModelError("FeatureArtifact snapshot has missing or unknown fields")
+        feature_id = value["feature_id"]
+        if not isinstance(feature_id, str) or not _FEATURE_ID.fullmatch(feature_id):
+            raise InvalidModelError("FeatureArtifact feature_id must be a stable lowercase identifier")
+        try:
+            kind = FeatureKind(value["kind"])
+        except (TypeError, ValueError) as exc:
+            raise InvalidModelError("FeatureArtifact kind is unsupported") from exc
+
+        def digest_field(name: str) -> str:
+            digest = value[name]
+            if (not isinstance(digest, str) or len(digest) != 64
+                    or any(ch not in "0123456789abcdef" for ch in digest)):
+                raise InvalidModelError(f"FeatureArtifact {name} must be a lowercase SHA-256 digest")
+            return digest
+
+        content_digest = digest_field("content_sha256")
+        computation_digest = digest_field("computation_sha256")
+        payload = value["payload"]
+        if not isinstance(payload, Mapping):
+            raise InvalidModelError("FeatureArtifact payload must be an object")
+        try:
+            payload_json = dumps(dict(payload), sort_keys=True, separators=(",", ":"), allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise InvalidModelError("FeatureArtifact payload must be finite JSON data") from exc
+        actual_digest = sha256(payload_json.encode("utf-8")).hexdigest()
+        if actual_digest != content_digest:
+            raise InvalidModelError("FeatureArtifact content digest mismatch")
+
+        if kind is FeatureKind.SKETCH_PROFILE:
+            restored = SketchRegionConversionResult.from_dict(payload)
+        elif kind is FeatureKind.PLANAR_BOOLEAN:
+            restored = PlanarRegionSetBooleanResult.from_dict(payload)
+        elif kind is FeatureKind.EXTRUSION:
+            restored = PlanarRegionExtrusionResult.from_dict(payload)
+        elif kind is FeatureKind.MESH:
+            if set(payload) != {"mesh", "validation"} or not isinstance(payload["validation"], Mapping):
+                raise InvalidModelError("mesh FeatureArtifact payload has missing or unknown fields")
+            mesh = TriangleMesh.from_dict(payload["mesh"])
+            validation = validate_triangle_mesh(mesh)
+            if validation.to_dict() != dict(payload["validation"]):
+                raise InvalidModelError("mesh FeatureArtifact validation report mismatch")
+            restored = (mesh, validation)
+        else:
+            raise InvalidModelError("FeatureArtifact kind cannot be rehydrated")
+
+        artifact = cls(
+            feature_id, kind, content_digest, computation_digest, payload_json, restored
+        )
+        if artifact.to_dict() != dict(value):
+            raise InvalidModelError("FeatureArtifact snapshot is not canonical")
+        return artifact
 
 
 @dataclass(frozen=True, slots=True)
