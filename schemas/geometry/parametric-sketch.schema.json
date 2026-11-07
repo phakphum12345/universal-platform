@@ -457,10 +457,12 @@
                 ]
               }
             }
-          },
-          "arcs": {
-            "maxItems": 0
           }
+        },
+        "not": {
+          "required": [
+            "arcs"
+          ]
         }
       }
     },
@@ -502,10 +504,12 @@
                 ]
               }
             }
-          },
-          "arcs": {
-            "maxItems": 0
           }
+        },
+        "not": {
+          "required": [
+            "arcs"
+          ]
         }
       }
     },
