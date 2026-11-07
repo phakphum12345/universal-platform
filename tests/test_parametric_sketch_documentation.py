@@ -22,7 +22,7 @@ def test_sketch_status_documents_exact_evidence_and_bounded_scope():
     assert "ANGLE" in contract
     assert "signed directed angle in radians" in contract
     assert "TANGENT" in contract and "RADIUS" in contract
-    assert "circular-arc model" in contract
+    assert "circular arcs" in contract
     assert "a17a6359b4689fedbbcfbec769704a0322e027da" in status
     assert "CAD-SKETCH-001" in traceability
     assert "unique" in contract.lower()
