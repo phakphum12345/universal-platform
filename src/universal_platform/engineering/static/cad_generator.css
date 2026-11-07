@@ -1,0 +1,60 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1119;
+  --panel: #111b27;
+  --panel-2: #0d1621;
+  --line: #263648;
+  --text: #e8eef5;
+  --muted: #9aabbd;
+  --accent: #78b8ff;
+  --accent-strong: #1f6fbd;
+  --good: #72d6a0;
+  --bad: #ff9b91;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(ellipse at top left, #14283b 0, var(--bg) 48rem); color: var(--text); min-height: 100vh; }
+.shell { width: min(1040px, calc(100% - 36px)); margin: 0 auto; padding: 54px 0 36px; }
+.hero { padding: 12px 4px 30px; }
+.eyebrow { color: var(--accent); font-size: 11px; font-weight: 750; letter-spacing: .15em; }
+h1 { font-size: clamp(34px, 6vw, 54px); letter-spacing: -.045em; margin: 12px 0 8px; }
+h2 { font-size: 19px; letter-spacing: -.02em; margin: 5px 0 0; }
+.lede { color: var(--muted); font-size: 16px; margin: 0 0 15px; }
+.local-only { display: inline-flex; align-items: center; gap: 8px; color: var(--good); font-size: 12px; border: 1px solid #24513f; border-radius: 999px; padding: 6px 10px; background: #10251e; }
+.panel { background: linear-gradient(145deg, rgba(17,27,39,.98), rgba(13,22,33,.98)); border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin: 14px 0; box-shadow: 0 12px 34px rgba(0,0,0,.14); }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.state { color: var(--muted); font-size: 12px; border: 1px solid var(--line); padding: 6px 9px; border-radius: 999px; white-space: nowrap; }
+.state.good { color: var(--good); border-color: #24513f; }
+.state.bad { color: var(--bad); border-color: #623630; }
+label { display: block; font-size: 12px; font-weight: 700; color: #c6d4e2; margin: 0 0 8px; }
+input, textarea, select { width: 100%; border: 1px solid #34495e; background: var(--panel-2); color: var(--text); border-radius: 9px; padding: 11px 12px; font: inherit; outline: none; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(120,184,255,.12); }
+textarea { resize: vertical; min-height: 250px; line-height: 1.5; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+.inline { display: flex; align-items: end; gap: 10px; }
+.inline > input { flex: 1; }
+.two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 13px; }
+button { appearance: none; border: 1px solid #3b5269; background: #1a2938; color: var(--text); border-radius: 9px; padding: 10px 14px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+button:hover:not(:disabled) { border-color: var(--accent); background: #20364a; }
+button.primary { background: var(--accent-strong); border-color: var(--accent-strong); color: white; }
+button.primary:hover:not(:disabled) { background: #2b83d8; }
+button.quiet { background: transparent; border-color: transparent; color: var(--muted); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.hint { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 10px 0 0; }
+.grow { flex: 1; min-width: 150px; }
+.revision-controls { align-items: end; }
+.status-message { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.status-message.good { color: var(--good); }
+.status-message.bad { color: var(--bad); }
+.result { margin: 0; padding: 15px; background: #080e15; border: 1px solid #253547; border-radius: 10px; color: #c8d9e9; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 480px; overflow: auto; }
+footer { display: flex; justify-content: space-between; gap: 14px; color: #718398; font-size: 11px; padding: 18px 4px 0; }
+@media (max-width: 650px) {
+  .shell { width: min(100% - 22px, 1040px); padding-top: 26px; }
+  .panel { padding: 16px; }
+  .two-column { grid-template-columns: 1fr; gap: 12px; }
+  .inline { align-items: stretch; flex-direction: column; }
+  .inline button { width: 100%; }
+  .revision-controls { align-items: stretch; }
+  .section-heading { align-items: flex-start; }
+  footer { flex-direction: column; }
+}
