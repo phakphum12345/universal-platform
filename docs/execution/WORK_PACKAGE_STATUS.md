@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Current verified integration commit:** 1a8338ae17eb783a374a36400999ead796f9a79d  
+**Last verified implementation baseline:** 1a8338ae17eb783a374a36400999ead796f9a79d  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
