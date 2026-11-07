@@ -109,7 +109,22 @@
     try {
       const health = await api("/health");
       setConnected(true);
-      setStatus("Connected to the local CAD Generator API.", "good");
+      try {
+        await refreshRevisions();
+        setStatus("Connected to the local CAD Generator API. The selected history is ready.", "good");
+      } catch (historyError) {
+        if (historyError.status !== 404) throw historyError;
+        expectedRevisionInput.value = "0";
+        revisionSelect.replaceChildren();
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No revisions";
+        revisionSelect.append(option);
+        revisionSelect.disabled = true;
+        byId("load").disabled = true;
+        byId("regenerate").disabled = true;
+        setStatus("Connected. No saved history exists for this ID yet; create the first revision.", "good");
+      }
       showResult(health);
     } catch (error) {
       bearerToken = "";
