@@ -180,6 +180,29 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
     def do_DELETE(self) -> None:
         self._handle_request()
 
+    def _send_static(self, status: int, asset: tuple[str, bytes], request_id: str) -> None:
+        content_type, content = asset
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(content)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
+            "img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; "
+            "form-action 'self'; frame-ancestors 'none'",
+        )
+        self.send_header("X-Request-ID", request_id)
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.wfile.write(content)
+        self.close_connection = True
+
     def _send_json(self, status: int, payload: dict[str, Any]) -> None:
         encoded = _canonical_json(payload).encode("utf-8")
         self.send_response(status)
@@ -358,13 +381,19 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         status = 500
         outcome = "INTERNAL_ERROR"
         payload: dict[str, Any]
+        static_asset: tuple[str, bytes] | None = None
         try:
             if not self._check_local_request():
                 raise _HTTPError(403, "LOCAL_ONLY", "Request must originate from the configured loopback origin")
-            if not self._authorized():
-                raise _HTTPError(401, "UNAUTHORIZED", "A valid bearer token is required")
-            status, payload = self._dispatch()
-            outcome = "SUCCESS" if status < 400 else "REJECTED"
+            if self.command == "GET" and path in self.server.static_assets:
+                static_asset = self.server.static_assets[path]
+                status, payload = 200, {"_static_asset": path}
+                outcome = "STATIC_ASSET"
+            else:
+                if not self._authorized():
+                    raise _HTTPError(401, "UNAUTHORIZED", "A valid bearer token is required")
+                status, payload = self._dispatch()
+                outcome = "SUCCESS" if status < 400 else "REJECTED"
         except _HTTPError as exc:
             status = exc.status
             outcome = exc.code
@@ -398,6 +427,9 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 "error": {"code": "AUDIT_UNAVAILABLE", "message": "Audit completion could not be recorded"},
                 "request_id": request_id,
             }
+        if static_asset is not None:
+            self._send_static(status, static_asset, request_id)
+            return
         self._send_json(status, payload)
 
 
@@ -425,6 +457,12 @@ class CADGeneratorHTTPServer(HTTPServer):
         self.bearer_token = bearer_token
         self.max_request_bytes = max_request_bytes
         self.request_timeout_seconds = request_timeout_seconds
+        static_root = Path(__file__).with_name("static")
+        self.static_assets = {
+            "/": ("text/html; charset=utf-8", (static_root / "cad_generator.html").read_bytes()),
+            "/static/cad_generator.css": ("text/css; charset=utf-8", (static_root / "cad_generator.css").read_bytes()),
+            "/static/cad_generator.js": ("text/javascript; charset=utf-8", (static_root / "cad_generator.js").read_bytes()),
+        }
         super().__init__(server_address, _CADGeneratorRequestHandler)
 
 
