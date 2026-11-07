@@ -426,3 +426,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI for PR #132 passed both required jobs, 812 tests. Integration merge SHA: `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
 - Source-document revision storage (PR #124) and computed-artifact cache (PR #132) are separate local SQLite stores. Next acceptance increment: reopen both stores in a fresh process, load a selected FeatureHistory revision, regenerate with the artifact cache, and verify all expected outputs/digests without recomputation.
 - Follow-on: CAD generator API/UI and revisioned authoring workflows; suppression and branch/merge editing; cache retention/compaction and backup strategy. Do not claim distributed persistence or signed/tamper-proof storage.
+
+
+## Durable FeatureHistory + artifact cache acceptance — PR #134 MERGED
+
+- PR #134 proves the two separate local SQLite stores work together across an actual new Python interpreter: save source FeatureHistory revision → regenerate and persist artifacts → start child process → reopen source and artifact stores → load the exact revision → reuse all artifacts.
+- The child process reused `profile`, `extrusion` and `mesh` with zero recomputation; content digests matched and the final mesh passed watertight/orientation validation.
+- Exact PR-head and post-merge CI passed both required jobs, **813 tests**. Integration SHA: `e4a1add528e4fd77c88df96d428ff629e2f4b655`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- The next implementation priority is the CAD generator workflow: a narrow API/service layer that accepts a versioned FeatureHistory snapshot, stores revisions, runs allow-listed regeneration with the local artifact cache, and returns revision/artifact provenance and validation. Add an interactive UI only after API contracts and error states are stable.
+- Still OPEN: cache retention/compaction, backup/restore, encryption-at-rest, signed evidence, suppression, branch/merge editing, general B-rep/curved Boolean and manufacturing validation.
