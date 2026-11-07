@@ -47,6 +47,17 @@
     resultOutput.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   }
 
+  function updateFeatureEditorControls(hasSelection) {
+    const expected = Number(expectedRevisionInput.value);
+    const canEditCurrentHead = connected &&
+      Number.isSafeInteger(expected) && expected >= 1 &&
+      !revisionSelect.disabled && revisionSelect.value === String(expected);
+    featureEditParametersInput.disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-apply-edit").disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection);
+    byId("feature-add").disabled = !canEditCurrentHead;
+  }
+
   function renderFeatureTree() {
     updateFeatureEditorControls(false);
     featureTree.replaceChildren();
