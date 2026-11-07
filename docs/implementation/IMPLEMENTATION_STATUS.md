@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `f3abe346a259f2f3f3ed767889dba32be6a284b9` (post-PR #140).  
+**Current integration HEAD:** `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` (post-PR #142).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #140 workflow #42381936401 on `f3abe346a259f2f3f3ed767889dba32be6a284b9` — workflow-sanity PASS; python-tests PASS; **823 passed in 8.08s**.  
-**Current tree:** 335 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#140 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #142 workflow #42382710626 on `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7` — workflow-sanity PASS; python-tests PASS; **832 passed in 7.91s**.  
+**Current tree:** 338 files, 108 Markdown, 163 Python, 22 JSON schemas, 84 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#142 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -964,3 +964,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Capability boundary: this is a local JSON/revision workbench, not a graphical sketch editor, interactive 2D constraint editor, CAD viewport or visual solid modeller.
 - Next: bounded polygon sketch editor with explicit coordinates/constraints and an inspectable extrusion/mesh preview, then extend to arcs and broader visual authoring only after geometry validation.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
+
+
+## Visual polygon sketch editor — merged PR #142
+
+- Adds a bounded SVG polygon canvas to the same-origin local CAD workbench: click-to-add, exact numeric coordinate entry, undo/clear, and extrusion height.
+- Adds `build_polygon_extrusion_history` and authenticated `POST /v1/templates/polygon-extrusion`; generates a strict FeatureHistory with ParametricSketch v1.2, closed straight segments, explicit FIX_X/FIX_Y constraints, extrusion and mesh output.
+- Builder validates history ID, 3–64 finite unique vertices, duplicate adjacent/closing vertices, non-zero signed area, positive finite height and length unit. Geometry self-intersection and watertightness remain verified by the regeneration pipeline.
+- Canvas bounds: X 0–26 mm, Y 0–15 mm. Straight edges only; no arcs, splines, holes, automatic constraints, drag solver or 3D viewport.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **832 passed in 9.43s** on `ce1dc61066bebace97f4da9acf9bb249bd0db86f`.
+- Exact post-merge CI: workflow #42382710626; both required jobs PASS; **832 passed in 7.91s** on `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`.
+- Next: 3D mesh preview with source revision/artifact provenance and explicit mesh validation status. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
