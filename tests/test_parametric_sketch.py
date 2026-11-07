@@ -339,6 +339,15 @@ def test_arc_and_tangent_models_reject_invalid_references_and_degenerate_geometr
         SketchArc("bad", "center", "center", "end")
     with pytest.raises(InvalidModelError, match="clockwise must be boolean"):
         SketchArc("bad", "center", "start", "end", clockwise=1)
+    with pytest.raises(InvalidModelError, match="non-zero angular sweep"):
+        ParametricSketch(
+            "zero-sweep", "plane", "mm",
+            (SketchPoint("center", 0, 0), SketchPoint("start", 1, 0),
+             SketchPoint("end", 2, 0)),
+            constraints=(SketchConstraint("radius", Kind.RADIUS, (), 1.0,
+                                          arc_ids=("arc",)),),
+            arcs=(SketchArc("arc", "center", "start", "end"),),
+        )
 
     with pytest.raises(InvalidModelError, match="unknown point"):
         ParametricSketch(
