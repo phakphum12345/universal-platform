@@ -192,21 +192,21 @@ def test_mixed_line_and_arc_loop_converts_and_preserves_frame_and_unit():
     assert 1.5 < result.regions[0].area < 1.5707963267948966
 
 
-def test_arc_conversion_rejects_invalid_chord_error_and_non_circular_endpoint_pair():
+def test_arc_conversion_rejects_invalid_chord_error():
     from universal_platform.engineering.parametric_sketch import SketchArc
 
     points = (
         SketchPoint("center", 0, 0),
-        SketchPoint("right", 1, 0),
-        SketchPoint("upper", 0, 1.1),
-        SketchPoint("left", -1, 0),
-        SketchPoint("lower", 0, -1),
+        SketchPoint("east", 1, 0),
+        SketchPoint("north", 0, 1),
+        SketchPoint("west", -1, 0),
+        SketchPoint("south", 0, -1),
     )
     arcs = (
-        SketchArc("a0", "center", "right", "upper"),
-        SketchArc("a1", "center", "upper", "left"),
-        SketchArc("a2", "center", "left", "lower"),
-        SketchArc("a3", "center", "lower", "right"),
+        SketchArc("a0", "center", "east", "north"),
+        SketchArc("a1", "center", "north", "west"),
+        SketchArc("a2", "center", "west", "south"),
+        SketchArc("a3", "center", "south", "east"),
     )
     constraints = []
     for point in points:
@@ -215,15 +215,14 @@ def test_arc_conversion_rejects_invalid_chord_error_and_non_circular_endpoint_pa
             SketchConstraint(f"y.{point.point_id}", Kind.FIX_Y, (point.point_id,), point.y),
         ))
     for arc in arcs:
-        radius = 1.0 if arc.arc_id != "a0" else 1.1
         constraints.append(SketchConstraint(
-            f"radius.{arc.arc_id}", Kind.RADIUS, (), radius, arc_ids=(arc.arc_id,)
+            f"radius.{arc.arc_id}", Kind.RADIUS, (), 1.0, arc_ids=(arc.arc_id,)
         ))
     sketch = ParametricSketch(
-        "invalid-circle", "part.xy", "mm", points, constraints=tuple(constraints), arcs=arcs
+        "circle", "part.xy", "mm", points, constraints=tuple(constraints), arcs=arcs
     )
     solved = solve(sketch)
     with pytest.raises(InvalidModelError, match="chord_error"):
         sketch_to_planar_regions(sketch, solved, chord_error=0)
-    with pytest.raises(InvalidModelError, match="same circle"):
-        sketch_to_planar_regions(sketch, solved, chord_error=0.01)
+    with pytest.raises(InvalidModelError, match="smaller than the arc radius"):
+        sketch_to_planar_regions(sketch, solved, chord_error=1.0)
