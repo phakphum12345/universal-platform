@@ -16,7 +16,8 @@
     "schema_version": {
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ]
     },
     "sketch_id": {
@@ -48,6 +49,12 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/constraint"
+      }
+    },
+    "arcs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/arc"
       }
     }
   },
@@ -124,7 +131,9 @@
             "PARALLEL",
             "PERPENDICULAR",
             "EQUAL_LENGTH",
-            "ANGLE"
+            "ANGLE",
+            "TANGENT",
+            "RADIUS"
           ]
         },
         "point_ids": {
@@ -147,6 +156,14 @@
           "exclusiveMinimum": 0
         },
         "segment_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "arc_ids": {
           "type": "array",
           "uniqueItems": true,
           "items": {
@@ -293,8 +310,105 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "RADIUS"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "point_ids": {
+                "maxItems": 0
+              },
+              "arc_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "value": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "arc_ids"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "TANGENT"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "point_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "segment_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "arc_ids": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "segment_ids",
+              "arc_ids"
+            ]
+          }
         }
       ]
+    },
+    "arc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arc_id",
+        "center_point_id",
+        "start_point_id",
+        "end_point_id",
+        "clockwise"
+      ],
+      "properties": {
+        "arc_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "center_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "end_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clockwise": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "allOf": [
@@ -335,6 +449,65 @@
             }
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.1"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "properties": {
+          "constraints": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "TANGENT",
+                          "RADIUS"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "arc_ids"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.2"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "required": [
+          "arcs"
+        ]
       }
     }
   ]
