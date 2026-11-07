@@ -74,3 +74,11 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
   .sketch-actions { flex-direction: row; flex-wrap: wrap; }
   .sketch-actions button { width: auto; flex: 1; }
 }
+
+.mesh-preview { display: block; width: 100%; height: auto; max-height: 560px; border: 1px solid #34495e; border-radius: 10px; background: #09121b; margin: 14px 0; }
+.mesh-face { stroke: #0a1723; stroke-width: 1; stroke-linejoin: round; }
+.mesh-face-top { fill: #76aeda; }
+.mesh-face-side-a { fill: #3e7ba7; }
+.mesh-face-side-b { fill: #285675; }
+.mesh-face-other { fill: #557b99; }
+.mesh-details { color: #c6d4e2; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; margin: 8px 0 0; }
