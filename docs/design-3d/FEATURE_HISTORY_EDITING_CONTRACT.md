@@ -20,15 +20,16 @@ The operations are pure transformations: the input FeatureHistory is never mutat
 
 ## 3. Persistence and regeneration
 
-- Save the returned document using CADGeneratorService.save_history(..., expected_revision=...).
-- Revision conflicts remain authoritative; editing does not bypass optimistic concurrency.
+- The service exposes revision-checked add/replace/remove operations and appends the returned document using the existing SQLite compare-and-swap store.
+- The loopback API exposes POST /v1/histories/{history_id}/edit with strict operation-specific request fields.
+- Revision conflicts return HTTP 409; editing does not bypass optimistic concurrency.
 - Regeneration is a separate operation and must run against the persisted revision.
 - Existing content-addressed artifact caching remains keyed by computation signatures.
 - Stable feature IDs are not silently renamed. A future rename operation must update all dependency references and be specified as a separate graph migration.
 
 ## 4. Explicit limitations
 
-This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, GUI controls, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Feature order for execution remains deterministic topological order, not the stored tuple order.
+This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, browser GUI edit controls, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Feature order for execution remains deterministic topological order, not the stored tuple order.
 
 ## 5. Acceptance criteria
 
@@ -39,3 +40,5 @@ This slice does not implement feature suppression, reordering semantics, undo/re
 - Cascade removal removes all transitive dependents.
 - At least one valid output remains.
 - Unit tests cover success and failure paths.
+- Service/API tests verify append-only revision creation, stale-writer conflicts and strict request parsing.
+- Browser UI remains read-only; interactive edit controls are a separate follow-on.
