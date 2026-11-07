@@ -34,6 +34,7 @@ class SketchConstraintKind(str, Enum):
     PARALLEL = "PARALLEL"
     PERPENDICULAR = "PERPENDICULAR"
     EQUAL_LENGTH = "EQUAL_LENGTH"
+    ANGLE = "ANGLE"
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +72,7 @@ class SketchConstraint:
     point_ids: tuple[str, ...]
     value: float | None = None
     tolerance: float = 1e-8
+    segment_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.constraint_id, str) or not self.constraint_id.strip():
@@ -81,12 +83,21 @@ class SketchConstraint:
             not isinstance(item, str) or not item.strip() for item in self.point_ids
         ):
             raise InvalidModelError("sketch point_ids must be an immutable tuple of identifiers")
-        if self.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
+        if self.kind is SketchConstraintKind.ANGLE:
+            expected = 0
+        elif self.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
             expected = 4
         else:
             expected = 1 if self.kind in (SketchConstraintKind.FIX_X, SketchConstraintKind.FIX_Y) else 2
         if len(self.point_ids) != expected:
             raise InvalidModelError(f"{self.kind.value} requires {expected} point identifier(s)")
+        if not isinstance(self.segment_ids, tuple) or any(
+            not isinstance(item, str) or not item.strip() for item in self.segment_ids
+        ):
+            raise InvalidModelError("sketch segment_ids must be an immutable tuple of identifiers")
+        expected_segments = 2 if self.kind is SketchConstraintKind.ANGLE else 0
+        if len(self.segment_ids) != expected_segments or len(set(self.segment_ids)) != len(self.segment_ids):
+            raise InvalidModelError(f"{self.kind.value} requires {expected_segments} distinct segment identifier(s)")
         if len(set(self.point_ids)) != len(self.point_ids):
             raise InvalidModelError("a sketch constraint cannot repeat a point")
         needs_value = self.kind in (
@@ -95,6 +106,7 @@ class SketchConstraint:
             SketchConstraintKind.VERTICAL_DISTANCE,
             SketchConstraintKind.FIX_X,
             SketchConstraintKind.FIX_Y,
+            SketchConstraintKind.ANGLE,
         )
         if needs_value != (self.value is not None):
             raise InvalidModelError("constraint value is required only for dimensional/fixed constraints")
@@ -105,6 +117,8 @@ class SketchConstraint:
             raise InvalidModelError("sketch constraint value must be finite")
         if self.kind is SketchConstraintKind.DISTANCE and self.value is not None and self.value < 0:
             raise InvalidModelError("distance must be non-negative")
+        if self.kind is SketchConstraintKind.ANGLE and self.value is not None and not -3.141592653589793 <= self.value <= 3.141592653589793:
+            raise InvalidModelError("angle must be expressed in radians within [-pi, pi]")
         if isinstance(self.tolerance, bool) or not isinstance(self.tolerance, (int, float)) or (
             not isfinite(float(self.tolerance)) or self.tolerance <= 0
         ):
@@ -120,7 +134,8 @@ class ParametricSketch:
     segments: tuple[SketchSegment, ...] = ()
     constraints: tuple[SketchConstraint, ...] = ()
 
-    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    SCHEMA_VERSION: ClassVar[str] = "1.1"
+    SUPPORTED_SCHEMA_VERSIONS: ClassVar[tuple[str, ...]] = ("1.0", "1.1")
 
     def __post_init__(self) -> None:
         if any(not isinstance(value, str) or not value.strip()
@@ -158,9 +173,12 @@ class ParametricSketch:
         for segment in self.segments:
             if segment.start_point_id not in known or segment.end_point_id not in known:
                 raise InvalidModelError("sketch segment references an unknown point")
+        known_segments = set(segment_ids)
         for constraint in self.constraints:
             if any(point_id not in known for point_id in constraint.point_ids):
                 raise InvalidModelError("sketch constraint references an unknown point")
+            if any(segment_id not in known_segments for segment_id in constraint.segment_ids):
+                raise InvalidModelError("sketch constraint references an unknown segment")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -174,8 +192,9 @@ class ParametricSketch:
                  "end_point_id": s.end_point_id} for s in self.segments
             ],
             "constraints": [
-                {"constraint_id": c.constraint_id, "kind": c.kind.value,
-                 "point_ids": list(c.point_ids), "value": c.value, "tolerance": float(c.tolerance)}
+                ({"constraint_id": c.constraint_id, "kind": c.kind.value,
+                  "point_ids": list(c.point_ids), "value": c.value, "tolerance": float(c.tolerance),
+                  **({"segment_ids": list(c.segment_ids)} if c.segment_ids else {})})
                 for c in self.constraints
             ],
         }
@@ -186,7 +205,7 @@ class ParametricSketch:
                     "points", "segments", "constraints"}
         if not isinstance(value, Mapping) or set(value) != required:
             raise InvalidModelError("ParametricSketch snapshot has missing or unknown fields")
-        if value["schema_version"] != cls.SCHEMA_VERSION:
+        if value["schema_version"] not in cls.SUPPORTED_SCHEMA_VERSIONS:
             raise InvalidModelError("unsupported ParametricSketch schema_version")
         raw_points, raw_segments, raw_constraints = value["points"], value["segments"], value["constraints"]
         if not isinstance(raw_points, (list, tuple)) or not isinstance(raw_segments, (list, tuple)) or not isinstance(raw_constraints, (list, tuple)):
@@ -203,17 +222,25 @@ class ParametricSketch:
             segments.append(SketchSegment(raw["segment_id"], raw["start_point_id"], raw["end_point_id"]))
         constraints = []
         for raw in raw_constraints:
-            if not isinstance(raw, Mapping) or set(raw) != {"constraint_id", "kind", "point_ids", "value", "tolerance"}:
+            required_constraint_fields = {"constraint_id", "kind", "point_ids", "value", "tolerance"}
+            if not isinstance(raw, Mapping) or set(raw) not in (
+                required_constraint_fields, required_constraint_fields | {"segment_ids"}
+            ):
                 raise InvalidModelError("ParametricSketch constraint has missing or unknown fields")
+            if value["schema_version"] == "1.0" and "segment_ids" in raw:
+                raise InvalidModelError("ParametricSketch v1.0 cannot contain segment_ids")
             if not isinstance(raw["point_ids"], (list, tuple)):
                 raise InvalidModelError("ParametricSketch constraint point_ids must be an array")
             try:
                 kind = SketchConstraintKind(raw["kind"])
             except (TypeError, ValueError) as exc:
                 raise InvalidModelError("unsupported ParametricSketch constraint kind") from exc
+            segment_ids = raw.get("segment_ids", ())
+            if not isinstance(segment_ids, (list, tuple)):
+                raise InvalidModelError("ParametricSketch constraint segment_ids must be an array")
             constraints.append(SketchConstraint(
                 raw["constraint_id"], kind, tuple(raw["point_ids"]),
-                raw["value"], raw["tolerance"],
+                raw["value"], raw["tolerance"], tuple(segment_ids),
             ))
         return cls(
             value["sketch_id"], value["frame_id"], value["length_unit"],
@@ -272,6 +299,7 @@ def solve_parametric_sketch(
                             (f"{point.point_id}.y", float(point.y)))
     }
     point_by_id = {point.point_id: point for point in sketch.points}
+    segment_by_id = {segment.segment_id: segment for segment in sketch.segments}
     equations: list[NonlinearConstraint] = []
 
     def coordinate(state: Mapping[str, float], point_id: str, axis: str) -> float:
@@ -331,6 +359,24 @@ def solve_parametric_sketch(
                           coordinate(v, d, "y") - coordinate(v, c, "y"))
                 )
             equations.append(NonlinearConstraint(item.constraint_id, residual, tolerance=tol))
+        elif item.kind is SketchConstraintKind.ANGLE:
+            first, second = (segment_by_id[key] for key in item.segment_ids)
+            a, b = first.start_point_id, first.end_point_id
+            c, d = second.start_point_id, second.end_point_id
+            first_length = hypot(point_by_id[b].x - point_by_id[a].x, point_by_id[b].y - point_by_id[a].y)
+            second_length = hypot(point_by_id[d].x - point_by_id[c].x, point_by_id[d].y - point_by_id[c].y)
+            if first_length <= 1e-12 or second_length <= 1e-12:
+                raise InvalidModelError("angle constraint requires non-degenerate segments")
+            target = float(item.value)
+
+            def angle_residual(v, a=a, b=b, c=c, d=d, target=target):
+                ux = coordinate(v, b, "x") - coordinate(v, a, "x")
+                uy = coordinate(v, b, "y") - coordinate(v, a, "y")
+                vx = coordinate(v, d, "x") - coordinate(v, c, "x")
+                vy = coordinate(v, d, "y") - coordinate(v, c, "y")
+                return __import__("math").atan2(ux * vy - uy * vx, ux * vx + uy * vy) - target
+
+            equations.append(NonlinearConstraint(item.constraint_id, angle_residual, tolerance=tol))
         elif item.kind is SketchConstraintKind.DISTANCE:
             target = float(item.value)
             equations.append(NonlinearConstraint(
@@ -375,6 +421,12 @@ def solve_parametric_sketch(
     solved = solve_nonlinear_constraints(names, initial, equations, options=options)
     values = solved.values
     for item in sketch.constraints:
+        if item.kind is SketchConstraintKind.ANGLE:
+            first, second = (segment_by_id[key] for key in item.segment_ids)
+            for segment in (first, second):
+                a, b = segment.start_point_id, segment.end_point_id
+                if hypot(values[f"{b}.x"] - values[f"{a}.x"], values[f"{b}.y"] - values[f"{a}.y"]) <= 1e-12:
+                    raise SolverError("angle constraint produced a degenerate segment")
         if item.kind in (SketchConstraintKind.PARALLEL, SketchConstraintKind.PERPENDICULAR, SketchConstraintKind.EQUAL_LENGTH):
             a, b, c, d = item.point_ids
             first_length = hypot(values[f"{b}.x"] - values[f"{a}.x"], values[f"{b}.y"] - values[f"{a}.y"])
