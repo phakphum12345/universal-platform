@@ -464,3 +464,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Token remains in memory only; static assets use restrictive CSP, no external resources, no CORS and same-origin requests.
 - Exact-head and post-merge CI passed both required jobs; 823 tests. Integration SHA: `f3abe346a259f2f3f3ed767889dba32be6a284b9`; main remains unchanged.
 - The workbench is not yet a visual CAD editor. Next increment: a bounded 2D polygon sketch editor that constructs validated FeatureHistory records, followed by mesh preview and explicit validation. Arc editing, general B-rep and complex topology remain later increments.
+
+
+## Visual polygon sketch editor — PR #142 MERGED
+
+- Added a bounded SVG 2D polygon canvas and exact-coordinate controls to the local CAD workbench.
+- The authenticated polygon template endpoint creates a fixed-coordinate ParametricSketch v1.2, closed segments, extrusion and mesh FeatureHistory.
+- Users review generated JSON, append an immutable revision, then explicitly regenerate. The regeneration pipeline remains responsible for self-intersection and watertight mesh validation.
+- Bounds: 3–64 vertices, X 0–26 mm, Y 0–15 mm; straight edges only.
+- Exact-head and post-merge CI passed both required jobs; 832 tests. Integration SHA: `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`; main remains unchanged.
+- Next: source-linked 3D mesh preview in the local UI, showing vertices/faces and mesh validation/provenance without claiming a full CAD kernel.
