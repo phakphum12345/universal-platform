@@ -577,6 +577,13 @@ def solve_parametric_sketch(
         raise SolverError("Parametric sketch requires at least one supported constraint")
     solved = solve_nonlinear_constraints(names, initial, equations, options=options)
     values = solved.values
+    for arc in sketch.arcs:
+        center, start, end = arc.center_point_id, arc.start_point_id, arc.end_point_id
+        start_radius = hypot(values[f"{start}.x"] - values[f"{center}.x"], values[f"{start}.y"] - values[f"{center}.y"])
+        end_radius = hypot(values[f"{end}.x"] - values[f"{center}.x"], values[f"{end}.y"] - values[f"{center}.y"])
+        chord = hypot(values[f"{end}.x"] - values[f"{start}.x"], values[f"{end}.y"] - values[f"{start}.y"])
+        if min(start_radius, end_radius, chord) <= 1e-12:
+            raise SolverError("arc constraints produced degenerate radial endpoints or a zero-length chord")
     for item in sketch.constraints:
         if item.kind is SketchConstraintKind.RADIUS:
             arc = arc_by_id[item.arc_ids[0]]
