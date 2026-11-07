@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Current integration HEAD:** `ab0006c1ead3e6848f90e30c804d38a3029218f3` (post-PR #136).  
+**Current integration HEAD:** `674b6a52c725b6e3f4b4e083b602aab3a138104e` (post-PR #138).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #136 workflow #42376951014 on `ab0006c1ead3e6848f90e30c804d38a3029218f3` — workflow-sanity PASS; python-tests PASS; **817 passed in 5.66s**.  
-**Current tree:** 329 files, 107 Markdown, 159 Python, 22 JSON schemas, 82 Python test files; recursive response not truncated.  
-**Open PRs:** must be rechecked at each audit; PRs #128–#136 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
+**Latest post-merge CI:** PR #138 workflow #42380918862 on `674b6a52c725b6e3f4b4e083b602aab3a138104e` — workflow-sanity PASS; python-tests PASS; **822 passed in 6.95s**.  
+**Current tree:** 332 files, 108 Markdown, 161 Python, 22 JSON schemas, 83 Python test files; recursive response not truncated.  
+**Open PRs:** must be rechecked at each audit; PRs #128–#138 are merged. **Working-tree state:** UNKNOWN — GitHub API inspection only.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -938,3 +938,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head and post-merge workflow #42376951014 passed both required jobs; **817 tests passed in 5.66s** on `ab0006c1ead3e6848f90e30c804d38a3029218f3`.
 - Next: separate HTTP/CLI/UI transport contract with authentication, authorization, request limits, loopback-only defaults and no public/SSH exposure. No listener is enabled by PR #136.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator loopback HTTP API — merged PR #138
+
+- Adds an explicit-start local HTTP adapter over `CADGeneratorService`; importing the module does not open a socket.
+- Routes: authenticated health, immutable FeatureHistory save, revision list/read and explicit-revision regeneration.
+- Security controls: IPv4 bind restricted to `127.0.0.1`, loopback peer/Host/Origin checks, 32-byte-minimum bearer token, no CORS, strict JSON and duplicate-key rejection, finite numbers, bounded body size (default 1 MiB, max 16 MiB), request socket timeout (default 5 seconds, max 30 seconds), and GET/POST allow-list.
+- Adds explicit SQLite audit storage with append-only event sequence and SHA-256 previous-event chain. Credentials and model request bodies are not recorded. Hash chain is not a keyed signature and cannot resist a local attacker rewriting the full database.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **822 passed in 4.90s** on `25e11f1dbf33c6fac38965efd16e1d25795cd227`.
+- Exact post-merge CI: workflow #42380918862; both required jobs PASS; **822 passed in 6.95s** on `674b6a52c725b6e3f4b4e083b602aab3a138104e`.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+- Remaining API hardening: rate limiting, TLS/remote authentication (only if remote service is separately authorized), browser session controls and external audit witness are not implemented.
+- Next: same-origin local CAD authoring UI served by this loopback service; no remote browser access.
