@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited implementation baseline:** `7046de5cff4a7a575de44de189bbb4fedcbdba58` (post-PR #154; subsequent reconciliation changes are documentation-only).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; ahead/behind count not recomputed in this audit).  
-**Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (superseded by PR #116–#118).  
-**Latest post-merge CI:** PR #154 workflow #42397474889 on exact merge SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 7.14s**.  
-**Current tree:** 350 entries, 117 Markdown, 165 Python, 24 JSON files, 85 Python test files; recursive response truncated=false.  
-**Open PRs:** 0 at this audit; PR #152 merged after PRs #148–#150. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch-protection state:** UNKNOWN — connected API returned 403.  
+**Last audited integration baseline:** `91def9b8367969d0dcef04806b831cc34022e797` (PR #158 implementation merged at `9d899f70a97372f689ba07a8e90b479bf14494b4`; subsequent documentation reconciliation recorded in commit `91def9b8367969d0dcef04806b831cc34022e797`).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **404 commits ahead / 0 behind** at this audit.  
+**Latest integration-head CI:** workflow run `42438451084` on exact SHA `91def9b8367969d0dcef04806b831cc34022e797` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass.  
+**PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
+**Current tree:** 356 entries, 120 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
+**Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
