@@ -168,3 +168,12 @@
 - Adds persistent navigation availability, current-head gating, Undo/Redo actions and invalid revision guards.
 - Adds browser coverage for reload persistence and redo invalidation after a new edit.
 - Pending exact-head and post-merge gates.
+
+
+## CAD-EDIT-011 — Undo/Redo workbench (PR #171)
+
+- Adds Undo/Redo buttons driven by server navigation state and enabled only when the current head snapshot is actually loaded.
+- Historical revision selection and loading remain read-only; returning the dropdown to the head does not re-enable mutations until the head is loaded again.
+- Guards empty/invalid revision values before Load/Regenerate, fixing the PR #170 post-merge `revision=0` timing race.
+- Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating and redo invalidation after a new edit.
+- Pending exact-head and post-merge gates.
