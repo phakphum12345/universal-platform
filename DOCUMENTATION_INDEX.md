@@ -255,3 +255,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — append-only revision restore model, persistent stacks, expected-revision safety and workbench rules.
 - [Post-PR #171 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR171.md) — exact merge SHA and post-merge Python, Chromium and workflow-sanity evidence.
 - Undo/Redo is PASS for this bounded FeatureHistory workflow. Graph branch/merge, reorder semantics, recompute propagation and general CAD-kernel capabilities remain OPEN.
+
+
+## FeatureHistory Presentation Reordering — PRs #173–#174
+
+- [FeatureHistory Reordering Contract](docs/design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md) — dependency-safe presentation order, immutable revision and unchanged execution order.
+- [Post-PR #174 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR174.md) — exact PR-head and post-merge Python, Chromium and workflow-sanity evidence.
+- FeatureHistory presentation reordering is PASS for the bounded workflow. Graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
