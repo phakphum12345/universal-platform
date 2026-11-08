@@ -58,6 +58,7 @@ class GlobalTriangleArrangement:
     adjacent_face_pairs: tuple[tuple[int, int], ...]
     boundary_edge_ids: tuple[tuple[int, int], ...]
     non_manifold_edges: tuple[tuple[int, int], ...]
+    t_junctions: tuple[tuple[int, int, int], ...]
     coverage_reports: tuple[SourceCoverageReport, ...]
     fragments: tuple[RationalTriangleFragment, ...]
 
@@ -101,6 +102,7 @@ def arrange_triangle_mesh_globally(
     max_fragments: int = 16384,
     max_coordinate_bits: int = 4096,
     max_edges: int = 65536,
+    max_topology_checks: int = 1_000_000,
 ) -> GlobalTriangleArrangement:
     """Arrange all source facets, unify exact vertices and derive edge topology.
 
@@ -112,7 +114,8 @@ def arrange_triangle_mesh_globally(
     """
     for name, value in (("max_fragments", max_fragments),
                         ("max_coordinate_bits", max_coordinate_bits),
-                        ("max_edges", max_edges)):
+                        ("max_edges", max_edges),
+                        ("max_topology_checks", max_topology_checks)):
         if isinstance(value, bool) or not isinstance(value, int) or value < 1:
             raise InvalidModelError(f"{name} must be a positive integer")
     source_items = tuple(triangles)
@@ -184,7 +187,29 @@ def arrange_triangle_mesh_globally(
     boundary = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) == 1)
     non_manifold = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) > 2)
 
+    # Detect exact T-junction candidates: a registered vertex lies strictly
+    # inside another edge. The bounded Cartesian scan fails closed rather
+    # than silently skipping diagnostics on large inputs.
+    topology_checks = len(vertices) * len(edges)
+    if topology_checks > max_topology_checks:
+        raise InvalidModelError("global topology scan exceeded max_topology_checks")
+    t_junctions: list[tuple[int, int, int]] = []
+    for edge in edges:
+        first_id, second_id = edge.vertex_ids
+        first = vertices[first_id].point
+        second = vertices[second_id].point
+        direction = _sub(second, first)
+        length_squared = _dot(direction, direction)
+        for candidate in vertices:
+            if candidate.vertex_id in edge.vertex_ids:
+                continue
+            offset = _sub(candidate.point, first)
+            if _cross(direction, offset) == (0, 0, 0):
+                projection = _dot(offset, direction)
+                if 0 < projection < length_squared:
+                    t_junctions.append((first_id, second_id, candidate.vertex_id))
+
     return GlobalTriangleArrangement(
         vertices, tuple(faces), edges, tuple(adjacent), boundary, non_manifold,
-        tuple(coverage), tuple(fragments),
+        tuple(sorted(t_junctions)), tuple(coverage), tuple(fragments),
     )

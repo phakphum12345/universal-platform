@@ -74,3 +74,23 @@ def test_non_exact_or_degenerate_source_is_rejected():
         arrange_triangle_mesh_globally((((0.0, 0.0, 0.0), p(1, 0), p(0, 1)),), ())
     with pytest.raises(InvalidModelError, match="non-degenerate"):
         arrange_triangle_mesh_globally(((p(0, 0), p(1, 1), p(2, 2)),), ())
+
+
+
+def test_global_topology_reports_exact_t_junction_candidates():
+    # The second facet contributes (1,0,0), strictly inside the first
+    # facet's unsplit edge from (0,0,0) to (2,0,0).
+    mesh = (
+        (p(0, 0), p(2, 0), p(0, 2)),
+        (p(1, 0), p(1, -1), p(2, -1)),
+    )
+    result = arrange_triangle_mesh_globally(mesh, ())
+    point_ids = {vertex.point: vertex.vertex_id for vertex in result.vertices}
+    expected = (point_ids[p(0, 0)], point_ids[p(2, 0)], point_ids[p(1, 0)])
+    assert expected in result.t_junctions
+
+
+def test_global_topology_scan_fails_closed_at_budget():
+    mesh = ((p(0, 0), p(2, 0), p(0, 2)),)
+    with pytest.raises(InvalidModelError, match="max_topology_checks"):
+        arrange_triangle_mesh_globally(mesh, (), max_topology_checks=1)
