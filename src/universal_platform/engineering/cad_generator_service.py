@@ -17,7 +17,7 @@ from .feature_history import (
     regenerate_feature_history,
 )
 from .feature_history_editor import (
-    add_feature, remove_feature, replace_feature, suppress_feature, unsuppress_feature,
+    add_feature, remove_feature, reorder_features, replace_feature, suppress_feature, unsuppress_feature,
 )
 from .feature_history_store import (
     FeatureHistoryNavigationState,
@@ -111,6 +111,7 @@ class CADGeneratorService:
         feature_id: str | None = None,
         cascade: bool = False,
         make_output: bool = False,
+        ordered_feature_ids: tuple[str, ...] | None = None,
     ) -> FeatureHistoryRevision:
         """Apply one validated graph edit and append a new immutable revision.
 
@@ -120,10 +121,12 @@ class CADGeneratorService:
         """
         if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
             raise InvalidModelError("expected_revision must be a positive integer for an edit")
-        if not isinstance(operation, str) or operation not in {"add", "replace", "remove", "suppress", "unsuppress"}:
-            raise InvalidModelError("operation must be add, replace, remove, suppress or unsuppress")
+        if not isinstance(operation, str) or operation not in {"add", "replace", "remove", "reorder", "suppress", "unsuppress"}:
+            raise InvalidModelError("operation must be add, replace, remove, reorder, suppress or unsuppress")
         if not isinstance(cascade, bool) or not isinstance(make_output, bool):
             raise InvalidModelError("cascade and make_output must be booleans")
+        if ordered_feature_ids is not None and not isinstance(ordered_feature_ids, tuple):
+            raise InvalidModelError("ordered_feature_ids must be an immutable tuple")
 
         current = self.history_store.load(history_id)
         if current.revision != expected_revision:
@@ -145,6 +148,10 @@ class CADGeneratorService:
             if feature is not None or not isinstance(feature_id, str) or make_output:
                 raise InvalidModelError("remove requires feature_id and does not accept feature or make_output")
             updated = remove_feature(current.history, feature_id, cascade=cascade)
+        elif operation == "reorder":
+            if feature is not None or feature_id is not None or cascade or make_output or not isinstance(ordered_feature_ids, tuple):
+                raise InvalidModelError("reorder requires ordered_feature_ids and does not accept feature, feature_id, cascade or make_output")
+            updated = reorder_features(current.history, ordered_feature_ids)
         elif operation == "suppress":
             if feature is not None or not isinstance(feature_id, str) or make_output:
                 raise InvalidModelError("suppress requires feature_id and does not accept feature or make_output")
