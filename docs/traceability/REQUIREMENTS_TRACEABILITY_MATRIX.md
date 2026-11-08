@@ -233,7 +233,7 @@ Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 9
 | Boolean boundary selection | PRs #205 and #211; `boolean_boundary_selection.py` | PASS for supported arrangement cells and two-sided witness agreement | Unsupported/ambiguous degeneracies fail closed |
 | Shell assembly | PR #206; `boolean_shell_assembly.py` | PASS for bounded connected outer/cavity shell output | Binary64 output rejects non-lossless rational coordinates; nested positive islands unsupported |
 | Automatic multi-mesh arrangement and generator execution | PRs #207, #210, #211; `faceted_boolean_arrangement.py`, `CADGeneratorService.execute_faceted_boolean` | PASS for tested non-coplanar UNION volume 15 and coplanar-overlap UNION volume 12 | Not unrestricted arbitrary faceted Boolean; no general HTTP/browser Boolean endpoint |
-| Rational input budgets | PR #213 exact head `093db080ebbb2a04431bd6254c889ceb53d8afed` | IN PROGRESS at snapshot | Must pass exact-head Python tests and merge before marking PASS |
+| Rational input budgets | PR #213 merge `d1289efdb71a1172beb88665baf09b4620f0cdc5`; exact head `093db080ebbb2a04431bd6254c889ceb53d8afed` | PASS for exact-head Python/workflow-sanity | Post-merge workflow-sanity queued and Python tests in progress at snapshot |
 
 **Overall CAD-BREP-BOOLEAN-001:** PARTIAL / INCOMPLETE. The bounded test cases pass; unsupported contact/tangency/branching, broader adversarial geometry and rational-coordinate B-rep output remain open.
 
