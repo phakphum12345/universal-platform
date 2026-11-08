@@ -127,7 +127,7 @@ from .feature_history_editor import (
     add_feature, replace_feature, remove_feature, suppress_feature, unsuppress_feature,
 )
 from .feature_history_store import (
-    FeatureHistoryNavigationState, FeatureHistoryNavigationUnavailable,
+    FeatureHistoryBranch, FeatureHistoryNavigationState, FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevision, FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError, SQLiteFeatureHistoryStore,
 )
