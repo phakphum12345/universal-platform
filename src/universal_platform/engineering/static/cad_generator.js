@@ -15,7 +15,7 @@
   const featureTreeState = byId("feature-tree-state");
   const featureInspector = byId("feature-inspector");
   const featureEditParametersInput = byId("feature-edit-parameters");
-  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove"].map(byId);
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
@@ -36,6 +36,8 @@
   let meshDrag = null;
   let selectedMeshTriangleIndex = null;
   let selectedFeatureId = null;
+  let selectedFeatureSuppressed = false;
+  let selectedFeatureDependenciesActive = false;
   let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
@@ -52,10 +54,16 @@
     const canEditCurrentHead = connected &&
       Number.isSafeInteger(expected) && expected >= 1 &&
       !revisionSelect.disabled && revisionSelect.value === String(expected);
-    featureEditParametersInput.disabled = !(canEditCurrentHead && hasSelection);
-    byId("feature-apply-edit").disabled = !(canEditCurrentHead && hasSelection);
-    byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection);
+    const canEditSelection = canEditCurrentHead && hasSelection;
+    featureEditParametersInput.disabled = !canEditSelection;
+    byId("feature-apply-edit").disabled = !canEditSelection;
+    byId("feature-remove").disabled = !canEditSelection;
     byId("feature-add").disabled = !canEditCurrentHead;
+    byId("feature-suppress").disabled = !(canEditSelection && !selectedFeatureSuppressed);
+    byId("feature-unsuppress").disabled = !(
+      canEditSelection && selectedFeatureSuppressed && selectedFeatureDependenciesActive
+    );
+    byId("feature-suppress-cascade").disabled = !(canEditSelection && !selectedFeatureSuppressed);
   }
 
   function renderFeatureTree() {
@@ -78,7 +86,9 @@
       return;
     }
     if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot) ||
-        snapshot.schema_version !== "1.0" || typeof snapshot.history_id !== "string" ||
+        !(snapshot.schema_version === "1.0" || snapshot.schema_version === "1.1") ||
+        typeof snapshot.history_id !== "string" ||
+        (snapshot.schema_version === "1.1" && !Array.isArray(snapshot.suppressed_feature_ids)) ||
         !Array.isArray(snapshot.nodes) || !Array.isArray(snapshot.output_feature_ids)) {
       selectedFeatureId = null;
       featureTreeState.textContent = "Snapshot structure is not recognized; backend validation remains authoritative.";
@@ -115,7 +125,27 @@
     if (outputs.size !== snapshot.output_feature_ids.length ||
         snapshot.output_feature_ids.some((id) => typeof id !== "string" || !nodeById.has(id))) {
       selectedFeatureId = null;
+      selectedFeatureSuppressed = false;
+      selectedFeatureDependenciesActive = false;
       featureTreeState.textContent = "Output feature references are invalid.";
+      return;
+    }
+    const rawSuppressed = snapshot.schema_version === "1.1" ? snapshot.suppressed_feature_ids : [];
+    const suppressed = new Set(rawSuppressed);
+    const activeOutputs = [...outputs].filter((id) => !suppressed.has(id));
+    if (rawSuppressed.some((id, index) =>
+          typeof id !== "string" || !nodeById.has(id) ||
+          (index > 0 && rawSuppressed[index - 1] >= id)
+        ) ||
+        activeOutputs.length === 0 ||
+        snapshot.nodes.some((node) =>
+          !suppressed.has(node.feature_id) &&
+          node.input_feature_ids.some((id) => suppressed.has(id))
+        )) {
+      selectedFeatureId = null;
+      selectedFeatureSuppressed = false;
+      selectedFeatureDependenciesActive = false;
+      featureTreeState.textContent = "Suppression metadata or active dependency/output invariants are invalid.";
       return;
     }
 
@@ -154,10 +184,13 @@
     }
 
     featureTreeState.textContent =
-      "Structure preview only · " + ordered.length + " features · outputs: " +
+      "Structure preview only · " + ordered.length + " features · " +
+      suppressed.size + " suppressed · outputs: " +
       snapshot.output_feature_ids.join(", ") + " · deterministic topological order";
     const showFeature = (node) => {
       selectedFeatureId = node.feature_id;
+      selectedFeatureSuppressed = suppressed.has(node.feature_id);
+      selectedFeatureDependenciesActive = node.input_feature_ids.every((id) => !suppressed.has(id));
       featureTree.querySelectorAll("button[data-feature-id]").forEach((button) => {
         button.setAttribute("aria-pressed", String(button.dataset.featureId === selectedFeatureId));
       });
@@ -167,6 +200,7 @@
         feature_id: node.feature_id,
         kind: node.kind,
         input_feature_ids: node.input_feature_ids,
+        suppressed: selectedFeatureSuppressed,
         parameters: node.parameters,
       }, null, 2);
     };
@@ -175,11 +209,12 @@
       const button = document.createElement("button");
       const dependencies = document.createElement("span");
       button.type = "button";
-      button.className = "feature-tree-node";
+      button.className = "feature-tree-node" + (suppressed.has(node.feature_id) ? " is-suppressed" : "");
       button.dataset.featureId = node.feature_id;
       button.setAttribute("aria-pressed", "false");
       button.textContent = node.feature_id + " · " + node.kind +
-        (outputs.has(node.feature_id) ? " · output" : "");
+        (outputs.has(node.feature_id) ? " · output" : "") +
+        (suppressed.has(node.feature_id) ? " · SUPPRESSED" : "");
       button.addEventListener("click", () => showFeature(node));
       dependencies.className = "feature-tree-dependencies";
       dependencies.textContent = node.input_feature_ids.length
@@ -869,6 +904,30 @@
       reportFeatureEditError(error);
     }
   });
+
+  byId("feature-suppress").addEventListener("click", async () => {
+    try {
+      if (!selectedFeatureId) throw new Error("Select a feature to suppress.");
+      const cascade = byId("feature-suppress-cascade").checked;
+      if (cascade && !window.confirm(
+        "Suppress this feature and every dependent feature? Source nodes and previous revisions will be retained."
+      )) return;
+      await commitFeatureEdit("suppress", { feature_id: selectedFeatureId, cascade });
+      byId("feature-suppress-cascade").checked = false;
+    } catch (error) {
+      reportFeatureEditError(error);
+    }
+  });
+
+  byId("feature-unsuppress").addEventListener("click", async () => {
+    try {
+      if (!selectedFeatureId) throw new Error("Select a feature to unsuppress.");
+      await commitFeatureEdit("unsuppress", { feature_id: selectedFeatureId });
+    } catch (error) {
+      reportFeatureEditError(error);
+    }
+  });
+
 
   revisionSelect.addEventListener("change", () => {
     byId("revision-state").textContent = "Selected revision " + revisionSelect.value;
