@@ -1248,3 +1248,19 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - `FeatureHistoryRevision` exposes source branch, source revision/digest, root base and merge algorithm provenance; `CADGeneratorService.merge_history_branch` exposes the store operation.
 - Conflicts and stale source/target heads leave both histories and navigation state unchanged. Source branch is never modified.
 - Store/service branch merge is PASS. Strict HTTP routes, workbench controls and branch/merge browser acceptance remain OPEN; repository remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PRs #179–#180 MERGED
+
+### PR #179 — strict branch/fork/merge API
+- Exact PR head: `431ddc298601320f38e3f7bde74633b4c7c655c2`; merge SHA: `01d9afaeb9a7f9c3eecee7659d966bdcbae55983`.
+- Added authenticated loopback GET branch listing, POST fork, POST merge, strict request validation, structured HTTP 409 conflict payloads and merge provenance in revision inspection.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (889); Chromium E2E PASS (7).
+
+### PR #180 — branch/merge workbench
+- Exact PR head: `4513b0d8d310a37db002edd467e315800f4e589e`; merge SHA: `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`.
+- Added branch listing, fork from a loaded immutable revision, current-target-head merge gating, source head discovery, provenance display and text-only conflict reporting.
+- Chromium acceptance covers fork → edit → merge into root and conflict reporting without changing either head.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (889); Chromium E2E PASS (9).
+
+**FeatureHistory branch/fork/merge status:** PASS for this bounded end-to-end workflow. The overall CAD vertical slice and repository remain PARTIAL / INCOMPLETE; recompute propagation, general CAD kernel/Boolean capabilities, physics/hardware/runtime integration and other roadmap requirements remain OPEN.
