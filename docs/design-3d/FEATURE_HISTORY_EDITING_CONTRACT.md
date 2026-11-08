@@ -29,7 +29,7 @@ The operations are pure transformations: the input FeatureHistory is never mutat
 
 ## 4. Explicit limitations
 
-This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Browser controls provide basic add/replace/remove operations only; browser automation/E2E interaction coverage remains unimplemented. Feature order for execution remains deterministic topological order, not the stored tuple order.
+This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Browser controls provide basic add/replace/remove operations only. Real Chromium browser automation/E2E interaction coverage is implemented and passing (PR #158); it does not expand the feature-editing capability boundary. Feature order for execution remains deterministic topological order, not the stored tuple order.
 
 ## 5. Acceptance criteria
 
@@ -45,3 +45,12 @@ This slice does not implement feature suppression, reordering semantics, undo/re
 - Historical revisions are read-only in the UI; edits are allowed only when the selected revision equals the current head.
 - Cascade removal requires an explicit confirmation checkbox.
 - Browser E2E interaction tests remain a separate quality gate.
+
+
+## 6. Real-browser verification — PR #158
+
+- Dedicated GitHub Actions workflow: `.github/workflows/cad-browser-e2e.yml`.
+- Four Chromium tests cover workbench startup and uncaught page errors, current-head versus historical-revision editing gates, parameter replacement/add/remove with explicit cascade confirmation, stale-writer HTTP 409 behavior, and safe text-only rendering.
+- Exact PR head `9aa96157eb6e5ebbf324aa6614178ffd8af17495`: browser E2E PASS (4 tests); Python suite PASS (843 tests); workflow sanity PASS.
+- Exact merge SHA `9d899f70a97372f689ba07a8e90b479bf14494b4`: post-merge browser E2E PASS (4 tests), Python suite PASS (843 tests), workflow sanity PASS.
+- Browser coverage is a distinct verification gate; it does not imply feature suppression, reordering, undo/redo, or broader CAD editing support.
