@@ -1,13 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited integration baseline:** `21bee045ea4d06aa07c7130f9123afaa64372638` (PR #171 Undo/Redo workbench merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **416 commits ahead / 0 behind** at this audit.  
+**Last verified integration baseline before PR #182:** `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34` (post-PR #181 repository audit).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **468 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration-head CI:** exact SHA `21bee045ea4d06aa07c7130f9123afaa64372638` — workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests). Each result is tied to this exact SHA; skipped markers are not counted as passes.  
-**PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
-**Current tree:** 359 entries, 122 Markdown, 167 Python, 24 JSON files, 86 Python test files; recursive tree response truncated=false.  
-**Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
+**Latest integration push CI:** exact SHA `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`, workflow #42457244454 — workflow-sanity PASS and python-tests PASS. No Chromium workflow was triggered by the documentation-only audit update. The test count is not copied without a captured job-log result.  
+**Current tree at exact integration SHA `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`:** 371 entries, 132 Markdown, 169 Python, 24 JSON files, 87 Python test files; recursive tree response truncated=false.  
+**Open PRs before PR #182:** 0. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1276,3 +1275,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Euler characteristic/genus account for face holes. The new square through-hole reference is one valid connected closed genus-1 shell with volume 12.
 - v1.0 triangular snapshots remain importable. Mesh conversion intentionally remains triangular/no-hole only and rejects unsupported geometry.
 - Single-shell polygonal BRep with face holes is PASS. Multi-shell solids, general 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
+
+
+## Current B-rep mesh triangulation increment — PR #182 candidate
+
+- Base integration SHA: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`.
+- Scope: deterministic triangulation of polygonal n-gon faces and one or more inner loops in `triangle_mesh_from_brep`.
+- Reuses the existing profile-region bridge-and-ear-clipping implementation; no third-party dependency or new geometric vertices.
+- Preserves source vertex order/positions, outer-loop orientation, solid ID, frame, unit and source geometry digest.
+- Requires the complete mesh to pass valid, watertight and consistently-oriented validation.
+- Resource bounds: 10,000 boundary vertices per face and 200,000 triangles per solid.
+- Contract: `docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md`.
+- Tests: `tests/test_faceted_brep.py` covers polygonal prism and holed-shell conversion, deterministic output, identity preservation and round-trip genus/volume.
+- Status: IMPLEMENTATION CANDIDATE. Exact-head CI and review evidence pending; do not claim PASS or merge until verified.
