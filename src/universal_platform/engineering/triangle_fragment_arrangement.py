@@ -169,8 +169,12 @@ def arrange_triangles_by_planes(
         raise InvalidModelError("max_coordinate_bits must be a positive integer")
     source_items = tuple(triangles)
     plane_items = tuple(planes)
+    if any(not isinstance(plane, RationalPlane) for plane in plane_items):
+        raise InvalidModelError("planes must contain only RationalPlane values")
     if len({plane.plane_index for plane in plane_items}) != len(plane_items):
         raise InvalidModelError("plane indices must be unique")
+    for plane in plane_items:
+        _check_bit_limit(plane.vertices, max_coordinate_bits)
     if not source_items:
         raise InvalidModelError("at least one source triangle is required")
     if len(source_items) > max_fragments:
