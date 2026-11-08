@@ -707,7 +707,7 @@ def test_http_api_reorders_feature_presentation_without_changing_execution_order
         body={"expected_revision": 1, "operation": "reorder", "ordered_feature_ids": ["base", "independent", "dependent"]},
     )
     assert status == 201 and saved["revision"] == 2
-    revision = service.get_revision("history.reorder")
+    revision = service.generator_service.get_revision("history.reorder")
     assert tuple(node.feature_id for node in revision.history.nodes) == ("base", "independent", "dependent")
     assert revision.history.topological_order() == ("base", "independent", "dependent")
 
