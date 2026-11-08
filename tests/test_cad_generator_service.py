@@ -13,6 +13,7 @@ from universal_platform.engineering.feature_history import (
     FeatureNode,
 )
 from universal_platform.engineering.feature_history_store import (
+    FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     SQLiteFeatureHistoryStore,
 )
