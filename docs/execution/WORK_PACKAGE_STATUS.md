@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; suppression design contract is in progress; suppression implementation, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration is implemented in PR #163 pending merge; revision-safe service/API/workbench integration, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -75,7 +75,8 @@
 
 ## Next dependency-ready slice
 
-- CAD-EDIT-005 — define FeatureHistory suppression semantics and compatibility/migration rules before implementation. Contract drafted in `docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md`; pending review/CI in PR #162. Implementation remains a separate work package.
+- CAD-EDIT-005 — suppression semantics contract merged in PR #162. Backend model/editor/regeneration implementation is in PR #163; exact-head validation is pending.
+- CAD-EDIT-006 — add revision-safe service/API operations for suppress/unsuppress, preserving expected-revision compare-and-swap, strict request parsing and historical-revision read-only behavior. Keep UI/browser work separate.
 
 
 ## Documentation reconciliation — PR #160
@@ -92,3 +93,11 @@
 - Exact PR-head CI: workflow-sanity PASS; python-tests PASS.
 - Exact post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
 - Status: PASS for post-merge documentation audit; no source/runtime behavior changed.
+
+
+## CAD-EDIT-005 — Suppression backend core (PR #163)
+
+- Scope: FeatureHistory v1.1 metadata with v1.0 serialization compatibility, explicit migration, immutable suppress/unsuppress edits, active-output/dependency invariants, regeneration skip/report behavior, JSON Schema and public exports.
+- Tests added for v1.0 round-trip, immutable revision digest preservation, v1.1 validation, explicit cascade, dependency-order unsuppression and regeneration skip behavior.
+- Service/API/workbench/browser E2E are intentionally not claimed in this slice.
+- PR #163 is open; verify latest exact head and all CI before merge.
