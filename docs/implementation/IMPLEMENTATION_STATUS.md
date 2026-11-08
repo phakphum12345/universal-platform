@@ -1205,3 +1205,10 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Workbench presents stored topological FeatureHistory order and provides Move Up/Move Down controls only when the adjacent swap preserves dependency order.
 - Reorder appends an immutable revision through expected-revision safety; dependency edges and deterministic execution order remain unchanged. Historical revisions remain read-only.
 - The overall CAD editor and repository remain PARTIAL / INCOMPLETE; graph branch/merge, recompute propagation and generalized CAD geometry remain open.
+
+
+## Next FeatureHistory work package — branch and merge contract
+
+- Added [FeatureHistory Branch and Merge Contract](../design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) defining isolated branch history identities, exact fork provenance, conservative three-way merge semantics, conflict reporting and atomic append-only target merges.
+- This is design evidence only. Branch metadata storage, branch creation, merge analysis, transactional merge, service/API, workbench and browser acceptance remain NOT IMPLEMENTED / OPEN.
+- The current per-history revision chain and Undo/Redo behavior remain unchanged until the additive schema and transactional implementation pass migration and regression tests.

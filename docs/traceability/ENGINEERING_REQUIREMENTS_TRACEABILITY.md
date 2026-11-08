@@ -257,3 +257,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-FEATURE-TREE-REORDER-001 | Reorder FeatureHistory presentation without violating dependency order or changing execution semantics | [FeatureHistory Reordering Contract](../design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md), PRs #173–#174 | PASS — PR #173 implements strict complete-permutation and dependency-order validation in the service/API; PR #174 adds current-head-gated Move Up/Move Down controls and Chromium acceptance. Reorder appends an immutable revision. Exact PR-head `14df81bffdf991133b5c3b5fcbee089ba7d409c3` and post-merge SHA `3d7504ec64433e90aedf6c11ef760cf66b801390`: workflow-sanity PASS, Python tests PASS (870 tests), Chromium E2E PASS (7 tests). | Presentation order only; dependency-derived deterministic execution order is unchanged. Graph branch/merge, recompute propagation and generalized CAD geometry remain OPEN. |
+
+
+## FeatureHistory Branch and Merge — CAD-FEATURE-TREE-BRANCH-MERGE-001
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-BRANCH-MERGE-001 | Fork immutable FeatureHistory revisions into isolated branches and safely merge compatible branch changes without rewriting history | [FeatureHistory Branch and Merge Contract](../design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) | PLANNED — contract defines separate history identities, exact base provenance, conservative three-way merge, conflict categories, atomic compare-and-swap append and acceptance tests. No branch catalog, branch creation, merge engine, API, UI or browser workflow is implemented yet. |

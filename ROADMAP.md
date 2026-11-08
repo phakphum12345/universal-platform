@@ -581,3 +581,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head `14df81bffdf991133b5c3b5fcbee089ba7d409c3` and post-merge SHA `3d7504ec64433e90aedf6c11ef760cf66b801390`: workflow-sanity PASS, Python tests PASS (870 tests), Chromium E2E PASS (7 tests).
 - **Status:** PASS for bounded FeatureHistory presentation reordering.
 - **Still open:** graph branch/merge, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
+
+
+## Next FeatureHistory increment — branching and merging (DESIGN COMPLETE, IMPLEMENTATION OPEN)
+
+- Contract: [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md).
+- Preserve existing per-history linear SHA-256 revision chains by representing each branch as a separate history identity with exact fork-origin metadata.
+- Merge only histories with a verified common fork base; use conservative three-way conflict detection over feature nodes, outputs, suppression and presentation order.
+- Successful merge appends one immutable target revision with source/base provenance and expected-revision concurrency protection; failed merge must leave all state unchanged.
+- Required implementation sequence: additive metadata and fork creation; pure merge analyzer; atomic store merge; service/API; workbench; Chromium E2E.
+- **Status:** Design contract complete; implementation is OPEN and no branch/merge capability is claimed yet.
