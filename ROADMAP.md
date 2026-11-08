@@ -635,3 +635,15 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI for #180: workflow-sanity PASS; Python 889 PASS; Chromium E2E 9 PASS.
 - **Status:** PASS for the bounded FeatureHistory branch/fork/merge workflow end-to-end.
 - **Still open repository-wide:** recompute propagation, generalized B-rep/3D Boolean topology, broader physics/hardware/runtime integration and other roadmap requirements. Whole repository remains INCOMPLETE.
+
+
+## Faceted B-rep polygonal faces and inner loops — PR #181 MERGED
+
+- Exact PR head: `70be8fb3c091fd391d994da01c0fb6b4cb912dfd`; merge SHA: `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b`.
+- Upgrades Faceted BRep to schema/profile v2.0 with arbitrary simple planar polygon loops and explicit face inner loops.
+- Exact rational predicates over represented binary64 coordinates validate face coplanarity, simple/non-degenerate loops, strict hole containment, non-touching/non-overlap, and opposite inner-loop orientation.
+- Euler characteristic accounts for face holes; a square through-hole solid validates as one connected closed manifold shell with genus 1 and volume 12.
+- v1.0 triangular snapshots remain importable and normalize to v2.0. Mesh conversion remains triangular/no-hole only and fails closed for polygonal/hole B-reps.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (892). Chromium E2E: SKIPPED / not triggered because no API/UI surface changed.
+- **Status:** PASS for single-shell polygonal BRep with face holes.
+- **Still open:** multiple-shell solids, general 3D Boolean, polygonal-with-holes mesh triangulation, curved surfaces and general CAD-kernel capabilities.
