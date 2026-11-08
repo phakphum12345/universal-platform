@@ -174,8 +174,11 @@
           <select id="revision" disabled><option value="">No revisions</option></select>
         </div>
         <button id="load" disabled>Load revision</button>
+        <button id="undo" disabled>Undo</button>
+        <button id="redo" disabled>Redo</button>
         <button id="regenerate" class="primary" disabled>Regenerate</button>
       </div>
+      <p id="navigation-state" class="hint">Undo/Redo unavailable until a current revision is loaded.</p>
       <p class="hint">Regeneration always targets the selected immutable source revision and returns its provenance, artifact digests and validation results.</p>
     </section>
 
