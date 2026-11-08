@@ -179,6 +179,10 @@ class CADGeneratorService:
             history_id, branch_history_id, branch_name, fork_revision=revision
         )
 
+    def list_history_branches(self, history_id: str) -> tuple[FeatureHistoryBranch, ...]:
+        """List local immutable branches created from a root history."""
+        return self.history_store.list_branches(history_id)
+
     def merge_history_branch(
         self,
         source_branch_history_id: str,

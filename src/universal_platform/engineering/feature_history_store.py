@@ -109,6 +109,16 @@ class FeatureHistoryBranch:
     fork_sha256: str
     created_at: str
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "branch_history_id": self.branch_history_id,
+            "root_history_id": self.root_history_id,
+            "branch_name": self.branch_name,
+            "fork_revision": self.fork_revision,
+            "fork_sha256": self.fork_sha256,
+            "created_at": self.created_at,
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class FeatureHistoryNavigationState:

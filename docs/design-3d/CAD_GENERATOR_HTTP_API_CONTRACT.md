@@ -241,9 +241,50 @@ The local workbench renders a bounded read-only structural preview from the JSON
 - This is a read-only view. It does not mutate the FeatureHistory snapshot, save revisions, regenerate geometry or change server validation.
 - CI runs `node --check` against the packaged browser script when that source file exists, without adding a runtime dependency.
 
-**Capability boundary:** this is a dependency-ordered tree inspector, not a graphical DAG editor or feature-editing system. Reordering, parameter editing, feature suppression/deletion, recompute propagation, visual dependency edges and browser-driven regeneration remain OPEN. The backend FeatureHistory constructor and regeneration pipeline remain authoritative.
+**Capability boundary:** this is a dependency-ordered tree inspector, not a graphical DAG editor or feature-editing system. Parameter editing, feature suppression/deletion, recompute propagation, visual dependency edges and browser-driven regeneration remain OPEN. Presentation reordering is implemented by PRs #173–#174; branch/fork/merge is implemented at the store/service layer by PRs #176–#178. The backend FeatureHistory constructor and regeneration pipeline remain authoritative.
 
 
 ## Undo/Redo API implementation status
 
 PR #170 merged the strict navigation endpoint and append-only Undo/Redo HTTP operations at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`, mapping empty stacks to `NO_UNDO`/`NO_REDO` and stale heads to `REVISION_CONFLICT`. Exact PR-head CI passed 865 Python tests and 5 Chromium E2E tests; post-merge Python and workflow-sanity passed, while Chromium E2E had 4 PASS / 1 fixture timing ERROR. PR #171 addresses revision-option readiness and adds the workbench controls/browser acceptance.
+
+
+## FeatureHistory branch/fork/merge API — PR #179
+
+All routes below remain on the existing IPv4 loopback-only, bearer-authenticated, append-only-audited HTTP boundary. No remote bind is permitted.
+
+### List branches
+
+`GET /v1/histories/{root_history_id}/branches`
+
+Returns `root_history_id` and a deterministic `branches` array. Each branch item includes branch history ID, root history ID, branch name, exact fork revision/digest and creation timestamp.
+
+### Fork a branch
+
+`POST /v1/histories/{root_history_id}/branches`
+
+Request fields:
+- Required: `branch_history_id`, `branch_name`.
+- Optional: `fork_revision` (positive integer; omitted selects the current root head).
+- Unknown fields are rejected.
+
+Returns HTTP 201 and the exact fork provenance. The source root is not modified.
+
+### Merge a branch
+
+`POST /v1/histories/{target_history_id}/merge`
+
+Request fields:
+- `source_branch_history_id`
+- `expected_source_revision` (positive integer)
+- `expected_target_revision` (positive integer)
+
+Returns HTTP 201 with the appended target revision, `operation=merge` and merge provenance. The target must be the source branch's exact root or a sibling with the same fork base.
+
+Conflicts return HTTP 409 / `MERGE_CONFLICT` with structured conflict categories. Stale source/target revisions return HTTP 409 / `REVISION_CONFLICT`. Invalid fields, IDs and revisions are rejected before mutation. Failed merges leave all heads and navigation state unchanged.
+
+### Revision inspection
+
+`GET /v1/histories/{history_id}?revision={n}` now includes `operation` and nullable `merge_provenance`, so merge source/base provenance can be inspected on the immutable target revision.
+
+**Remaining boundary:** the workbench does not yet expose branch list/fork/merge controls or interactive conflict review. Chromium branch/merge acceptance remains OPEN until those UI controls are implemented.

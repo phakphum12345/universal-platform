@@ -25,6 +25,7 @@ from .errors import InvalidModelError
 from .feature_history import FeatureKind, FeatureNode
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history_store import (
+    FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
@@ -353,6 +354,81 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if not _HISTORY_ID.fullmatch(history_id):
             raise _HTTPError(400, "INVALID_HISTORY_ID", "history ID is invalid")
 
+        if self.command == "GET" and len(parts) == 2 and parts[1] == "branches":
+            if parsed.query:
+                raise _HTTPError(400, "UNEXPECTED_QUERY", "This route does not accept query parameters")
+            branches = self.server.generator_service.list_history_branches(history_id)
+            return 200, {
+                "root_history_id": history_id,
+                "branches": [branch.to_dict() for branch in branches],
+            }
+
+        if self.command == "POST" and len(parts) == 2 and parts[1] == "branches":
+            body = self._read_json()
+            allowed = {"branch_history_id", "branch_name", "fork_revision"}
+            if set(body) not in (
+                {"branch_history_id", "branch_name"},
+                allowed,
+            ):
+                raise _HTTPError(
+                    400, "INVALID_FIELDS",
+                    "Branch creation requires branch_history_id, branch_name and optional fork_revision",
+                )
+            branch_id = body["branch_history_id"]
+            branch_name = body["branch_name"]
+            if not isinstance(branch_id, str) or not _HISTORY_ID.fullmatch(branch_id):
+                raise _HTTPError(400, "INVALID_HISTORY_ID", "branch_history_id is invalid")
+            if not isinstance(branch_name, str):
+                raise _HTTPError(400, "INVALID_BRANCH_NAME", "branch_name must be a string")
+            fork_revision = body.get("fork_revision")
+            if fork_revision is not None and (
+                isinstance(fork_revision, bool) or not isinstance(fork_revision, int) or fork_revision < 1
+            ):
+                raise _HTTPError(400, "INVALID_REVISION", "fork_revision must be a positive integer")
+            branch = self.server.generator_service.fork_history(
+                history_id,
+                branch_history_id=branch_id,
+                branch_name=branch_name,
+                revision=fork_revision,
+            )
+            return 201, branch.to_dict()
+
+        if self.command == "POST" and len(parts) == 2 and parts[1] == "merge":
+            body = self._read_json()
+            required = {
+                "source_branch_history_id", "expected_source_revision", "expected_target_revision"
+            }
+            if set(body) != required:
+                raise _HTTPError(
+                    400, "INVALID_FIELDS",
+                    "Merge requires source_branch_history_id, expected_source_revision and expected_target_revision",
+                )
+            source_id = body["source_branch_history_id"]
+            if not isinstance(source_id, str) or not _HISTORY_ID.fullmatch(source_id):
+                raise _HTTPError(400, "INVALID_HISTORY_ID", "source_branch_history_id is invalid")
+            source_expected = body["expected_source_revision"]
+            target_expected = body["expected_target_revision"]
+            if any(
+                isinstance(value, bool) or not isinstance(value, int) or value < 1
+                for value in (source_expected, target_expected)
+            ):
+                raise _HTTPError(400, "INVALID_REVISION", "expected source and target revisions must be positive integers")
+            revision = self.server.generator_service.merge_history_branch(
+                source_id,
+                history_id,
+                expected_source_revision=source_expected,
+                expected_target_revision=target_expected,
+            )
+            return 201, {
+                "history_id": revision.history_id,
+                "revision": revision.revision,
+                "parent_sha256": revision.parent_sha256,
+                "content_sha256": revision.content_sha256,
+                "created_at": revision.created_at,
+                "operation": revision.operation,
+                "merge_provenance": revision.merge_provenance.to_dict() if revision.merge_provenance else None,
+            }
+
         if self.command == "GET" and len(parts) == 2 and parts[1] == "navigation":
             if parsed.query:
                 raise _HTTPError(400, "UNEXPECTED_QUERY", "This route does not accept query parameters")
@@ -387,6 +463,8 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 "parent_sha256": revision.parent_sha256,
                 "content_sha256": revision.content_sha256,
                 "created_at": revision.created_at,
+                "operation": revision.operation,
+                "merge_provenance": revision.merge_provenance.to_dict() if revision.merge_provenance else None,
                 "history": revision.history.to_dict(),
             }
 
@@ -540,6 +618,15 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             status = exc.status
             outcome = exc.code
             payload = {"error": {"code": exc.code, "message": exc.message}}
+        except FeatureHistoryMergeConflictError as exc:
+            status, outcome = 409, "MERGE_CONFLICT"
+            payload = {
+                "error": {
+                    "code": outcome,
+                    "message": str(exc),
+                    "conflicts": [item.to_dict() for item in exc.conflicts],
+                }
+            }
         except FeatureHistoryNavigationUnavailable as exc:
             status, outcome = 409, exc.code
             payload = {"error": {"code": outcome, "message": str(exc)}}
