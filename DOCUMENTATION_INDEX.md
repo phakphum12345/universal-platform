@@ -178,7 +178,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v2.0 closed single-shell polygonal planar topology, inner loops, exact validation invariants and explicit limits.
-- [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md)
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — planned staged exact-predicate Boolean kernel; implementation is not yet claimed.\n- [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md)
 - [Faceted B-rep Multi-Shell Solid Contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md) — one outer shell plus strictly-contained disjoint cavities, exact validation and fail-closed mesh composition. — deterministic n-gon/inner-loop triangulation, source identity preservation, resource limits and mesh-validation gates.
 - [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
 
@@ -300,3 +300,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Post-PR #186 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md) — exact PR-head/post-merge evidence, rotated/concave cavity references, current inventory and remaining boundaries.
 - [Post-PR #188 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md) — exact PR-head/post-merge evidence, touching-boundary/UNKNOWN fail-closed tests, current inventory and remaining boundaries.
 - [Post-PR #189 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md) — exact-SHA CI evidence, fail-closed multi-shell behavior, current inventory and remaining boundaries.
+
+
+- [Pre-PR #192 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md) — exact baseline, current Boolean limits, existing mesh-intersection primitives and fail-closed implementation gates.
