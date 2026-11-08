@@ -31,7 +31,8 @@ from .brep_multishell import (
     BRepMultiShellSolid, BRepMultiShellValidationResult, validate_brep_multishell_solid,
 )
 from .brep_boolean import (
-    BRepBooleanOperation, BRepBooleanResult, boolean_axis_aligned_brep_solids,
+    BRepBooleanOperation, BRepBooleanResult, BRepMultiShellBooleanResult,
+    boolean_axis_aligned_brep_solids, boolean_axis_aligned_multishell_solids,
 )
 from .stl_interchange import BinarySTLArtifact, STLInterchangeManifest, export_binary_stl, validate_binary_stl_artifact
 from .mesh_topology import MeshTopologyAnalysis, analyze_mesh_topology
