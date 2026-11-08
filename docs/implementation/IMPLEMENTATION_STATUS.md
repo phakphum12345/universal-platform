@@ -1402,3 +1402,49 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head workflow #42470843529: workflow-sanity PASS; Python tests PASS. Documentation marker SKIPPED, not counted as PASS.
 - Post-merge CI/status: UNKNOWN; no associated run or combined status returned.
 - PASS for the bounded per-source-triangle primitive at PR head. Global mesh arrangement, independent coverage oracle, material classification and Boolean shell assembly remain OPEN; arbitrary faceted Boolean remains PARTIAL/INCOMPLETE.
+
+
+## Current arbitrary faceted Boolean implementation — post-PR #212 (2026-11-08)
+
+**Integration branch:** `docs/phase-0-complete-requirements`  
+**Pinned integration SHA:** `7fd78fa40886694bd46cfb6a61f60c3f716033f2`  
+**Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)
+
+### Merged bounded implementation slices
+
+- PR #200 — global exact-rational vertex identity, face/edge incidence and adjacency; merge `ee4c7420d230616270be3513f9ef2b4e530761a6`.
+- PR #201 — exact global T-junction diagnostics with a fail-closed topology scan budget; merge `504dc12e6e6bbfcb2a4932a0b5ec3a6af5eefd9b`.
+- PR #202 — exact edge-incidence subdivision at registered global vertices; merge `17406635f623011dfff51e24fbfa9ed16ef3ce69`.
+- PR #203 — independent exact 2D coverage oracle for containment, overlap, duplicate fragments and area; merge `5670d17ee7dc059c11d44ada0a7e9da2b3bbd9d1`.
+- PR #204 — fail-closed exact point-vs-mesh INSIDE / OUTSIDE / BOUNDARY / UNKNOWN classification; merge `29f41a2be5c2c9699c8a18e17732edf63bd2dbc6`.
+- PR #205 — Boolean boundary selection for UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE; merge `6238085aebebba2199ac5170061c0cec0f4aed85`.
+- PR #206 — connected shell assembly, orientation, exact volume, cavity ownership and B-rep/multi-shell validation; merge `9c1834ee79b90d559fd5075560c0677124e18290`.
+- PR #207 — public exports and CADGeneratorService Boolean orchestration; merge `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`.
+- PR #208 — audit/documentation reconciliation; merge `60919a663e7a81f0105d5aebf477400479c5f4e6`.
+- PR #209 — conforming facet triangulation for global T-junctions; merge `5da14bcbaa4265fcb6b965462c0ceeeb3a266cf7`.
+- PR #210 — automatic bounded multi-mesh supporting-plane arrangement and non-coplanar intersecting-box Boolean execution; merge `954f17b6add03e294a8707be03ff37b03827e57a`.
+- PR #211 — coplanar positive-area overlay, two-sided material classification and overlapping-box UNION fixture with exact volume 12; merge `bde93ccf2a3fe3bec90ec36afe724df40ed9c505`.
+- PR #212 — exact 3D coplanarity validation in the coverage oracle, rejecting off-plane fragments that share a valid 2D projection; merge `7fd78fa40886694bd46cfb6a61f60c3f716033f2`.
+
+### Verified end-to-end reference cases
+
+- Non-coplanar intersecting-box UNION via `CADGeneratorService.execute_faceted_boolean`: exact expected volume `15`.
+- Coplanar-overlapping-box UNION via the same service: exact expected volume `12`.
+- PR #203–#210 merge SHAs have workflow-sanity and Python post-merge check runs with success conclusions; PR #207 and #210 also have Chromium E2E success on their merge SHAs.
+- PR #211 exact-head Python/workflow-sanity checks PASS.
+- PR #212 exact-head and post-merge Python/workflow-sanity checks PASS.
+
+### Explicit current limitations
+
+- Point/edge-only coplanar contact, arbitrary tangencies, branching and unsupported degenerate topology fail closed.
+- B-rep output remains binary64; exact rational shell coordinates that cannot round-trip losslessly are rejected rather than rounded.
+- Nested positive material islands and generalized shell-parent semantics are unsupported.
+- The automatic arrangement is bounded to the implemented supporting-plane and coplanar positive-area overlay strategy; the reference corpus is not a proof for all arbitrary faceted solids.
+- The CAD Boolean path is in-process/offline. It does not expose a general Boolean HTTP/browser authoring endpoint.
+- Browser E2E is not applicable to kernel-only changes when its path filters do not match; missing/untriggered E2E is not PASS.
+
+**Capability status:** bounded faceted Boolean execution is implemented for the named fixtures. General arbitrary-faceted B-rep Boolean remains **PARTIAL / INCOMPLETE**. Overall Universal Platform remains **INCOMPLETE** pending repository-wide requirements and adversarial validation.
+
+### Follow-up resource validation
+
+PR #213 is open on `fix/cad-rational-input-budgets` at exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`. It adds rational bit ceilings to direct cutter-plane and standalone coverage-oracle inputs. At this snapshot, workflow-sanity is PASS and Python tests are IN_PROGRESS; do not count the PR as merged or fully passed.
