@@ -160,20 +160,46 @@ def arrange_faceted_boolean_meshes(
     # the individual overlapping triangle pairs.
     for key in sorted(active_coplanar_planes):
         for triangles in per_mesh_triangles:
+            # Only the boundary of each coplanar triangle patch contributes
+            # overlay constraints. Internal triangulation diagonals are not
+            # geometric boundaries; turning them into cutters creates needless
+            # oblique planes and can introduce non-binary rational vertices.
+            edge_uses = {}
             for triangle in triangles:
-                if _plane_key(triangle)!=key:
+                if _plane_key(triangle) != key:
                     continue
-                normal=_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0]))
-                for edge_start,edge_end in ((triangle[0],triangle[1]),
-                                            (triangle[1],triangle[2]),
-                                            (triangle[2],triangle[0])):
-                    off_plane=tuple(edge_start[axis]+normal[axis] for axis in range(3))
-                    cutter=(edge_start,edge_end,off_plane)
-                    cutter_key=_plane_key(cutter)
-                    if cutter_key not in plane_by_key:
-                        plane_by_key[cutter_key]=RationalPlane(len(plane_by_key),cutter)
-                        if len(plane_by_key)>max_unique_planes:
-                            raise InvalidModelError("coplanar cutters exceeded max_unique_planes")
+                for edge_start, edge_end in (
+                    (triangle[0], triangle[1]),
+                    (triangle[1], triangle[2]),
+                    (triangle[2], triangle[0]),
+                ):
+                    edge_key = tuple(sorted((edge_start, edge_end)))
+                    edge_uses[edge_key] = edge_uses.get(edge_key, 0) + 1
+            for (edge_start, edge_end), use_count in sorted(edge_uses.items()):
+                if use_count != 1:
+                    continue
+                supporting = next(
+                    triangle for triangle in triangles
+                    if _plane_key(triangle) == key and
+                    edge_start in triangle and edge_end in triangle
+                )
+                normal = _cross(
+                    _sub(supporting[1], supporting[0]),
+                    _sub(supporting[2], supporting[0]),
+                )
+                off_plane = tuple(
+                    edge_start[axis] + normal[axis] for axis in range(3)
+                )
+                cutter = (edge_start, edge_end, off_plane)
+                cutter_key = _plane_key(cutter)
+                if cutter_key not in plane_by_key:
+                    plane_by_key[cutter_key] = RationalPlane(
+                        len(plane_by_key), cutter
+                    )
+                    if len(plane_by_key) > max_unique_planes:
+                        raise InvalidModelError(
+                            "coplanar cutters exceeded max_unique_planes"
+                        )
 
     arrangement=arrange_triangle_mesh_globally(
         tuple(source_triangles),tuple(plane_by_key.values()),
