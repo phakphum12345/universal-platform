@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Faceted Multi-Shell Solid v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "solid_id", "frame_id", "length_unit", "source_geometry_sha256", "outer_shell", "cavity_shells"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "profile": {"const": "FACETED_MULTI_SHELL_SOLID_V1"},
+    "solid_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+    "frame_id": {"type": "string", "minLength": 1},
+    "length_unit": {"type": "string", "minLength": 1},
+    "source_geometry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "outer_shell": {"$ref": "faceted-brep-solid.schema.json"},
+    "cavity_shells": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "faceted-brep-solid.schema.json"}
+    }
+  }
+}
