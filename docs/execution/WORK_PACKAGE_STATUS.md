@@ -176,3 +176,16 @@
 - Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
 - Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating, redo invalidation after a new edit and revision-option readiness.
 - Status: PASS for end-to-end FeatureHistory Undo/Redo; WP-03 overall remains PARTIAL.
+
+
+## FeatureHistory Branch/Fork/Merge — end-to-end (PRs #175–#180)
+
+- PR #175: branch/merge contract; merged.
+- PR #176: additive SQLite branch catalog and immutable fork creation; merged.
+- PR #177: pure three-way merge analyzer and typed conflicts; merged.
+- PR #178: transactional merge append, expected-head revalidation and provenance; merged.
+- PR #179: strict loopback branch list/fork/merge API and revision provenance inspection; merged at `01d9afaeb9a7f9c3eecee7659d966bdcbae55983`.
+- PR #180: branch/merge workbench and browser acceptance; merged at `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`.
+- PR #179 exact PR-head/post-merge: workflow-sanity PASS, Python 889 PASS, Chromium 7 PASS.
+- PR #180 exact PR-head/post-merge: workflow-sanity PASS, Python 889 PASS, Chromium 9 PASS.
+- **Status: PASS** for bounded FeatureHistory branch/fork/merge end-to-end. Overall CAD and Universal Platform remain PARTIAL / INCOMPLETE.
