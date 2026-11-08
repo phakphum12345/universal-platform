@@ -1,14 +1,14 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `f31ca0135cafc17c1489d88f62c09be1c18cc97e`  
+**Last verified integration baseline:** `bc5f2a1bffb632ef1440ea9740e69f89cf50737e`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. PR #195 adds exact transverse triangle-pair segment extraction, but not triangle splitting or Boolean assembly. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes; general topology, recompute propagation and interchange remain open |
+| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. PR #195 adds exact transverse triangle-pair segment extraction, but not triangle splitting or Boolean assembly. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes; PRs #195/#197/#199 add exact pair events, single-plane splitting and per-source-triangle multi-plane arrangement; global mesh adjacency, classification, Boolean assembly, recompute propagation and interchange remain open |
 | 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
@@ -272,3 +272,26 @@
 - Exact PR-head workflow #42468939670: workflow-sanity PASS; Python 925 PASS (31.98s).
 - The available workflow query returned no post-merge run and combined commit statuses were empty; post-merge CI is UNKNOWN, not PASS.
 - Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR197.md`.
+
+
+## CAD-BREP-BOOLEAN-001C — Exact multi-plane per-triangle arrangement (PR #199)
+
+- PR #199 merged to `docs/phase-0-complete-requirements` only.
+- Exact PR head: `6e4508fdf0f6f3a0a6498f916f13c2970f204523`.
+- Merge SHA / integration HEAD: `bc5f2a1bffb632ef1440ea9740e69f89cf50737e`.
+- Source: `src/universal_platform/engineering/triangle_fragment_arrangement.py`; tests: `tests/test_triangle_fragment_arrangement.py`.
+- API: `RationalPlane`, `RationalTriangleFragment`, `arrange_triangles_by_planes`.
+- Ordered exact-rational plane clipping, side provenance, source-winding preservation, exact area conservation and per-call fragment/rational-bit ceilings.
+- Exact PR-head workflow #42470843529: workflow-sanity PASS; Python tests PASS. Documentation-marker step SKIPPED and not counted as PASS.
+- Post-merge CI/status: UNKNOWN; no associated post-merge run or combined status was returned.
+- Reviews: 0; inline review threads: 0; unresolved threads: 0.
+- PASS only for the bounded per-source-triangle primitive at PR head. Global mesh arrangement, cross-facet identity/adjacency, independent coverage oracle, material classification and Boolean shell assembly remain OPEN.
+- `main` unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`; no branch deletion or deployment.
+
+## Next dependency-ready CAD slice
+
+- Global multi-triangle arrangement without float round-trips.
+- Canonical global fragment/vertex identities and adjacency across source facets.
+- Independent exact coverage oracle for gaps, overlaps, duplicate coverage, orientation and area.
+- Aggregate resource ceilings for candidate pairs, fragments, memory and rational growth.
+- Keep coplanar overlap, tangency, branching and contact fail-closed until reference-backed gates pass.
