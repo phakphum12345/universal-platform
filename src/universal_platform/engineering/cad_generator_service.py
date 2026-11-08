@@ -127,6 +127,8 @@ class CADGeneratorService:
             raise InvalidModelError("cascade and make_output must be booleans")
         if ordered_feature_ids is not None and not isinstance(ordered_feature_ids, tuple):
             raise InvalidModelError("ordered_feature_ids must be an immutable tuple")
+        if operation != "reorder" and ordered_feature_ids is not None:
+            raise InvalidModelError("ordered_feature_ids is only accepted for reorder")
 
         current = self.history_store.load(history_id)
         if current.revision != expected_revision:
