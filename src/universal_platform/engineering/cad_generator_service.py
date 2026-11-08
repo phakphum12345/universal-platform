@@ -165,6 +165,19 @@ class CADGeneratorService:
 
         return self.history_store.save(updated, expected_revision=expected_revision)
 
+    def fork_history(
+        self,
+        history_id: str,
+        *,
+        branch_history_id: str,
+        branch_name: str,
+        revision: int | None = None,
+    ) -> FeatureHistoryBranch:
+        """Create an isolated branch from an immutable root-history revision."""
+        return self.history_store.create_branch(
+            history_id, branch_history_id, branch_name, fork_revision=revision
+        )
+
     def get_revision(
         self,
         history_id: str,
