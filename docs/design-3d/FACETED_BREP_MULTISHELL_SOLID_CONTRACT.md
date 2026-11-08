@@ -103,3 +103,12 @@ No Boolean surface reconstruction is performed. This operation composes already 
 - A cavity touching the outer boundary is rejected.
 - An injected mesh-intersection status of `UNKNOWN` is rejected; it is never converted to PASS.
 - See [post-PR #188 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md).
+
+
+## 12. PR #189 documentation synchronization evidence
+
+- PR #189 exact head: `2afd572d0b0d05cf57ca55c2fe1ca3d82ef45f63`; merge SHA: `050d18d863653103fb62d6d39426c8c255a8f99c`.
+- Exact-head push workflow #42462189154: workflow-sanity PASS; Python 906 PASS (14.87s).
+- Exact-head PR workflow #42462199774: workflow-sanity PASS; Python 906 PASS (15.28s).
+- Post-merge workflow #42462267653: workflow-sanity PASS; Python 906 PASS (16.26s).
+- See [post-PR #189 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md).
