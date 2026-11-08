@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `34148fc359076567eaa4b931304f61f536a41779`  
+**Last verified integration baseline:** `d71fc36b29f4e1b1056c738294c1529e823be671`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -126,3 +126,10 @@
 - PR #166 merged workbench controls at `34148fc359076567eaa4b931304f61f536a41779`; exact PR-head and post-merge gates: 854 Python tests, 5 Chromium E2E tests and workflow-sanity PASS.
 - Browser acceptance: implicit cascade rejected; explicit cascade checkbox and confirmation required; source nodes retained; unsuppress blocked until dependencies are active; restoration creates immutable revisions.
 - Status: PASS for FeatureHistory suppression end-to-end. WP-03 overall remains PARTIAL because undo/redo, branching/merging, reorder and broader CAD kernel capabilities remain open.
+
+
+## Documentation reconciliation — PR #167
+
+- PR #167 merged at `d71fc36b29f4e1b1056c738294c1529e823be671`.
+- Exact PR-head and post-merge CI: 854 Python tests PASS; workflow-sanity PASS.
+- FeatureHistory suppression end-to-end work packages CAD-EDIT-005/006/007 are PASS. Overall WP-03 remains PARTIAL because undo/redo, branch/merge and reorder are still open.
