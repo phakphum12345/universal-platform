@@ -687,3 +687,38 @@ def test_http_api_new_edit_after_undo_clears_redo_stack(api):
     )
     assert status == 409
     assert unavailable["error"]["code"] == "NO_REDO"
+
+
+def test_http_api_reorders_feature_presentation_without_changing_execution_order(api):
+    base, audit, service = api
+    history = FeatureHistory(
+        "history.reorder",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("dependent", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("independent", FeatureKind.MESH),
+        ),
+        ("dependent", "independent"),
+    )
+    status, created = send(base, "/v1/histories", method="POST", body={"history": history.to_dict(), "expected_revision": 0})
+    assert status == 201
+    status, saved = send(
+        base, "/v1/histories/history.reorder/edit", method="POST",
+        body={"expected_revision": 1, "operation": "reorder", "ordered_feature_ids": ["base", "independent", "dependent"]},
+    )
+    assert status == 201 and saved["revision"] == 2
+    revision = service.get_revision("history.reorder")
+    assert tuple(node.feature_id for node in revision.history.nodes) == ("base", "independent", "dependent")
+    assert revision.history.topological_order() == ("base", "dependent", "independent")
+
+    status, invalid = send(
+        base, "/v1/histories/history.reorder/edit", method="POST",
+        body={"expected_revision": 2, "operation": "reorder", "ordered_feature_ids": ["dependent", "base", "independent"]},
+    )
+    assert status == 400 and invalid["error"]["code"] == "INVALID_REQUEST"
+    status, strict = send(
+        base, "/v1/histories/history.reorder/edit", method="POST",
+        body={"expected_revision": 2, "operation": "reorder", "ordered_feature_ids": ["base", "independent", "dependent"], "cascade": True},
+    )
+    assert status == 400 and strict["error"]["code"] == "INVALID_FIELDS"
+    assert audit.verify()
