@@ -7,6 +7,7 @@ from universal_platform.engineering.feature_history import (
     FeatureHistory, FeatureKind, FeatureNode, RegenerationStatus,
     regenerate_feature_history,
 )
+from universal_platform.engineering.feature_history_editor import suppress_feature
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch, SketchConstraint, SketchConstraintKind as Kind,
     SketchPoint, SketchSegment,
@@ -57,6 +58,39 @@ def test_feature_history_regenerates_sketch_extrusion_and_watertight_mesh():
     assert mesh_payload["validation"]["watertight"] is True
     assert mesh_payload["validation"]["consistently_oriented"] is True
     assert len(mesh_artifact.content_sha256) == 64
+
+
+
+def test_suppressed_feature_and_transitive_dependents_are_skipped_during_regeneration():
+    first_sketch = square_sketch("first", 10.0, 8.0)
+    second_sketch = square_sketch("second", 6.0, 5.0, 20.0)
+    history = FeatureHistory(
+        "history.suppressed-regeneration",
+        (
+            FeatureNode.create("mesh.final", FeatureKind.MESH, ("extrude.final",)),
+            FeatureNode.create("extrude.final", FeatureKind.EXTRUSION, ("sketch.profile",),
+                               {"solid_id": "solid.first", "height": 3.0}),
+            FeatureNode.create("sketch.profile", FeatureKind.SKETCH_PROFILE, (),
+                               {"sketch": first_sketch.to_dict()}),
+            FeatureNode.create("mesh.second", FeatureKind.MESH, ("extrude.second",)),
+            FeatureNode.create("extrude.second", FeatureKind.EXTRUSION, ("sketch.second",),
+                               {"solid_id": "solid.second", "height": 2.0}),
+            FeatureNode.create("sketch.second", FeatureKind.SKETCH_PROFILE, (),
+                               {"sketch": second_sketch.to_dict()}),
+        ),
+        ("mesh.final", "mesh.second"),
+    )
+    suppressed = suppress_feature(history, "extrude.final", cascade=True)
+    result = regenerate_feature_history(suppressed)
+
+    assert result.successful
+    assert result.suppressed_feature_ids == ("extrude.final", "mesh.final")
+    assert result.execution_order == (
+        "sketch.profile", "sketch.second", "extrude.second", "mesh.second"
+    )
+    assert tuple(item.feature_id for item in result.artifacts) == result.execution_order
+    assert result.to_dict()["suppressed_feature_ids"] == ["extrude.final", "mesh.final"]
+
 
 
 def test_feature_history_multi_region_boolean_then_extrusion_and_mesh():
