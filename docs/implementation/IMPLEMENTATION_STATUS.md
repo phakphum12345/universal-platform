@@ -1367,3 +1367,13 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Existing exact-rational mesh intersection analysis is reusable as a predicate/candidate-generation foundation, but does not split triangles or assemble Boolean boundary fragments.
 - Gate A remains PLANNED: exact transverse triangle-pair events and deterministic triangle-fragment splitting. No arbitrary-faceted Boolean implementation is claimed.
 - Coplanar overlap, tangency, contact branching, nested material islands and general curved surfaces remain OPEN.
+
+
+## Exact transverse triangle intersection segment — PR #195
+
+- PR #195 exact head: `1bcfa0ceb1aab8839ec7ee5e06ae8ffe0ecc6e9e`; merge SHA: `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`.
+- Adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` with exact rational endpoints, canonical triangle/endpoint order, strict endpoint validation and fail-closed unsupported classifications.
+- Tests: `tests/test_triangle_intersection_events.py`; exact-head workflow #42468475501: workflow-sanity PASS; Python 921 PASS (21.16s).
+- Earlier run found six invalid fixtures using unsupported source kind `TEST`; fixtures were corrected to `BOX` and the updated exact head passed.
+- Post-merge workflow/status on merge SHA: UNKNOWN (no associated run or combined status returned). Do not count as PASS.
+- Explicit limit: no triangle fragment splitting, material classification, Boolean operation or shell assembly. General faceted Boolean remains PARTIAL/INCOMPLETE.
