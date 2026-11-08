@@ -131,7 +131,7 @@ def test_workbench_starts_without_runtime_errors_and_gates_edit_controls(workben
     # Create a newer head, refresh the revision list, then load the older snapshot.
     service.save_history(make_history(height=2.5), expected_revision=1)
     page.get_by_role("button", name="Refresh revisions").click()
-    page.locator("#revision option[value=\"2\"]").wait_for()
+    page.locator("#revision option[value=\"2\"]").wait_for(state="attached")
     page.locator("#revision").select_option("1")
     page.get_by_role("button", name="Load revision").click()
     page.locator("#revision-state").filter(has_text="Loaded revision 1").wait_for()
