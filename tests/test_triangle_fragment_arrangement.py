@@ -83,6 +83,13 @@ def test_resource_limits_and_invalid_exact_inputs_fail_closed():
                                     max_fragments=1)
     with pytest.raises(InvalidModelError, match="max_coordinate_bits"):
         arrange_triangles_by_planes((triangle(),), (), max_coordinate_bits=1)
+    huge_plane = RationalPlane(
+        9, (point(1 << 20, -1, -1), point(1 << 20, 3, -1), point(1 << 20, 0, 1))
+    )
+    with pytest.raises(InvalidModelError, match="max_coordinate_bits"):
+        arrange_triangles_by_planes((triangle(),), (huge_plane,), max_coordinate_bits=8)
+    with pytest.raises(InvalidModelError, match="RationalPlane"):
+        arrange_triangles_by_planes((triangle(),), (object(),))
     with pytest.raises(InvalidModelError, match="unique"):
         arrange_triangles_by_planes((triangle(),),
                                     (vertical_plane(1), vertical_plane(2 - 1)))

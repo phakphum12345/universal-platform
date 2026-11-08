@@ -74,3 +74,10 @@ def test_oracle_fails_closed_when_pairwise_budget_is_exceeded():
     with pytest.raises(InvalidModelError, match="max_pairwise_checks"):
         certify_triangle_partition(SOURCE, (LEFT_LOWER, LEFT_UPPER, RIGHT),
                                    max_pairwise_checks=2)
+
+
+def test_oracle_fails_closed_when_rational_coordinate_budget_is_exceeded():
+    huge = F(1 << 20)
+    oversized = ((p(0, 0), p(1, 0), (F(0), F(1), huge)),)
+    with pytest.raises(InvalidModelError, match="max_coordinate_bits"):
+        certify_triangle_partition(SOURCE, oversized, max_coordinate_bits=8)
