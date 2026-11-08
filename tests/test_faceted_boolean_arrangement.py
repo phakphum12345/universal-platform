@@ -70,11 +70,10 @@ def _combine_meshes(solid_id, meshes):
     )
 
 
-def test_coplanar_contact_is_not_hidden_by_unrelated_overlap_on_same_planes():
+def _mixed_coplanar_contact_meshes():
     # Component pair A2/B2 touches only along an edge on planes x=12 and y=2.
     # Separate component pairs A3/B3 and A4/B4 overlap with positive area on
-    # those same planes. A plane-level "some overlap exists" flag must not
-    # suppress the unrelated edge-only contact.
+    # those same planes.
     first = _combine_meshes("first", (
         _box("a2", 2.0, (10.0, 0.0, 0.0)),
         _box("a3", 2.0, (12.0, 10.0, 5.0)),
@@ -85,5 +84,28 @@ def test_coplanar_contact_is_not_hidden_by_unrelated_overlap_on_same_planes():
         _box("b3", 2.0, (12.0, 11.0, 5.0)),
         _box("b4", 2.0, (21.0, 0.0, 11.0)),
     ))
+    return first, second
+
+
+def test_coplanar_contact_is_not_hidden_by_unrelated_overlap_on_same_planes():
     with pytest.raises(InvalidModelError, match="coplanar point/edge contact"):
-        arrange_faceted_boolean_meshes((first, second))
+        arrange_faceted_boolean_meshes(_mixed_coplanar_contact_meshes())
+
+
+def test_coplanar_contact_coverage_fails_closed_at_aggregate_budget():
+    with pytest.raises(InvalidModelError, match="max_coplanar_coverage_checks"):
+        arrange_faceted_boolean_meshes(
+            _mixed_coplanar_contact_meshes(), max_coplanar_coverage_checks=1
+        )
+
+
+def test_source_triangle_budget_is_checked_before_mesh_topology_analysis():
+    valid = _box("oversized", 2.0)
+    malformed = TriangleMesh(
+        "oversized", "world", "m", "BOX", valid.source_geometry_sha256,
+        valid.vertices, valid.triangles + valid.triangles,
+    )
+    with pytest.raises(InvalidModelError, match="max_source_triangles"):
+        arrange_faceted_boolean_meshes(
+            (malformed, _box("other", 1.0)), max_source_triangles=20
+        )

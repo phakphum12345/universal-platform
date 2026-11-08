@@ -19,6 +19,7 @@ class FacetedBooleanArrangement:
     source_triangle_count: int
     unique_plane_count: int
     coplanar_pair_checks: int
+    coplanar_coverage_checks: int = 0
 
 def _q(value:float)->Fraction:
     return Fraction.from_float(float(value))
@@ -66,6 +67,7 @@ def arrange_faceted_boolean_meshes(
     max_topology_checks:int=10_000_000,
     max_coverage_checks:int=10_000_000,
     max_coplanar_checks:int=1_000_000,
+    max_coplanar_coverage_checks:int=1_000_000,
 )->FacetedBooleanArrangement:
     """Create a conservative all-source-plane arrangement for 2..16 meshes.
 
@@ -80,11 +82,17 @@ def arrange_faceted_boolean_meshes(
     for name,value in (("max_source_triangles",max_source_triangles),("max_unique_planes",max_unique_planes),
                        ("max_fragments",max_fragments),("max_coordinate_bits",max_coordinate_bits),
                        ("max_edges",max_edges),("max_topology_checks",max_topology_checks),
-                       ("max_coverage_checks",max_coverage_checks),("max_coplanar_checks",max_coplanar_checks)):
+                       ("max_coverage_checks",max_coverage_checks),("max_coplanar_checks",max_coplanar_checks),
+                       ("max_coplanar_coverage_checks",max_coplanar_coverage_checks)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
     if any(not isinstance(mesh,TriangleMesh) for mesh in meshes):
         raise InvalidModelError("all Boolean inputs must be TriangleMesh values")
+    # Reject oversized inputs before topology validation and self-intersection
+    # analysis, both of which may scan every source face or face pair.
+    source_triangle_total = sum(len(mesh.triangles) for mesh in meshes)
+    if source_triangle_total > max_source_triangles:
+        raise InvalidModelError("faceted arrangement exceeded max_source_triangles")
     if len({(mesh.frame_id,mesh.length_unit) for mesh in meshes})!=1:
         raise InvalidModelError("Boolean inputs must share frame and length unit")
 
@@ -147,12 +155,20 @@ def arrange_faceted_boolean_meshes(
                             contact_polygons_by_plane.setdefault(key,[]).append(polygon)
                         elif relation!="DISJOINT":
                             raise InvalidModelError("unexpected coplanar relation: "+relation)
-    unsupported_contacts = {
-        key for key, contacts in contact_polygons_by_plane.items()
-        if any(not coplanar_contact_is_covered(
-            contact, area_polygons_by_plane.get(key, ())
-        ) for contact in contacts)
-    }
+    coplanar_coverage_checks = 0
+    unsupported_contacts = False
+    for key, contacts in contact_polygons_by_plane.items():
+        overlap_polygons = area_polygons_by_plane.get(key, ())
+        for contact in contacts:
+            # The helper may inspect every overlap polygon. Charge the
+            # worst-case work before calling it and fail closed on overflow.
+            coplanar_coverage_checks += max(1, len(overlap_polygons))
+            if coplanar_coverage_checks > max_coplanar_coverage_checks:
+                raise InvalidModelError(
+                    "coplanar contact coverage exceeded max_coplanar_coverage_checks"
+                )
+            if not coplanar_contact_is_covered(contact, overlap_polygons):
+                unsupported_contacts = True
     if unsupported_contacts:
         raise InvalidModelError("coplanar point/edge contact is unsupported")
     # Build a complete planar line arrangement on each active coplanar plane:
@@ -193,5 +209,5 @@ def arrange_faceted_boolean_meshes(
         raise InvalidModelError("global arrangement omitted an input mesh")
     return FacetedBooleanArrangement(
         arrangement,tuple(tuple(items) for items in grouped),
-        len(source_triangles),len(plane_by_key),coplanar_checks,
+        len(source_triangles),len(plane_by_key),coplanar_checks,coplanar_coverage_checks,
     )
