@@ -723,3 +723,170 @@ def test_http_api_reorders_feature_presentation_without_changing_execution_order
     )
     assert status == 400 and strict["error"]["code"] == "INVALID_FIELDS"
     assert audit.verify()
+
+
+
+def test_http_api_lists_forks_and_merges_feature_history_branches(api):
+    base, audit, service = api
+    root = FeatureHistory(
+        "history.http-api",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("body", FeatureKind.MESH, ("base",)),
+        ),
+        ("body",),
+    )
+    status, created = send(
+        base, "/v1/histories", method="POST",
+        body={"history": root.to_dict(), "expected_revision": 0},
+    )
+    assert status == 201 and created["revision"] == 1
+
+    status, forked = send(
+        base, "/v1/histories/history.http-api/branches", method="POST",
+        body={
+            "branch_history_id": "history.http-api.experiment",
+            "branch_name": "experiment",
+            "fork_revision": 1,
+        },
+    )
+    assert status == 201
+    assert forked["root_history_id"] == "history.http-api"
+    assert forked["fork_revision"] == 1
+    assert len(forked["fork_sha256"]) == 64
+
+    status, branches = send(base, "/v1/histories/history.http-api/branches")
+    assert status == 200
+    assert [item["branch_history_id"] for item in branches["branches"]] == [
+        "history.http-api.experiment"
+    ]
+
+    status, merged = send(
+        base, "/v1/histories/history.http-api/merge", method="POST",
+        body={
+            "source_branch_history_id": "history.http-api.experiment",
+            "expected_source_revision": 1,
+            "expected_target_revision": 1,
+        },
+    )
+    assert status == 201
+    assert merged["operation"] == "merge"
+    assert merged["revision"] == 2
+    assert merged["merge_provenance"]["source_history_id"] == "history.http-api.experiment"
+
+    status, revision = send(base, "/v1/histories/history.http-api?revision=2")
+    assert status == 200
+    assert revision["operation"] == "merge"
+    assert revision["merge_provenance"]["algorithm_version"] == "feature-history-merge-v1"
+    assert service.get_revision("history.http-api").merge_provenance is not None
+    assert audit.verify()
+
+
+def test_http_api_branch_routes_reject_unknown_fields_and_bad_revisions(api):
+    base, audit, _service = api
+    root = FeatureHistory(
+        "history.http-strict",
+        (FeatureNode.create("body", FeatureKind.MESH),),
+        ("body",),
+    )
+    status, _ = send(
+        base, "/v1/histories", method="POST",
+        body={"history": root.to_dict(), "expected_revision": 0},
+    )
+    assert status == 201
+
+    status, invalid_fields = send(
+        base, "/v1/histories/history.http-strict/branches", method="POST",
+        body={
+            "branch_history_id": "history.http-strict.bad",
+            "branch_name": "bad",
+            "unexpected": True,
+        },
+    )
+    assert status == 400
+    assert invalid_fields["error"]["code"] == "INVALID_FIELDS"
+
+    status, invalid_revision = send(
+        base, "/v1/histories/history.http-strict/branches", method="POST",
+        body={
+            "branch_history_id": "history.http-strict.bad",
+            "branch_name": "bad",
+            "fork_revision": True,
+        },
+    )
+    assert status == 400
+    assert invalid_revision["error"]["code"] == "INVALID_REVISION"
+
+    status, invalid_merge = send(
+        base, "/v1/histories/history.http-strict/merge", method="POST",
+        body={
+            "source_branch_history_id": "history.http-strict.missing",
+            "expected_source_revision": 1,
+            "expected_target_revision": 1,
+            "force": True,
+        },
+    )
+    assert status == 400
+    assert invalid_merge["error"]["code"] == "INVALID_FIELDS"
+    assert audit.verify()
+
+
+def test_http_api_returns_structured_branch_merge_conflicts(api):
+    base, audit, _service = api
+    root = FeatureHistory(
+        "history.http-conflict",
+        (FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 1}),),
+        ("body",),
+    )
+    status, _ = send(
+        base, "/v1/histories", method="POST",
+        body={"history": root.to_dict(), "expected_revision": 0},
+    )
+    assert status == 201
+    status, _ = send(
+        base, "/v1/histories/history.http-conflict/branches", method="POST",
+        body={"branch_history_id": "history.http-conflict.source", "branch_name": "source"},
+    )
+    assert status == 201
+
+    status, _ = send(
+        base, "/v1/histories/history.http-conflict/branches", method="POST",
+        body={"branch_history_id": "history.http-conflict.target", "branch_name": "target"},
+    )
+    assert status == 201
+
+    status, _ = send(
+        base, "/v1/histories/history.http-conflict.source/edit", method="POST",
+        body={
+            "expected_revision": 1,
+            "operation": "replace",
+            "feature_id": "body",
+            "feature": FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 2}).to_dict(),
+        },
+    )
+    assert status == 201
+    status, _ = send(
+        base, "/v1/histories/history.http-conflict/edit", method="POST",
+        body={
+            "expected_revision": 1,
+            "operation": "replace",
+            "feature_id": "body",
+            "feature": FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 3}).to_dict(),
+        },
+    )
+    assert status == 201
+
+    status, conflict = send(
+        base, "/v1/histories/history.http-conflict/merge", method="POST",
+        body={
+            "source_branch_history_id": "history.http-conflict.source",
+            "expected_source_revision": 2,
+            "expected_target_revision": 2,
+        },
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "MERGE_CONFLICT"
+    assert conflict["error"]["conflicts"][0]["category"] == "node_content"
+    assert service.get_revision("history.http-conflict").revision == 2
+    assert service.get_revision("history.http-conflict.source").revision == 2
+    assert audit.verify()
