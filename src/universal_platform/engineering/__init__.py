@@ -27,6 +27,9 @@ from .brep import (
     BRepValidationResult, BRepSolid, validate_brep_solid,
     brep_from_triangle_mesh, triangle_mesh_from_brep,
 )
+from .brep_multishell import (
+    BRepMultiShellSolid, BRepMultiShellValidationResult, validate_brep_multishell_solid,
+)
 from .brep_boolean import (
     BRepBooleanOperation, BRepBooleanResult, boolean_axis_aligned_brep_solids,
 )

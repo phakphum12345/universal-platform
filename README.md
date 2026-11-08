@@ -268,3 +268,8 @@ The local CAD workbench now exposes bounded FeatureHistory editing controls thro
 ## Polygonal B-rep mesh triangulation — PR #182 PASS
 
 PR #182 merged to the integration branch at `9c84d4d94030c0e3084d7a288064491d8160a71f` (exact PR head `c4c1a5c642096f2c030982c567fe308cb2df07e4`). It adds deterministic n-gon and multiple-inner-loop triangulation, preserves legacy triangle order and source identity/frame/unit/digest, and requires valid/watertight/consistently-oriented mesh validation. Exact PR-head Python 894 PASS; post-merge Python 894 PASS. Multiple shells and general 3D Boolean remain OPEN.
+
+
+## CAD multi-shell solids
+
+The CAD foundation now has a bounded implementation candidate for composing one validated polygonal outer shell with strictly-contained, disjoint cavity shells. See the [multi-shell solid contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md). This is an aggregate shell-composition adapter, not general 3D Boolean or multi-shell neutral-format interchange. PR #184 exact-head CI is the acceptance gate; do not treat this capability as PASS until the evidence is recorded.

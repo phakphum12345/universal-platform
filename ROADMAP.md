@@ -647,3 +647,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (892). Chromium E2E: SKIPPED / not triggered because no API/UI surface changed.
 - **Status:** PASS for single-shell polygonal BRep with face holes.
 - **Still open:** multiple-shell solids, general 3D Boolean, polygonal-with-holes mesh triangulation, curved surfaces and general CAD-kernel capabilities.
+
+
+## CAD multi-shell solid increment — PR #184
+
+- Introduces a separate aggregate contract without changing the existing BRepSolid v2.0 schema or constructor.
+- Represents one outward-oriented outer shell and zero or more outward-oriented component snapshots interpreted subtractively as cavities at aggregate mesh conversion.
+- Requires exact-rational strict point-in-shell classification, complete mesh-intersection analysis, disjoint/non-nested cavity shells, common frame/unit and positive net volume.
+- Mesh conversion preserves component vertices and reverses cavity triangle winding; no source shell is mutated or healed.
+- Nested cavity islands, multiple material regions, curved surfaces, general 3D Boolean and multi-shell STEP/AP242 interchange remain outside this bounded increment.
+- Exact PR-head and post-merge test evidence must be recorded before marking the work package PASS.

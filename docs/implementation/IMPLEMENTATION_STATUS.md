@@ -1293,3 +1293,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Post-merge CI: workflow #42460044330; workflow-sanity PASS; Python 894 PASS (14.56s).
 - Chromium E2E: SKIPPED/not triggered (no UI change); not counted as PASS.
 - Status: PASS for the bounded single-shell polygonal/holed B-rep mesh adapter. Whole-repository completion remains INCOMPLETE.
+
+
+## B-rep multi-shell solid and cavity composition — PR #184 candidate
+
+- Adds a separate `BRepMultiShellSolid` aggregate; the established `BRepSolid` v2.0 API and snapshots remain unchanged.
+- One outer shell plus zero or more independently validated cavity shells.
+- Strict exact-rational point-in-shell classification for cavity vertices; deterministic ray ambiguity fails closed.
+- Complete combined-mesh intersection analysis; only `NO_INTERSECTIONS_FOUND` is accepted.
+- Cavity triangle winding is reversed only in aggregate mesh output. The combined mesh must be watertight, consistently oriented and have positive net signed volume.
+- Pairwise overlapping/touching/nested cavities, out-of-outer cavities and frame/unit mismatches are rejected.
+- Schema: `schemas/geometry/faceted-brep-multishell-solid.schema.json`; contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`; tests: `tests/test_brep_multishell.py`.
+- PR #184 exact head: `4128a7f0b086b25b29c27870761603ee6be4147a`. Exact-head CI is pending; implementation status remains CANDIDATE, not PASS.
+- Explicitly unsupported: nested cavity islands, multiple material regions, curved surfaces, general 3D Boolean, shell healing and STEP/AP242 multi-shell interchange.
