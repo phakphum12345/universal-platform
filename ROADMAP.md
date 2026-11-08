@@ -682,3 +682,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - PR #189 exact-head push #42462189154: Python 906 PASS (14.87s); PR #42462199774: Python 906 PASS (15.28s).
 - Post-merge workflow #42462267653: Python 906 PASS (16.26s).
 - Current merge SHA: `050d18d863653103fb62d6d39426c8c255a8f99c`.
+
+
+## Axis-aligned multi-shell Boolean — PR #191 candidate
+
+- Extends the existing exact-grid axis-aligned box Boolean adapter to accept validated `BRepMultiShellSolid` inputs with box-shaped outer and cavity components.
+- Uses outer-minus-cavity membership per exact-grid cell and emits separate material components with reconstructed outer/cavity shell orientation.
+- Keeps the existing 2–16 input and 32,768-cell ceilings.
+- Arbitrary faceted/rotated/curved inputs, nested material islands and general 3D Boolean remain OPEN.
+- Exact-head CI and post-merge evidence are required before marking PASS.
