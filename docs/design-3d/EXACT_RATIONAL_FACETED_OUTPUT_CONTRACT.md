@@ -127,3 +127,17 @@ remain required before rational Boolean results can be emitted end-to-end.
 PR #221 acceptance requires exact-head CI and post-merge CI. A passing
 tetrahedral rational round-trip fixture establishes only the implemented
 single-shell profile, not unrestricted arbitrary-faceted Boolean support.
+
+
+## 10. Resource-preflight implementation update — PR #222
+
+The v1 implementation now enforces the following parser-side bounds before retaining parsed geometry:
+
+- Decimal digit count is derived from the configured numerator/denominator bit ceiling and checked before integer conversion.
+- Deserialization resource limits are validated before coordinate parsing; invalid booleans, non-integers, non-positive limits, and values above hard ceilings are rejected.
+- Geometry counts and shell/provenance envelopes are checked before rational coordinate parsing.
+- Aggregate rational numerator/denominator bit lengths are charged incrementally against a 64,000,000-bit hard budget.
+- Solid ID, frame ID, unit, source ID, provenance record count, and aggregate metadata characters have explicit limits.
+- The JSON Schema now expresses the individual metadata and provenance-count ceilings; aggregate character and rational-bit budgets remain runtime validation rules.
+
+These changes preserve the v1 serialized field names and rational pair representation. Canonical v1 round-trip compatibility remains covered by the existing tetrahedron fixture and is included in the current engineering test workflow. Exact-head CI is still required before marking this implementation slice PASS.
