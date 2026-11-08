@@ -566,5 +566,6 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - New normal edits clear Redo; Undo/Redo use expected-revision compare-and-swap and atomically append a new revision plus navigation-state changes.
 - Existing histories initialize deterministic Undo state from their immutable linear revision chain.
 - PR #168 merged the contract at `6c5f77168cca1947bf79678696613ef1ef9c84ea`.
-- PR #169 implements the store layer: persistent stacks, atomic append-only restore revisions, legacy backfill, CAS and fail-closed validation. Exact-head CI: 860 Python tests PASS, workflow-sanity PASS; merge pending.
-- **Next:** merge the store slice after exact-head checks, then add service/API navigation operations, followed by workbench/browser E2E.
+- PR #169 merged the store layer at `93744335f3e50a07dde2f78a18f9a307308b73ef`: persistent stacks, atomic append-only restore revisions, legacy backfill, CAS and fail-closed validation. Exact PR-head and post-merge CI: 860 Python tests PASS, workflow-sanity PASS.
+- PR #170 adds service/API navigation state and Undo/Redo routes; exact-head CI is pending.
+- **Next:** validate and merge service/API, then add workbench/browser E2E.
