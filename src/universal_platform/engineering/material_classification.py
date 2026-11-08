@@ -18,6 +18,7 @@ _DIRECTIONS: tuple[Point3, ...] = (
     (Fraction(1),Fraction(3,53),Fraction(2,59)),
     (Fraction(3,61),Fraction(2,67),Fraction(1)),
 )
+RAY_DIRECTION_COUNT = len(_DIRECTIONS)
 
 class MaterialClassification(str, Enum):
     INSIDE="INSIDE"
