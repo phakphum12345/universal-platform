@@ -4,10 +4,13 @@ from universal_platform.engineering import (
     BRepBooleanOperation,
     CADGeneratorService,
     BoxSolid,
+    ExtrudedProfileSolid,
+    Vec2,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
     TriangleMesh,
     tessellate_box,
+    tessellate_extruded_profile,
 )
 from universal_platform.engineering.geometry import Vec3
 
@@ -46,3 +49,34 @@ def test_cad_generator_executes_coplanar_overlap_union_end_to_end(tmp_path):
     assert snapshot["component_count"]==1
     assert snapshot["total_exact_volume"]=="12"
     assert snapshot["arrangement"]["coplanar_pair_checks"]>0
+
+
+def _concave_l_prism():
+    profile = (
+        Vec2(0.0, 0.0), Vec2(3.0, 0.0), Vec2(3.0, 1.0),
+        Vec2(1.0, 1.0), Vec2(1.0, 3.0), Vec2(0.0, 3.0),
+    )
+    return tessellate_extruded_profile(
+        ExtrudedProfileSolid("l-prism", "world", profile, 2.0, "m")
+    )
+
+
+def test_cad_generator_executes_concave_prism_boolean_operations_end_to_end(tmp_path):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
+    )
+    meshes = (_concave_l_prism(), _box("unit-box", 1.0, (0.5, 0.5, 0.5)))
+    expected_volumes = {
+        BRepBooleanOperation.UNION: "41/4",
+        BRepBooleanOperation.INTERSECTION: "3/4",
+        BRepBooleanOperation.DIFFERENCE: "37/4",
+        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "19/2",
+    }
+    for operation, expected_volume in expected_volumes.items():
+        result = service.execute_faceted_boolean(meshes, operation)
+        snapshot = result.to_dict()
+        assert snapshot["operation"] == operation.value
+        assert snapshot["total_exact_volume"] == expected_volume
+        assert snapshot["component_count"] >= 1
+        assert snapshot["selected_fragment_count"] > 0
