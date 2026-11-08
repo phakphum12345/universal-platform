@@ -252,3 +252,14 @@ def test_from_dict_preflights_pairwise_work_before_coordinate_parsing(monkeypatc
     monkeypatch.setattr(rational_module, "_parse_rational", unexpected_parse)
     with pytest.raises(InvalidModelError, match="pair budget exceeded before coordinate parsing"):
         RationalFacetedSolid.from_dict(snapshot, max_pairwise_checks=5)
+
+
+
+def test_rational_integer_parser_handles_values_near_hard_bit_ceiling():
+    from universal_platform.engineering.rational_faceted_solid import _parse_integer_string
+
+    # More than Python's default int(string) digit limit, but within 16,384 bits.
+    value = "1" + "0" * 4931
+    parsed = _parse_integer_string(value, "large coordinate", 16384)
+    assert parsed.bit_length() <= 16384
+    assert parsed > 0
