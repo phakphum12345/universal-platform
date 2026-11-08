@@ -178,6 +178,8 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "updateNavigationControls" in script
     assert 'performNavigation("undo")' in script
     assert 'performNavigation("redo")' in script
+    assert "loadedRevision === expected" in script
+    assert "Select a saved revision before regeneration." in script
     assert "Select a saved revision before loading." in script
     assert "revisionSelect.value !== String(expected)" in script
     assert "function updateFeatureEditorControls(hasSelection)" in script
