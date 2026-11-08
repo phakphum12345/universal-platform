@@ -4,16 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Last audited implementation baseline: `10404099ccaa85cef24adedffa7bce789abd691e` (post-PR #156).
+- Last verified integration baseline before PR #182: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34` (post-PR #181 audit).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge CI: PR #156 workflow #42407835073 on exact merge SHA `10404099ccaa85cef24adedffa7bce789abd691e` — workflow-sanity PASS (including Node.js syntax check); python-tests PASS; **843 passed in 9.76s**.
-- Current inventory: 351 entries, 118 Markdown, 165 Python, 24 JSON files, 85 Python test files (recursive tree at post-PR #156; truncated=false).
-- Open PRs at the latest audit: 0. Local working tree: UNKNOWN (GitHub API inspection only). Branch-protection read: UNKNOWN (connected GitHub API returned 403).
+- Latest integration push CI before PR #182: workflow #42457244454 on exact integration SHA `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34` — workflow-sanity PASS and python-tests PASS. The current tree was independently counted at this SHA.
+- Current inventory at `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`: 371 entries, 132 Markdown, 169 Python, 24 JSON files, 87 Python test files (recursive tree; truncated=false).
+- Open PRs before PR #182: 0. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: interactive feature-tree editing UI, feature suppression, undo/redo, B-rep face/edge selection, sectioning, general n-gon/multi-shell B-rep and arbitrary 3D Boolean; ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
+- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; multi-shell solids; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -153,7 +153,7 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 
 ### CAD-neutral geometry
 
-- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: n-gon/inner loops, multiple shells/cavities, arbitrary faceted solids, rotated solids, curved surfaces, general 3D arrangements, ambiguous branching, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
+- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: PR #181 adds polygonal faces and inner loops; PR #182 is implementing their triangle-mesh bridge. Multiple shells/cavities, arbitrary faceted 3D Boolean, rotated solids, curved surfaces, general 3D arrangements, ambiguous branching, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
 - Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
 - Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.
 
@@ -263,3 +263,8 @@ The CAD Generator service now applies add/replace/remove operations to the calle
 ## Interactive FeatureHistory editing controls — PR #156
 
 The local CAD workbench now exposes bounded FeatureHistory editing controls through the revision-safe loopback API: replace the selected feature's parameters, add a feature from the existing allow-list, and remove a feature with explicit cascade confirmation when needed. Edits append immutable revisions; historical revisions remain read-only and stale writes are rejected. The editor uses text-only DOM rendering and does not execute user code. The browser E2E interaction suite is still open and is not claimed as verified. PR #156 exact head `265ca3907e05f958fbae48f48398fbbae8d70ea2` passed workflow-sanity and python-tests (**843 passed in 9.40s**); exact post-merge SHA `10404099ccaa85cef24adedffa7bce789abd691e` passed both jobs (**843 passed in 9.76s**). See [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), and [post-PR #156 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md).
+
+
+## Polygonal B-rep mesh triangulation — PR #182 candidate
+
+The next CAD increment adds deterministic triangulation of validated polygonal B-rep faces and face inner loops into the existing TriangleMesh model, reusing the profile bridge-and-ear-clipping helper. It preserves source vertices, face orientation, frame/unit and source digest, then requires valid/watertight/consistently-oriented mesh validation. It remains under PR review and is not yet part of the integration baseline.
