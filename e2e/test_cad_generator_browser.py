@@ -116,6 +116,8 @@ def workbench(tmp_path):
             page.locator("#token").fill(TOKEN)
             page.get_by_role("button", name="Connect").click()
             page.locator("#connection-state").filter(has_text="Connected").wait_for()
+            page.locator('#revision option[value="1"]').wait_for(state="attached")
+            page.locator("#revision").select_option("1")
             page.get_by_role("button", name="Load revision").click()
             try:
                 page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for(timeout=5_000)
@@ -290,4 +292,59 @@ def test_suppression_cascade_confirmation_and_dependency_order_restore_in_browse
     restored = service.history_store.load("history.browser-e2e", revision=4).history
     assert restored.suppressed_feature_ids == ()
     assert page.locator('#feature-tree button[data-feature-id="mesh"]').inner_text().find("SUPPRESSED") == -1
+    assert page_errors == []
+
+
+def test_undo_redo_controls_persist_across_reload_and_new_edit_clears_redo(workbench):
+    page, service, page_errors = workbench
+    assert page.locator("#undo").is_disabled()
+    assert page.locator("#redo").is_disabled()
+
+    page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
+    page.locator("#feature-edit-parameters").fill(
+        json.dumps({"solid_id": "solid.browser", "height": 3.25})
+    )
+    page.get_by_role("button", name="Apply parameter edit").click()
+    page.get_by_text("Saved replace as immutable revision 2.").wait_for()
+    assert page.locator("#undo").is_enabled()
+    assert page.locator("#redo").is_disabled()
+
+    page.get_by_role("button", name="Undo", exact=True).click()
+    page.get_by_text("UNDO restored revision 1 as new immutable revision 3.").wait_for()
+    assert page.locator("#undo").is_disabled()
+    assert page.locator("#redo").is_enabled()
+    assert service.history_store.load("history.browser-e2e", revision=3).history.nodes == (
+        service.history_store.load("history.browser-e2e", revision=1).history.nodes
+    )
+
+    # Navigation state is persisted by the server, not held in page memory.
+    page.reload()
+    page.locator("#history-id").fill("history.browser-e2e")
+    page.locator("#token").fill(TOKEN)
+    page.get_by_role("button", name="Connect").click()
+    page.locator("#connection-state").filter(has_text="Connected").wait_for()
+    page.locator('#revision option[value="3"]').wait_for(state="attached")
+    page.locator("#revision").select_option("3")
+    page.get_by_role("button", name="Load revision").click()
+    page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
+    assert page.locator("#redo").is_enabled()
+
+    page.get_by_role("button", name="Redo", exact=True).click()
+    page.get_by_text("REDO restored revision 2 as new immutable revision 4.").wait_for()
+    assert page.locator("#undo").is_enabled()
+    assert page.locator("#redo").is_disabled()
+
+    # Undo, then a new normal edit must clear the persistent Redo stack.
+    page.get_by_role("button", name="Undo", exact=True).click()
+    page.get_by_text("UNDO restored revision 3 as new immutable revision 5.").wait_for()
+    page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
+    page.locator("#feature-edit-parameters").fill(
+        json.dumps({"solid_id": "solid.browser", "height": 4.5})
+    )
+    page.get_by_role("button", name="Apply parameter edit").click()
+    page.get_by_text("Saved replace as immutable revision 6.").wait_for()
+    assert page.locator("#redo").is_disabled()
+    state = service.history_store.get_navigation_state("history.browser-e2e")
+    assert state.current_revision == 6
+    assert state.can_redo is False
     assert page_errors == []
