@@ -250,3 +250,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-FEATURE-TREE-UNDO-REDO-001 | Undo/Redo restores earlier FeatureHistory content without rewriting or deleting immutable revisions | [FeatureHistory Undo/Redo Contract](../design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md), PRs #168–#171 | PASS — bounded end-to-end Undo/Redo implemented. PR #169 adds transactional SQLite navigation stacks and append-only restore revisions; PR #170 adds strict expected-revision service/API routes; PR #171 adds current-head-gated controls, historical read-only behavior and browser acceptance. Exact PR-head and post-merge SHA `21bee045ea4d06aa07c7130f9123afaa64372638`: workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests). | Broader editor remains PARTIAL: graph branch/merge, feature reordering semantics, recompute propagation and generalized CAD geometry are not included. |
+
+
+## FeatureHistory Presentation Reordering — CAD-FEATURE-TREE-REORDER-001
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-REORDER-001 | Reorder FeatureHistory presentation without violating dependency order or changing execution semantics | [FeatureHistory Reordering Contract](../design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md), PRs #173–#174 | PASS — PR #173 implements strict complete-permutation and dependency-order validation in the service/API; PR #174 adds current-head-gated Move Up/Move Down controls and Chromium acceptance. Reorder appends an immutable revision. Exact PR-head `14df81bffdf991133b5c3b5fcbee089ba7d409c3` and post-merge SHA `3d7504ec64433e90aedf6c11ef760cf66b801390`: workflow-sanity PASS, Python tests PASS (870 tests), Chromium E2E PASS (7 tests). | Presentation order only; dependency-derived deterministic execution order is unchanged. Graph branch/merge, recompute propagation and generalized CAD geometry remain OPEN. |
