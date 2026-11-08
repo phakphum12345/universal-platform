@@ -99,3 +99,21 @@ Use only `PASS`, `FAIL`, `SKIPPED`, or `UNKNOWN`. Missing tests, missing CI, and
 - No rounding exact rational coordinates to binary64.
 - No claim of support for cavities, branching, point/edge tangencies, or arbitrary degeneracies without dedicated exact proofs and tests.
 - No paid external service dependency.
+
+
+## Input and resource validation — implementation slice
+
+The rational solid input path now has an initial hardening implementation on the resource-preflight branch:
+
+- Decimal integer strings are length-bounded from `max_coordinate_bits` before `int()` is called. Conversion errors are normalized to `InvalidModelError`.
+- `from_dict` validates the caller-supplied coordinate-bit and pair-check limits, including boolean/type/positive-value checks and hard ceilings, before parsing coordinate arrays.
+- Geometry counts are checked against both lower and upper supported bounds before coordinate parsing.
+- Shell envelope, provenance record count, identifier lengths, provenance identifier/digest shape, and aggregate metadata character count are preflighted before rational coordinate parsing.
+- Numerator and denominator bit lengths are charged incrementally to a 64,000,000-bit aggregate budget before each `Fraction` is retained. Direct immutable construction also checks the aggregate total.
+- Solid/frame/unit identifiers, source identifiers, and provenance record counts have explicit hard limits.
+
+The current constants are implementation policy, not a claim that every maximum-size geometry is affordable. The aggregate rational ceiling bounds integer payload size independently of the per-coordinate ceiling; vertex, triangle, pairwise-check, metadata, and provenance ceilings remain separate controls. Any future adjustment must preserve fail-closed behavior and be justified by supported workloads and CI resource measurements.
+
+Regression coverage added for oversized positive/negative numerator and denominator strings, the per-integer bit boundary, invalid resource limits rejected before parsing, aggregate-budget exhaustion, metadata/provenance ceilings, and invalid geometry counts rejected before parsing. These tests have been committed but are **not yet reported PASS** until the workflow on the exact latest branch head completes successfully.
+
+**Status: IMPLEMENTED / CI UNKNOWN** for this resource-hardening slice. No local test run is claimed. This does not certify the Boolean Kernel or the independent oracle's outstanding adversarial matrix.
