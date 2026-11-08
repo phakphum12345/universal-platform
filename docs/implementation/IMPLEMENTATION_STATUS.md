@@ -1183,3 +1183,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Rejects empty/non-positive revision selection before Load or Regenerate.
 - Chromium fixture waits for the revision option to be attached before loading; adds reload persistence, redo invalidation after a new edit and historical read-only coverage.
 - Exact-head CI pending. The previous PR #170 post-merge browser error remains a known failure until this PR passes post-merge.
+
+
+## PR #171 — Undo/Redo workbench and browser acceptance (MERGED)
+
+- Exact PR head: `b053f203d6156aa8dcf7265e513d20c854623eba`.
+- Exact PR-head CI: 865 Python tests PASS; 6 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- Exact post-merge CI: workflow-sanity PASS; 865 Python tests PASS (workflow #42443218916); 6 Chromium E2E tests PASS (workflow #42443218967).
+- Workbench Undo/Redo is gated on the actually loaded current-head revision, not only the selected dropdown value; historical snapshots remain read-only.
+- Browser acceptance covers multi-step restore, reload persistence, historical gating and Redo invalidation after a new edit.
+- **FeatureHistory Undo/Redo: END-TO-END PASS** across PRs #169, #170 and #171. Broader CAD branching/merging, reorder and generalized B-rep remain open; whole repository remains INCOMPLETE.
