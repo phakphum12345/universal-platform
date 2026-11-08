@@ -164,29 +164,25 @@ def arrange_faceted_boolean_meshes(
             # overlay constraints. Internal triangulation diagonals are not
             # geometric boundaries; turning them into cutters creates needless
             # oblique planes and can introduce non-binary rational vertices.
-            edge_uses = {}
+            edge_data = {}
             for triangle in triangles:
                 if _plane_key(triangle) != key:
                     continue
+                normal = _cross(
+                    _sub(triangle[1], triangle[0]),
+                    _sub(triangle[2], triangle[0]),
+                )
                 for edge_start, edge_end in (
                     (triangle[0], triangle[1]),
                     (triangle[1], triangle[2]),
                     (triangle[2], triangle[0]),
                 ):
                     edge_key = tuple(sorted((edge_start, edge_end)))
-                    edge_uses[edge_key] = edge_uses.get(edge_key, 0) + 1
-            for (edge_start, edge_end), use_count in sorted(edge_uses.items()):
+                    count, edge_normal = edge_data.get(edge_key, (0, normal))
+                    edge_data[edge_key] = (count + 1, edge_normal)
+            for (edge_start, edge_end), (use_count, normal) in sorted(edge_data.items()):
                 if use_count != 1:
                     continue
-                supporting = next(
-                    triangle for triangle in triangles
-                    if _plane_key(triangle) == key and
-                    edge_start in triangle and edge_end in triangle
-                )
-                normal = _cross(
-                    _sub(supporting[1], supporting[0]),
-                    _sub(supporting[2], supporting[0]),
-                )
                 off_plane = tuple(
                     edge_start[axis] + normal[axis] for axis in range(3)
                 )
