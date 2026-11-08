@@ -309,6 +309,18 @@ def test_undo_redo_controls_persist_across_reload_and_new_edit_clears_redo(workb
     assert page.locator("#undo").is_enabled()
     assert page.locator("#redo").is_disabled()
 
+    # Selecting a historical revision disables mutation; selecting the head
+    # again is not enough after the historical snapshot has actually loaded.
+    page.locator("#revision").select_option("1")
+    assert page.locator("#undo").is_disabled()
+    page.get_by_role("button", name="Load revision").click()
+    page.get_by_text("Loaded immutable source revision 1.").wait_for()
+    page.locator("#revision").select_option("2")
+    assert page.locator("#undo").is_disabled()
+    page.get_by_role("button", name="Load revision").click()
+    page.get_by_text("Loaded immutable source revision 2.").wait_for()
+    assert page.locator("#undo").is_enabled()
+
     page.get_by_role("button", name="Undo", exact=True).click()
     page.get_by_text("UNDO restored revision 1 as new immutable revision 3.").wait_for()
     assert page.locator("#undo").is_disabled()
