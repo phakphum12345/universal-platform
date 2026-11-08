@@ -150,3 +150,15 @@ Each stage is independently reviewable. The whole FeatureHistory branching/mergi
 - Final snapshots are validated by the normal FeatureHistory model; the pure analyzer never mutates inputs or writes to storage.
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (882). Chromium E2E was SKIPPED / not triggered because no API/UI surface changed.
 - **Still OPEN:** atomic target revision append, source/base/target merge provenance, service/API route, workbench controls and browser acceptance.
+
+
+## 13. Transactional merge implementation status — PR #178
+
+- PR #178 merged at `cc58f90d56fc7b8102b4f79a04706836da7b756f`; exact PR head `1f4c2bf1112e29af6b017a9aad051ccd32c3f67c`.
+- Adds additive SQLite schema v3 table `feature_history_merge_actions`; the revision digest envelope remains v1 and prior immutable revision hashes remain valid.
+- `SQLiteFeatureHistoryStore.merge_branch` accepts a source branch and its root or a sibling branch with an identical fork base. It verifies source/target/base hashes, computes the pure three-way analysis, and rechecks both expected heads inside `BEGIN IMMEDIATE`.
+- Successful merge appends one target revision, updates target navigation stacks, and stores source branch/revision/digest, root base/revision/digest and algorithm version in the same transaction.
+- Merge provenance is returned by revision loading; `CADGeneratorService.merge_history_branch` exposes the operation.
+- Conflict/stale-writer tests prove no head, revision or navigation mutation on failure. Source branch remains unchanged.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (886); Chromium E2E PASS (7).
+- **Still OPEN:** strict HTTP API routes, workbench branch/merge controls and branch/merge browser acceptance.
