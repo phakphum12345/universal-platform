@@ -128,3 +128,14 @@ No migration may drop or rewrite existing tables, rows, snapshots, hashes or nav
 6. Add browser acceptance and reconcile requirements, implementation status, roadmap and audit.
 
 Each stage is independently reviewable. The whole FeatureHistory branching/merging requirement remains **OPEN** until all stages and exact-SHA gates pass.
+
+
+## 11. Branch creation implementation status — PR #176
+
+- PR #176 merged at `2bc96a79c9c341dc896da980c1117d37928023ba`; exact PR head `aa4a24c71242c861fdff387475e711d3e22756c6`.
+- Adds additive SQLite schema v2 table `feature_history_branches` for branch ID, root history ID, branch name, exact fork revision/digest and creation timestamp.
+- `SQLiteFeatureHistoryStore.create_branch` verifies the source revision, rejects nested forks and duplicate IDs/names, and commits branch revision 1, head, empty navigation stacks and origin metadata in one transaction.
+- `get_branch` and `list_branches` expose local branch provenance; `CADGeneratorService.fork_history` is the transport-neutral service entry point.
+- Existing revision digest envelope remains v1; migration is additive and preserves existing revision hashes. Regression tests cover historical fork, source independence, suppression preservation and migration.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (875); Chromium E2E PASS (7).
+- **Still OPEN:** three-way merge analysis and append, conflict resolution/reporting, merge provenance, API routes, workbench controls and branch/merge browser acceptance.
