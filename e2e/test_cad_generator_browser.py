@@ -387,6 +387,7 @@ def test_feature_tree_reorder_is_dependency_safe_and_presentation_only(workbench
 
     original_execution = service.history_store.load("history.browser-e2e", revision=2).history.topological_order()
     assert order() == ["base", "dependent", "independent"]
+    assert "stored topological presentation order" in page.locator("#feature-tree-state").inner_text()
     assert page.get_by_role("button", name="Move independent up").is_enabled()
     page.get_by_role("button", name="Move independent up").click()
     page.get_by_text("Saved reorder as immutable revision 3.").wait_for()
