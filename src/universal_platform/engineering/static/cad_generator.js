@@ -56,7 +56,8 @@
     const expected = Number(expectedRevisionInput.value);
     const canEditCurrentHead = connected &&
       Number.isSafeInteger(expected) && expected >= 1 &&
-      !revisionSelect.disabled && revisionSelect.value === String(expected);
+      loadedRevision === expected && !revisionSelect.disabled &&
+      revisionSelect.value === String(expected);
     const canEditSelection = canEditCurrentHead && hasSelection;
     featureEditParametersInput.disabled = !canEditSelection;
     byId("feature-apply-edit").disabled = !canEditSelection;
@@ -118,7 +119,8 @@
     }
     const expected = Number(expectedRevisionInput.value);
     if (!Number.isSafeInteger(expected) || expected < 1 ||
-        revisionSelect.disabled || revisionSelect.value !== String(expected)) {
+        loadedRevision !== expected || revisionSelect.disabled ||
+        revisionSelect.value !== String(expected)) {
       throw new Error("Load the current head revision before using Undo/Redo.");
     }
     navigationBusy = true;
@@ -692,7 +694,8 @@
     if (!Number.isSafeInteger(expected) || expected < 1) {
       throw new Error("A saved current head revision is required before editing.");
     }
-    if (revisionSelect.disabled || revisionSelect.value !== String(expected)) {
+    if (loadedRevision !== expected || revisionSelect.disabled ||
+        revisionSelect.value !== String(expected)) {
       throw new Error("Load the current head revision before editing; historical revisions are read-only.");
     }
     const result = await api("/v1/histories/" + encodeURIComponent(id) + "/edit", {
@@ -813,6 +816,10 @@
       const expected = Number(expectedRevisionInput.value);
       if (!Number.isSafeInteger(expected) || expected < 0) {
         throw new Error("Expected current revision must be a non-negative integer.");
+      }
+      if (expected > 0 && (loadedRevision !== expected ||
+          revisionSelect.disabled || revisionSelect.value !== String(expected))) {
+        throw new Error("Load the current head revision before saving; historical revisions are read-only.");
       }
       const result = await api("/v1/histories", {
         method: "POST",
