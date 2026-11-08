@@ -832,7 +832,7 @@ def test_http_api_branch_routes_reject_unknown_fields_and_bad_revisions(api):
 
 
 def test_http_api_returns_structured_branch_merge_conflicts(api):
-    base, audit, _service = api
+    base, audit, service = api
     root = FeatureHistory(
         "history.http-conflict",
         (FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 1}),),
