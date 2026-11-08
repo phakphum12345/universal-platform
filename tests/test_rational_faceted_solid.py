@@ -238,3 +238,17 @@ def test_rational_solid_accepts_identifier_length_boundary():
         solid.vertices, solid.triangles,
     )
     assert RationalFacetedSolid.from_dict(bounded.to_dict()) == bounded
+
+
+
+def test_from_dict_preflights_pairwise_work_before_coordinate_parsing(monkeypatch):
+    import universal_platform.engineering.rational_faceted_solid as rational_module
+
+    snapshot = tetrahedron().to_dict()
+
+    def unexpected_parse(*args, **kwargs):
+        raise AssertionError("coordinates must not be parsed above pairwise budget")
+
+    monkeypatch.setattr(rational_module, "_parse_rational", unexpected_parse)
+    with pytest.raises(InvalidModelError, match="pair budget exceeded before coordinate parsing"):
+        RationalFacetedSolid.from_dict(snapshot, max_pairwise_checks=5)
