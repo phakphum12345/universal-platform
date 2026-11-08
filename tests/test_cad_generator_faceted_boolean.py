@@ -33,3 +33,16 @@ def test_cad_generator_executes_non_coplanar_intersecting_box_union_end_to_end(t
     assert snapshot["component_count"]==1
     assert snapshot["total_exact_volume"]=="15"
     assert snapshot["selected_fragment_count"]>0
+
+
+def test_cad_generator_executes_coplanar_overlap_union_end_to_end(tmp_path):
+    service=CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path/"source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path/"artifacts.sqlite3"),
+    )
+    meshes=(_box("a",2.0),_box("b",2.0,(1.0,0.0,0.0)))
+    result=service.execute_faceted_boolean(meshes,BRepBooleanOperation.UNION)
+    snapshot=result.to_dict()
+    assert snapshot["component_count"]==1
+    assert snapshot["total_exact_volume"]=="12"
+    assert snapshot["arrangement"]["coplanar_pair_checks"]>0

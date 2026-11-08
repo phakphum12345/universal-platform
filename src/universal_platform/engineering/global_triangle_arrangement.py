@@ -164,24 +164,38 @@ def arrange_triangle_mesh_globally(
         polygon=[global_points[index] for index in boundary_ids]
         source_normal=_area_vector(fragment.vertices)
         while len(polygon)>3:
-            clipped=False
+            ears=[]
             for index in range(len(polygon)):
                 previous=polygon[index-1]
                 current=polygon[index]
                 following=polygon[(index+1)%len(polygon)]
                 orientation=_dot(_cross(_sub(current,previous),_sub(following,current)),source_normal)
-                if orientation<=0:
-                    continue
-                conforming.append(RationalTriangleFragment(
-                    fragment.source_triangle_index,fragment.side_signature,
-                    (previous,current,following)))
-                polygon.pop(index)
-                clipped=True
-                if len(conforming)>max_fragments:
-                    raise InvalidModelError("global conforming triangulation exceeded max_fragments")
-                break
-            if not clipped:
+                if orientation>0:
+                    diagonal=_sub(following,previous)
+                    diagonal_length=_dot(diagonal,diagonal)
+                    diagonal_blocked=False
+                    for candidate_index,candidate in enumerate(polygon):
+                        if candidate_index in (index,(index-1)%len(polygon),(index+1)%len(polygon)):
+                            continue
+                        offset=_sub(candidate,previous)
+                        if _cross(diagonal,offset)==(0,0,0):
+                            projection=_dot(offset,diagonal)
+                            if 0<projection<diagonal_length:
+                                diagonal_blocked=True
+                                break
+                    if diagonal_blocked:
+                        continue
+                    key=(current,min(previous,following),max(previous,following))
+                    ears.append((key,index,previous,current,following))
+            if not ears:
                 raise InvalidModelError("global conforming polygon could not be triangulated exactly")
+            _,index,previous,current,following=min(ears,key=lambda item:item[0])
+            conforming.append(RationalTriangleFragment(
+                fragment.source_triangle_index,fragment.side_signature,
+                (previous,current,following)))
+            polygon.pop(index)
+            if len(conforming)>max_fragments:
+                raise InvalidModelError("global conforming triangulation exceeded max_fragments")
         final_triangle=(polygon[0],polygon[1],polygon[2])
         if _dot(_area_vector(final_triangle),source_normal)<=0:
             raise InvalidModelError("global conforming triangulation changed source winding")

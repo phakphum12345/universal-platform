@@ -49,6 +49,16 @@ def test_two_planes_split_exactly_without_float_round_trip():
                for vertex in item.vertices for value in vertex)
 
 
+def test_convex_arrangement_cell_triangulation_is_cycle_independent():
+    a, b, c = triangle()
+    planes = (vertical_plane(1), horizontal_plane(1))
+    first = arrange_triangles_by_planes(((a, b, c),), planes)
+    rotated = arrange_triangles_by_planes(((b, c, a),), planes)
+    first_faces = {tuple(sorted(item.vertices)) for item in first}
+    rotated_faces = {tuple(sorted(item.vertices)) for item in rotated}
+    assert first_faces == rotated_faces
+
+
 def test_ordered_plane_provenance_is_deterministic():
     planes = (vertical_plane(1), horizontal_plane(1))
     first = arrange_triangles_by_planes((triangle(),), planes)

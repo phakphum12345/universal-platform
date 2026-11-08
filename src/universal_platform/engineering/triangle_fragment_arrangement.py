@@ -116,6 +116,10 @@ def _triangulate(polygon: list[RationalPoint3], source_normal: RationalPoint3
                  ) -> list[RationalTriangle3]:
     if len(polygon) < 3:
         return []
+    # Canonical anchor makes identical convex arrangement cells triangulate
+    # identically even when they originate from different source-face cycles.
+    anchor_index = polygon.index(min(polygon))
+    polygon = polygon[anchor_index:] + polygon[:anchor_index]
     result: list[RationalTriangle3] = []
     for index in range(1, len(polygon) - 1):
         triangle = (polygon[0], polygon[index], polygon[index + 1])

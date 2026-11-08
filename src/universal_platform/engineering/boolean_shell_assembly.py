@@ -58,7 +58,10 @@ def _components(faces:tuple[RationalTriangle3,...],uses):
     adjacency={i:set() for i in range(len(faces))}
     for edge,attached in uses.items():
         if len(attached)!=2:
-            raise InvalidModelError("shell assembly requires exactly two uses per edge")
+            raise InvalidModelError(
+                f"shell assembly requires exactly two uses per edge; got {len(attached)} for {edge}; "
+                f"incident faces={[(item[0], faces[item[0]]) for item in attached]}"
+            )
         first,second=attached
         if first[1]!=second[2] or first[2]!=second[1]:
             raise InvalidModelError("shell edge uses must have opposite directions")
