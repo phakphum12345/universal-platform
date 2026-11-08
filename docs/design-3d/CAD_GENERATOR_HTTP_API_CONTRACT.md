@@ -143,7 +143,7 @@ This hash chain detects accidental/tampered records when the attacker cannot rew
 - [x] Strict JSON parsing, route allow-list and structured errors.
 - [x] Append-only local audit chain with integrity verification.
 - [x] Save, read, list and regenerate an exact FeatureHistory revision.
-- [ ] Suppress/unsuppress HTTP operations are specified; implementation and exact-head acceptance are pending PR #165.
+- [x] Suppress/unsuppress HTTP operations implemented by PR #165 at merge `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity.
 - [x] Exact PR-head CI and post-merge CI pass: 822 tests on each exact SHA.
 - [ ] Production-grade rate limiting, TLS, remote authentication, browser session controls and external audit witness remain out of scope.
 

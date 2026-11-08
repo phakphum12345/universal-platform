@@ -114,6 +114,14 @@
             <button id="feature-apply-edit" disabled>Apply parameter edit</button>
             <button id="feature-remove" class="quiet" disabled>Remove selected feature</button>
           </div>
+          <div class="actions">
+            <button id="feature-suppress" class="quiet" disabled>Suppress selected feature</button>
+            <button id="feature-unsuppress" class="quiet" disabled>Unsuppress selected feature</button>
+          </div>
+          <label class="checkbox-label" for="feature-suppress-cascade">
+            <input id="feature-suppress-cascade" type="checkbox" disabled>
+            Confirm cascade suppression of all dependent features
+          </label>
           <h4>Add feature</h4>
           <div class="two-column">
             <div>
@@ -145,7 +153,7 @@
             <input id="feature-remove-cascade" type="checkbox">
             Confirm cascade removal of all dependent features
           </label>
-          <p class="hint">Edits append a new immutable revision. Editing is limited to the current head revision; stale writes are rejected. Cascade removal is explicit and may remove downstream features.</p>
+          <p class="hint">Edits append a new immutable revision. Editing is limited to the current head revision; stale writes are rejected. Cascade removal is explicit and may remove downstream features. Suppression keeps source nodes and requires explicit confirmation before cascading to dependent features.</p>
         </div>
         <p class="hint">Feature tree order is deterministic dependency order. Geometry regeneration remains a separate operation.</p>
       </div>

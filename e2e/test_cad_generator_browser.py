@@ -60,9 +60,7 @@ def make_history(*, height: float = 2.0) -> FeatureHistory:
     return FeatureHistory(
         "history.browser-e2e",
         (
-            FeatureNode.create(
-                "mesh", FeatureKind.MESH, ("extrusion",)
-            ),
+            FeatureNode.create("mesh", FeatureKind.MESH, ("extrusion",)),
             FeatureNode.create(
                 "extrusion",
                 FeatureKind.EXTRUSION,
@@ -75,8 +73,17 @@ def make_history(*, height: float = 2.0) -> FeatureHistory:
                 (),
                 {"sketch": sketch.to_dict()},
             ),
+            FeatureNode.create("mesh.alt", FeatureKind.MESH, ("extrusion.alt",)),
+            FeatureNode.create(
+                "extrusion.alt", FeatureKind.EXTRUSION, ("profile.alt",),
+                {"solid_id": "solid.browser.alt", "height": 1.5},
+            ),
+            FeatureNode.create(
+                "profile.alt", FeatureKind.SKETCH_PROFILE, (),
+                {"sketch": sketch.to_dict()},
+            ),
         ),
-        ("mesh",),
+        ("mesh", "mesh.alt"),
     )
 
 
@@ -110,7 +117,15 @@ def workbench(tmp_path):
             page.get_by_role("button", name="Connect").click()
             page.locator("#connection-state").filter(has_text="Connected").wait_for()
             page.get_by_role("button", name="Load revision").click()
-            page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
+            try:
+                page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for(timeout=5_000)
+            except Exception as exc:
+                raise AssertionError(
+                    "Feature tree did not render; state="
+                    + page.locator("#feature-tree-state").inner_text()
+                    + "; status=" + page.locator("#status-message").inner_text()
+                    + "; page_errors=" + repr(page_errors)
+                ) from exc
             yield page, service, page_errors
         finally:
             browser.close()
@@ -126,6 +141,8 @@ def test_workbench_starts_without_runtime_errors_and_gates_edit_controls(workben
     assert page.locator("#feature-add").is_enabled()
     assert page.locator("#feature-apply-edit").is_enabled()
     assert page.locator("#feature-remove").is_enabled()
+    assert page.locator("#feature-suppress").is_enabled()
+    assert page.locator("#feature-unsuppress").is_disabled()
     assert service.history_store.load("history.browser-e2e").revision == 1
 
     # Create a newer head, refresh the revision list, then load the older snapshot.
@@ -182,7 +199,7 @@ def test_parameter_edit_add_remove_and_explicit_cascade_work_in_browser(workbenc
     # Removing a node with dependents is rejected until cascade is explicit.
     page.locator('#feature-tree button[data-feature-id="feature.parent"]').click()
     page.get_by_role("button", name="Remove selected feature").click()
-    page.get_by_text("dependent", exact=False).wait_for()
+    page.locator("#status-message").filter(has_text="dependent").wait_for()
     assert service.history_store.load("history.browser-e2e").revision == 4
 
     page.locator("#feature-remove-cascade").check()
@@ -232,4 +249,45 @@ def test_feature_parameters_are_rendered_as_text_not_html(workbench):
     assert page.locator("#feature-inspector img").count() == 0
     assert page.locator("#feature-inspector").inner_text().find("<img") >= 0
     assert page.evaluate("window.__xss === undefined")
+    assert page_errors == []
+
+
+
+def test_suppression_cascade_confirmation_and_dependency_order_restore_in_browser(workbench):
+    page, service, page_errors = workbench
+    page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
+
+    # Active dependents must not be suppressed implicitly.
+    page.get_by_role("button", name="Suppress selected feature", exact=True).click()
+    page.locator("#status-message").filter(has_text="active dependents").wait_for()
+    assert service.history_store.load("history.browser-e2e").revision == 1
+
+    # Explicit cascade requires a browser confirmation and preserves source nodes.
+    page.locator("#feature-suppress-cascade").check()
+    page.on("dialog", lambda dialog: dialog.accept())
+    page.get_by_role("button", name="Suppress selected feature", exact=True).click()
+    page.get_by_text("Saved suppress as immutable revision 2.").wait_for()
+    suppressed = service.history_store.load("history.browser-e2e", revision=2).history
+    assert suppressed.suppressed_feature_ids == ("extrusion", "mesh")
+    assert {node.feature_id for node in suppressed.nodes} == {
+        "profile", "extrusion", "mesh", "profile.alt", "extrusion.alt", "mesh.alt"
+    }
+
+    page.locator('#feature-tree button[data-feature-id="mesh"]').click()
+    assert page.locator("#feature-unsuppress").is_disabled()
+
+    # Restore the dependency first; the suppressed output becomes restorable.
+    page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
+    assert page.locator("#feature-unsuppress").is_enabled()
+    page.get_by_role("button", name="Unsuppress selected feature", exact=True).click()
+    page.get_by_text("Saved unsuppress as immutable revision 3.").wait_for()
+
+    page.locator('#feature-tree button[data-feature-id="mesh"]').click()
+    assert page.locator("#feature-unsuppress").is_enabled()
+    page.get_by_role("button", name="Unsuppress selected feature", exact=True).click()
+    page.get_by_text("Saved unsuppress as immutable revision 4.").wait_for()
+
+    restored = service.history_store.load("history.browser-e2e", revision=4).history
+    assert restored.suppressed_feature_ids == ()
+    assert page.locator('#feature-tree button[data-feature-id="mesh"]').inner_text().find("SUPPRESSED") == -1
     assert page_errors == []

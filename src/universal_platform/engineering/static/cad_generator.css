@@ -105,3 +105,7 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
 .feature-edit-controls h4 { margin: 4px 0 0; }
 .checkbox-label { display: flex; align-items: center; gap: 8px; color: #c6d4e2; }
 .checkbox-label input { width: auto; margin: 0; }
+
+.feature-tree-node.is-suppressed { border-style: dashed; opacity: .72; }
+.feature-tree-node.is-suppressed::after { content: ""; }
+#feature-suppress-cascade:disabled { opacity: .45; }

@@ -120,6 +120,9 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'id="feature-add-output"' in html
     assert 'id="feature-remove"' in html
     assert 'id="feature-remove-cascade"' in html
+    assert 'id="feature-suppress"' in html
+    assert 'id="feature-unsuppress"' in html
+    assert 'id="feature-suppress-cascade"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -165,11 +168,15 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'commitFeatureEdit("replace"' in script
     assert 'commitFeatureEdit("add"' in script
     assert 'commitFeatureEdit("remove"' in script
+    assert 'commitFeatureEdit("suppress"' in script
+    assert 'commitFeatureEdit("unsuppress"' in script
+    assert "window.confirm(" in script
+    assert "selectedFeatureSuppressed" in script
     assert "revisionSelect.value !== String(expected)" in script
     assert "function updateFeatureEditorControls(hasSelection)" in script
     assert "revisionSelect.value === String(expected)" in script
     assert 'byId("feature-add").disabled = !canEditCurrentHead' in script
-    assert 'byId("feature-remove").disabled = !(canEditCurrentHead && hasSelection)' in script
+    assert 'byId("feature-remove").disabled = !canEditSelection' in script
     assert 'snapshotInput.addEventListener("input", renderFeatureTree)' in script
     assert "innerHTML" not in script
 
