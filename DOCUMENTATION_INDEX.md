@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: 2afbb2585e541ad7ccefe7a3755742c3b1b85d9d; PR #170 post-merge workflow-sanity and python-tests (865 tests) passed; Chromium E2E had 4 PASS / 1 fixture timing ERROR. Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 416 commits ahead / 0 behind. Inventory at this baseline: 359 entries, 122 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression is end-to-end IMPLEMENTED; Undo/Redo store and service/API are IMPLEMENTED by PRs #169/#170; workbench/browser acceptance is in PR #171 (current-head gating, revision readiness guard and reload persistence E2E); branching/merging, reorder, generalized B-rep and overall repository completion remain INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: 21bee045ea4d06aa07c7130f9123afaa64372638; PR #171 post-merge workflow-sanity PASS, python-tests PASS (865 tests) and Chromium E2E PASS (6 tests). Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 416 commits ahead / 0 behind. Inventory at this baseline: 359 entries, 122 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression is end-to-end IMPLEMENTED; Undo/Redo store and service/API are IMPLEMENTED by PRs #169/#170; workbench/browser acceptance is in PR #171 (current-head gating, revision readiness guard and reload persistence E2E); branching/merging, reorder, generalized B-rep and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -247,3 +247,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Post-PR #156 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md) — exact PR-head/post-merge CI evidence for browser FeatureHistory editing controls and remaining quality gates.
 
 - [Post-PR #158 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md) — exact PR-head and post-merge CI evidence for real Chromium FeatureHistory editor coverage; remaining CAD and repository-wide gaps.
+
+
+## FeatureHistory Undo/Redo — PRs #168–#171
+
+- [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — append-only revision restore model, persistent stacks, expected-revision safety and workbench rules.
+- [Post-PR #171 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR171.md) — exact merge SHA and post-merge Python, Chromium and workflow-sanity evidence.
+- Undo/Redo is PASS for this bounded FeatureHistory workflow. Graph branch/merge, reorder semantics, recompute propagation and general CAD-kernel capabilities remain OPEN.
