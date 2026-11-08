@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `91def9b8367969d0dcef04806b831cc34022e797`  
+**Last verified integration baseline:** `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -76,3 +76,11 @@
 ## Next dependency-ready slice
 
 - CAD-EDIT-005 — specify FeatureHistory suppression semantics and compatibility/migration rules before implementation. Define downstream dependency behavior, output invariants, revision/audit behavior, cache invalidation and UI/API expectations. Do not introduce implicit cascade or silently change the FeatureHistory v1.0 schema.
+
+
+## Documentation reconciliation — PR #160
+
+- PR #160 merged to integration at `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a`.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS after preserving the historical baseline identifier required by `tests/test_post_pr113_status_docs.py`.
+- Exact post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
+- Status: PASS for documentation reconciliation; no source/runtime behavior changed.
