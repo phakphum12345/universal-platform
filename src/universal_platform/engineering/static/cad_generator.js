@@ -725,8 +725,10 @@
       byId("load").disabled = true;
       byId("regenerate").disabled = true;
       expectedRevisionInput.value = "0";
+      navigationState = null;
       byId("revision-state").textContent = "No revision loaded";
       updateFeatureEditorControls(false);
+      updateNavigationControls();
       return result;
     }
     revisions.forEach((number) => {
@@ -744,6 +746,7 @@
     byId("regenerate").disabled = false;
     byId("revision-state").textContent = "Head revision " + head;
     updateFeatureEditorControls(false);
+    await refreshNavigation();
     return result;
   }
 
