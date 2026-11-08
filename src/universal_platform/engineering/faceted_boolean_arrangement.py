@@ -143,7 +143,7 @@ def arrange_faceted_boolean_meshes(
     # Build a complete planar line arrangement on each active coplanar plane:
     # include every source triangle edge on that plane, not only edges from
     # the individual overlapping triangle pairs.
-    for key in active_coplanar_planes:
+    for key in sorted(active_coplanar_planes):
         for triangles in per_mesh_triangles:
             for triangle in triangles:
                 if _plane_key(triangle)!=key:
