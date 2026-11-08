@@ -108,3 +108,29 @@ Tests must not use the implementation under test as its own oracle. A skipped or
 ## 9. Exit criteria
 
 The arbitrary-faceted Boolean capability is not PASS until all applicable gates have implementation, independent reference tests, exact-head CI and post-merge CI on the integration branch. The repository remains INCOMPLETE while other required domains or platform-wide acceptance gates remain open.
+
+
+## 10. Implementation evidence update — 2026-11-08
+
+The following bounded slices are merged to `docs/phase-0-complete-requirements`:
+
+- PR #200: global exact-rational vertex identity, face/edge incidence and adjacency.
+- PR #201: exact global T-junction diagnostics with a fail-closed topology scan budget.
+- PR #202: canonical subedge incidence at every registered exact vertex on a face edge.
+- PR #203: independent exact 2D coverage oracle for source-triangle containment, pairwise overlap, duplicate fragments and area conservation; plane type/index and rational-bit validation.
+- PR #204: exact point-vs-mesh classification with INSIDE / OUTSIDE / BOUNDARY / UNKNOWN outcomes and multiple deterministic ray witnesses.
+- PR #205: Boolean boundary selection for UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE on caller-supplied complete face partitions.
+- PR #206: exact edge-connected shell grouping, orientation and exact-volume checks, cavity assignment, and BRepSolid/BRepMultiShellSolid validation.
+- PR #207: public package exports and CADGeneratorService orchestration for the pre-arranged Boolean pipeline.
+
+Latest integration SHA at this reconciliation: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`.
+
+### Remaining restrictions
+
+- Cross-solid triangle intersection discovery and automatic global face splitting are not complete. The boundary-selection service requires complete caller-supplied per-source-face partitions.
+- Coplanar overlap, tangency, point/edge/vertex contact, branching and other degeneracies remain unsupported unless a dedicated exact gate proves them.
+- The current B-rep schema uses binary64. Shell assembly rejects rational coordinates that cannot round-trip exactly; it never rounds or tolerance-welds them.
+- Nested positive material islands and generalized shell-parent semantics remain unsupported.
+- PR #207 integration is service-level. It does not expose an unrestricted Boolean HTTP/browser endpoint and does not establish arbitrary faceted Boolean E2E.
+
+**Gate status:** The global arrangement, material classification, boundary selection and shell assembly slices have bounded implementations. The general arbitrary-faceted Boolean kernel remains **PARTIAL / INCOMPLETE** until automatic arrangement completeness, degeneracy semantics, rational-coordinate output, generator E2E and independent acceptance fixtures all pass.
