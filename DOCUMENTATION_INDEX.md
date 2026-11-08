@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: a952fd927e5b6a0fa7fd9701343c2bffb52091e1; PR #162 post-merge workflow passed workflow-sanity and python-tests. Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 407 commits ahead / 0 behind. Inventory at this baseline: 357 entries, 121 Markdown, 166 Python, 24 JSON files and 85 Python test files. Browser E2E for the CAD FeatureHistory workbench is PASS (4 tests); FeatureHistory suppression backend is under PR #163 and service/API/workbench E2E remain open; broader repository completion remains INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b; PR #163 post-merge CI passed workflow-sanity, python-tests (851 tests) and Chromium E2E (4 tests). Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 408 commits ahead / 0 behind. Inventory at this baseline: 358 entries, 121 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression backend model/editor/regeneration is IMPLEMENTED; revision-safe service/API operations, workbench controls and suppression-specific browser E2E remain open; broader repository completion remains INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -27,6 +27,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md) — tool, solver and CAD technology evaluation policy.
 - [Domain Catalogue](docs/DOMAIN_CATALOGUE.md) — cross-disciplinary domain taxonomy.
 - [Universal Requirements](docs/requirements/UNIVERSAL_REQUIREMENTS.md) — top-level requirements and quality attributes.
+- [Requirements Traceability Matrix](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) — product-level requirement status and remaining gaps.
 
 ## Architecture and system contracts
 
