@@ -1447,4 +1447,4 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 
 ### Follow-up resource validation — PR #213 merged
 
-PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct plane types, applies rational numerator/denominator bit ceilings to cutter-plane coordinates, and bounds the standalone exact coverage oracle. Exact PR-head workflow-sanity and Python tests PASS. Post-merge workflow-sanity is QUEUED and Python tests are IN_PROGRESS at this snapshot; do not count post-merge CI as PASS yet.
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct plane types, applies rational numerator/denominator bit ceilings to cutter-plane coordinates, and bounds the standalone exact coverage oracle. Exact PR-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests. PR #213 is PASS for exact-head and post-merge required checks.
