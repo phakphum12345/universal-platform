@@ -537,3 +537,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Post-merge Python regression suite: 843 passed; workflow sanity PASS.
 - Merge SHA: `9d899f70a97372f689ba07a8e90b479bf14494b4`.
 - This closes the browser-automation evidence gap for the current bounded add/replace/remove editor. It does not close the feature suppression, reorder semantics, undo/redo, branch/merge, B-rep editing or general CAD kernel work packages.
+
+
+## FeatureHistory suppression backend core — PR #163 MERGED
+
+- FeatureHistory v1.1 adds a canonical `suppressed_feature_ids` set while preserving strict v1.0 loading, serialization and stored revision digests.
+- Added explicit v1.0 → v1.1 migration, immutable suppress/unsuppress helpers, explicit transitive cascade, dependency/output invariants and regeneration skip/report behavior.
+- Suppressed source nodes are retained; no artifact-cache cleanup or deletion is performed.
+- PR #163 merged at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`. Exact PR-head CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS. Exact post-merge CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS.
+- **Next:** CAD-EDIT-006 revision-safe service/API operations; CAD-EDIT-007 workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E.
+- **Still open:** end-to-end suppression UX, undo/redo, graph branch/merge, feature reordering, generalized B-rep/3D Boolean, broader platform integration and full repository verification. This PR does not make the repository COMPLETE.
