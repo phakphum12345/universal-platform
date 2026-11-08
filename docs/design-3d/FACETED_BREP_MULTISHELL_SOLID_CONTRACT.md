@@ -93,3 +93,13 @@ No Boolean surface reconstruction is performed. This operation composes already 
 - Post-merge workflow #42461678728: workflow-sanity PASS; Python 904 PASS (14.44s).
 - The rotated 45-degree box cavity and concave L-prism cavity reference cases both pass containment, intersection, watertightness, orientation and net-volume checks.
 - See [post-PR #186 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md).
+
+
+## 11. PR #188 touching-boundary and UNKNOWN failure-injection evidence
+
+- PR #188 exact head: `de8403ce210a4d283d4163401338cf0370c811de`; merge SHA: `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`.
+- Exact PR-head workflow #42461990534: workflow-sanity PASS; Python 906 PASS (15.32s).
+- Post-merge workflow #42462067390: workflow-sanity PASS; Python 906 PASS (16.06s).
+- A cavity touching the outer boundary is rejected.
+- An injected mesh-intersection status of `UNKNOWN` is rejected; it is never converted to PASS.
+- See [post-PR #188 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md).
