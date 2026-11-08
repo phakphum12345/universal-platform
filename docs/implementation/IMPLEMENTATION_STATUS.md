@@ -1,10 +1,10 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited integration baseline:** `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b` (PR #163 backend suppression core merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **408 commits ahead / 0 behind** at this audit.  
+**Last audited integration baseline:** `21bee045ea4d06aa07c7130f9123afaa64372638` (PR #171 Undo/Redo workbench merged).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **416 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration-head CI:** exact SHA `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b` — workflow-sanity PASS, python-tests PASS (851 tests), Chromium E2E PASS (4 tests). The documentation-only marker was SKIPPED and is not counted as a pass. The documentation-only marker was SKIPPED and is not counted as a pass.  
+**Latest integration-head CI:** exact SHA `21bee045ea4d06aa07c7130f9123afaa64372638` — workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests). Each result is tied to this exact SHA; skipped markers are not counted as passes.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
 **Current tree:** 359 entries, 122 Markdown, 167 Python, 24 JSON files, 86 Python test files; recursive tree response truncated=false.  
 **Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
@@ -1183,3 +1183,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Rejects empty/non-positive revision selection before Load or Regenerate.
 - Chromium fixture waits for the revision option to be attached before loading; adds reload persistence, redo invalidation after a new edit and historical read-only coverage.
 - Exact-head CI pending. The previous PR #170 post-merge browser error remains a known failure until this PR passes post-merge.
+
+
+## Current integration update — PR #171 MERGED
+
+- PR #171: https://github.com/phakphum12345/universal-platform/pull/171
+- Exact PR head: `b053f203d6156aa8dcf7265e513d20c854623eba`; merge SHA: `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
+- Undo/Redo workbench uses server-persisted navigation state, requires the actually loaded current head for mutations, keeps historical revisions read-only, and refreshes revision/navigation state after restore actions.
+- Browser coverage includes multi-step Undo/Redo, reload persistence, historical read-only gating, redo invalidation after a new edit and revision-option readiness.
+- Bounded FeatureHistory Undo/Redo is PASS across PRs #168–#171. The overall CAD editor and repository remain PARTIAL / INCOMPLETE.

@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`  
+**Last verified integration baseline:** `21bee045ea4d06aa07c7130f9123afaa64372638`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration merged in PR #163; undo/redo, branching/merging, feature reorder and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory add/replace/remove, suppression and Undo/Redo are end-to-end implemented in bounded scopes (PRs #152–#171); branching/merging, feature reorder semantics, recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -170,10 +170,9 @@
 - Pending exact-head and post-merge gates.
 
 
-## CAD-EDIT-011 — Undo/Redo workbench (PR #171)
+## CAD-EDIT-011 — Undo/Redo workbench (PR #171) — PASS
 
-- Adds Undo/Redo buttons driven by server navigation state and enabled only when the current head snapshot is actually loaded.
-- Historical revision selection and loading remain read-only; returning the dropdown to the head does not re-enable mutations until the head is loaded again.
-- Guards empty/invalid revision values before Load/Regenerate, fixing the PR #170 post-merge `revision=0` timing race.
-- Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating and redo invalidation after a new edit.
-- Pending exact-head and post-merge gates.
+- PR #171 merged at `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
+- Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating, redo invalidation after a new edit and revision-option readiness.
+- Status: PASS for end-to-end FeatureHistory Undo/Redo; WP-03 overall remains PARTIAL.
