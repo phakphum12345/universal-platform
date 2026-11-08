@@ -189,3 +189,12 @@
 - PR #179 exact PR-head/post-merge: workflow-sanity PASS, Python 889 PASS, Chromium 7 PASS.
 - PR #180 exact PR-head/post-merge: workflow-sanity PASS, Python 889 PASS, Chromium 9 PASS.
 - **Status: PASS** for bounded FeatureHistory branch/fork/merge end-to-end. Overall CAD and Universal Platform remain PARTIAL / INCOMPLETE.
+
+
+## CAD B-rep topology — PR #181
+
+- PR #181 merged at `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b` (exact PR head `70be8fb3c091fd391d994da01c0fb6b4cb912dfd`).
+- Schema/profile v2.0 supports polygonal planar faces and face inner loops; exact rational predicates validate planarity, loop simplicity, strict containment and orientation.
+- Genus-1 square through-hole shell reference passes; v1.0 triangular snapshots remain importable.
+- Exact PR-head/post-merge: workflow-sanity PASS; Python 892 PASS. Chromium E2E SKIPPED/not triggered (no UI change).
+- **Status: PASS** for single-shell polygonal BRep with face holes. Multi-shell solids, general 3D Boolean and polygonal/hole mesh triangulation remain OPEN.
