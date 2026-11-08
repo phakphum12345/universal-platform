@@ -139,3 +139,14 @@ Each stage is independently reviewable. The whole FeatureHistory branching/mergi
 - Existing revision digest envelope remains v1; migration is additive and preserves existing revision hashes. Regression tests cover historical fork, source independence, suppression preservation and migration.
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (875); Chromium E2E PASS (7).
 - **Still OPEN:** three-way merge analysis and append, conflict resolution/reporting, merge provenance, API routes, workbench controls and branch/merge browser acceptance.
+
+
+## 12. Pure merge analysis implementation status — PR #177
+
+- PR #177 merged at `c1d291e3d48a6757642400303dd035a7491bd9ff`; exact PR head `0dcba4786caba9aeb1b8c8eb6c28c878b7ce0f3a`.
+- Adds `merge_feature_histories(base, source, target)` and typed `FeatureHistoryMergeResult` / `FeatureHistoryMergeConflict` records.
+- Stable feature IDs drive three-way node comparison; disjoint edits and identical changes merge, while divergent node changes and delete-vs-edit return explicit conflicts.
+- Output and suppression membership use independent three-way set semantics. Presentation order uses conservative pairwise constraints and deterministic topological sorting; cycles/incompatible order return conflicts.
+- Final snapshots are validated by the normal FeatureHistory model; the pure analyzer never mutates inputs or writes to storage.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (882). Chromium E2E was SKIPPED / not triggered because no API/UI surface changed.
+- **Still OPEN:** atomic target revision append, source/base/target merge provenance, service/API route, workbench controls and browser acceptance.
