@@ -547,3 +547,130 @@ def test_http_api_suppresses_and_restores_features_with_revision_checks(api):
     assert status == 400
     assert invalid["error"]["code"] == "INVALID_FIELDS"
     assert audit.verify()
+
+
+
+def test_http_api_undo_redo_navigation_and_revision_conflicts(api):
+    base, audit, _service = api
+    initial = make_history()
+    status, first = send(
+        base, "/v1/histories", method="POST",
+        body={"history": initial.to_dict(), "expected_revision": 0},
+    )
+    assert status == 201
+    assert first["revision"] == 1
+    status, second = send(
+        base, "/v1/histories", method="POST",
+        body={"history": initial.to_dict(), "expected_revision": 1},
+    )
+    assert status == 201
+    assert second["revision"] == 2
+
+    status, navigation = send(base, "/v1/histories/history.http-api/navigation")
+    assert status == 200
+    assert navigation == {
+        "history_id": "history.http-api",
+        "current_revision": 2,
+        "can_undo": True,
+        "can_redo": False,
+        "undo_depth": 1,
+        "redo_depth": 0,
+    }
+
+    status, unavailable = send(
+        base, "/v1/histories/history.http-api/redo", method="POST",
+        body={"expected_revision": 2},
+    )
+    assert status == 409
+    assert unavailable["error"]["code"] == "NO_REDO"
+
+    status, undone = send(
+        base, "/v1/histories/history.http-api/undo", method="POST",
+        body={"expected_revision": 2},
+    )
+    assert status == 201
+    assert undone["revision"] == 3
+    assert undone["operation"] == "undo"
+    assert undone["source_revision"] == 2
+    assert undone["target_revision"] == 1
+
+    status, navigation = send(base, "/v1/histories/history.http-api/navigation")
+    assert status == 200
+    assert navigation["current_revision"] == 3
+    assert navigation["can_undo"] is False
+    assert navigation["can_redo"] is True
+
+    status, unavailable = send(
+        base, "/v1/histories/history.http-api/undo", method="POST",
+        body={"expected_revision": 3},
+    )
+    assert status == 409
+    assert unavailable["error"]["code"] == "NO_UNDO"
+
+    status, redone = send(
+        base, "/v1/histories/history.http-api/redo", method="POST",
+        body={"expected_revision": 3},
+    )
+    assert status == 201
+    assert redone["revision"] == 4
+    assert redone["operation"] == "redo"
+    assert redone["source_revision"] == 3
+    assert redone["target_revision"] == 2
+
+    status, conflict = send(
+        base, "/v1/histories/history.http-api/undo", method="POST",
+        body={"expected_revision": 3},
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "REVISION_CONFLICT"
+
+    status, invalid = send(
+        base, "/v1/histories/history.http-api/undo", method="POST",
+        body={"expected_revision": 4, "target_revision": 1},
+    )
+    assert status == 400
+    assert invalid["error"]["code"] == "INVALID_FIELDS"
+    status, invalid_query = send(
+        base, "/v1/histories/history.http-api/navigation?revision=1"
+    )
+    assert status == 400
+    assert invalid_query["error"]["code"] == "UNEXPECTED_QUERY"
+    assert audit.verify()
+
+
+def test_http_api_new_edit_after_undo_clears_redo_stack(api):
+    base, _audit, _service = api
+    initial = make_history()
+    send(
+        base, "/v1/histories", method="POST",
+        body={"history": initial.to_dict(), "expected_revision": 0},
+    )
+    send(
+        base, "/v1/histories", method="POST",
+        body={"history": initial.to_dict(), "expected_revision": 1},
+    )
+    status, undone = send(
+        base, "/v1/histories/history.http-api/undo", method="POST",
+        body={"expected_revision": 2},
+    )
+    assert status == 201
+    assert undone["revision"] == 3
+
+    edited = make_history()
+    status, saved = send(
+        base, "/v1/histories", method="POST",
+        body={"history": edited.to_dict(), "expected_revision": 3},
+    )
+    assert status == 201
+    assert saved["revision"] == 4
+
+    status, navigation = send(base, "/v1/histories/history.http-api/navigation")
+    assert status == 200
+    assert navigation["can_redo"] is False
+    assert navigation["redo_depth"] == 0
+    status, unavailable = send(
+        base, "/v1/histories/history.http-api/redo", method="POST",
+        body={"expected_revision": 4},
+    )
+    assert status == 409
+    assert unavailable["error"]["code"] == "NO_REDO"
