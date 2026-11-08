@@ -1407,7 +1407,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 ## Current arbitrary faceted Boolean implementation — post-PR #212 (2026-11-08)
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Pinned integration SHA:** `7fd78fa40886694bd46cfb6a61f60c3f716033f2`  
+**Pinned integration SHA:** `d1289efdb71a1172beb88665baf09b4620f0cdc5`  
 **Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)
 
 ### Merged bounded implementation slices
@@ -1445,6 +1445,6 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 
 **Capability status:** bounded faceted Boolean execution is implemented for the named fixtures. General arbitrary-faceted B-rep Boolean remains **PARTIAL / INCOMPLETE**. Overall Universal Platform remains **INCOMPLETE** pending repository-wide requirements and adversarial validation.
 
-### Follow-up resource validation
+### Follow-up resource validation — PR #213 merged
 
-PR #213 is open on `fix/cad-rational-input-budgets` at exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`. It adds rational bit ceilings to direct cutter-plane and standalone coverage-oracle inputs. At this snapshot, workflow-sanity is PASS and Python tests are IN_PROGRESS; do not count the PR as merged or fully passed.
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct plane types, applies rational numerator/denominator bit ceilings to cutter-plane coordinates, and bounds the standalone exact coverage oracle. Exact PR-head workflow-sanity and Python tests PASS. Post-merge workflow-sanity is QUEUED and Python tests are IN_PROGRESS at this snapshot; do not count post-merge CI as PASS yet.
