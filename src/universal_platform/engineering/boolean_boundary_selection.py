@@ -59,14 +59,14 @@ def _operation_value(values:tuple[bool,...],operation:BRepBooleanOperation)->boo
     if operation is BRepBooleanOperation.DIFFERENCE:return values[0] and not any(values[1:])
     return sum(values)%2==1
 def _offset_witness(witness:RationalPoint3,face_normal:RationalPoint3,
-                    all_planes:tuple[tuple[RationalPoint3,RationalPoint3],...]
+                    all_planes:tuple[tuple[RationalPoint3,RationalPoint3,RationalTriangle3],...]
                     )->tuple[RationalPoint3,RationalPoint3]:
     nearest=None
-    for normal,plane_point in all_planes:
+    for normal,plane_point,plane_triangle in all_planes:
         signed=_dot(normal,_sub(witness,plane_point))
         if signed==0:
-            if _cross(normal,face_normal)!=(0,0,0):
-                raise InvalidModelError("fragment witness lies on a non-coplanar arrangement plane")
+            if _cross(normal,face_normal)!=(0,0,0) and _inside_source_face(witness,plane_triangle):
+                raise InvalidModelError("fragment witness lies on a non-coplanar mesh facet")
             continue
         rate=_dot(normal,face_normal)
         if rate!=0:
@@ -110,7 +110,7 @@ def select_boolean_boundary_fragments(
     for mesh in meshes:
         for index in range(len(mesh.triangles)):
             triangle=_mesh_triangle(mesh,index)
-            all_planes.append((_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0])),triangle[0]))
+            all_planes.append((_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0])),triangle[0],triangle))
     plane_tuple=tuple(all_planes)
     coverage_used=0
     for solid_index,(mesh,fragments) in enumerate(zip(meshes,fragments_by_solid)):
