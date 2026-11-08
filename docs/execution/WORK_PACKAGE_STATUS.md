@@ -295,3 +295,25 @@
 - Independent exact coverage oracle for gaps, overlaps, duplicate coverage, orientation and area.
 - Aggregate resource ceilings for candidate pairs, fragments, memory and rational growth.
 - Keep coplanar overlap, tangency, branching and contact fail-closed until reference-backed gates pass.
+
+
+## CAD / repository progress reconciliation — 2026-11-08 (post-PR #207)
+
+**Pinned integration baseline:** `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`  
+**Main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged).
+
+- **WP-02 CAD geometry — PARTIAL.** PRs #200–#206 add global exact topology, T-junction diagnostics, edge subdivision, independent coverage oracle, exact material classification, Boolean boundary selection and validated shell assembly. These are bounded primitives; automatic cross-solid intersection discovery and global face splitting remain open. Coplanar/tangential/contact/branching degeneracies remain fail-closed. Binary64 B-rep output rejects non-lossless rational coordinates.
+- **WP-03 CAD Generator — PARTIAL.** PR #207 exports the Boolean pipeline and adds `CADGeneratorService.execute_prearranged_boolean`. It consumes caller-supplied complete per-face partitions; it does not compute arbitrary 3D intersections and does not add an unrestricted HTTP/browser Boolean endpoint.
+- **WP-04 Mechanics — PARTIAL.** Existing normalized mechanism schema, constraints/Jacobians, loop closure, mobility and kinematics are bounded. General spatial dynamics and full solver validation remain open.
+- **WP-05 Physics — PARTIAL.** Central solver registry and starter physics modules exist; coupled multiphysics and wider authoritative reference coverage remain open.
+- **WP-06/07 Hardware, EDA and PCB — PARTIAL.** Driver, schematic, layout and ERC foundations exist. Full PCB workflow, electrical simulation and manufacturing/export validation remain open.
+- **WP-08 Drivers — PARTIAL / SOURCE UNKNOWN.** Preserve existing driver-generation capability; identify and verify its canonical source before extending it. Do not duplicate it.
+- **WP-09 Runtime — PARTIAL.** Adapter/resource/evidence/health/recovery foundations exist; OS-enforced isolation and full permission enforcement remain open.
+- **WP-10/12 System understanding and platform integration — PARTIAL.** Documentation and module contracts exist; end-to-end authorized discovery/adaptation and cross-domain workflows remain unverified.
+- **WP-11 API/CLI/UI — PARTIAL.** CAD loopback API and workbench exist; generalized platform API/CLI and broad integration remain open.
+- **WP-13 Security/quality — PARTIAL.** Python CI, workflow sanity and Chromium E2E exist. Full dependency/license/secret audit, threat model and OS-isolation proof remain open. Inspected branch protection is disabled; required checks are not enforced by GitHub branch protection.
+- **WP-14 Final verification — FAIL / INCOMPLETE.** Repository-wide requirements and acceptance gates are not all met.
+
+PR #207 exact head `e34799b131d8bcc4e9f893529659c80f40b7bb90`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS. PR #207 merge SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`. Post-merge checks must be rechecked before recording post-merge PASS.
+
+See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) and [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md).
