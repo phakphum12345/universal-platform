@@ -62,6 +62,7 @@ No Boolean surface reconstruction is performed. This operation composes already 
 - Multiple disjoint cavities: deterministic output and subtractive net volume.
 - Rotated non-axis-aligned cavity and concave polygonal-prism cavity reference cases.
 - Outside, touching, intersecting and nested cavity rejection.
+- Explicit failure injection proving intersection-analysis UNKNOWN rejects the aggregate.
 - Frame/unit mismatch rejection.
 - Strict snapshot round-trip, digest verification and schema contract.
 - Existing single-shell v1/v2 tests remain unchanged.
