@@ -1,4 +1,3 @@
-from copy import deepcopy
 from fractions import Fraction as F
 
 import pytest
@@ -61,7 +60,7 @@ def test_rational_shell_rejects_open_or_inconsistently_oriented_edges():
     with pytest.raises(InvalidModelError, match="exactly two incident faces"):
         RationalFacetedSolid(
             solid.solid_id, solid.frame_id, solid.length_unit,
-            solid.vertices, solid.triangles[:-1],
+            solid.vertices, solid.triangles[:-1] + (solid.triangles[0],),
         )
     bad = list(solid.triangles)
     bad[0] = tuple(reversed(bad[0]))
