@@ -314,6 +314,6 @@
 - **WP-13 Security/quality — PARTIAL.** Python CI, workflow sanity and Chromium E2E exist. Full dependency/license/secret audit, threat model and OS-isolation proof remain open. Inspected branch protection is disabled; required checks are not enforced by GitHub branch protection.
 - **WP-14 Final verification — FAIL / INCOMPLETE.** Repository-wide requirements and acceptance gates are not all met.
 
-PR #207 exact head `e34799b131d8bcc4e9f893529659c80f40b7bb90`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS. PR #207 merge SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`. Post-merge checks must be rechecked before recording post-merge PASS.
+PR #207 exact head `e34799b131d8bcc4e9f893529659c80f40b7bb90`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS. PR #207 merge SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`. Post-merge SHA `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS.
 
 See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) and [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md).
