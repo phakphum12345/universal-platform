@@ -49,7 +49,7 @@ def test_feature_history_undo_redo_contract_is_indexed_and_design_only():
         ROOT / "docs" / "traceability" / "REQUIREMENTS_TRACEABILITY_MATRIX.md"
     ).read_text(encoding="utf-8")
     assert "FEATURE_HISTORY_UNDO_REDO_CONTRACT.md" in index
-    assert "Store-level implementation is in PR #169" in contract
+    assert "Store layer implemented by PR #169" in contract
     assert "PR #170" in contract
     assert "Workbench controls" in contract
     assert "Undo and Redo never delete revisions" in contract
