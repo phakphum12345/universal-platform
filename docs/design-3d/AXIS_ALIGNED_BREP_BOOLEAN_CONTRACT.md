@@ -50,3 +50,8 @@ This is not a general 3D Boolean kernel. It does not accept arbitrary faceted so
 - Face-only contact: adjacent boxes sharing one full face merge into one closed component.
 - Multi-box branch: three face-attached arms around a central box produce one valid genus-zero shell with deterministic output digest under input permutation.
 - Every emitted component must pass B-rep closure, manifoldness, orientation, connectedness and positive-volume validation.
+
+
+## Compatibility note after Faceted BRep v2.0
+
+The axis-aligned Boolean v1.0 contract remains deliberately restricted to validated triangular box shells. BRepSolid v2.0 now represents polygonal faces and inner loops, but this does not broaden the Boolean adapter: n-gons, inner loops, multi-shell solids and arbitrary faceted solids remain unsupported by this operation set.
