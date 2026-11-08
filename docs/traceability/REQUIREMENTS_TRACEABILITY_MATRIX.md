@@ -238,3 +238,6 @@ Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 9
 **Overall CAD-BREP-BOOLEAN-001:** PARTIAL / INCOMPLETE. The bounded test cases pass; unsupported contact/tangency/branching, broader adversarial geometry and rational-coordinate B-rep output remain open.
 
 **Pinned evidence snapshot:** integration `7fd78fa40886694bd46cfb6a61f60c3f716033f2`; main `96e75010716226037893155b9fd4b13410fb0d6f` unchanged.
+
+
+| Coplanar contact isolation | PR #215 merge `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`; exact head `171583c852994aba3f61f712d48deabd0aab7cca` | PASS for exact-head Python/workflow-sanity | Post-merge workflow-sanity PASS; Python tests IN_PROGRESS. Isolated contacts on active planes are rejected unless fully covered by overlap closure. |
