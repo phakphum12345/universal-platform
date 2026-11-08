@@ -528,3 +528,12 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR head `265ca3907e05f958fbae48f48398fbbae8d70ea2`: workflow-sanity PASS; python-tests PASS; 843 passed in 9.40s.
 - Exact merge SHA `10404099ccaa85cef24adedffa7bce789abd691e`: post-merge workflow #42407835073 passed both jobs; 843 passed in 9.76s.
 - Remaining: browser E2E interaction tests, suppression, reorder semantics, undo/redo, branch/merge history, expression parameters, B-rep editing and geometry recomputation propagation. This PR is a bounded source-history editor, not a complete CAD editor.
+
+
+## CAD FeatureHistory browser E2E — PR #158 MERGED
+
+- Adds a dedicated real-Chromium Playwright workflow for the local FeatureHistory editor.
+- Four browser tests pass on both the exact PR head and exact post-merge integration SHA.
+- Post-merge Python regression suite: 843 passed; workflow sanity PASS.
+- Merge SHA: `9d899f70a97372f689ba07a8e90b479bf14494b4`.
+- This closes the browser-automation evidence gap for the current bounded add/replace/remove editor. It does not close the feature suppression, reorder semantics, undo/redo, branch/merge, B-rep editing or general CAD kernel work packages.
