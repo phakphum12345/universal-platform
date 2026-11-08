@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`  
+**Last verified integration baseline:** `21bee045ea4d06aa07c7130f9123afaa64372638`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -177,3 +177,12 @@
 - Guards empty/invalid revision values before Load/Regenerate, fixing the PR #170 post-merge `revision=0` timing race.
 - Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating and redo invalidation after a new edit.
 - Pending exact-head and post-merge gates.
+
+
+## CAD-EDIT-011 — Undo/Redo workbench end-to-end completion
+
+- PR #171 merged at `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- Exact PR-head and post-merge CI: 865 Python tests PASS, 6 Chromium E2E tests PASS, workflow-sanity PASS.
+- Workbench controls are driven by persistent server navigation state; actions are enabled only when the actual loaded snapshot is the current head.
+- Browser tests verify historical read-only behavior, multi-step Undo/Redo, persistence after reload and Redo invalidation after a new edit.
+- Status: PASS for FeatureHistory Undo/Redo end-to-end. WP-03 remains PARTIAL for broader CAD branching/merging, reorder, generalized B-rep and other kernel/editor capabilities.
