@@ -317,11 +317,13 @@
 
   function setConnected(value) {
     connected = value;
+    if (!value) navigationState = null;
     connectionState.textContent = value ? "Connected" : "Not connected";
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
     renderProfile();
     renderFeatureTree();
+    updateNavigationControls();
   }
 
   function profileToCanvas(point) {
@@ -775,6 +777,8 @@
         revisionSelect.disabled = true;
         byId("load").disabled = true;
         byId("regenerate").disabled = true;
+        navigationState = null;
+        updateNavigationControls();
         setStatus("Connected. No saved history exists for this ID yet; create the first revision.", "good");
       }
       showResult(health);
@@ -824,6 +828,11 @@
       setStatus(error.message, "bad");
       showResult(error.payload || error.message);
     }
+  });
+
+  revisionSelect.addEventListener("change", () => {
+    updateFeatureEditorControls(selectedFeatureId !== null);
+    updateNavigationControls();
   });
 
   byId("load").addEventListener("click", async () => {
