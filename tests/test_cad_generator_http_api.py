@@ -163,7 +163,8 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert "clearMeshSelection" in script
     assert "function renderFeatureTree()" in script
     assert "MAX_FEATURE_TREE_NODES = 500" in script
-    assert "deterministic topological order" in script
+    assert "stored topological presentation order" in script
+    assert "deterministic topological fallback" in script
     assert "Feature dependency cycle detected" in script
     assert "featureInspector.textContent = JSON.stringify" in script
     assert "function commitFeatureEdit(operation, fields)" in script
