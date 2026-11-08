@@ -1235,3 +1235,16 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Adds `merge_feature_histories(base, source, target)`, typed conflict/result records, stable-ID three-way node merge, delete-vs-edit detection, output/suppression membership merge and conservative deterministic presentation-order merge.
 - Analyzer is pure and does not mutate histories, write revisions or resolve conflicts. Store-level transactional merge, merge provenance, API, workbench and browser flow remain OPEN.
 - FeatureHistory branch/fork and pure merge analysis are PASS as separate bounded slices; full branch/merge requirement remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #178 MERGED
+
+- PR #178: https://github.com/phakphum12345/universal-platform/pull/178
+- Exact PR head: `1f4c2bf1112e29af6b017a9aad051ccd32c3f67c`; merge SHA: `cc58f90d56fc7b8102b4f79a04706836da7b756f`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (886); Chromium E2E PASS (7).
+- Adds additive SQLite schema v3 merge provenance, keeping the existing revision digest envelope v1 and prior revision hashes intact.
+- `SQLiteFeatureHistoryStore.merge_branch` performs three-way analysis, validates exact common fork ancestry, rechecks expected source/target heads under BEGIN IMMEDIATE, appends one immutable target revision and atomically updates target navigation stacks plus merge provenance.
+- `FeatureHistoryRevision` exposes source branch, source revision/digest, root base and merge algorithm provenance; `CADGeneratorService.merge_history_branch` exposes the store operation.
+- Conflicts and stale source/target heads leave both histories and navigation state unchanged. Source branch is never modified.
+- Store/service branch merge is PASS. Strict HTTP routes, workbench controls and branch/merge browser acceptance remain OPEN; repository remains PARTIAL / INCOMPLETE.
