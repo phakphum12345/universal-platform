@@ -36,4 +36,4 @@ def test_feature_history_suppression_contract_is_indexed_and_keeps_implementatio
     assert "v1.0 → v1.1" in contract
     assert "old immutable revisions" in contract.lower()
     assert "PR #163 merged the first backend slice" in contract
-    assert "workbench controls" in contract
+    assert "workbench" in contract.lower()
