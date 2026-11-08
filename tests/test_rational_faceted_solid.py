@@ -211,3 +211,30 @@ def test_rational_solid_enforces_aggregate_metadata_character_budget(monkeypatch
             solid.solid_id, solid.frame_id, solid.length_unit,
             solid.vertices, solid.triangles, solid.source_provenance,
         )
+
+
+
+def test_rational_parser_accepts_exact_aggregate_budget_boundary(monkeypatch):
+    import universal_platform.engineering.rational_faceted_solid as rational_module
+
+    solid = tetrahedron()
+    # Sum of numerator/denominator bit lengths across all 12 coordinates.
+    aggregate_bits = sum(
+        abs(value.numerator).bit_length() + value.denominator.bit_length()
+        for point in solid.vertices for value in point
+    )
+    assert aggregate_bits == 16
+    monkeypatch.setattr(
+        rational_module, "_MAX_AGGREGATE_RATIONAL_BITS", aggregate_bits
+    )
+    assert RationalFacetedSolid.from_dict(solid.to_dict()) == solid
+
+
+def test_rational_solid_accepts_identifier_length_boundary():
+    solid = tetrahedron()
+    max_id = "a" * 128
+    bounded = RationalFacetedSolid(
+        max_id, solid.frame_id, solid.length_unit,
+        solid.vertices, solid.triangles,
+    )
+    assert RationalFacetedSolid.from_dict(bounded.to_dict()) == bounded
