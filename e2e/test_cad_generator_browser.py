@@ -494,7 +494,7 @@ def test_feature_history_branch_merge_conflicts_are_shown_in_workbench(workbench
     page.locator('#revision option[value="2"]').wait_for(state="attached")
     page.locator("#revision").select_option("2")
     page.get_by_role("button", name="Load revision").click()
-    page.get_by_text("Loaded revision 2.").wait_for()
+    page.locator("#revision-state").filter(has_text="Loaded revision 2").wait_for()
     page.get_by_role("button", name="Refresh branches").click()
     page.get_by_label("Source branch to merge into this history").select_option(
         "history.browser-e2e.conflict"
