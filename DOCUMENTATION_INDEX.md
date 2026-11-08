@@ -308,3 +308,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [Post-PR #197 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR197.md) — exact PR-head 925-test evidence, merge SHA, UNKNOWN post-merge CI and remaining full-mesh arrangement gates.
+
+
+## Arbitrary faceted B-rep Boolean — exact arrangement milestones
+
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — staged gates; PR #195 exact pair events, PR #197 single-plane split, PR #199 per-source-triangle multi-plane arrangement.
+- [Post-PR #199 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR199.md) — exact PR-head CI, merge SHA, UNKNOWN post-merge evidence and next global arrangement gates.
+- PASS only for the bounded per-source-triangle arrangement at exact PR head; arbitrary faceted Boolean remains PARTIAL / INCOMPLETE.
