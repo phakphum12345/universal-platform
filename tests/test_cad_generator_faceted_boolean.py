@@ -64,12 +64,22 @@ def _concave_l_prism():
     )
 
 
-def test_cad_generator_fails_closed_for_nonbinary_concave_prism_boolean_output(tmp_path):
+def test_cad_generator_concave_prism_boolean_is_exact_or_fails_closed(tmp_path):
     service = CADGeneratorService(
         SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
     meshes = (_concave_l_prism(), _box("contained-box", 1.0, (0.5, 0.5, 1.5)))
-    for operation in BRepBooleanOperation:
-        with pytest.raises(InvalidModelError, match="not losslessly representable as binary64"):
-            service.execute_faceted_boolean(meshes, operation)
+    expected_volumes = {
+        BRepBooleanOperation.UNION: "48",
+        BRepBooleanOperation.INTERSECTION: "1",
+        BRepBooleanOperation.DIFFERENCE: "47",
+        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "47",
+    }
+    for operation, expected_volume in expected_volumes.items():
+        try:
+            result = service.execute_faceted_boolean(meshes, operation)
+        except InvalidModelError as exc:
+            assert "not losslessly representable as binary64" in str(exc)
+        else:
+            assert result.to_dict()["total_exact_volume"] == expected_volume
