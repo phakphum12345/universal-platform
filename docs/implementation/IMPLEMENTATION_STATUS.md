@@ -1194,3 +1194,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Undo/Redo workbench uses server-persisted navigation state, requires the actually loaded current head for mutations, keeps historical revisions read-only, and refreshes revision/navigation state after restore actions.
 - Browser coverage includes multi-step Undo/Redo, reload persistence, historical read-only gating, redo invalidation after a new edit and revision-option readiness.
 - Bounded FeatureHistory Undo/Redo is PASS across PRs #168–#171. The overall CAD editor and repository remain PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #174 MERGED
+
+- PR #174: https://github.com/phakphum12345/universal-platform/pull/174
+- Exact PR head: `14df81bffdf991133b5c3b5fcbee089ba7d409c3`; merge SHA: `3d7504ec64433e90aedf6c11ef760cf66b801390`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (870 tests); Chromium E2E PASS (7 tests).
+- Workbench presents stored topological FeatureHistory order and provides Move Up/Move Down controls only when the adjacent swap preserves dependency order.
+- Reorder appends an immutable revision through expected-revision safety; dependency edges and deterministic execution order remain unchanged. Historical revisions remain read-only.
+- The overall CAD editor and repository remain PARTIAL / INCOMPLETE; graph branch/merge, recompute propagation and generalized CAD geometry remain open.
