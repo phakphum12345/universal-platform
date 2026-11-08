@@ -1,5 +1,6 @@
 import hashlib
 import json
+from math import cos, pi, sin
 
 import pytest
 
@@ -11,7 +12,6 @@ from universal_platform.engineering import (
     validate_brep_multishell_solid,
 )
 from universal_platform.engineering.brep import brep_from_triangle_mesh
-from universal_platform.engineering.brep_boolean import boolean_axis_aligned_brep_solids
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
@@ -38,6 +38,26 @@ def box_brep(solid_id, minimum, maximum, *, frame="part.frame", unit="mm"):
         solid_id, frame, unit, "BOX", digest, vertices, mesh.triangles
     )
     return brep_from_triangle_mesh(translated)
+
+
+
+
+def rotated_box_brep(solid_id, *, center=(5.0, 5.0, 5.0), angle=pi / 4):
+    source = tessellate_box(BoxSolid(solid_id, "part.frame", Vec3(2, 2, 2), "mm"))
+    c, s = cos(angle), sin(angle)
+    vertices = tuple(
+        Vec3(
+            center[0] + (point.x - 1.0) * c - (point.y - 1.0) * s,
+            center[1] + (point.x - 1.0) * s + (point.y - 1.0) * c,
+            center[2] + point.z - 1.0,
+        )
+        for point in source.vertices
+    )
+    digest = hashlib.sha256(f"{solid_id}:{center}:{angle}".encode()).hexdigest()
+    rotated = TriangleMesh(
+        solid_id, "part.frame", "mm", "BOX", digest, vertices, source.triangles
+    )
+    return brep_from_triangle_mesh(rotated)
 
 
 def multishell_box(solid_id, minimum, maximum, *, cavities=(), frame="part.frame", unit="mm"):
@@ -145,13 +165,10 @@ def test_multishell_boolean_rejects_non_box_cavity_components_and_frame_unit_mis
     with pytest.raises(InvalidModelError, match="same frame and length unit"):
         boolean_axis_aligned_multishell_solids((outer, wrong_unit), BRepBooleanOperation.UNION)
 
-    non_box_cavity = box_brep("not-box", (2, 2, 2), (4, 4, 4))
-    malformed_aggregate = BRepMultiShellSolid("candidate", outer.outer_shell, (non_box_cavity,))
-    # The aggregate itself is valid; the axis-aligned Boolean adapter must reject
-    # any component that is not an exact axis-aligned box when one is supplied.
-    bad = BRepMultiShellSolid("bad-input", outer.outer_shell, (non_box_cavity,))
-    # The non-box path is covered by the existing BRepSolid adapter's exact box gate.
-    assert malformed_aggregate == bad
+    rotated_cavity = rotated_box_brep("rotated-cavity")
+    bad = BRepMultiShellSolid("bad-input", outer.outer_shell, (rotated_cavity,))
+    with pytest.raises(InvalidModelError, match="axis-aligned box"):
+        boolean_axis_aligned_multishell_solids((bad, first), BRepBooleanOperation.UNION)
 
 
 def test_multishell_boolean_enforces_input_limit_and_public_schema_contract():
