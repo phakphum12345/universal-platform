@@ -1,6 +1,6 @@
 # FeatureHistory Suppression Contract — Proposed Schema v1.1
 
-**Status:** Backend model/editor/regeneration IMPLEMENTED by PR #163, merged at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`; service/API/workbench integration remains open.  
+**Status:** Backend model/editor/regeneration IMPLEMENTED by PR #163; revision-safe service/API operations are in PR #165 pending CI/merge; workbench integration remains open.  
 **Depends on:** FeatureHistory v1.0, immutable revision store, revision-safe edit API, local workbench and real-browser E2E gate.  
 **Purpose:** Define suppression and unsuppression semantics before changing source schemas, persistence, regeneration or UI behavior.
 
@@ -84,7 +84,7 @@ The cache remains keyed by history ID, feature ID and computation signature. Sup
 
 ## 7. Service, API and workbench behavior
 
-- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields.
+- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields. PR #165 adds this service/API slice, pending exact-head and post-merge CI.
 - Suppress accepts `feature_id`, `cascade` and `expected_revision`; unsuppress accepts `feature_id` and `expected_revision`.
 - The HTTP API continues to require bearer authentication, same-origin loopback access, strict JSON parsing and current-head optimistic concurrency.
 - Historical revisions remain read-only.
