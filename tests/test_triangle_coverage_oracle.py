@@ -3,7 +3,11 @@ from fractions import Fraction
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.triangle_coverage_oracle import certify_triangle_partition
+from universal_platform.engineering.triangle_coverage_oracle import (
+    certify_triangle_partition,
+    coplanar_contact_is_covered,
+    coplanar_triangle_intersection_geometry,
+)
 
 F = Fraction
 
@@ -81,3 +85,28 @@ def test_oracle_fails_closed_when_rational_coordinate_budget_is_exceeded():
     oversized = ((p(0, 0), p(1, 0), (F(0), F(1), huge)),)
     with pytest.raises(InvalidModelError, match="max_coordinate_bits"):
         certify_triangle_partition(SOURCE, oversized, max_coordinate_bits=8)
+
+
+def test_coplanar_contact_must_be_covered_by_the_positive_area_overlay_closure():
+    overlap = ((F(0), F(0)), (F(2), F(0)), (F(2), F(2)), (F(0), F(2)))
+    assert coplanar_contact_is_covered(((F(0), F(0)), (F(0), F(2))), (overlap,))
+    assert coplanar_contact_is_covered(((F(1), F(1)),), (overlap,))
+    assert not coplanar_contact_is_covered(
+        ((F(-1), F(0)), (F(1), F(0))), (overlap,)
+    )
+    assert not coplanar_contact_is_covered(
+        ((F(3), F(3)),), (overlap,)
+    )
+
+
+def test_coplanar_intersection_geometry_preserves_contact_segment():
+    first = (p(0, 0), p(2, 0), p(0, 2))
+    second = (p(2, 0), p(2, 2), p(0, 2))
+    geometry = coplanar_triangle_intersection_geometry(first, second)
+    assert geometry is not None
+    _, polygon = geometry
+    assert len(set(polygon)) >= 2
+    assert coplanar_contact_is_covered(
+        polygon,
+        (((F(0), F(0)), (F(2), F(0)), (F(2), F(2)), (F(0), F(2))),),
+    )
