@@ -241,3 +241,19 @@ Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 9
 
 
 | Coplanar contact isolation | PR #215 merge `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`; exact head `171583c852994aba3f61f712d48deabd0aab7cca` | PASS for exact-head Python/workflow-sanity | Post-merge workflow-sanity and Python tests PASS on exact merge SHA `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`. Isolated contacts on active planes are rejected unless fully covered by overlap closure. |
+
+
+## CAD exact-output requirement — 2026-11-08
+
+| ID | Requirement | Primary document | Current state |
+|---|---|---|---|
+| CAD-BREP-RATIONAL-OUTPUT-001 | Preserve exact rational intersection coordinates in a versioned faceted-solid output without rounding or tolerance welding; emit legacy binary64 output only when every coordinate round-trips losslessly | [Exact Rational Faceted Output Contract](../design-3d/EXACT_RATIONAL_FACETED_OUTPUT_CONTRACT.md) | DESIGN ONLY — no rational output model is implemented. Current shell assembly correctly rejects non-binary-rational coordinates. |
+
+### Current bounded Boolean evidence — post-PR #219
+
+- PR #218 merge SHA `f2bbaf2f4868412020051c58762e2337af3a1a25`: exact-head workflow-sanity, Python tests and Chromium E2E PASS; post-merge workflow-sanity, Python tests and Chromium E2E PASS.
+- PR #219 merge SHA `7a0d2a21d05709ccfead7f95e57349310c878a58`: exact-head workflow-sanity/Python PASS; post-merge workflow-sanity/Python PASS. The topology budget now charges all three edges per raw fragment against every global vertex.
+- PR #217 is OPEN at exact head `921de7c2013183abd770acde714adc3b7680738b`; workflow-sanity PASS and Python tests IN_PROGRESS at the documentation snapshot. It must not be recorded as PASS until the exact-head Python check completes.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and unchanged.
+
+**Current CAD verdict:** PASS for the bounded named cases and implemented fail-closed gates; PARTIAL / INCOMPLETE for arbitrary faceted Boolean. The rational-output profile is a required follow-on.
