@@ -23,7 +23,7 @@
 | PR #214 exact-head checks | workflow-sanity PASS; Python tests PASS; Chromium E2E PASS |
 | PR #214 post-merge checks | workflow-sanity PASS; Python tests PASS; Chromium E2E PASS |
 | PR #215 exact-head checks | workflow-sanity PASS; Python tests PASS |
-| PR #215 post-merge checks | workflow-sanity PASS; Python tests IN_PROGRESS at audit snapshot |
+| PR #215 post-merge checks | workflow-sanity PASS; Python tests PASS on exact merge SHA `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b` |
 | PR #213 exact-head checks | workflow-sanity PASS; Python tests IN_PROGRESS at audit snapshot |
 | Branch protection | Inspected refs report `protected=false`; required status checks are not enforced by branch protection |
 | Working tree | UNKNOWN — remote GitHub API only; no local filesystem inspection |
