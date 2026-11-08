@@ -1,15 +1,15 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `21bee045ea4d06aa07c7130f9123afaa64372638`  
+**Last verified integration baseline before PR #182:** `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory add/replace/remove, suppression and Undo/Redo are end-to-end implemented in bounded scopes (PRs #152–#171); branching/merging, feature reorder semantics, recompute propagation and generalized CAD/B-rep capabilities remain open |
+| 02 | CAD geometry | PARTIAL | PR #181 adds polygonal planar faces and inner loops; PR #182 candidate adds mesh triangulation. Multi-shell solids, arbitrary 3D Boolean and ambiguous branching remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -198,3 +198,17 @@
 - Genus-1 square through-hole shell reference passes; v1.0 triangular snapshots remain importable.
 - Exact PR-head/post-merge: workflow-sanity PASS; Python 892 PASS. Chromium E2E SKIPPED/not triggered (no UI change).
 - **Status: PASS** for single-shell polygonal BRep with face holes. Multi-shell solids, general 3D Boolean and polygonal/hole mesh triangulation remain OPEN.
+
+
+## CAD-BREP-002 — Polygonal and holed B-rep mesh triangulation (PR #182 candidate)
+
+- Source: `src/universal_platform/engineering/brep.py`, `triangle_mesh_from_brep`.
+- Reuses: `mesh._triangulate_profile_region` for deterministic bridge-and-ear clipping.
+- Tests: `tests/test_faceted_brep.py`.
+- Contract: `docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md`.
+- Acceptance: n-gon faces; face inner loops; preserved outer-loop orientation; no new geometric vertices; source ID/frame/unit/digest preservation; valid/watertight/consistently-oriented mesh; deterministic output; fail-closed resource limits.
+- Resource bounds: 10,000 boundary vertices per face; 200,000 output triangles per solid.
+- Base integration SHA: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`.
+- PR-head and exact-SHA CI: PENDING.
+- Merge to integration: NOT AUTHORIZED until exact-head checks pass and review is complete; main remains protected from this workflow.
+- Status: IMPLEMENTATION CANDIDATE; do not count as PASS until evidence is recorded.
