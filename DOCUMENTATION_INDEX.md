@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Latest verified integration snapshot: `20e03675ec1000bd2bbcfaf251df4790305f2c0c`; post-merge workflow #42462960964 passed workflow-sanity and Python tests (914). Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 560 commits ahead / 0 behind. Current inventory: 384 entries, 140 Markdown, 172 Python, 26 JSON files and 89 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation and multi-shell outer/cavity composition are PASS for their bounded adapters; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Latest verified integration snapshot: `20e03675ec1000bd2bbcfaf251df4790305f2c0c`; post-merge workflow #42462960964 passed workflow-sanity and Python tests (914). Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 568 commits ahead / 0 behind. Current inventory: 384 entries, 140 Markdown, 172 Python, 26 JSON files and 89 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation and multi-shell outer/cavity composition are PASS for their bounded adapters; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -178,6 +178,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v2.0 closed single-shell polygonal planar topology, inner loops, exact validation invariants and explicit limits.
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — planned staged exact-predicate Boolean kernel; implementation is not yet claimed.
 - [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md)
 - [Faceted B-rep Multi-Shell Solid Contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md) — one outer shell plus strictly-contained disjoint cavities, exact validation and fail-closed mesh composition. — deterministic n-gon/inner-loop triangulation, source identity preservation, resource limits and mesh-validation gates.
 - [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
@@ -301,3 +302,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Post-PR #188 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md) — exact PR-head/post-merge evidence, touching-boundary/UNKNOWN fail-closed tests, current inventory and remaining boundaries.
 - [Post-PR #189 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md) — exact-SHA CI evidence, fail-closed multi-shell behavior, current inventory and remaining boundaries.
 - [Post-PR #191 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md) — exact PR-head/post-merge evidence, multi-shell Boolean scope, current inventory and remaining boundaries.
+
+
+- [Pre-PR #193 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md) — exact baseline, current Boolean limits, existing mesh-intersection primitives and fail-closed implementation gates.
