@@ -9,9 +9,10 @@ from universal_platform.engineering import (
     BRepMultiShellSolid,
     BRepSolid,
     validate_brep_multishell_solid,
+    validate_brep_solid,
 )
 from universal_platform.engineering.brep import (
-    BRepEdge, BRepEdgeUse, BRepFace, BRepLoop, BRepVertex,
+    BRepEdge, BRepEdgeUse, BRepFace, BRepLoop, BRepShell, BRepVertex,
     brep_from_triangle_mesh, triangle_mesh_from_brep,
 )
 from universal_platform.engineering.errors import InvalidModelError
