@@ -1448,3 +1448,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 ### Follow-up resource validation — PR #213 merged
 
 PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct plane types, applies rational numerator/denominator bit ceilings to cutter-plane coordinates, and bounds the standalone exact coverage oracle. Exact PR-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests. PR #213 is PASS for exact-head and post-merge required checks.
+
+
+## Coplanar contact isolation — PR #215 (2026-11-08)
+
+- PR #215 merged to the integration branch at `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`; exact PR head `171583c852994aba3f61f712d48deabd0aab7cca`.
+- The arrangement no longer treats a supporting plane as globally "safe" merely because any triangle pair on that plane has positive-area overlap.
+- Exact point/segment contacts are retained as 2D rational geometry and accepted only when the complete contact is covered by the union of positive-area overlap polygons on that same plane.
+- Unrelated edge/point contacts on an otherwise active overlap plane now fail closed.
+- Regression fixtures cover exact segment-coverage intervals and disconnected multi-component meshes where unrelated overlap previously masked edge-only contact.
+- Exact PR-head workflow-sanity PASS and Python tests PASS. Post-merge workflow-sanity and Python tests PASS on exact merge SHA `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`.
+
+**Current bounded Boolean status:** PRs #200–#215 implement global arrangement, coverage certification, classification, boundary selection, shell assembly, CADGeneratorService execution, coplanar positive-area overlay and isolated-contact rejection for the tested cases. General arbitrary-faceted B-rep Boolean remains PARTIAL / INCOMPLETE.
