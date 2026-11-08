@@ -1,6 +1,6 @@
 # FeatureHistory Suppression Contract — Proposed Schema v1.1
 
-**Status:** DESIGN CONTRACT — not implemented.  
+**Status:** Backend model/editor/regeneration implementation is in PR #163; service/API/workbench integration remains open.  
 **Depends on:** FeatureHistory v1.0, immutable revision store, revision-safe edit API, local workbench and real-browser E2E gate.  
 **Purpose:** Define suppression and unsuppression semantics before changing source schemas, persistence, regeneration or UI behavior.
 
@@ -120,6 +120,14 @@ The cache remains keyed by history ID, feature ID and computation signature. Sup
 
 Each step is a separate reviewable change. Do not combine schema migration, editor behavior and UI work into one untestable change.
 
-## 10. Explicit non-claims
+## 10. Implementation status and non-claims
 
-This is a design contract only. No source implementation, migration, API route, UI control, test coverage or suppression capability is claimed until the corresponding code and exact-SHA CI evidence are merged.
+PR #163 implements the first backend slice:
+
+- FeatureHistory v1.0/v1.1 strict parsing and serialization, with explicit v1.0 → v1.1 migration.
+- Preservation of v1.0 snapshots and immutable revision digests across store reopen; a suppression edit appends a v1.1 revision.
+- Immutable suppress/unsuppress transformations with explicit cascade, active-output validation and dependency-order restoration.
+- Regeneration skips suppressed nodes and reports suppressed IDs; the artifact cache is not deleted or cleaned.
+- JSON Schema and public package exports for the new model/helper operations.
+
+This slice does not yet implement service-level edit operations, HTTP routes, workbench controls, cascade confirmation UI or suppression-specific browser E2E. Those are required before claiming end-to-end suppression capability. PR #163 remains unmerged until exact-head Python, workflow-sanity and Chromium checks pass, followed by post-merge verification.
