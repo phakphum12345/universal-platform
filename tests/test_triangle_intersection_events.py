@@ -3,13 +3,13 @@ from fractions import Fraction
 
 import pytest
 
-from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.mesh import TriangleMesh
-from universal_platform.engineering.triangle_intersection_events import (
+from universal_platform.engineering import (
     TriangleIntersectionSegment,
     extract_transverse_triangle_intersection,
 )
+from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.geometry import Vec3
+from universal_platform.engineering.mesh import TriangleMesh
 
 
 def raw_pair(points, faces):
