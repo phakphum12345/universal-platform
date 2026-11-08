@@ -26,6 +26,7 @@ def test_oracle_certifies_exact_partition():
     assert result.outside_fragment_indices == ()
     assert result.overlapping_fragment_pairs == ()
     assert result.duplicate_fragment_pairs == ()
+    assert result.non_coplanar_fragment_indices == ()
 
 
 def test_oracle_detects_duplicate_and_overlapping_fragments():
@@ -47,6 +48,26 @@ def test_oracle_detects_fragment_outside_source():
     result = certify_triangle_partition(SOURCE, (outside,))
     assert not result.certified
     assert result.outside_fragment_indices == (0,)
+
+
+def test_oracle_rejects_projectively_identical_but_non_coplanar_partition():
+    # All three fragments have the same XY projection as a valid partition,
+    # but are translated off the source plane. A 2D-only oracle would certify
+    # this invalid 3D coverage.
+    shifted = tuple(
+        tuple((point[0], point[1], F(1)) for point in triangle)
+        for triangle in (LEFT_LOWER, LEFT_UPPER, RIGHT)
+    )
+    result = certify_triangle_partition(SOURCE, shifted)
+    assert not result.certified
+    assert result.non_coplanar_fragment_indices == (0, 1, 2)
+
+
+def test_oracle_rejects_degenerate_or_non_exact_fragment_input():
+    with pytest.raises(InvalidModelError, match="non-degenerate"):
+        certify_triangle_partition(SOURCE, ((p(0, 0), p(1, 0), p(2, 0)),))
+    with pytest.raises(InvalidModelError, match="exact Fraction"):
+        certify_triangle_partition(SOURCE, (((0.0, 0.0, 0.0), p(1, 0), p(0, 1)),))
 
 
 def test_oracle_fails_closed_when_pairwise_budget_is_exceeded():
