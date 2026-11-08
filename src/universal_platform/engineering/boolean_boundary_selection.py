@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 from .brep_boolean import BRepBooleanOperation
 from .errors import InvalidModelError
-from .material_classification import ExactMeshMaterialClassifier, MaterialClassification
+from .material_classification import ExactMeshMaterialClassifier, MaterialClassification, RAY_DIRECTION_COUNT
 from .mesh import TriangleMesh
 from .triangle_coverage_oracle import certify_triangle_partition
 from .triangle_fragment_arrangement import RationalPoint3, RationalTriangle3, RationalTriangleFragment
@@ -24,6 +24,7 @@ class BooleanBoundarySelection:
     discarded_fragment_count:int
     classification_witness_count:int
     coverage_check_count:int
+    ray_triangle_check_count:int
 
 def _q(value:float)->Fraction:
     return Fraction.from_float(float(value))
@@ -81,6 +82,7 @@ def select_boolean_boundary_fragments(
     meshes:tuple[TriangleMesh,...],fragments_by_solid:tuple[tuple[RationalTriangleFragment,...],...],
     operation:BRepBooleanOperation,*,max_coverage_checks:int=1_000_000,
     max_classification_checks:int=250_000,max_ray_checks_per_mesh:int=1_000_000,
+    max_total_ray_checks:int=50_000_000,
 )->BooleanBoundarySelection:
     """Select boundaries by exact Boolean membership on both sides of each face."""
     if not isinstance(meshes,tuple) or not 2<=len(meshes)<=16:
@@ -91,7 +93,8 @@ def select_boolean_boundary_fragments(
         raise InvalidModelError("operation must be a BRepBooleanOperation")
     for name,value in (("max_coverage_checks",max_coverage_checks),
                        ("max_classification_checks",max_classification_checks),
-                       ("max_ray_checks_per_mesh",max_ray_checks_per_mesh)):
+                       ("max_ray_checks_per_mesh",max_ray_checks_per_mesh),
+                       ("max_total_ray_checks",max_total_ray_checks)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
     if any(not isinstance(mesh,TriangleMesh) for mesh in meshes):
@@ -102,6 +105,15 @@ def select_boolean_boundary_fragments(
     required_classifications=total_fragments*len(meshes)*4*2
     if required_classifications>max_classification_checks:
         raise InvalidModelError("Boolean classification exceeded max_classification_checks")
+    # Each source fragment has four witnesses, each classified on both sides
+    # against every input mesh. Bound the worst-case ray/triangle predicate
+    # count across the complete operation, not just one classifier query.
+    required_ray_triangle_checks = (
+        total_fragments * 4 * 2
+        * sum(len(mesh.triangles) * RAY_DIRECTION_COUNT for mesh in meshes)
+    )
+    if required_ray_triangle_checks > max_total_ray_checks:
+        raise InvalidModelError("Boolean classification exceeded max_total_ray_checks")
     classifiers=tuple(ExactMeshMaterialClassifier(mesh,max_ray_checks=max_ray_checks_per_mesh)
                       for mesh in meshes)
     for classifier in classifiers:
@@ -175,4 +187,7 @@ def select_boolean_boundary_fragments(
         elif item.source_solid_index<previous[1].source_solid_index:
             deduplicated.remove(previous[1]);by_geometry[geometry]=(oriented,item);deduplicated.append(item)
         else:discarded+=1
-    return BooleanBoundarySelection(operation,tuple(deduplicated),discarded,required_classifications,coverage_used)
+    return BooleanBoundarySelection(
+        operation, tuple(deduplicated), discarded, required_classifications,
+        coverage_used, required_ray_triangle_checks,
+    )
