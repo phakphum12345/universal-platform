@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+
+from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.feature_history import FeatureHistory, FeatureKind, FeatureNode
 from universal_platform.engineering.feature_history_merge import merge_feature_histories
 
@@ -190,7 +193,5 @@ def test_three_way_merge_rejects_same_history_id_and_returns_serializable_confli
         (FeatureNode.create("a", FeatureKind.MESH),),
         ("a",),
     )
-    result = merge_feature_histories(history, history, history)
-
-    assert not result.successful
-    assert result.conflicts == ()
+    with pytest.raises(InvalidModelError, match="different history IDs"):
+        merge_feature_histories(history, history, history)
