@@ -158,6 +158,7 @@ def test_multishell_boolean_empty_intersection_and_snapshot_round_trip():
 
 def test_multishell_boolean_rejects_non_box_cavity_components_and_frame_unit_mismatch():
     outer = multishell_box("outer", (0, 0, 0), (10, 10, 10))
+    first = multishell_box("first", (0, 0, 0), (1, 1, 1))
     wrong_frame = multishell_box("wrong-frame", (0, 0, 0), (1, 1, 1), frame="world")
     wrong_unit = multishell_box("wrong-unit", (0, 0, 0), (1, 1, 1), unit="cm")
     with pytest.raises(InvalidModelError, match="same frame and length unit"):
