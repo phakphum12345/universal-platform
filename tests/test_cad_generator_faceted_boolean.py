@@ -53,11 +53,11 @@ def test_cad_generator_executes_coplanar_overlap_union_end_to_end(tmp_path):
 
 def _concave_l_prism():
     profile = (
-        Vec2(0.0, 0.0), Vec2(3.0, 0.0), Vec2(3.0, 1.0),
-        Vec2(1.0, 1.0), Vec2(1.0, 3.0), Vec2(0.0, 3.0),
+        Vec2(0.0, 0.0), Vec2(4.0, 0.0), Vec2(4.0, 2.0),
+        Vec2(2.0, 2.0), Vec2(2.0, 4.0), Vec2(0.0, 4.0),
     )
     return tessellate_extruded_profile(
-        ExtrudedProfileSolid("l-prism", "world", profile, 2.0, "m")
+        ExtrudedProfileSolid("l-prism", "world", profile, 4.0, "m")
     )
 
 
@@ -66,12 +66,12 @@ def test_cad_generator_executes_concave_prism_boolean_operations_end_to_end(tmp_
         SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
-    meshes = (_concave_l_prism(), _box("unit-box", 1.0, (0.5, 0.5, 0.5)))
+    meshes = (_concave_l_prism(), _box("unit-box", 1.0, (1.5, 1.5, 1.5)))
     expected_volumes = {
-        BRepBooleanOperation.UNION: "41/4",
+        BRepBooleanOperation.UNION: "193/4",
         BRepBooleanOperation.INTERSECTION: "3/4",
-        BRepBooleanOperation.DIFFERENCE: "37/4",
-        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "19/2",
+        BRepBooleanOperation.DIFFERENCE: "189/4",
+        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "95/2",
     }
     for operation, expected_volume in expected_volumes.items():
         result = service.execute_faceted_boolean(meshes, operation)
