@@ -15,7 +15,7 @@
   const featureTreeState = byId("feature-tree-state");
   const featureInspector = byId("feature-inspector");
   const featureEditParametersInput = byId("feature-edit-parameters");
-  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress"].map(byId);
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress", "undo", "redo"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
@@ -38,6 +38,8 @@
   let selectedFeatureId = null;
   let selectedFeatureSuppressed = false;
   let selectedFeatureDependenciesActive = false;
+  let navigationState = null;
+  let navigationBusy = false;
   let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
@@ -64,6 +66,92 @@
       canEditSelection && selectedFeatureSuppressed && selectedFeatureDependenciesActive
     );
     byId("feature-suppress-cascade").disabled = !(canEditSelection && !selectedFeatureSuppressed);
+  }
+
+  function updateNavigationControls() {
+    const expected = Number(expectedRevisionInput.value);
+    const currentHead = connected &&
+      Number.isSafeInteger(expected) && expected >= 1 &&
+      !revisionSelect.disabled && revisionSelect.value === String(expected);
+    const canUndo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_undo);
+    const canRedo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_redo);
+    byId("undo").disabled = !canUndo;
+    byId("redo").disabled = !canRedo;
+    if (!connected || !navigationState) {
+      byId("navigation-state").textContent = "Undo/Redo unavailable until a saved current revision is loaded.";
+    } else if (!currentHead) {
+      byId("navigation-state").textContent = "Undo/Redo is disabled while viewing a historical revision.";
+    } else {
+      byId("navigation-state").textContent =
+        (navigationState.can_undo ? "Undo available" : "No Undo target") + " · " +
+        (navigationState.can_redo ? "Redo available" : "No Redo target") +
+        " · current revision " + navigationState.current_revision;
+    }
+  }
+
+  async function refreshNavigation() {
+    if (!connected) {
+      navigationState = null;
+      updateNavigationControls();
+      return null;
+    }
+    try {
+      navigationState = await api(
+        "/v1/histories/" + encodeURIComponent(currentHistoryId()) + "/navigation"
+      );
+    } catch (error) {
+      if (error.status === 404) {
+        navigationState = null;
+      } else {
+        throw error;
+      }
+    }
+    updateNavigationControls();
+    return navigationState;
+  }
+
+  async function performNavigation(operation) {
+    if (operation !== "undo" && operation !== "redo") {
+      throw new Error("Unsupported navigation operation.");
+    }
+    const expected = Number(expectedRevisionInput.value);
+    if (!Number.isSafeInteger(expected) || expected < 1 ||
+        revisionSelect.disabled || revisionSelect.value !== String(expected)) {
+      throw new Error("Load the current head revision before using Undo/Redo.");
+    }
+    navigationBusy = true;
+    updateNavigationControls();
+    try {
+      const id = currentHistoryId();
+      const result = await api(
+        "/v1/histories/" + encodeURIComponent(id) + "/" + operation,
+        { method: "POST", body: { expected_revision: expected } }
+      );
+      await refreshRevisions(result.revision);
+      const loaded = await api(
+        "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
+      );
+      snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+      renderFeatureTree();
+      byId("revision-state").textContent =
+        operation.toUpperCase() + " created revision " + result.revision +
+        " from revision " + result.target_revision;
+      setStatus(
+        operation.toUpperCase() + " restored revision " + result.target_revision +
+        " as new immutable revision " + result.revision + ".",
+        "good"
+      );
+      showResult(result);
+      return result;
+    } catch (error) {
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+      if (error.status === 409) await refreshRevisions();
+      throw error;
+    } finally {
+      navigationBusy = false;
+      updateNavigationControls();
+    }
   }
 
   function renderFeatureTree() {
