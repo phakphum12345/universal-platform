@@ -1,5 +1,7 @@
 from hashlib import sha256
 
+import pytest
+
 from universal_platform.engineering import (
     BRepBooleanOperation,
     CADGeneratorService,
@@ -13,6 +15,7 @@ from universal_platform.engineering import (
     tessellate_extruded_profile,
 )
 from universal_platform.engineering.geometry import Vec3
+from universal_platform.engineering.errors import InvalidModelError
 
 
 def _box(solid_id, size, offset=(0.0, 0.0, 0.0)):
@@ -61,22 +64,12 @@ def _concave_l_prism():
     )
 
 
-def test_cad_generator_executes_concave_prism_boolean_operations_end_to_end(tmp_path):
+def test_cad_generator_fails_closed_for_nonbinary_concave_prism_boolean_output(tmp_path):
     service = CADGeneratorService(
         SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
     meshes = (_concave_l_prism(), _box("contained-box", 1.0, (0.5, 0.5, 1.5)))
-    expected_volumes = {
-        BRepBooleanOperation.UNION: "48",
-        BRepBooleanOperation.INTERSECTION: "1",
-        BRepBooleanOperation.DIFFERENCE: "47",
-        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "47",
-    }
-    for operation, expected_volume in expected_volumes.items():
-        result = service.execute_faceted_boolean(meshes, operation)
-        snapshot = result.to_dict()
-        assert snapshot["operation"] == operation.value
-        assert snapshot["total_exact_volume"] == expected_volume
-        assert snapshot["component_count"] >= 1
-        assert snapshot["selected_fragment_count"] > 0
+    for operation in BRepBooleanOperation:
+        with pytest.raises(InvalidModelError, match="not losslessly representable as binary64"):
+            service.execute_faceted_boolean(meshes, operation)
