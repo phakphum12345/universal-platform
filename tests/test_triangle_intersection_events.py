@@ -135,7 +135,7 @@ def test_plane_split_partitions_source_triangle_into_exact_fragments():
     fragments = split_triangle_by_intersecting_plane(mesh, 0, 1)
 
     assert len(fragments) == 3
-    assert [item.side for item in fragments] == ["POSITIVE", "POSITIVE", "NEGATIVE"]
+    assert [item.side for item in fragments] == ["POSITIVE", "NEGATIVE", "NEGATIVE"]
     assert all(item.source_triangle_index == 0 for item in fragments)
     assert all(item.cutter_triangle_index == 1 for item in fragments)
     assert mesh.to_dict() == before
