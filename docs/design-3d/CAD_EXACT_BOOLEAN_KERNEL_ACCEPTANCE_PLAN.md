@@ -107,7 +107,7 @@ The rational solid input path now has an initial hardening implementation on the
 
 - Decimal integer strings are length-bounded from `max_coordinate_bits` before `int()` is called. Conversion errors are normalized to `InvalidModelError`.
 - `from_dict` validates the caller-supplied coordinate-bit and pair-check limits, including boolean/type/positive-value checks and hard ceilings, before parsing coordinate arrays.
-- Geometry counts are checked against both lower and upper supported bounds before coordinate parsing.
+- Geometry counts and the derived triangle-pair work count are checked against supported ceilings before coordinate parsing; a request that exceeds the pair budget is rejected before rational coordinate construction.
 - Shell envelope, provenance record count, identifier lengths, provenance identifier/digest shape, and aggregate metadata character count are preflighted before rational coordinate parsing.
 - Numerator and denominator bit lengths are charged incrementally to a 64,000,000-bit aggregate budget before each `Fraction` is retained. Direct immutable construction also checks the aggregate total.
 - Solid/frame/unit identifiers, source identifiers, and provenance record counts have explicit hard limits.
