@@ -182,7 +182,7 @@ class TriangleFragment:
                 or self.cutter_triangle_index < 0
                 or self.source_triangle_index == self.cutter_triangle_index):
             raise InvalidModelError("fragment source and cutter indices must be distinct non-negative integers")
-        if self.side not in {"POSITIVE", "NEGATIVE", "UNSPLIT"}:
+        if not isinstance(self.side, str) or self.side not in {"POSITIVE", "NEGATIVE", "UNSPLIT"}:
             raise InvalidModelError("fragment side is unsupported")
         if (not isinstance(self.vertices, tuple) or len(self.vertices) != 3
                 or any(not isinstance(point, tuple) or len(point) != 3
@@ -230,8 +230,6 @@ def split_triangle_by_intersecting_plane(
     event = extract_transverse_triangle_intersection(
         mesh, source_triangle_index, cutter_triangle_index
     )
-    source_index = min(source_triangle_index, cutter_triangle_index)
-    cutter_index = max(source_triangle_index, cutter_triangle_index)
     if source_triangle_index == cutter_triangle_index:
         raise InvalidModelError("source and cutter triangles must be distinct")
     if not isinstance(mesh, TriangleMesh):
