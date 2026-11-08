@@ -274,14 +274,14 @@ def test_polygonal_n_gon_faces_triangulate_to_a_closed_mesh():
 def two_hole_box_brep():
     coordinates = {
         "o0": (0, 0, 0), "o1": (6, 0, 0), "o2": (6, 4, 0), "o3": (0, 4, 0),
-        "O0": (0, 0, 1), "O1": (6, 0, 1), "O2": (6, 4, 1), "O3": (0, 4, 1),
+        "t0": (0, 0, 1), "t1": (6, 0, 1), "t2": (6, 4, 1), "t3": (0, 4, 1),
     }
     holes = []
     for prefix, x0 in (("a", 1), ("b", 4)):
         bottom = (
             f"{prefix}0", f"{prefix}1", f"{prefix}2", f"{prefix}3"
         )
-        top = tuple(f"{prefix.upper()}{index}" for index in range(4))
+        top = tuple(f"t{prefix}{index}" for index in range(4))
         points = ((x0, 1), (x0, 2), (x0 + 1, 2), (x0 + 1, 1))
         for index, (x, y) in enumerate(points):
             coordinates[bottom[index]] = (x, y, 0)
@@ -289,15 +289,15 @@ def two_hole_box_brep():
         holes.append((bottom, top))
 
     face_specs = [
-        ("top", ("O0", "O1", "O2", "O3"),
+        ("top", ("t0", "t1", "t2", "t3"),
          tuple((f"top.{index}", top) for index, (_, top) in enumerate(holes))),
         ("bottom", ("o0", "o3", "o2", "o1"),
          tuple((f"bottom.{index}", (bottom[0], bottom[3], bottom[2], bottom[1]))
                for index, (bottom, _) in enumerate(holes))),
-        ("outer.front", ("o0", "o1", "O1", "O0"), ()),
-        ("outer.right", ("o1", "o2", "O2", "O1"), ()),
-        ("outer.back", ("o2", "o3", "O3", "O2"), ()),
-        ("outer.left", ("o3", "o0", "O0", "O3"), ()),
+        ("outer.front", ("o0", "o1", "t1", "t0"), ()),
+        ("outer.right", ("o1", "o2", "t2", "t1"), ()),
+        ("outer.back", ("o2", "o3", "t3", "t2"), ()),
+        ("outer.left", ("o3", "o0", "t0", "t3"), ()),
     ]
     for hole_index, (bottom, top) in enumerate(holes):
         for edge_index in range(4):
