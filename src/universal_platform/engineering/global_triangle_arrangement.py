@@ -200,6 +200,20 @@ def arrange_triangle_mesh_globally(
             if len(edge_faces)>max_edges: raise InvalidModelError("global arrangement exceeded max_edges")
     if len(vertices)*len(edge_faces)>max_topology_checks:
         raise InvalidModelError("global topology scan exceeded max_topology_checks")
+    # Fail closed if centroid insertion introduced any new T-junction that
+    # was not present in the original global point set.
+    for first_id,second_id in edge_faces:
+        first_point,second_point=final_points[first_id],final_points[second_id]
+        direction=_sub(second_point,first_point)
+        length_squared=_dot(direction,direction)
+        for candidate in final_points:
+            if candidate in (first_point,second_point):
+                continue
+            offset=_sub(candidate,first_point)
+            if _cross(direction,offset)==(0,0,0):
+                projection=_dot(offset,direction)
+                if 0<projection<length_squared:
+                    raise InvalidModelError("global conforming triangulation left an unresolved T-junction")
     edges=tuple(GlobalArrangementEdge(edge,tuple(sorted(incident))) for edge,incident in sorted(edge_faces.items()))
     adjacent=sorted({(first,second) for edge in edges for i,first in enumerate(edge.incident_face_ids)
                      for second in edge.incident_face_ids[i+1:]})
