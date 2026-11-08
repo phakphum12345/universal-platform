@@ -103,7 +103,7 @@ class CADGeneratorBooleanRun:
             ],
             "limitations": (
                 [
-                    "Caller supplied the complete exact source-face partitions; this pre-arranged path does not discover cross-solid intersections",
+                    "Caller supplied the complete exact source-face partitions; automatic face splitting and cross-solid intersection discovery are not performed by this pre-arranged path",
                     "Non-binary-rational shell coordinates are rejected rather than rounded",
                 ]
                 if self.arrangement is None else [
