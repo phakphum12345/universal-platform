@@ -105,6 +105,7 @@ def workbench(tmp_path):
         try:
             base = f"http://127.0.0.1:{server.server_port}"
             page.goto(base, wait_until="domcontentloaded")
+            page.locator("#history-id").fill("history.browser-e2e")
             page.locator("#token").fill(TOKEN)
             page.get_by_role("button", name="Connect").click()
             page.wait_for_function("document.querySelector('#connection-state').textContent.trim() === 'Connected'")
