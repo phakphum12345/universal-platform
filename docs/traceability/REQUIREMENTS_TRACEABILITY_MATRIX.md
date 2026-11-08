@@ -253,7 +253,7 @@ Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 9
 
 - PR #218 merge SHA `f2bbaf2f4868412020051c58762e2337af3a1a25`: exact-head workflow-sanity, Python tests and Chromium E2E PASS; post-merge workflow-sanity, Python tests and Chromium E2E PASS.
 - PR #219 merge SHA `7a0d2a21d05709ccfead7f95e57349310c878a58`: exact-head workflow-sanity/Python PASS; post-merge workflow-sanity/Python PASS. The topology budget now charges all three edges per raw fragment against every global vertex.
-- PR #217 is OPEN at exact head `921de7c2013183abd770acde714adc3b7680738b`; workflow-sanity PASS and Python tests IN_PROGRESS at the documentation snapshot. It must not be recorded as PASS until the exact-head Python check completes.
+- PR #217 exact head `921de7c2013183abd770acde714adc3b7680738b` passed workflow-sanity and Python tests and merged at `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`; post-merge workflow-sanity PASS and Python tests IN_PROGRESS at this documentation snapshot.
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and unchanged.
 
 **Current CAD verdict:** PASS for the bounded named cases and implemented fail-closed gates; PARTIAL / INCOMPLETE for arbitrary faceted Boolean. The rational-output profile is a required follow-on.
