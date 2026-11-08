@@ -260,10 +260,10 @@ def test_cad_generator_service_rejects_invalid_suppression_operation_fields(tmp_
 
 def test_cad_generator_service_exposes_persistent_undo_redo_state(tmp_path):
     service = make_service(tmp_path)
-    service.save_history(make_history("mesh.first"), expected_revision=0)
-    service.save_history(make_history("mesh.second"), expected_revision=1)
+    service.save_history(make_history(width=4.0), expected_revision=0)
+    service.save_history(make_history(width=5.0), expected_revision=1)
 
-    state = service.get_navigation_state("history.service")
+    state = service.get_navigation_state("history.cad-service")
     assert state.current_revision == 2
     assert state.can_undo is True
     assert state.can_redo is False
