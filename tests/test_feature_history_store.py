@@ -11,6 +11,7 @@ from universal_platform.engineering.feature_history import (
     FeatureHistory, FeatureKind, FeatureNode,
 )
 from universal_platform.engineering.feature_history_store import (
+    FeatureHistoryBranch,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
@@ -306,3 +307,89 @@ def test_store_fails_closed_when_navigation_stack_target_is_missing(tmp_path):
     reopened = SQLiteFeatureHistoryStore(path)
     with pytest.raises(FeatureHistoryStoreIntegrityError, match="references a missing revision"):
         reopened.get_navigation_state("document.part")
+
+
+
+def test_store_forks_exact_immutable_revision_into_independent_branch(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    first = store.save(history("mesh-a"), expected_revision=0)
+    store.save(history("mesh-b"), expected_revision=1)
+
+    branch = store.create_branch(
+        "document.part", "document.part.experiment", "experiment", fork_revision=1
+    )
+
+    assert branch.root_history_id == "document.part"
+    assert branch.branch_history_id == "document.part.experiment"
+    assert branch.branch_name == "experiment"
+    assert branch.fork_revision == first.revision
+    assert branch.fork_sha256 == first.content_sha256
+    forked = store.load("document.part.experiment")
+    assert forked.revision == 1
+    assert forked.history.history_id == "document.part.experiment"
+    assert tuple(node.feature_id for node in forked.history.nodes) == ("mesh-a",)
+    assert store.load("document.part").revision == 2
+    assert store.list_revisions("document.part") == (1, 2)
+    assert store.list_revisions("document.part.experiment") == (1,)
+    assert store.get_branch("document.part.experiment") == branch
+    assert store.list_branches("document.part") == (branch,)
+
+
+def test_store_branch_creation_preserves_suppression_and_source_independence(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    suppressed = FeatureHistory(
+        "document.part",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("dependent", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("independent", FeatureKind.MESH),
+        ),
+        ("independent",),
+        ("base", "dependent"),
+        "1.1",
+    )
+    store.save(suppressed, expected_revision=0)
+    branch = store.create_branch("document.part", "document.part.try", "try")
+
+    assert store.load(branch.branch_history_id).history.suppressed_feature_ids == ("base", "dependent")
+    store.save(history("new-root-feature"), expected_revision=1)
+    assert store.load(branch.branch_history_id).revision == 1
+    assert store.load(branch.root_history_id).revision == 2
+
+
+def test_store_rejects_invalid_or_duplicate_branch_identity_and_name(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    store.save(history(), expected_revision=0)
+    with pytest.raises(ValueError, match="branch_name"):
+        store.create_branch("document.part", "document.part.bad", "Bad Name")
+    with pytest.raises(ValueError, match="branch_history_id"):
+        store.create_branch("document.part", "document.part", "other")
+    store.create_branch("document.part", "document.part.one", "experiment")
+    with pytest.raises(ValueError, match="branch_history_id already exists"):
+        store.create_branch("document.part", "document.part.one", "second")
+    with pytest.raises(ValueError, match="branch_name already exists"):
+        store.create_branch("document.part", "document.part.two", "experiment")
+    with pytest.raises(ValueError, match="branching from another branch"):
+        store.create_branch("document.part.one", "document.part.nested", "nested")
+    with pytest.raises(ValueError, match="fork_revision"):
+        store.create_branch("document.part", "document.part.invalid", "invalid", fork_revision=0)
+
+
+def test_store_additive_schema_migration_preserves_revisions_and_creates_branch_catalog(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    original = store.save(history(), expected_revision=0)
+    with sqlite3.connect(path) as connection:
+        connection.execute("DROP TABLE feature_history_branches")
+        connection.execute("PRAGMA user_version = 1")
+
+    migrated = SQLiteFeatureHistoryStore(path)
+    assert migrated.load("document.part").content_sha256 == original.content_sha256
+    assert migrated.list_revisions("document.part") == (1,)
+    assert migrated.list_branches("document.part") == ()
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert connection.execute(
+            "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = 1",
+            ("document.part",),
+        ).fetchone()[0] == original.content_sha256

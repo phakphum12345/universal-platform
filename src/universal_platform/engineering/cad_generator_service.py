@@ -20,6 +20,7 @@ from .feature_history_editor import (
     add_feature, remove_feature, reorder_features, replace_feature, suppress_feature, unsuppress_feature,
 )
 from .feature_history_store import (
+    FeatureHistoryBranch,
     FeatureHistoryNavigationState,
     FeatureHistoryRevision,
     FeatureHistoryRevisionConflict,
@@ -164,6 +165,19 @@ class CADGeneratorService:
             updated = unsuppress_feature(current.history, feature_id)
 
         return self.history_store.save(updated, expected_revision=expected_revision)
+
+    def fork_history(
+        self,
+        history_id: str,
+        *,
+        branch_history_id: str,
+        branch_name: str,
+        revision: int | None = None,
+    ) -> FeatureHistoryBranch:
+        """Create an isolated branch from an immutable root-history revision."""
+        return self.history_store.create_branch(
+            history_id, branch_history_id, branch_name, fork_revision=revision
+        )
 
     def get_revision(
         self,

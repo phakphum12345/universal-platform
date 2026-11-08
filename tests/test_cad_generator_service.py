@@ -337,3 +337,25 @@ def test_cad_generator_service_rejects_reorder_fields_on_other_operations(tmp_pa
             feature=FeatureNode.create("extra", FeatureKind.MESH),
             ordered_feature_ids=("extra",),
         )
+
+
+
+def test_cad_generator_service_forks_immutable_history_revision(tmp_path):
+    service = make_service(tmp_path)
+    source = service.save_history(make_history(), expected_revision=0)
+
+    branch = service.fork_history(
+        source.history_id,
+        branch_history_id="history.cad-service.experiment",
+        branch_name="experiment",
+    )
+
+    assert branch.root_history_id == source.history_id
+    assert branch.fork_revision == source.revision
+    assert branch.fork_sha256 == source.content_sha256
+    forked = service.get_revision(branch.branch_history_id)
+    assert forked.revision == 1
+    assert forked.history.history_id == branch.branch_history_id
+    assert tuple(node.feature_id for node in forked.history.nodes) == tuple(
+        node.feature_id for node in source.history.nodes
+    )
