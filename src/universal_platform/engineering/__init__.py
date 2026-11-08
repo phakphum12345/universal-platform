@@ -121,7 +121,7 @@ from .mechanism_loops import (
 )
 from .feature_history import (
     FeatureArtifact, FeatureHistory, FeatureKind, FeatureNode,
-    FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history,
+    FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history, upgrade_feature_history,
 )
 from .feature_history_store import (
     FeatureHistoryRevision, FeatureHistoryRevisionConflict,
