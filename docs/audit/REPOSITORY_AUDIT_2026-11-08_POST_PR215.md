@@ -6,7 +6,7 @@
 **Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)  
 **Open PRs at this snapshot:** none.  
 **Audit method:** GitHub repository metadata, recursive tree, exact commit check-runs, PR metadata/reviews/threads, targeted source and contract inspection. No local checkout or local working-tree inspection was available.  
-**Recursive tree at documentation PR head:** 372 blobs (149 Markdown, 191 Python, 26 JSON and 100 Python test files); tree response not truncated. 
+**Recursive tree at documentation PR head:** 373 blobs (150 Markdown, 191 Python, 26 JSON and 100 Python test files); tree response not truncated. 
 **Overall result:** **INCOMPLETE**. The bounded faceted Boolean vertical slice is connected end-to-end for named reference cases. Universal Platform as a whole is not complete.
 
 ## 1. Repository and governance snapshot
@@ -15,7 +15,7 @@
 |---|---|
 | Integration branch | `7fd78fa40886694bd46cfb6a61f60c3f716033f2` |
 | Main branch | `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged |
-| Open PRs | #213 only at audit snapshot |
+| Open PRs | 0 at audit snapshot |
 | PR #212 exact-head checks | workflow-sanity PASS; Python tests PASS |
 | PR #212 post-merge checks | workflow-sanity PASS; Python tests PASS |
 | PR #213 exact-head checks | workflow-sanity PASS; Python tests PASS |
@@ -105,8 +105,7 @@ The prior post-PR #207 and post-PR #213 audits are historical. This post-PR #215
 
 ## 6. Required next sequence
 
-1. Complete PR #215 post-merge Python CI and record its final result on the exact merge SHA.
-2. Expand independent exact adversarial fixtures: rotated/concave solids, disconnected outputs, thin features, multiple intersections per face, cavity intersections and deterministic enumeration invariance.
+1. Expand independent exact adversarial fixtures: rotated/concave solids, disconnected outputs, thin features, multiple intersections per face, cavity intersections and deterministic enumeration invariance.
 3. Decide and implement a versioned rational-coordinate B-rep/result profile; do not round exact intersections into binary64.
 4. Add explicit supported/unsupported degeneracy semantics for tangency, branching, vertex contact and coincident boundaries.
 5. Continue the requirement-by-requirement Mechanics, Physics, Hardware, Drivers, API, runtime, security, licenses and documentation audit.
