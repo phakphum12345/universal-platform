@@ -30,7 +30,7 @@ The operations are pure transformations: the input FeatureHistory is never mutat
 
 ## 4. Explicit limitations
 
-This slice does not implement branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Reordering is presentation-only: the stored node sequence must be a complete topological presentation order, while execution remains deterministic and dependency-derived. Browser controls provide basic add/replace/remove operations only. Real Chromium browser automation/E2E interaction coverage is implemented and passing (PR #158); it does not expand the feature-editing capability boundary. Feature order for execution remains deterministic topological order, not the stored tuple order.
+This slice does not implement branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Reordering is presentation-only: the stored node sequence must be a complete topological presentation order, while execution remains deterministic and dependency-derived. PR #174 adds current-head-gated Move Up/Move Down controls and real-browser acceptance. Browser controls provide basic add/replace/remove operations only. Real Chromium browser automation/E2E interaction coverage is implemented and passing (PR #158); it does not expand the feature-editing capability boundary. Feature order for execution remains deterministic topological order, not the stored tuple order.
 
 ## 5. Acceptance criteria
 
