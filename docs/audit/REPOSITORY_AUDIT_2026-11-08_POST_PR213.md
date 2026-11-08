@@ -18,7 +18,7 @@
 | PR #212 exact-head checks | workflow-sanity PASS; Python tests PASS |
 | PR #212 post-merge checks | workflow-sanity PASS; Python tests PASS |
 | PR #213 exact-head checks | workflow-sanity PASS; Python tests PASS |
-| PR #213 post-merge checks | workflow-sanity QUEUED; Python tests IN_PROGRESS at audit snapshot |
+| PR #213 post-merge checks | workflow #42485255693: workflow-sanity PASS; Python tests PASS |
 | PR #213 exact-head checks | workflow-sanity PASS; Python tests IN_PROGRESS at audit snapshot |
 | Branch protection | Inspected refs report `protected=false`; required status checks are not enforced by branch protection |
 | Working tree | UNKNOWN — remote GitHub API only; no local filesystem inspection |
@@ -67,7 +67,7 @@
 
 ## 3. Input and resource validation follow-up
 
-PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct arrangement plane inputs as `RationalPlane`, applies the configured rational numerator/denominator bit ceiling to cutter-plane coordinates, adds a rational coordinate bit ceiling to the standalone coverage oracle, and adds regression tests for invalid plane objects and oversized rational inputs. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow-sanity is QUEUED and Python tests IN_PROGRESS at this audit snapshot.
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct arrangement plane inputs as `RationalPlane`, applies the configured rational numerator/denominator bit ceiling to cutter-plane coordinates, adds a rational coordinate bit ceiling to the standalone coverage oracle, and adds regression tests for invalid plane objects and oversized rational inputs. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests.
 
 ## 4. Cross-domain repository inventory
 
