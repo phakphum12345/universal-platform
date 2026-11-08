@@ -179,3 +179,8 @@ The exact post-merge workflow for #212 completed with workflow-sanity PASS and P
 ### PR #213 — rational input resource ceilings
 
 PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). Direct `arrange_triangles_by_planes` calls now validate plane object types and apply the configured rational numerator/denominator bit ceiling to cutter-plane coordinates. The standalone coverage oracle also applies a coordinate bit ceiling before projection/clipping. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests.
+
+
+### PR #215 — exact isolation of coplanar contact
+
+PR #215 merged at `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b` (exact head `171583c852994aba3f61f712d48deabd0aab7cca`). For every coplanar triangle-pair contact, the arrangement now retains its exact projected point/segment and verifies that the entire contact is covered by the union of positive-area overlap polygons on the same supporting plane. A separate overlap elsewhere on that plane no longer masks an unrelated edge/point contact. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow-sanity PASS; Python tests were still running at this documentation snapshot.
