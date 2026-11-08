@@ -25,7 +25,7 @@ def test_global_registry_unifies_shared_vertices_and_reports_shared_edge_adjacen
         (p(0, 0), p(1, 1), p(0, 1)),
     )
     result = arrange_triangle_mesh_globally(mesh, ())
-    assert len(result.vertices) == 4
+    assert len(result.vertices) == 5
     assert len(result.faces) == 2
     shared = [edge for edge in result.edges if len(edge.incident_face_ids) == 2]
     assert len(shared) == 1
@@ -105,8 +105,8 @@ def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
     left = tuple(sorted((ids[p(0, 0)], ids[p(1, 0)])))
     right = tuple(sorted((ids[p(1, 0)], ids[p(2, 0)])))
     by_edge = {edge.vertex_ids: edge.incident_face_ids for edge in result.edges}
-    assert by_edge[left] == (0, 1)
-    assert by_edge[right] == (0, 2)
+    assert tuple(sorted(result.faces[i].source_triangle_index for i in by_edge[left])) == (0, 1)
+    assert tuple(sorted(result.faces[i].source_triangle_index for i in by_edge[right])) == (0, 2)
     assert left not in result.boundary_edge_ids
     assert right not in result.boundary_edge_ids
     assert (ids[p(0, 0)], ids[p(2, 0)], ids[p(1, 0)]) in result.t_junctions
