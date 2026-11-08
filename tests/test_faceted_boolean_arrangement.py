@@ -36,9 +36,17 @@ def test_multi_mesh_arrangement_allows_coplanar_but_disjoint_faces():
     assert len(result.fragments_by_solid)==2
 
 
-def test_multi_mesh_arrangement_rejects_coplanar_area_overlap():
+def test_multi_mesh_arrangement_splits_coplanar_area_overlap():
     meshes=(_box("a",2.0),_box("b",2.0,(0.5,0.0,0.0)))
-    with pytest.raises(InvalidModelError,match="coplanar triangle area_overlap"):
+    result=arrange_faceted_boolean_meshes(meshes)
+    assert result.coplanar_pair_checks>0
+    assert result.unique_plane_count>12
+    assert all(report.oracle_certified for report in result.global_arrangement.coverage_reports)
+
+
+def test_multi_mesh_arrangement_rejects_coplanar_edge_only_contact():
+    meshes=(_box("a",2.0),_box("b",2.0,(2.0,2.0,0.0)))
+    with pytest.raises(InvalidModelError,match="coplanar point/edge contact"):
         arrange_faceted_boolean_meshes(meshes)
 
 
