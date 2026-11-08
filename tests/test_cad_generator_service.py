@@ -255,3 +255,45 @@ def test_cad_generator_service_rejects_invalid_suppression_operation_fields(tmp_
             feature_id="mesh",
             cascade=True,
         )
+
+
+
+def test_cad_generator_service_exposes_persistent_undo_redo_state(tmp_path):
+    service = make_service(tmp_path)
+    service.save_history(make_history("mesh.first"), expected_revision=0)
+    service.save_history(make_history("mesh.second"), expected_revision=1)
+
+    state = service.get_navigation_state("history.service")
+    assert state.current_revision == 2
+    assert state.can_undo is True
+    assert state.can_redo is False
+    assert state.undo_depth == 1
+
+    undone = service.undo_history("history.service", expected_revision=2)
+    assert undone.revision == 3
+    assert undone.operation == "undo"
+    assert undone.target_revision == 1
+    state = service.get_navigation_state("history.service")
+    assert state.current_revision == 3
+    assert state.can_undo is False
+    assert state.can_redo is True
+
+    redone = service.redo_history("history.service", expected_revision=3)
+    assert redone.revision == 4
+    assert redone.operation == "redo"
+    assert redone.target_revision == 2
+    state = service.get_navigation_state("history.service")
+    assert state.current_revision == 4
+    assert state.can_undo is True
+    assert state.can_redo is False
+
+
+def test_cad_generator_service_navigation_rejects_stale_head_and_empty_stack(tmp_path):
+    service = make_service(tmp_path)
+    service.save_history(make_history(), expected_revision=0)
+    with pytest.raises(FeatureHistoryNavigationUnavailable) as error:
+        service.undo_history("history.service", expected_revision=1)
+    assert error.value.code == "NO_UNDO"
+    with pytest.raises(FeatureHistoryNavigationUnavailable) as error:
+        service.redo_history("history.service", expected_revision=1)
+    assert error.value.code == "NO_REDO"
