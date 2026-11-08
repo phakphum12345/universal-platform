@@ -113,3 +113,18 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
 .feature-tree-order-controls { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 0; }
 .feature-tree-order-button { padding: 4px 8px; font-size: 11px; }
 .feature-tree-order-button:disabled { opacity: .4; cursor: not-allowed; }
+
+
+.branch-conflicts {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.branch-conflicts.conflict { border-color: var(--bad); color: var(--bad); }
+#branch-source { width: 100%; }
