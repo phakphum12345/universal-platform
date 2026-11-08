@@ -1,10 +1,10 @@
-# Repository Audit — 2026-11-08, Post-PR #212
+# Repository Audit — 2026-11-08, Post-PR #213
 
 **Repository:** `phakphum12345/universal-platform`  
 **Audited branch:** `docs/phase-0-complete-requirements`  
-**Pinned integration SHA:** `7fd78fa40886694bd46cfb6a61f60c3f716033f2`  
+**Pinned integration SHA:** `d1289efdb71a1172beb88665baf09b4620f0cdc5`  
 **Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)  
-**Open PR at this snapshot:** #213 — `fix/cad-rational-input-budgets`, exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`.  
+**Open PRs at this snapshot:** none.  
 **Audit method:** GitHub repository metadata, recursive tree, exact commit check-runs, PR metadata/reviews/threads, targeted source and contract inspection. No local checkout or local working-tree inspection was available.  
 **Overall result:** **INCOMPLETE**. The bounded faceted Boolean vertical slice is connected end-to-end for named reference cases. Universal Platform as a whole is not complete.
 
@@ -17,6 +17,8 @@
 | Open PRs | #213 only at audit snapshot |
 | PR #212 exact-head checks | workflow-sanity PASS; Python tests PASS |
 | PR #212 post-merge checks | workflow-sanity PASS; Python tests PASS |
+| PR #213 exact-head checks | workflow-sanity PASS; Python tests PASS |
+| PR #213 post-merge checks | workflow-sanity QUEUED; Python tests IN_PROGRESS at audit snapshot |
 | PR #213 exact-head checks | workflow-sanity PASS; Python tests IN_PROGRESS at audit snapshot |
 | Branch protection | Inspected refs report `protected=false`; required status checks are not enforced by branch protection |
 | Working tree | UNKNOWN — remote GitHub API only; no local filesystem inspection |
@@ -65,13 +67,7 @@
 
 ## 3. Input and resource validation follow-up
 
-PR #213 is open at exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`. It:
-- validates direct arrangement plane inputs as `RationalPlane`;
-- applies the configured rational numerator/denominator bit ceiling to cutter-plane coordinates;
-- adds a rational coordinate bit ceiling to the standalone coverage oracle;
-- adds regression tests for invalid plane objects and oversized rational inputs.
-
-At this audit snapshot, workflow-sanity is PASS and Python tests are IN_PROGRESS. This PR is not merged and is not counted as PASS.
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct arrangement plane inputs as `RationalPlane`, applies the configured rational numerator/denominator bit ceiling to cutter-plane coordinates, adds a rational coordinate bit ceiling to the standalone coverage oracle, and adds regression tests for invalid plane objects and oversized rational inputs. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow-sanity is QUEUED and Python tests IN_PROGRESS at this audit snapshot.
 
 ## 4. Cross-domain repository inventory
 
@@ -93,22 +89,20 @@ This is a targeted source-tree and contract audit, not an exhaustive runtime cer
 
 ## 5. Documentation reconciliation
 
-The prior post-PR #207 audit and the historical arbitrary Boolean sections are now superseded for CAD implementation status by the current post-PR #212 evidence:
-- PRs #200–#212 are merged to the integration branch.
-- PR #213 remains open and in progress at this snapshot.
+The prior post-PR #207 audit and historical arbitrary Boolean sections are now superseded for CAD implementation status by this post-PR #213 evidence:
+- PRs #200–#213 are merged to the integration branch.
 - The bounded test cases must not be described as unrestricted Boolean-kernel support.
 - Historical ahead/behind counts are intentionally not repeated; they must be recomputed from an exact compare query when needed.
 - The Driver Generation capability is not recreated. Its canonical source and support matrix remain to be verified.
 
 ## 6. Required next sequence
 
-1. Complete PR #213 exact-head CI and merge only after all required checks pass on its exact head and mergeability is clean.
-2. Reconcile service docstrings and contracts so they distinguish pre-arranged Boolean execution from the newer automatic bounded arrangement path.
-3. Expand independent exact adversarial fixtures: rotated/concave solids, disconnected outputs, thin features, multiple intersections per face, cavity intersections and deterministic enumeration invariance.
-4. Decide and implement a versioned rational-coordinate B-rep/result profile; do not round exact intersections into binary64.
-5. Add explicit supported/unsupported degeneracy semantics for point, edge, vertex, tangency, branching and coincident boundaries.
-6. Audit Mechanics, Physics, Hardware, Drivers, API, runtime, security, licenses and docs against every requirement and reference case.
-7. Re-run exact-head and post-merge checks, refresh traceability and keep `main` unchanged until separately authorized.
+1. Complete PR #213 post-merge CI and record its final result on the exact merge SHA.
+2. Expand independent exact adversarial fixtures: rotated/concave solids, disconnected outputs, thin features, multiple intersections per face, cavity intersections and deterministic enumeration invariance.
+3. Decide and implement a versioned rational-coordinate B-rep/result profile; do not round exact intersections into binary64.
+4. Add explicit supported/unsupported degeneracy semantics for point, edge, vertex, tangency, branching and coincident boundaries.
+5. Continue the requirement-by-requirement Mechanics, Physics, Hardware, Drivers, API, runtime, security, licenses and documentation audit.
+6. Re-run exact-head and post-merge checks, refresh traceability and keep `main` unchanged until separately authorized.
 
 ## 7. Status semantics
 
