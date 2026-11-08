@@ -135,7 +135,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 5. Check relative links after documentation changes; report any link not verifiable from the pinned tree as UNKNOWN.
 
 
-- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
+- [Repository Audit post-PR #207](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) — current pinned integration baseline, CAD Boolean progress, cross-domain inventory and repository-wide remaining gates.\n- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
 - [Repository Audit post-PR #80](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md) — current integration SHA, PR #80 evidence, maturity boundaries and remaining gated work.
 
 - [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — dependency-free exact-rational predicate policy for PlanarRegion v1.
@@ -178,7 +178,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v2.0 closed single-shell polygonal planar topology, inner loops, exact validation invariants and explicit limits.
-- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — planned staged exact-predicate Boolean kernel; implementation is not yet claimed.
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — staged exact-predicate Boolean kernel; global topology, coverage oracle, classification, boundary selection and bounded shell assembly are implemented, while automatic cross-solid arrangement and general Boolean completion remain open.
 - [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md)
 - [Faceted B-rep Multi-Shell Solid Contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md) — one outer shell plus strictly-contained disjoint cavities, exact validation and fail-closed mesh composition. — deterministic n-gon/inner-loop triangulation, source identity preservation, resource limits and mesh-validation gates.
 - [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
