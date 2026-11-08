@@ -8,10 +8,10 @@ from universal_platform.engineering import (
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
     TriangleMesh,
-    Vec3,
     BoxSolid,
     tessellate_box,
 )
+from universal_platform.engineering.geometry import Vec3
 
 
 def _box(solid_id, size, offset=0.0):
