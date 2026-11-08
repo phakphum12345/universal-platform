@@ -1,6 +1,8 @@
 # FeatureHistory Undo/Redo Contract — Revision Restore Model
 
 **Status:** End-to-end bounded workflow IMPLEMENTED by PRs #169–#171: persistent store, revision-safe service/API, current-head-gated workbench and real-Chromium acceptance (6 tests PASS on exact PR-head and post-merge SHA).  
+**Implementation slices:** Store layer implemented by PR #169; service/API implemented by PR #170; workbench controls and browser acceptance implemented by PR #171.
+
 **Scope:** One linear editing session per FeatureHistory, with persistent undo/redo state backed by immutable source revisions.  
 **Depends on:** FeatureHistory revision store, expected-revision compare-and-swap, authenticated loopback API, workbench current-head gating and audit log.
 
