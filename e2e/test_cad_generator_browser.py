@@ -258,7 +258,7 @@ def test_suppression_cascade_confirmation_and_dependency_order_restore_in_browse
     page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
 
     # Active dependents must not be suppressed implicitly.
-    page.get_by_role("button", name="Suppress selected feature").click()
+    page.get_by_role("button", name="Suppress selected feature", exact=True).click()
     page.get_by_text("active dependents", exact=False).wait_for()
     assert service.history_store.load("history.browser-e2e").revision == 1
 
@@ -279,7 +279,7 @@ def test_suppression_cascade_confirmation_and_dependency_order_restore_in_browse
     # Restore the dependency first; the suppressed output becomes restorable.
     page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
     assert page.locator("#feature-unsuppress").is_enabled()
-    page.get_by_role("button", name="Unsuppress selected feature").click()
+    page.get_by_role("button", name="Unsuppress selected feature", exact=True).click()
     page.get_by_text("Saved unsuppress as immutable revision 3.").wait_for()
 
     page.locator('#feature-tree button[data-feature-id="mesh"]').click()
