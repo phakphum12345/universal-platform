@@ -114,6 +114,8 @@ def arrange_faceted_boolean_meshes(
                     raise InvalidModelError("faceted arrangement exceeded max_unique_planes")
 
     coplanar_checks=0
+    active_coplanar_planes=set()
+    contact_coplanar_planes=set()
     for first_index in range(len(meshes)):
         for second_index in range(first_index+1,len(meshes)):
             first_by_plane={}
@@ -129,28 +131,34 @@ def arrange_faceted_boolean_meshes(
                         if coplanar_checks>max_coplanar_checks:
                             raise InvalidModelError("coplanar pair scan exceeded max_coplanar_checks")
                         relation=coplanar_triangle_intersection_kind(first,second)
-                        if relation=="DISJOINT":
-                            continue
-                        if relation=="CONTACT":
-                            raise InvalidModelError("coplanar point/edge contact is unsupported")
-                        if relation!="AREA_OVERLAP":
+                        if relation=="AREA_OVERLAP":
+                            active_coplanar_planes.add(key)
+                        elif relation=="CONTACT":
+                            contact_coplanar_planes.add(key)
+                        elif relation!="DISJOINT":
                             raise InvalidModelError("unexpected coplanar relation: "+relation)
-                        # Each edge line becomes the intersection of a cutter
-                        # plane with the shared supporting plane. Adding the
-                        # edges from both triangles creates a planar overlay
-                        # arrangement while retaining exact rational geometry.
-                        for triangle in (first,second):
-                            normal=_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0]))
-                            for edge_start,edge_end in ((triangle[0],triangle[1]),
-                                                        (triangle[1],triangle[2]),
-                                                        (triangle[2],triangle[0])):
-                                off_plane=tuple(edge_start[axis]+normal[axis] for axis in range(3))
-                                cutter=(edge_start,edge_end,off_plane)
-                                cutter_key=_plane_key(cutter)
-                                if cutter_key not in plane_by_key:
-                                    plane_by_key[cutter_key]=RationalPlane(len(plane_by_key),cutter)
-                                    if len(plane_by_key)>max_unique_planes:
-                                        raise InvalidModelError("coplanar cutters exceeded max_unique_planes")
+    unsupported_contacts=contact_coplanar_planes-active_coplanar_planes
+    if unsupported_contacts:
+        raise InvalidModelError("coplanar point/edge contact is unsupported")
+    # Build a complete planar line arrangement on each active coplanar plane:
+    # include every source triangle edge on that plane, not only edges from
+    # the individual overlapping triangle pairs.
+    for key in active_coplanar_planes:
+        for triangles in per_mesh_triangles:
+            for triangle in triangles:
+                if _plane_key(triangle)!=key:
+                    continue
+                normal=_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0]))
+                for edge_start,edge_end in ((triangle[0],triangle[1]),
+                                            (triangle[1],triangle[2]),
+                                            (triangle[2],triangle[0])):
+                    off_plane=tuple(edge_start[axis]+normal[axis] for axis in range(3))
+                    cutter=(edge_start,edge_end,off_plane)
+                    cutter_key=_plane_key(cutter)
+                    if cutter_key not in plane_by_key:
+                        plane_by_key[cutter_key]=RationalPlane(len(plane_by_key),cutter)
+                        if len(plane_by_key)>max_unique_planes:
+                            raise InvalidModelError("coplanar cutters exceeded max_unique_planes")
 
     arrangement=arrange_triangle_mesh_globally(
         tuple(source_triangles),tuple(plane_by_key.values()),
