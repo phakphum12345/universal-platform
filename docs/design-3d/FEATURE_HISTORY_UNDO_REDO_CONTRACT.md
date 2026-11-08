@@ -1,6 +1,6 @@
 # FeatureHistory Undo/Redo Contract — Revision Restore Model
 
-**Status:** DESIGN CONTRACT — not implemented.  
+**Status:** Store-level implementation is in PR #169 pending merge; service/API/workbench integration remains open.  
 **Scope:** One linear editing session per FeatureHistory, with persistent undo/redo state backed by immutable source revisions.  
 **Depends on:** FeatureHistory revision store, expected-revision compare-and-swap, authenticated loopback API, workbench current-head gating and audit log.
 
@@ -156,6 +156,17 @@ Navigation state responses must not expose raw SQLite paths, tokens or unrelated
 
 Each stage is reviewable and may be merged independently. No branch/merge history is implied.
 
-## 12. Explicit non-claims
+## 12. Implementation status and non-claims
 
-This document is a design contract only. Undo/Redo is NOT IMPLEMENTED until the store, service, API, workbench, persistence and browser acceptance matrix is satisfied with exact-SHA evidence. This does not claim graph branching/merging, collaborative editing, arbitrary revision selection as a mutation, or whole-repository completion.
+PR #169 implements the store-level slice:
+
+- Additive SQLite navigation and revision-action metadata tables.
+- Deterministic legacy initialization from existing immutable revision chains.
+- Persistent Undo/Redo stacks with atomic append-only restore revisions.
+- Expected-revision compare-and-swap, explicit `NO_UNDO`/`NO_REDO` results and fail-closed stack integrity checks.
+- Operation/source/target revision metadata and navigation-state reads.
+- Store tests for multi-step transitions, restart persistence, redo invalidation after new edits, legacy backfill, stale writers and corrupted state.
+
+Exact PR-head CI for PR #169: 860 Python tests PASS and workflow-sanity PASS. PR #169 is still unmerged at this point. Service/API/workbench controls, navigation availability in the HTTP response and browser E2E remain open. Undo/Redo is not end-to-end complete until those layers pass exact-head and post-merge evidence.
+
+This does not claim graph branching/merging, collaborative editing, arbitrary revision selection as a mutation, or whole-repository completion.
