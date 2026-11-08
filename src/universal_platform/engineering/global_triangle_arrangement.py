@@ -1,0 +1,190 @@
+"""Global exact-rational topology assembly for per-triangle arrangements.
+
+The module gives exact coordinate identity across source facets and derives
+fragment edge incidence/adjacency. It is not a solid classifier or Boolean
+shell builder; geometric coverage certification is deliberately limited to
+per-source exact area accounting and manifold edge-incidence diagnostics.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from fractions import Fraction
+from typing import Iterable
+
+from .errors import InvalidModelError
+from .triangle_fragment_arrangement import (
+    RationalPlane,
+    RationalPoint3,
+    RationalTriangle3,
+    RationalTriangleFragment,
+    arrange_triangles_by_planes,
+)
+
+
+@dataclass(frozen=True, slots=True)
+class GlobalArrangementVertex:
+    vertex_id: int
+    point: RationalPoint3
+
+
+@dataclass(frozen=True, slots=True)
+class GlobalArrangementFace:
+    face_id: int
+    source_triangle_index: int
+    side_signature: tuple[str, ...]
+    vertex_ids: tuple[int, int, int]
+
+
+@dataclass(frozen=True, slots=True)
+class GlobalArrangementEdge:
+    vertex_ids: tuple[int, int]
+    incident_face_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SourceCoverageReport:
+    source_triangle_index: int
+    source_area_squared_scaled: Fraction
+    fragment_area_squared_scaled: Fraction
+    area_conserved: bool
+    fragment_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class GlobalTriangleArrangement:
+    vertices: tuple[GlobalArrangementVertex, ...]
+    faces: tuple[GlobalArrangementFace, ...]
+    edges: tuple[GlobalArrangementEdge, ...]
+    adjacent_face_pairs: tuple[tuple[int, int], ...]
+    boundary_edge_ids: tuple[tuple[int, int], ...]
+    non_manifold_edges: tuple[tuple[int, int], ...]
+    coverage_reports: tuple[SourceCoverageReport, ...]
+    fragments: tuple[RationalTriangleFragment, ...]
+
+
+def _sub(a: RationalPoint3, b: RationalPoint3) -> RationalPoint3:
+    return tuple(a[i] - b[i] for i in range(3))  # type: ignore[return-value]
+
+
+def _cross(a: RationalPoint3, b: RationalPoint3) -> RationalPoint3:
+    return (a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0])
+
+
+def _dot(a: RationalPoint3, b: RationalPoint3) -> Fraction:
+    return sum((a[i] * b[i] for i in range(3)), Fraction(0))
+
+
+def _validate_source(triangle: object) -> None:
+    if not isinstance(triangle, tuple) or len(triangle) != 3:
+        raise InvalidModelError("each source triangle must contain three exact points")
+    for point in triangle:
+        if (not isinstance(point, tuple) or len(point) != 3
+                or any(not isinstance(value, Fraction) for value in point)):
+            raise InvalidModelError("source vertices must use exact Fraction coordinates")
+    if len(set(triangle)) != 3:
+        raise InvalidModelError("source triangle vertices must be distinct")
+    if _cross(_sub(triangle[1], triangle[0]), _sub(triangle[2], triangle[0])) == (0, 0, 0):
+        raise InvalidModelError("source triangle must be non-degenerate")
+
+
+def _area_vector(triangle: RationalTriangle3) -> RationalPoint3:
+    return _cross(_sub(triangle[1], triangle[0]),
+                  _sub(triangle[2], triangle[0]))
+
+
+def arrange_triangle_mesh_globally(
+    triangles: Iterable[RationalTriangle3],
+    planes: Iterable[RationalPlane],
+    *,
+    max_fragments: int = 16384,
+    max_coordinate_bits: int = 4096,
+    max_edges: int = 65536,
+) -> GlobalTriangleArrangement:
+    """Arrange all source facets, unify exact vertices and derive edge topology.
+
+    A global coordinate is identified only by exact Fraction tuple equality;
+    no tolerance welding or float conversion is performed. Each source facet
+    is split by the same ordered plane sequence. Exact area is independently
+    accumulated per source facet. Edges with one incident face are reported
+    as boundary; edges with more than two are reported as non-manifold.
+    """
+    for name, value in (("max_fragments", max_fragments),
+                        ("max_coordinate_bits", max_coordinate_bits),
+                        ("max_edges", max_edges)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise InvalidModelError(f"{name} must be a positive integer")
+    source_items = tuple(triangles)
+    plane_items = tuple(planes)
+    if not source_items:
+        raise InvalidModelError("at least one source triangle is required")
+    if len(source_items) > max_fragments:
+        raise InvalidModelError("source triangle count exceeded max_fragments")
+    for triangle in source_items:
+        _validate_source(triangle)
+
+    fragments: list[RationalTriangleFragment] = []
+    coverage: list[SourceCoverageReport] = []
+    for source_index, source in enumerate(source_items):
+        remaining = max_fragments - len(fragments)
+        if remaining < 1:
+            raise InvalidModelError("global arrangement exceeded max_fragments")
+        local = arrange_triangles_by_planes(
+            (source,), plane_items,
+            max_fragments=remaining,
+            max_coordinate_bits=max_coordinate_bits,
+        )
+        normal = _area_vector(source)
+        expected = _dot(normal, normal)
+        actual = sum(
+            (_dot(_area_vector(fragment.vertices), normal) for fragment in local),
+            Fraction(0),
+        )
+        if actual != expected:
+            raise InvalidModelError(
+                f"global coverage area mismatch for source triangle {source_index}"
+            )
+        coverage.append(SourceCoverageReport(
+            source_index, expected, actual, actual == expected, len(local)
+        ))
+        fragments.extend(RationalTriangleFragment(
+            source_index, fragment.side_signature, fragment.vertices
+        ) for fragment in local)
+        if len(fragments) > max_fragments:
+            raise InvalidModelError("global arrangement exceeded max_fragments")
+
+    all_points = sorted({point for fragment in fragments for point in fragment.vertices})
+    point_ids = {point: index for index, point in enumerate(all_points)}
+    vertices = tuple(GlobalArrangementVertex(index, point)
+                     for index, point in enumerate(all_points))
+
+    faces: list[GlobalArrangementFace] = []
+    edge_faces: dict[tuple[int, int], list[int]] = {}
+    for face_id, fragment in enumerate(fragments):
+        ids = tuple(point_ids[point] for point in fragment.vertices)
+        faces.append(GlobalArrangementFace(
+            face_id, fragment.source_triangle_index,
+            fragment.side_signature, ids,
+        ))
+        for first, second in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
+            edge = (first, second) if first < second else (second, first)
+            edge_faces.setdefault(edge, []).append(face_id)
+        if len(edge_faces) > max_edges:
+            raise InvalidModelError("global arrangement exceeded max_edges")
+
+    edges = tuple(GlobalArrangementEdge(edge, tuple(sorted(incident)))
+                  for edge, incident in sorted(edge_faces.items()))
+    adjacent = sorted({
+        (first, second)
+        for edge in edges
+        for index, first in enumerate(edge.incident_face_ids)
+        for second in edge.incident_face_ids[index + 1:]
+    })
+    boundary = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) == 1)
+    non_manifold = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) > 2)
+
+    return GlobalTriangleArrangement(
+        vertices, tuple(faces), edges, tuple(adjacent), boundary, non_manifold,
+        tuple(coverage), tuple(fragments),
+    )
