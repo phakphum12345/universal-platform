@@ -547,3 +547,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - PR #163 merged at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`. Exact PR-head CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS. Exact post-merge CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS.
 - **Next:** CAD-EDIT-006 revision-safe service/API operations; CAD-EDIT-007 workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E.
 - **Still open:** end-to-end suppression UX, undo/redo, graph branch/merge, feature reordering, generalized B-rep/3D Boolean, broader platform integration and full repository verification. This PR does not make the repository COMPLETE.
+
+
+## FeatureHistory suppression — end-to-end complete
+
+- PR #165 merged revision-safe service/API operations at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity.
+- PR #166 merged workbench suppression controls and browser acceptance at `34148fc359076567eaa4b931304f61f536a41779`; exact PR-head and post-merge CI passed 854 Python tests, 5 Chromium E2E tests and workflow-sanity.
+- Suppression now preserves source nodes and immutable revisions, requires explicit cascade confirmation, prevents unsuppress while dependencies remain suppressed and reports skipped nodes during regeneration.
+- **Status:** PASS for FeatureHistory suppression requirement R-016.
+- **Next CAD editor work:** CAD-EDIT-008 — define immutable revision restore semantics for undo/redo, including redo-stack persistence, audit history and stale-writer behavior, before implementing controls.
+- **Still open:** graph branch/merge, feature reordering, generalized B-rep/3D Boolean, broader hardware/physics/runtime integration and whole-repository completion.
