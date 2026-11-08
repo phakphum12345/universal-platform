@@ -108,7 +108,7 @@ def workbench(tmp_path):
             page.locator("#history-id").fill("history.browser-e2e")
             page.locator("#token").fill(TOKEN)
             page.get_by_role("button", name="Connect").click()
-            page.locator("#connection-state").get_by_text("Connected", exact=True).wait_for()
+            page.locator("#connection-state").filter(has_text="Connected").wait_for()
             page.get_by_role("button", name="Load revision").click()
             page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
             yield page, service, page_errors
@@ -134,7 +134,7 @@ def test_workbench_starts_without_runtime_errors_and_gates_edit_controls(workben
     page.locator("#revision option[value=\"2\"]").wait_for()
     page.locator("#revision").select_option("1")
     page.get_by_role("button", name="Load revision").click()
-    page.locator("#revision-state").get_by_text("Loaded revision 1").wait_for()
+    page.locator("#revision-state").filter(has_text="Loaded revision 1").wait_for()
     assert page.locator("#feature-add").is_disabled()
     assert page.locator("#feature-apply-edit").is_disabled()
     assert page.locator("#feature-remove").is_disabled()
@@ -142,7 +142,7 @@ def test_workbench_starts_without_runtime_errors_and_gates_edit_controls(workben
     # Returning to the latest head restores the allowed edit controls.
     page.locator("#revision").select_option("2")
     page.get_by_role("button", name="Load revision").click()
-    page.locator("#revision-state").get_by_text("Loaded revision 2").wait_for()
+    page.locator("#revision-state").filter(has_text="Loaded revision 2").wait_for()
     assert page.locator("#feature-add").is_enabled()
     assert page.locator("#feature-apply-edit").is_enabled()
     assert page.locator("#feature-remove").is_enabled()
