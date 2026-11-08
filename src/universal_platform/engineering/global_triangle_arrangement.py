@@ -205,5 +205,12 @@ def arrange_triangle_mesh_globally(
                      for second in edge.incident_face_ids[i+1:]})
     boundary=tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids)==1)
     non_manifold=tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids)>2)
+    # Diagnostics are expressed in the final returned vertex-ID space;
+    # face-centroid insertion changes deterministic vertex numbering.
+    final_t_junctions=tuple(sorted({
+        (final_ids[global_points[first]],final_ids[global_points[second]],
+         final_ids[global_points[candidate]])
+        for first,second,candidate in t_junctions
+    }))
     return GlobalTriangleArrangement(vertices,tuple(faces),edges,tuple(adjacent),boundary,non_manifold,
-        tuple(sorted(t_junctions)),tuple(coverage),tuple(conforming))
+        final_t_junctions,tuple(coverage),tuple(conforming))
