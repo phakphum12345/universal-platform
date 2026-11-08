@@ -642,9 +642,9 @@ def triangle_mesh_from_brep(solid: BRepSolid) -> TriangleMesh:
                 edge = edges[use.edge_id]
                 start_id = edge.start_vertex_id if use.forward else edge.end_vertex_id
                 loop_vertex_ids.append(start_id)
-            if len(loop_vertex_ids) > 10_000:
-                raise InvalidModelError("BRep face boundary exceeds the 10000-vertex triangulation limit")
             boundary_ids.extend(loop_vertex_ids)
+            if len(boundary_ids) > 10_000:
+                raise InvalidModelError("BRep face boundary exceeds the 10000-vertex triangulation limit")
             boundary_points.append(tuple(vertices[vertex_indices[item]] for item in loop_vertex_ids))
 
         outer_points = boundary_points[0]
