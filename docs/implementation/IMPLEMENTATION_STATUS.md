@@ -1,6 +1,6 @@
 # Implementation Status — UEIC Foundation
 
-> **Latest audit supersedes the historical baseline below:** see [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md). Current integration SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. The latest bounded CAD Boolean work includes PRs #200–#207, but arbitrary faceted Boolean and the overall repository remain INCOMPLETE. Post-merge CI for PR #207 was still in progress when the audit snapshot was taken.
+> **Latest audit supersedes the historical baseline below:** see [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md). Current integration SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. The latest bounded CAD Boolean work includes PRs #200–#207, but arbitrary faceted Boolean and the overall repository remain INCOMPLETE. Post-merge CI on exact merge SHA passed workflow-sanity, python-tests and Chromium E2E.
 
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
