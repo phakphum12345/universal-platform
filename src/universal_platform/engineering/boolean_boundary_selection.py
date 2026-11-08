@@ -24,7 +24,7 @@ class BooleanBoundarySelection:
     discarded_fragment_count:int
     classification_witness_count:int
     coverage_check_count:int
-    ray_triangle_check_count:int
+    ray_triangle_check_count:int = 0
 
 def _q(value:float)->Fraction:
     return Fraction.from_float(float(value))
