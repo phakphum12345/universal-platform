@@ -425,6 +425,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             feature_id = None
             cascade = False
             make_output = False
+            ordered_feature_ids = None
             if operation == "add":
                 if set(body) not in (
                     {"expected_revision", "operation", "feature"},
@@ -450,12 +451,19 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 cascade = body.get("cascade", False)
                 if not isinstance(cascade, bool):
                     raise _HTTPError(400, "INVALID_FIELDS", "cascade must be a boolean")
+            elif operation == "reorder":
+                if set(body) != {"expected_revision", "operation", "ordered_feature_ids"}:
+                    raise _HTTPError(400, "INVALID_FIELDS", "reorder requires expected_revision, operation and ordered_feature_ids")
+                raw_order = body["ordered_feature_ids"]
+                if not isinstance(raw_order, list) or any(not isinstance(item, str) for item in raw_order):
+                    raise _HTTPError(400, "INVALID_FIELDS", "ordered_feature_ids must be an array of feature ID strings")
+                ordered_feature_ids = tuple(raw_order)
             elif operation == "unsuppress":
                 if set(body) != {"expected_revision", "operation", "feature_id"}:
                     raise _HTTPError(400, "INVALID_FIELDS", "unsuppress requires expected_revision, operation and feature_id")
                 feature_id = body["feature_id"]
             else:
-                raise _HTTPError(400, "INVALID_OPERATION", "operation must be add, replace, remove, suppress or unsuppress")
+                raise _HTTPError(400, "INVALID_OPERATION", "operation must be add, replace, remove, reorder, suppress or unsuppress")
 
             revision = self.server.generator_service.edit_history(
                 history_id,
@@ -465,6 +473,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 feature_id=feature_id,
                 cascade=cascade,
                 make_output=make_output,
+                ordered_feature_ids=ordered_feature_ids,
             )
             return 201, {
                 "history_id": revision.history_id,
