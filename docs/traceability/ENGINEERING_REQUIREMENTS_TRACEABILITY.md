@@ -278,3 +278,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-BREP-BOOLEAN-001 | Evaluate bounded set Boolean operations on validated non-axis-aligned polygonal faceted solids without mutating source geometry | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), [Pre-implementation Audit](../audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md) | PLANNED — no arbitrary-faceted Boolean kernel exists yet. Existing PR #191 adapters accept only axis-aligned box components. Gate A must implement exact transverse triangle intersections and deterministic fragment splitting with independent oracle coverage; all unsupported/ambiguous degeneracies must fail closed. |
+
+
+## CAD-BREP-BOOLEAN-001A — Exact transverse triangle-pair segment extraction
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-BREP-BOOLEAN-001A | Extract deterministic exact-rational intersection segment endpoints for a proper transverse pair of source triangles | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), PR #195, `triangle_intersection_events.py`, `test_triangle_intersection_events.py` | PASS for the narrow PR-head primitive: exact head `1bcfa0ceb1aab8839ec7ee5e06ae8ffe0ecc6e9e`, workflow #42468475501 workflow-sanity PASS and Python 921 PASS (21.16s). Post-merge CI on `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b` is UNKNOWN. Triangle splitting, point-in-solid classification, fragment selection, Boolean assembly and degeneracy support remain OPEN. |
