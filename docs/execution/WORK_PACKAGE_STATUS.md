@@ -1,14 +1,14 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `9c84d4d94030c0e3084d7a288064491d8160a71f`  
+**Last verified integration baseline:** `20e03675ec1000bd2bbcfaf251df4790305f2c0c`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | PR #181 adds polygonal planar faces and inner loops; PR #182 implements polygonal/inner-loop mesh triangulation. Multi-shell solids, arbitrary 3D Boolean and ambiguous branching remain open |
+| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes. Arbitrary faceted Boolean remains PLANNED under a staged contract; recompute propagation, general topology and interchange remain open |
 | 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
@@ -216,3 +216,15 @@
 - Chromium E2E: SKIPPED/not triggered because no UI surface changed.
 - PR #182 merged to integration only; main unchanged.
 - Status: PASS for this bounded adapter; WP-02 and repository overall remain PARTIAL / INCOMPLETE.
+
+
+## CAD-BREP-BOOLEAN-001 — Arbitrary faceted Boolean design gate
+
+- Baseline: integration SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Contract: `docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md`.
+- Existing mesh intersection analysis is an exact-rational analysis API; it is not a Boolean arrangement or fragment assembly engine.
+- PR #191 remains restricted to axis-aligned box outer/cavity components.
+- Gate A (next implementation slice): deterministic exact triangle-pair intersection events and triangle fragment splitting for a narrow transverse-intersection profile.
+- Coplanar overlap, tangency, contact branching and ambiguous boundary classification must fail closed until dedicated reference-backed gates pass.
+- Status: PLANNED — documentation and acceptance contract only; no arbitrary-faceted Boolean implementation or PASS claim.
