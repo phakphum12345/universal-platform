@@ -179,6 +179,22 @@ class CADGeneratorService:
             history_id, branch_history_id, branch_name, fork_revision=revision
         )
 
+    def merge_history_branch(
+        self,
+        source_branch_history_id: str,
+        target_history_id: str,
+        *,
+        expected_source_revision: int,
+        expected_target_revision: int,
+    ) -> FeatureHistoryRevision:
+        """Append a verified three-way branch merge to the target history."""
+        return self.history_store.merge_branch(
+            source_branch_history_id,
+            target_history_id,
+            expected_source_revision=expected_source_revision,
+            expected_target_revision=expected_target_revision,
+        )
+
     def get_revision(
         self,
         history_id: str,
