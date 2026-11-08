@@ -625,3 +625,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (886); Chromium E2E PASS (7).
 - **Status:** PASS for transactional store/service branch merge.
 - **Still open:** strict HTTP routes, workbench controls, branch/merge browser acceptance, recompute propagation and whole-repository completion.
+
+
+## FeatureHistory Branch/Fork/Merge — end-to-end workbench complete
+
+- PR #179 merged at `01d9afaeb9a7f9c3eecee7659d966bdcbae55983`; exact PR head `431ddc298601320f38e3f7bde74633b4c7c655c2`. Adds strict loopback API branch listing, fork and merge routes, structured conflict responses and revision merge-provenance inspection.
+- PR #180 merged at `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`; exact PR head `4513b0d8d310a37db002edd467e315800f4e589e`. Adds workbench branch listing, historical-revision fork, current-head-gated merge, provenance display and structured conflict rendering.
+- Exact PR-head and post-merge CI for #179: workflow-sanity PASS; Python 889 PASS; Chromium E2E 7 PASS.
+- Exact PR-head and post-merge CI for #180: workflow-sanity PASS; Python 889 PASS; Chromium E2E 9 PASS.
+- **Status:** PASS for the bounded FeatureHistory branch/fork/merge workflow end-to-end.
+- **Still open repository-wide:** recompute propagation, generalized B-rep/3D Boolean topology, broader physics/hardware/runtime integration and other roadmap requirements. Whole repository remains INCOMPLETE.
