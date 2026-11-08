@@ -707,7 +707,9 @@
       "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
     );
     snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+    loadedRevision = result.revision;
     renderFeatureTree();
+    updateNavigationControls();
     byId("revision-state").textContent = "Loaded edited head revision " + result.revision;
     setStatus("Saved " + operation + " as immutable revision " + result.revision + ".", "good");
     showResult(result);
