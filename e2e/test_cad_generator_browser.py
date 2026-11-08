@@ -108,7 +108,7 @@ def workbench(tmp_path):
             page.locator("#history-id").fill("history.browser-e2e")
             page.locator("#token").fill(TOKEN)
             page.get_by_role("button", name="Connect").click()
-            page.wait_for_function("document.querySelector('#connection-state').textContent.trim() === 'Connected'")
+            page.locator("#connection-state").get_by_text("Connected", exact=True).wait_for()
             page.get_by_role("button", name="Load revision").click()
             page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
             yield page, service, page_errors
