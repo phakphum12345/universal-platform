@@ -1,6 +1,6 @@
 # FeatureHistory Undo/Redo Contract — Revision Restore Model
 
-**Status:** Store-level implementation is in PR #169 pending merge; service/API/workbench integration remains open.  
+**Status:** Store layer implemented by PR #169, merged at `93744335f3e50a07dde2f78a18f9a307308b73ef`; service/API implementation is in PR #170 pending CI/merge; workbench integration remains open.  
 **Scope:** One linear editing session per FeatureHistory, with persistent undo/redo state backed by immutable source revisions.  
 **Depends on:** FeatureHistory revision store, expected-revision compare-and-swap, authenticated loopback API, workbench current-head gating and audit log.
 
@@ -94,7 +94,7 @@ The sequence demonstrates that Undo/Redo append new revisions; they never move t
 
 ## 6. Store and service contract
 
-The store exposes transactional methods such as:
+PR #169 merged the store layer. It exposes transactional methods such as:
 
 - `undo(history_id, expected_revision)`
 - `redo(history_id, expected_revision)`
@@ -158,7 +158,7 @@ Each stage is reviewable and may be merged independently. No branch/merge histor
 
 ## 12. Implementation status and non-claims
 
-PR #169 implements the store-level slice:
+PR #169 merged the store-level slice at `93744335f3e50a07dde2f78a18f9a307308b73ef`:
 
 - Additive SQLite navigation and revision-action metadata tables.
 - Deterministic legacy initialization from existing immutable revision chains.
@@ -167,6 +167,6 @@ PR #169 implements the store-level slice:
 - Operation/source/target revision metadata and navigation-state reads.
 - Store tests for multi-step transitions, restart persistence, redo invalidation after new edits, legacy backfill, stale writers and corrupted state.
 
-Exact PR-head CI for PR #169: 860 Python tests PASS and workflow-sanity PASS. PR #169 is still unmerged at this point. Service/API/workbench controls, navigation availability in the HTTP response and browser E2E remain open. Undo/Redo is not end-to-end complete until those layers pass exact-head and post-merge evidence.
+Exact PR-head and post-merge CI for PR #169 passed 860 Python tests and workflow-sanity. PR #170 adds the service/API layer: persistent navigation-state reads, strict undo/redo endpoints, expected-revision checks and explicit NO_UNDO/NO_REDO responses; exact-head CI is pending. Workbench controls and Chromium navigation E2E remain open. Undo/Redo is not end-to-end complete until those layers pass exact-head and post-merge evidence.
 
 This does not claim graph branching/merging, collaborative editing, arbitrary revision selection as a mutation, or whole-repository completion.

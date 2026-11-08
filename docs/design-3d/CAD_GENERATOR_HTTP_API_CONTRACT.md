@@ -88,6 +88,8 @@ Appends one revision after applying exactly one allow-listed graph operation. Th
 - Remove: `expected_revision`, `operation: "remove"`, `feature_id`, optional `cascade`.
 - Suppress: `expected_revision`, `operation: "suppress"`, `feature_id`, optional `cascade`.
 - Unsuppress: `expected_revision`, `operation: "unsuppress"`, `feature_id` (no cascade field).
+- Undo/Redo: `POST /v1/histories/{id}/undo` and `/redo`, exact body `expected_revision` only.
+- Navigation: `GET /v1/histories/{id}/navigation`, no query parameters; returns current revision, availability flags and stack depths.
 
 A feature snapshot contains exactly `feature_id`, `kind`, `input_feature_ids` and `parameters`. The complete candidate graph is reconstructed through FeatureHistory validation. Replacement preserves stable feature IDs. Removal refuses dependent nodes unless cascade is explicitly true; output invariants still apply. Suppression retains source nodes and writes a FeatureHistory v1.1 revision; active dependents require explicit cascade, and at least one output must remain active. Unsuppression restores only the selected feature and is rejected while any direct dependency remains suppressed. The expected-revision compare-and-swap applies to all operations.
 
@@ -240,3 +242,8 @@ The local workbench renders a bounded read-only structural preview from the JSON
 - CI runs `node --check` against the packaged browser script when that source file exists, without adding a runtime dependency.
 
 **Capability boundary:** this is a dependency-ordered tree inspector, not a graphical DAG editor or feature-editing system. Reordering, parameter editing, feature suppression/deletion, recompute propagation, visual dependency edges and browser-driven regeneration remain OPEN. The backend FeatureHistory constructor and regeneration pipeline remain authoritative.
+
+
+## Undo/Redo API implementation status
+
+PR #170 adds the strict navigation endpoint and append-only Undo/Redo HTTP operations, mapping empty stacks to `NO_UNDO`/`NO_REDO` and stale heads to `REVISION_CONFLICT`. Exact-head CI and merge evidence are pending. Workbench controls and Chromium navigation E2E remain a separate work package.

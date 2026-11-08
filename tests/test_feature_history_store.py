@@ -285,3 +285,24 @@ def test_store_fails_closed_on_corrupt_navigation_stack_json(tmp_path):
     reopened = SQLiteFeatureHistoryStore(path)
     with pytest.raises(FeatureHistoryStoreIntegrityError, match="navigation stack JSON is invalid"):
         reopened.get_navigation_state("document.part")
+
+
+
+def test_store_fails_closed_when_navigation_stack_target_is_missing(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    store.save(history("mesh-a"), expected_revision=0)
+    store.save(history("mesh-b"), expected_revision=1)
+    store.save(history("mesh-c"), expected_revision=2)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "DELETE FROM feature_history_revision_actions WHERE history_id = ? AND revision = 2",
+            ("document.part",),
+        )
+        connection.execute(
+            "DELETE FROM feature_history_revisions WHERE history_id = ? AND revision = 2",
+            ("document.part",),
+        )
+    reopened = SQLiteFeatureHistoryStore(path)
+    with pytest.raises(FeatureHistoryStoreIntegrityError, match="references a missing revision"):
+        reopened.get_navigation_state("document.part")

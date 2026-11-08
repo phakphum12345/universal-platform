@@ -20,6 +20,7 @@ from .feature_history_editor import (
     add_feature, remove_feature, replace_feature, suppress_feature, unsuppress_feature,
 )
 from .feature_history_store import (
+    FeatureHistoryNavigationState,
     FeatureHistoryRevision,
     FeatureHistoryRevisionConflict,
     SQLiteFeatureHistoryStore,
@@ -165,6 +166,22 @@ class CADGeneratorService:
 
     def list_revisions(self, history_id: str) -> tuple[int, ...]:
         return self.history_store.list_revisions(history_id)
+
+    def get_navigation_state(self, history_id: str) -> FeatureHistoryNavigationState:
+        """Return persistent Undo/Redo availability for the current source head."""
+        return self.history_store.get_navigation_state(history_id)
+
+    def undo_history(
+        self, history_id: str, *, expected_revision: int
+    ) -> FeatureHistoryRevision:
+        """Append a new immutable revision restoring the next Undo target."""
+        return self.history_store.undo(history_id, expected_revision=expected_revision)
+
+    def redo_history(
+        self, history_id: str, *, expected_revision: int
+    ) -> FeatureHistoryRevision:
+        """Append a new immutable revision restoring the next Redo target."""
+        return self.history_store.redo(history_id, expected_revision=expected_revision)
 
     def regenerate(
         self,

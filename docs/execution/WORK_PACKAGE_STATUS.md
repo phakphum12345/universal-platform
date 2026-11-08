@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `d71fc36b29f4e1b1056c738294c1529e823be671`  
+**Last verified integration baseline:** `93744335f3e50a07dde2f78a18f9a307308b73ef`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -142,3 +142,16 @@
 - Undo/Redo append a new revision with current head as parent; all stack and head changes occur in one transaction.
 - A new edit after Undo clears Redo. Stale expected revisions leave both stacks and revision count unchanged.
 - Exact PR-head CI: 860 Python tests PASS; workflow-sanity PASS. Store slice is not yet merged at this status snapshot.
+
+
+## CAD-EDIT-009 — Store-level Undo/Redo post-merge
+
+- PR #169 merged at `93744335f3e50a07dde2f78a18f9a307308b73ef`.
+- Exact PR-head and post-merge CI: 860 Python tests PASS; workflow-sanity PASS.
+- The store preserves immutable source revisions and digests; navigation state is persisted transactionally.
+
+## CAD-EDIT-010 — Service/API Undo/Redo (PR #170)
+
+- Adds service access to navigation state, strict GET navigation route and POST Undo/Redo operations.
+- Expected-revision CAS applies; NO_UNDO/NO_REDO are explicit 409 responses; no arbitrary target revision is accepted.
+- Pending exact-head CI and merge. Workbench/browser layer remains open.

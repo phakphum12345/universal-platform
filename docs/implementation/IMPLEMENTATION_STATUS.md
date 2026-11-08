@@ -1143,3 +1143,18 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact-head CI: 860 Python tests PASS; workflow-sanity PASS.
 - Store layer only. Service/API navigation routes, workbench controls and browser E2E remain open.
 - No PR merge performed at this status snapshot.
+
+
+## PR #169 — Persistent FeatureHistory Undo/Redo store (MERGED)
+
+- Exact PR head: `23b1c7f50cc55a4b7782a1e2f991ee10acc8501d`.
+- Exact PR-head CI: 860 Python tests PASS; workflow-sanity PASS.
+- Merge SHA: `93744335f3e50a07dde2f78a18f9a307308b73ef`.
+- Exact post-merge CI: workflow-sanity PASS; 860 Python tests PASS (workflow #42441684849).
+- Store-level Undo/Redo now persists stacks, initializes legacy histories, appends restore revisions and invalidates Redo after new edits. No prior revision is rewritten or deleted.
+
+## PR #170 — Undo/Redo service/API (OPEN)
+
+- Adds service navigation-state access, strict HTTP GET navigation and POST undo/redo routes.
+- Empty stacks return NO_UNDO/NO_REDO; stale expected revisions return REVISION_CONFLICT.
+- Exact-head CI is pending for the current PR head. Workbench controls and Chromium navigation E2E remain separate.
