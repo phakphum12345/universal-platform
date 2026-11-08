@@ -117,7 +117,15 @@ def workbench(tmp_path):
             page.get_by_role("button", name="Connect").click()
             page.locator("#connection-state").filter(has_text="Connected").wait_for()
             page.get_by_role("button", name="Load revision").click()
-            page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for()
+            try:
+                page.locator('#feature-tree button[data-feature-id="extrusion"]').wait_for(timeout=5_000)
+            except Exception as exc:
+                raise AssertionError(
+                    "Feature tree did not render; state="
+                    + page.locator("#feature-tree-state").inner_text()
+                    + "; status=" + page.locator("#status-message").inner_text()
+                    + "; page_errors=" + repr(page_errors)
+                ) from exc
             yield page, service, page_errors
         finally:
             browser.close()
@@ -191,7 +199,7 @@ def test_parameter_edit_add_remove_and_explicit_cascade_work_in_browser(workbenc
     # Removing a node with dependents is rejected until cascade is explicit.
     page.locator('#feature-tree button[data-feature-id="feature.parent"]').click()
     page.get_by_role("button", name="Remove selected feature").click()
-    page.get_by_text("dependent", exact=False).wait_for()
+    page.locator("#status-message").filter(has_text="dependent").wait_for()
     assert service.history_store.load("history.browser-e2e").revision == 4
 
     page.locator("#feature-remove-cascade").check()
