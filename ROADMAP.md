@@ -684,7 +684,7 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Current merge SHA: `050d18d863653103fb62d6d39426c8c255a8f99c`.
 
 
-## Axis-aligned multi-shell Boolean — PR #191 candidate
+## Axis-aligned multi-shell Boolean — PR #191 PASS
 
 - Extends the existing exact-grid axis-aligned box Boolean adapter to accept validated `BRepMultiShellSolid` inputs with box-shaped outer and cavity components.
 - Uses outer-minus-cavity membership per exact-grid cell and emits separate material components with reconstructed outer/cavity shell orientation.

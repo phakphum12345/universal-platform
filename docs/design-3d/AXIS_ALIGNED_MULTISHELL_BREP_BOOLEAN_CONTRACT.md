@@ -1,6 +1,6 @@
 # Axis-Aligned Multi-Shell B-rep Boolean Contract v1.0
 
-**Status:** Implementation candidate in PR #191; exact-head CI is the acceptance gate.  
+**Status:** IMPLEMENTED — PR #191 merged to the integration branch.  
 **Algorithm:** `exact-axis-aligned-multishell-brep-box-grid-v1`.
 
 ## 1. Supported inputs
@@ -56,3 +56,14 @@ This is still an axis-aligned box-grid Boolean adapter, not a general 3D Boolean
 - Empty intersection and strict snapshot/digest round-trip.
 - Frame/unit mismatch and non-axis-aligned component rejection.
 - Input-count and grid-cell resource limits.
+
+
+## 7. PR #191 implementation evidence
+
+- Exact PR head: `9e069f85e840147d541491a7b424bfd7eef8de1c`.
+- Merge SHA: `20e03675ec1000bd2bbcfaf251df4790305f2c0c`.
+- Exact-head push workflow #42462848667: workflow-sanity PASS; Python 914 PASS (32.41s).
+- Exact-head PR workflow #42462853863: workflow-sanity PASS; Python 914 PASS (20.87s).
+- Post-merge workflow #42462960964: workflow-sanity PASS; Python 914 PASS (29.65s).
+- Browser E2E was not triggered because no browser UI changed; not counted as PASS.
+- See [post-PR #191 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md).
