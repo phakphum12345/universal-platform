@@ -82,8 +82,16 @@ def _parse_integer_string(value: object, label: str, max_bits: int) -> int:
         raise InvalidModelError(f"{label} exceeds max_coordinate_bits before integer conversion")
     if not re.fullmatch(r"(?:0|-?[1-9][0-9]*)", value):
         raise InvalidModelError(f"{label} must be a canonical decimal integer string")
+    # Parse bounded chunks so valid values near the 16,384-bit hard ceiling
+    # do not depend on Python's process-wide decimal-string conversion limit.
+    negative = value.startswith("-")
+    digits_text = value[1:] if negative else value
+    first_width = len(digits_text) % 9 or 9
     try:
-        return int(value)
+        result = int(digits_text[:first_width])
+        for offset in range(first_width, len(digits_text), 9):
+            result = result * 1_000_000_000 + int(digits_text[offset:offset + 9])
+        return -result if negative else result
     except (ValueError, OverflowError) as exc:
         raise InvalidModelError(f"{label} is not a supported decimal integer") from exc
 
