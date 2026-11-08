@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b; PR #163 post-merge CI passed workflow-sanity, python-tests (851 tests) and Chromium E2E (4 tests). Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 408 commits ahead / 0 behind. Inventory at this baseline: 358 entries, 121 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression backend model/editor/regeneration is IMPLEMENTED; revision-safe service/API operations, workbench controls and suppression-specific browser E2E remain open; broader repository completion remains INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: 34148fc359076567eaa4b931304f61f536a41779; PR #166 post-merge CI passed workflow-sanity, python-tests (854 tests) and Chromium E2E (5 tests). Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 411 commits ahead / 0 behind. Inventory at this baseline: 358 entries, 121 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression is end-to-end IMPLEMENTED and verified; broader CAD editing (undo/redo, branching/merging, reorder), generalized B-rep and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -54,7 +54,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Reference Cases](docs/engineering/ENGINEERING_REFERENCE_CASES.md) — reference-case design catalogue.
 - [CAD-neutral Primitive Geometry](docs/engineering/CAD_NEUTRAL_PRIMITIVE_GEOMETRY.md) — analytic primitives, straight/curved profile extrusion and known CAD-kernel boundaries.
 
-- [FeatureHistory Suppression Contract](docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md) — proposed v1.1 suppression semantics, v1.0 compatibility and acceptance gates; design only.
+- [FeatureHistory Suppression Contract](docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md) — end-to-end suppression semantics, v1.0/v1.1 compatibility, API/UI and acceptance evidence.
+- [CAD Generator HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — authenticated loopback endpoints, strict request schemas and revision-safe editing.
 
 ## 3D design, geometry, mechanisms and manufacturing
 

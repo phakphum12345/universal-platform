@@ -84,7 +84,7 @@ The cache remains keyed by history ID, feature ID and computation signature. Sup
 
 ## 7. Service, API and workbench behavior
 
-- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields. PR #165 merged this service/API slice at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity.
+- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields. PR #165 merged this service/API slice at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity. PR #166 completed the workbench and browser slice at `34148fc359076567eaa4b931304f61f536a41779`; exact PR-head and post-merge CI passed 854 Python tests, 5 Chromium E2E tests and workflow-sanity.
 - Suppress accepts `feature_id`, `cascade` and `expected_revision`; unsuppress accepts `feature_id` and `expected_revision`.
 - The HTTP API continues to require bearer authentication, same-origin loopback access, strict JSON parsing and current-head optimistic concurrency.
 - Historical revisions remain read-only.
@@ -130,4 +130,4 @@ PR #163 merged the first backend slice at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014
 - Regeneration skips suppressed nodes and reports suppressed IDs; the artifact cache is not deleted or cleaned.
 - JSON Schema and public package exports for the new model/helper operations.
 
-PR #165 merged revision-safe service/API mutation operations with strict request fields and expected-revision compare-and-swap at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity. PR #166 adds workbench controls, explicit cascade confirmation and suppression-specific browser E2E; that slice remains pending validation. End-to-end suppression is not complete until PR #166 passes exact-head and post-merge gates.
+PR #165 merged revision-safe service/API mutation operations with strict request fields and expected-revision compare-and-swap at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`. PR #166 merged workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E at `34148fc359076567eaa4b931304f61f536a41779`. Exact PR-head and post-merge gates passed 854 Python tests, 5 Chromium E2E tests and workflow-sanity. FeatureHistory suppression is end-to-end implemented; broader FeatureHistory editing (undo/redo, branching/merging and reorder) remains outside this contract.

@@ -1101,3 +1101,21 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge CI: engineering workflow #42439562896 — workflow-sanity PASS and python-tests PASS (**851 passed in 10.02s**); Chromium workflow #42439562884 — PASS (**4 passed in 5.47s**).
 - Scope merged: FeatureHistory v1.1 suppression set with v1.0 round-trip compatibility and immutable digest preservation, explicit migration, immutable suppress/unsuppress edits, explicit cascade and dependency/output invariants, regeneration skip/report behavior, JSON Schema and public exports.
 - Not yet implemented: revision-safe service/API mutation routes, workbench controls, cascade confirmation UI and suppression-specific browser interaction tests. Overall WP-03 remains PARTIAL.
+
+
+## PR #165 — Revision-safe suppression service/API (MERGED)
+
+- Exact PR head: `241c033be084f892e85266373363929707c63d6a`.
+- Exact PR-head CI: 854 Python tests PASS; 4 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS; 4 Chromium E2E tests PASS.
+- Added authenticated loopback `suppress`/`unsuppress` service and HTTP operations with strict request fields and expected-revision compare-and-swap.
+
+## PR #166 — Suppression workbench and browser E2E (MERGED)
+
+- Exact PR head: `e313482497835954a6aa20c2fba62736480efbdf`.
+- Exact PR-head CI: 854 Python tests PASS; 5 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `34148fc359076567eaa4b931304f61f536a41779`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440679828); 5 Chromium E2E tests PASS (workflow #42440679848).
+- Workbench displays suppressed nodes without deletion, gates unsuppression on active dependencies and requires explicit checkbox plus browser confirmation for cascade.
+- FeatureHistory suppression is now end-to-end implemented and verified. Broader CAD editing (undo/redo, branching/merging, reorder), generalized B-rep and overall repository completion remain open.
