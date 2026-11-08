@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot before PR #182: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`; push workflow #42457244454 completed with workflow-sanity PASS and python-tests PASS. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 468 commits ahead / 0 behind. The last complete inventory is historical and is not presented as current. FeatureHistory suppression, Undo/Redo, reorder and branch/fork/merge are PASS for their bounded workflows; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Latest verified integration snapshot: `9c84d4d94030c0e3084d7a288064491d8160a71f`; post-merge workflow #42460044330 passed workflow-sanity and Python tests (894). Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 482 commits ahead / 0 behind. Current inventory: 372 entries, 133 Markdown, 169 Python, 24 JSON files and 87 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation is PASS for its bounded adapter; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -291,4 +291,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md) — bounded deterministic conversion of polygonal faces and inner loops to a validated triangle mesh.
 - [Faceted B-rep Topology Contract v2.0](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — source topology and exact validation invariants.
-- Status: implementation candidate on `feat/cad-brep-polygonal-mesh-triangulation`; exact-head CI and review evidence pending. Multi-shell solids and general 3D Boolean remain OPEN.
+- Status: PASS — PR #182 merged at `9c84d4d94030c0e3084d7a288064491d8160a71f`; exact PR-head Python 894 PASS and post-merge Python 894 PASS. Chromium E2E SKIPPED/not triggered because no UI changed. Multi-shell solids and general 3D Boolean remain OPEN.
+
+- [Post-PR #182 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR182.md) — exact PR-head and post-merge SHA, CI evidence, inventory, safety boundaries and next work package.
