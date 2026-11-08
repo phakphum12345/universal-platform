@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `7b02337fb6bfe678ba950135c913b910c6e5fd40` (PR #186 merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **519 commits ahead / 0 behind** at this audit.  
+**Last verified integration baseline:** `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f` (PR #188 merged).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **531 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest post-merge integration CI:** exact SHA `7b02337fb6bfe678ba950135c913b910c6e5fd40`, workflow #42461678728 — workflow-sanity PASS; python-tests PASS (**904 passed in 14.44s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
-**Current tree at exact integration SHA `7b02337fb6bfe678ba950135c913b910c6e5fd40`:** 378 entries, 136 Markdown, 171 Python, 25 JSON files, 88 Python test files; recursive tree response truncated=false.  
-**Open PRs after PR #186:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
+**Latest post-merge integration CI:** exact SHA `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`, workflow #42462067390 — workflow-sanity PASS; python-tests PASS (**906 passed in 16.06s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
+**Current tree at exact integration SHA `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`:** 379 entries, 137 Markdown, 171 Python, 25 JSON files, 88 Python test files; recursive tree response truncated=false.  
+**Open PRs after PR #188:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1319,3 +1319,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - No separate push-event run was returned for the exact PR head; record UNKNOWN/not PASS. Browser E2E not triggered because no UI changed.
 - Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
 - Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md`.
+
+
+## Multi-shell fail-closed regression coverage — PR #188 PASS
+
+- Exact PR head: `de8403ce210a4d283d4163401338cf0370c811de`.
+- Merge SHA / current integration HEAD: `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`.
+- Exact PR-head workflow #42461990534: workflow-sanity PASS; Python 906 PASS (15.32s).
+- Post-merge workflow #42462067390: workflow-sanity PASS; Python 906 PASS (16.06s).
+- Adds explicit rejection of a cavity touching the outer boundary and failure injection proving an intersection-analysis `UNKNOWN` result rejects the aggregate.
+- No separate push-event run was returned for the PR head; record UNKNOWN/not PASS. Browser E2E not triggered because no UI changed.
+- Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md`.

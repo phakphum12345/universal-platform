@@ -666,3 +666,11 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head workflow #42461621856: workflow-sanity PASS; Python 904 PASS (14.52s).
 - Post-merge workflow #42461678728: workflow-sanity PASS; Python 904 PASS (14.44s).
 - No production algorithm or schema behavior changed. General 3D Boolean and nested material-region semantics remain separate work packages.
+
+
+## CAD multi-shell fail-closed regression increment — PR #188 PASS
+
+- Adds touching outer/cavity boundary rejection and explicit injection of an `UNKNOWN` intersection-analysis result.
+- Exact PR-head workflow #42461990534: workflow-sanity PASS; Python 906 PASS (15.32s).
+- Post-merge workflow #42462067390: workflow-sanity PASS; Python 906 PASS (16.06s).
+- These are regression tests/contracts only; no production algorithm or schema changes. General 3D Boolean remains a separate work package.
