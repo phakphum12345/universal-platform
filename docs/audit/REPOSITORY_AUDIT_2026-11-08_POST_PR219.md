@@ -2,17 +2,16 @@
 
 **Repository:** `phakphum12345/universal-platform`  
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Pinned integration SHA:** `7a0d2a21d05709ccfead7f95e57349310c878a58`  
+**Pinned integration SHA:** `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`  
 **Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)  
 **Audit method:** GitHub API source/tree/PR/check-run inspection. No local working tree was available through this audit.
 
 ## 1. Repository state
 
 - Recursive tree at the pinned integration SHA: 373 files; 150 Markdown, 191 Python and 26 JSON; tree response was not truncated.
-- Open PRs at the snapshot: PR #217 only. PR #218 and #219 are merged into the integration branch.
-- PR #217 base SHA is older than the pinned integration SHA; its mergeability must be refreshed and checked again before merge.
+- Open PRs at the snapshot: 0. PRs #217, #218 and #219 are merged into the integration branch.
 - Main was not changed, and no deployment was performed.
-- Branch protection query returned HTTP 403 through the connected GitHub integration. Current protection state is **UNKNOWN**, not PASS or disabled.
+- The branch metadata reports `protected=false` for the integration and main branches; required status checks are not enforced by branch protection.
 
 ## 2. Recent exact-SHA evidence
 
@@ -20,9 +19,9 @@
 |---|---|---|---|---|---|
 | #218 | Aggregate Boolean ray/classification work, coplanar contact work, input preflight and work counters | `b2fcc5701d066875b6161a733a23aa7439a6caf6` | workflow-sanity PASS; python-tests PASS; Chromium E2E PASS | `f2bbaf2f4868412020051c58762e2337af3a1a25` | workflow-sanity PASS; python-tests PASS; Chromium E2E PASS |
 | #219 | Correct conservative global topology scan budget to charge all 3 edges of every raw fragment against all global vertices | `92726f669bb2cc5b522d9c6ebe1d0576e8fc978c` | workflow-sanity PASS; python-tests PASS | `7a0d2a21d05709ccfead7f95e57349310c878a58` | workflow-sanity PASS; python-tests PASS |
-| #217 | Concave-prism Boolean exact-or-fail-closed regression and coplanar cutter boundary refinement | `921de7c2013183abd770acde714adc3b7680738b` | workflow-sanity PASS; python-tests IN_PROGRESS at this snapshot | OPEN | NOT APPLICABLE until merged |
+| #217 | Concave-prism Boolean exact-or-fail-closed regression and coplanar cutter boundary refinement | `921de7c2013183abd770acde714adc3b7680738b` | workflow-sanity PASS; python-tests PASS | `972f5d5787cb0f70c3f3200dd942f6b8329f08bf` | workflow-sanity PASS; python-tests IN_PROGRESS at this snapshot |
 
-No missing, skipped or untriggered check is counted as PASS. PR #217 is not merged at this snapshot.
+No missing, skipped or untriggered check is counted as PASS. PR #217 is merged; post-merge Python CI is still IN_PROGRESS at this snapshot.
 
 ## 3. CAD Boolean capability status
 
