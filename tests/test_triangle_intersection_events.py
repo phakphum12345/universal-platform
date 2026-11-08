@@ -14,7 +14,7 @@ from universal_platform.engineering.mesh import TriangleMesh
 
 def raw_pair(points, faces):
     return TriangleMesh(
-        "pair.event", "world", "m", "TEST", "0" * 64,
+        "pair.event", "world", "m", "BOX", "0" * 64,
         tuple(Vec3(*point) for point in points),
         tuple(tuple(face) for face in faces),
     )
