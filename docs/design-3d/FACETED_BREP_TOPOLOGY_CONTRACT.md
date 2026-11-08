@@ -59,3 +59,12 @@ Schema: `schemas/geometry/faceted-brep-solid.schema.json`.
 ## 7. v2.0 implementation evidence
 
 PR #181 implements arbitrary simple planar polygon loops and face inner loops. Exact rational predicates validate coplanarity, non-degenerate/simple boundaries, strict containment, non-touching/non-overlapping holes and opposite inner-loop orientation. The Euler characteristic accounts for face holes, allowing a valid single-shell genus-1 through-hole solid. v1.0 triangular snapshots remain importable and normalize to v2.0. Mesh conversion deliberately remains triangular/no-hole only and fails closed for the new topology.
+
+
+## PR #181 implementation verification
+
+- Exact PR head `70be8fb3c091fd391d994da01c0fb6b4cb912dfd`; merge SHA `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b`.
+- Exact PR-head and post-merge: workflow-sanity PASS; Python tests PASS (892). Chromium E2E SKIPPED/not triggered (no UI surface changed).
+- Supports planar polygonal n-gon loops and explicit inner loops, exact coplanarity/simple-loop/containment/orientation validation, and Euler/genus accounting for face holes.
+- Imports v1.0 triangular snapshots and normalizes to v2.0. Mesh adapter remains triangular/no-hole only.
+- Multi-shell aggregation and general 3D Boolean remain the next topology gates.
