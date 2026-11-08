@@ -1,6 +1,6 @@
 # Arbitrary Faceted B-rep Boolean Contract
 
-**Status:** PARTIAL — PR #195 implements exact transverse triangle-pair segment extraction; triangle splitting and general 3D Boolean remain PLANNED.  
+**Status:** PARTIAL — PR #195 implements exact transverse triangle-pair segment extraction; PR #197 implements single-plane triangle splitting; PR #199 implements exact multi-plane arrangement per source triangle. Global mesh arrangement, material classification and general 3D Boolean remain PLANNED.  
 **Target profile:** `FACETED_BREP_BOOLEAN_V1`.  
 **Predecessor:** axis-aligned single-shell and multi-shell box-grid adapters in PR #191.  
 **Design baseline:** integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec` (post-PR #192 documentation reconciliation).
@@ -42,7 +42,9 @@ Each output component must represent a closed material region with one outer she
 ### Gate A — pairwise intersection arrangement (first code slice)
 
 - **Implemented sub-step:** PR candidate adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` for exact-rational endpoints of a proper transverse triangle-pair crossing. It canonicalizes source triangle order and endpoint order, validates the exact segment, serializes rational coordinates strictly, and rejects coplanar/contact/degenerate cases. This primitive does not split triangles and does not implement Boolean operations.
-- Remaining Gate A work: deterministic intersection events and exact segment/point/overlap records for a source triangle pair; triangle splitting into non-overlapping planar fragments; independent candidate-completeness oracle and resource ceilings.
+- Implemented bounded sub-step: PR #197 splits one source triangle by one properly intersecting cutter plane with exact clipping, deterministic triangulation, source-winding preservation and exact area conservation.
+- Implemented bounded sub-step: PR #199 applies ordered exact-rational planes to each source triangle without float round-tripping, records per-plane side provenance, preserves winding, checks exact area conservation and enforces per-call fragment/rational-bit ceilings.
+- Remaining Gate A work: global multi-triangle arrangement orchestration; canonical fragment/vertex identity and adjacency across source triangle boundaries; independent exact coverage oracle for gaps, overlaps, duplicates and orientation; aggregate candidate-pair, fragment, memory and rational-bit budgets.
 - Reuse existing exact-rational triangle-pair predicates and conservative sweep-and-prune candidate generation where their contracts apply.
 - Produce deterministic intersection events and exact segment/point/overlap records for a source triangle pair.
 - Split source triangles into non-overlapping planar fragments while preserving winding and source-face provenance.
