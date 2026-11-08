@@ -66,12 +66,12 @@ def test_cad_generator_executes_concave_prism_boolean_operations_end_to_end(tmp_
         SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
-    meshes = (_concave_l_prism(), _box("unit-box", 1.0, (1.5, 1.5, 1.5)))
+    meshes = (_concave_l_prism(), _box("overlap-box", 2.0, (1.0, 1.0, 1.0)))
     expected_volumes = {
-        BRepBooleanOperation.UNION: "193/4",
-        BRepBooleanOperation.INTERSECTION: "3/4",
-        BRepBooleanOperation.DIFFERENCE: "189/4",
-        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "95/2",
+        BRepBooleanOperation.UNION: "50",
+        BRepBooleanOperation.INTERSECTION: "6",
+        BRepBooleanOperation.DIFFERENCE: "42",
+        BRepBooleanOperation.SYMMETRIC_DIFFERENCE: "44",
     }
     for operation, expected_volume in expected_volumes.items():
         result = service.execute_faceted_boolean(meshes, operation)
