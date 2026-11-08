@@ -1045,3 +1045,17 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - The documentation-only marker step was SKIPPED and is not counted as a pass.
 - WP-03 remains PARTIAL. Browser E2E, feature suppression, reordering, undo/redo, B-rep editing and broader CAD/kernel capabilities remain open.
 - Repository-wide completion remains INCOMPLETE; see `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md`.
+
+
+## PR #158 — Real-browser FeatureHistory editor coverage (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/158
+- Exact PR head: `9aa96157eb6e5ebbf324aa6614178ffd8af17495`; base before merge: `b3f499b7c9234890b278285741945f094d7e9b8a`.
+- Squash merge SHA on `docs/phase-0-complete-requirements`: `9d899f70a97372f689ba07a8e90b479bf14494b4`.
+- Exact PR-head CI: `chromium-e2e` PASS (4 browser tests); `python-tests` PASS (843 tests); `workflow-sanity` PASS. Duplicate Engineering Core workflow run also passed; its documentation-only marker step was SKIPPED and is not counted as a pass.
+- Exact post-merge CI on the merge SHA: `chromium-e2e` PASS (4 browser tests; run `42438295044`); `python-tests` PASS (843 tests; run `42438295110`); `workflow-sanity` PASS. All three check-runs completed successfully.
+- Browser coverage exercises startup/no uncaught page errors, revision-based edit gating, parameter replacement, add/remove with explicit cascade confirmation, stale-writer HTTP 409 handling, and text-only rendering.
+- The test workflow uses local loopback services, test-only in-memory credentials and open-source Playwright/Chromium; no paid browser service or production deployment is introduced.
+- WP-03 remains PARTIAL: feature suppression, reordering semantics, undo/redo, branching/merging, expression parameters, B-rep editing, face/edge/vertex selection and general geometry recomputation remain open.
+- Integration head at audit: `9d899f70a97372f689ba07a8e90b479bf14494b4`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 403 commits ahead and 0 behind. No main promotion.
+- Repository-wide completion remains INCOMPLETE. Branch protection, local working-tree state and full security/dependency audit remain UNKNOWN where the connected API did not provide evidence.
