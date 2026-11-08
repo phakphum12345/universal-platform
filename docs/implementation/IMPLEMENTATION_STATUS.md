@@ -3,6 +3,7 @@
 **Integration branch:** `docs/phase-0-complete-requirements`  
 **Last audited integration baseline:** `91def9b8367969d0dcef04806b831cc34022e797` (PR #158 implementation merged at `9d899f70a97372f689ba07a8e90b479bf14494b4`; subsequent documentation reconciliation recorded in commit `91def9b8367969d0dcef04806b831cc34022e797`).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **404 commits ahead / 0 behind** at this audit.  
+**Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
 **Latest integration-head CI:** workflow run `42438451084` on exact SHA `91def9b8367969d0dcef04806b831cc34022e797` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
 **Current tree:** 356 entries, 120 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
