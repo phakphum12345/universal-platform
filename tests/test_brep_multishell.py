@@ -1,5 +1,6 @@
 import hashlib
 import json
+from math import cos, pi, sin
 from pathlib import Path
 
 import pytest
@@ -9,7 +10,10 @@ from universal_platform.engineering import (
     BRepSolid,
     validate_brep_multishell_solid,
 )
-from universal_platform.engineering.brep import brep_from_triangle_mesh, triangle_mesh_from_brep
+from universal_platform.engineering.brep import (
+    BRepEdge, BRepEdgeUse, BRepFace, BRepLoop, BRepVertex,
+    brep_from_triangle_mesh, triangle_mesh_from_brep,
+)
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
@@ -139,3 +143,91 @@ def test_multi_shell_contract_is_indexed_and_public_api_is_exported():
     assert PublicModel is BRepMultiShellSolid
     assert contract.is_file()
     assert "FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md" in index
+
+
+def rotated_box_brep(solid_id, *, center=(5.0, 5.0, 5.0), angle=pi / 4):
+    source = tessellate_box(BoxSolid(solid_id, "part.frame", Vec3(2, 2, 2), "mm"))
+    c, s = cos(angle), sin(angle)
+    vertices = tuple(
+        Vec3(
+            center[0] + (point.x - 1.0) * c - (point.y - 1.0) * s,
+            center[1] + (point.x - 1.0) * s + (point.y - 1.0) * c,
+            center[2] + point.z - 1.0,
+        )
+        for point in source.vertices
+    )
+    digest = hashlib.sha256(f"{solid_id}:{center}:{angle}".encode()).hexdigest()
+    rotated = TriangleMesh(
+        solid_id, "part.frame", "mm", "BOX", digest, vertices, source.triangles
+    )
+    return brep_from_triangle_mesh(rotated)
+
+
+def concave_l_prism_brep():
+    profile = ((0, 0), (4, 0), (4, 1), (1, 1), (1, 4), (0, 4))
+    coordinates = {}
+    for index, (x, y) in enumerate(profile):
+        coordinates[f"b{index}"] = (x + 3, y + 3, 4)
+        coordinates[f"t{index}"] = (x + 3, y + 3, 6)
+    bottom = tuple(f"b{index}" for index in range(len(profile)))
+    top = tuple(f"t{index}" for index in range(len(profile)))
+    face_specs = [
+        ("top", top),
+        ("bottom", tuple(reversed(bottom))),
+    ]
+    face_specs.extend(
+        (
+            f"side.{index}",
+            (bottom[index], bottom[(index + 1) % len(profile)],
+             top[(index + 1) % len(profile)], top[index]),
+        )
+        for index in range(len(profile))
+    )
+    edge_by_pair = {}
+    loops = []
+    faces = []
+    for face_id, vertex_ids in face_specs:
+        uses = []
+        for index, start in enumerate(vertex_ids):
+            end = vertex_ids[(index + 1) % len(vertex_ids)]
+            canonical = tuple(sorted((start, end)))
+            edge_id = f"edge.{canonical[0]}.{canonical[1]}"
+            edge_by_pair.setdefault(
+                canonical, BRepEdge(edge_id, canonical[0], canonical[1])
+            )
+            uses.append(BRepEdgeUse(edge_id, (start, end) == canonical))
+        loop_id = f"loop.{face_id}"
+        loops.append(BRepLoop(loop_id, tuple(uses)))
+        faces.append(BRepFace(face_id, loop_id))
+    vertices = tuple(
+        BRepVertex(vertex_id, Vec3(*point))
+        for vertex_id, point in coordinates.items()
+    )
+    return BRepSolid(
+        "cavity.concave-l-prism", "part.frame", "mm", "d" * 64,
+        vertices, tuple(edge_by_pair.values()), tuple(loops), tuple(faces),
+        BRepShell("shell.concave-l-prism", tuple(face.face_id for face in faces)),
+    )
+
+
+def test_multi_shell_accepts_rotated_cavity_shell_inside_outer_box():
+    outer = box_brep("outer", (0, 0, 0), (10, 10, 10))
+    cavity = rotated_box_brep("cavity.rotated")
+    solid = BRepMultiShellSolid("part.rotated-cavity", outer, (cavity,))
+    mesh = solid.to_mesh()
+    result = validate_triangle_mesh(mesh)
+    assert validate_brep_multishell_solid(solid).valid
+    assert result.valid and result.watertight and result.consistently_oriented
+    assert result.signed_volume == pytest.approx(992.0)
+
+
+def test_multi_shell_accepts_concave_polygonal_cavity_shell():
+    outer = box_brep("outer", (0, 0, 0), (10, 10, 10))
+    cavity = concave_l_prism_brep()
+    assert validate_brep_solid(cavity).valid
+    solid = BRepMultiShellSolid("part.concave-cavity", outer, (cavity,))
+    mesh = solid.to_mesh()
+    result = validate_triangle_mesh(mesh)
+    assert validate_brep_multishell_solid(solid).valid
+    assert result.valid and result.watertight and result.consistently_oriented
+    assert result.signed_volume == pytest.approx(986.0)
