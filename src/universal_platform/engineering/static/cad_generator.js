@@ -838,7 +838,11 @@
   byId("load").addEventListener("click", async () => {
     try {
       const id = currentHistoryId();
-      const revision = Number(revisionSelect.value);
+      const revisionValue = revisionSelect.value;
+      const revision = Number(revisionValue);
+      if (!revisionValue || !Number.isSafeInteger(revision) || revision < 1) {
+        throw new Error("Select a saved revision before loading.");
+      }
       const result = await api(
         "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(revision)
       );
@@ -859,10 +863,30 @@
     }
   });
 
+  byId("undo").addEventListener("click", async () => {
+    try {
+      await performNavigation("undo");
+    } catch (_) {
+      // performNavigation reports the actionable error in the status region.
+    }
+  });
+
+  byId("redo").addEventListener("click", async () => {
+    try {
+      await performNavigation("redo");
+    } catch (_) {
+      // performNavigation reports the actionable error in the status region.
+    }
+  });
+
   byId("regenerate").addEventListener("click", async () => {
     try {
       const id = currentHistoryId();
-      const revision = Number(revisionSelect.value);
+      const revisionValue = revisionSelect.value;
+      const revision = Number(revisionValue);
+      if (!revisionValue || !Number.isSafeInteger(revision) || revision < 1) {
+        throw new Error("Select a saved revision before regeneration.");
+      }
       const result = await api(
         "/v1/histories/" + encodeURIComponent(id) + "/regenerate",
         { method: "POST", body: { revision } }
