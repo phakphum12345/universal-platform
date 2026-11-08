@@ -23,6 +23,13 @@ _DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _MAX_VERTICES = 100_000
 _MAX_TRIANGLES = 200_000
 _MAX_PAIR_CHECKS = 5_000_000
+_MAX_AGGREGATE_RATIONAL_BITS = 64_000_000
+_MAX_SOLID_ID_CHARS = 128
+_MAX_FRAME_ID_CHARS = 128
+_MAX_LENGTH_UNIT_CHARS = 64
+_MAX_SOURCE_ID_CHARS = 256
+_MAX_PROVENANCE_RECORDS = 4096
+_MAX_METADATA_CHARS = 1_048_576
 _FIELDS = {
     "schema_version", "profile", "solid_id", "frame_id", "length_unit",
     "vertices", "triangles", "shells", "source_provenance",
@@ -51,21 +58,53 @@ def _rational_pair(value: Fraction) -> list[str]:
     return [str(value.numerator), str(value.denominator)]
 
 
-def _parse_integer_string(value: object, label: str) -> int:
-    if not isinstance(value, str) or not re.fullmatch(r"(?:0|-?[1-9][0-9]*)", value):
+def _validate_resource_limits(max_coordinate_bits: object, max_pairwise_checks: object) -> None:
+    for label, value, ceiling in (
+        ("max_coordinate_bits", max_coordinate_bits, 16384),
+        ("max_pairwise_checks", max_pairwise_checks, _MAX_PAIR_CHECKS),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise InvalidModelError(f"{label} must be a positive integer")
+        if value > ceiling:
+            raise InvalidModelError("resource limit exceeds the supported hard ceiling")
+
+
+def _decimal_digit_ceiling(max_bits: int) -> int:
+    # ceil(max_bits * log10(2)); 30103/100000 is a safe upper bound.
+    return max(1, (max_bits * 30103 + 99999) // 100000)
+
+
+def _parse_integer_string(value: object, label: str, max_bits: int) -> int:
+    if not isinstance(value, str):
         raise InvalidModelError(f"{label} must be a canonical decimal integer string")
-    return int(value)
+    digits = len(value) - (1 if value.startswith("-") else 0)
+    if digits > _decimal_digit_ceiling(max_bits):
+        raise InvalidModelError(f"{label} exceeds max_coordinate_bits before integer conversion")
+    if not re.fullmatch(r"(?:0|-?[1-9][0-9]*)", value):
+        raise InvalidModelError(f"{label} must be a canonical decimal integer string")
+    try:
+        return int(value)
+    except (ValueError, OverflowError) as exc:
+        raise InvalidModelError(f"{label} is not a supported decimal integer") from exc
 
 
-def _parse_rational(value: object, label: str, max_bits: int) -> Fraction:
+def _parse_rational(value: object, label: str, max_bits: int,
+                    aggregate_budget: list[int] | None = None) -> Fraction:
     if not isinstance(value, (list, tuple)) or len(value) != 2:
         raise InvalidModelError(f"{label} must be a [numerator, denominator] pair")
-    numerator = _parse_integer_string(value[0], f"{label} numerator")
-    denominator = _parse_integer_string(value[1], f"{label} denominator")
+    numerator = _parse_integer_string(value[0], f"{label} numerator", max_bits)
+    denominator = _parse_integer_string(value[1], f"{label} denominator", max_bits)
     if denominator <= 0:
         raise InvalidModelError(f"{label} denominator must be positive")
-    if numerator.bit_length() > max_bits or denominator.bit_length() > max_bits:
+    numerator_bits = abs(numerator).bit_length()
+    denominator_bits = denominator.bit_length()
+    if numerator_bits > max_bits or denominator_bits > max_bits:
         raise InvalidModelError(f"{label} exceeded max_coordinate_bits")
+    if aggregate_budget is not None:
+        next_total = aggregate_budget[0] + numerator_bits + denominator_bits
+        if next_total > _MAX_AGGREGATE_RATIONAL_BITS:
+            raise InvalidModelError("aggregate rational bit budget exceeded")
+        aggregate_budget[0] = next_total
     result = Fraction(numerator, denominator)
     if (result.numerator, result.denominator) != (numerator, denominator):
         raise InvalidModelError(f"{label} must be reduced to canonical form")
@@ -160,12 +199,14 @@ class RationalFacetedSolid:
                 raise InvalidModelError(f"{label} is required")
         if not _ID.fullmatch(self.solid_id):
             raise InvalidModelError("solid_id must be a stable lowercase identifier")
-        for label, value in (("max_coordinate_bits", self.max_coordinate_bits),
-                             ("max_pairwise_checks", self.max_pairwise_checks)):
-            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
-                raise InvalidModelError(f"{label} must be a positive integer")
-        if self.max_coordinate_bits > 16384 or self.max_pairwise_checks > _MAX_PAIR_CHECKS:
-            raise InvalidModelError("resource limit exceeds the supported hard ceiling")
+        _validate_resource_limits(self.max_coordinate_bits, self.max_pairwise_checks)
+        for label, value, ceiling in (
+            ("solid_id", self.solid_id, _MAX_SOLID_ID_CHARS),
+            ("frame_id", self.frame_id, _MAX_FRAME_ID_CHARS),
+            ("length_unit", self.length_unit, _MAX_LENGTH_UNIT_CHARS),
+        ):
+            if len(value) > ceiling:
+                raise InvalidModelError(f"{label} exceeds its maximum length")
         if not isinstance(self.vertices, tuple) or not 4 <= len(self.vertices) <= _MAX_VERTICES:
             raise InvalidModelError("vertices must contain 4..100000 exact points")
         if not isinstance(self.triangles, tuple) or not 4 <= len(self.triangles) <= _MAX_TRIANGLES:
@@ -178,11 +219,12 @@ class RationalFacetedSolid:
             raise InvalidModelError("duplicate exact vertices are not canonical")
         if tuple(sorted(self.vertices)) != self.vertices:
             raise InvalidModelError("vertices must be lexicographically canonical")
-        for point in self.vertices:
-            for value in point:
-                if (abs(value.numerator).bit_length() > self.max_coordinate_bits
-                        or value.denominator.bit_length() > self.max_coordinate_bits):
-                    raise InvalidModelError("rational coordinate exceeded max_coordinate_bits")
+        aggregate_bits = sum(
+            abs(value.numerator).bit_length() + value.denominator.bit_length()
+            for point in self.vertices for value in point
+        )
+        if aggregate_bits > _MAX_AGGREGATE_RATIONAL_BITS:
+            raise InvalidModelError("aggregate rational bit budget exceeded")
         for face in self.triangles:
             if (not isinstance(face, tuple) or len(face) != 3
                     or any(isinstance(index, bool) or not isinstance(index, int)
@@ -194,13 +236,20 @@ class RationalFacetedSolid:
                 raise InvalidModelError("degenerate rational triangle is not permitted")
         if not isinstance(self.source_provenance, tuple):
             raise InvalidModelError("source_provenance must be an immutable tuple")
+        if len(self.source_provenance) > _MAX_PROVENANCE_RECORDS:
+            raise InvalidModelError("source provenance record count exceeded hard limit")
+        metadata_chars = len(self.solid_id) + len(self.frame_id) + len(self.length_unit)
         for item in self.source_provenance:
             if not isinstance(item, tuple) or len(item) != 2:
                 raise InvalidModelError("source provenance entries must be (source_id, sha256) pairs")
             source_id, digest = item
-            if (not isinstance(source_id, str) or not _ID.fullmatch(source_id)
+            if (not isinstance(source_id, str) or len(source_id) > _MAX_SOURCE_ID_CHARS
+                    or not _ID.fullmatch(source_id)
                     or not isinstance(digest, str) or not _DIGEST.fullmatch(digest)):
-                raise InvalidModelError("source provenance requires stable IDs and lowercase SHA-256")
+                raise InvalidModelError("source provenance requires bounded stable IDs and lowercase SHA-256")
+            metadata_chars += len(source_id) + len(digest)
+        if metadata_chars > _MAX_METADATA_CHARS:
+            raise InvalidModelError("aggregate metadata character budget exceeded")
         if tuple(sorted(set(self.source_provenance))) != self.source_provenance:
             raise InvalidModelError("source provenance must be sorted and unique")
 
@@ -284,40 +333,58 @@ class RationalFacetedSolid:
                   max_pairwise_checks: int = _MAX_PAIR_CHECKS) -> "RationalFacetedSolid":
         if not isinstance(value, Mapping) or set(value) != _FIELDS:
             raise InvalidModelError("RationalFacetedSolid snapshot has missing or unknown fields")
+        _validate_resource_limits(max_coordinate_bits, max_pairwise_checks)
         if (value["schema_version"] != cls.SCHEMA_VERSION
                 or value["profile"] != cls.PROFILE
                 or value["algorithm_version"] != cls.ALGORITHM_VERSION
                 or value["predicate_version"] != cls.PREDICATE_VERSION):
             raise InvalidModelError("unsupported rational faceted solid profile or algorithm")
+        for label, item, ceiling in (
+            ("solid_id", value["solid_id"], _MAX_SOLID_ID_CHARS),
+            ("frame_id", value["frame_id"], _MAX_FRAME_ID_CHARS),
+            ("length_unit", value["length_unit"], _MAX_LENGTH_UNIT_CHARS),
+        ):
+            if not isinstance(item, str) or not item.strip() or len(item) > ceiling:
+                raise InvalidModelError(f"{label} is missing or exceeds its maximum length")
         raw_vertices, raw_triangles = value["vertices"], value["triangles"]
         if not isinstance(raw_vertices, (list, tuple)) or not isinstance(raw_triangles, (list, tuple)):
             raise InvalidModelError("vertices and triangles must be arrays")
-        if len(raw_vertices) > _MAX_VERTICES or len(raw_triangles) > _MAX_TRIANGLES:
-            raise InvalidModelError("rational solid exceeds hard geometry limits")
+        if not 4 <= len(raw_vertices) <= _MAX_VERTICES or not 4 <= len(raw_triangles) <= _MAX_TRIANGLES:
+            raise InvalidModelError("rational solid geometry count is outside supported hard limits")
+        shells = value["shells"]
+        if shells != [{"shell_id": "outer", "role": "OUTER",
+                       "triangle_indices": list(range(len(raw_triangles))),
+                       "parent_outer_shell_id": None}]:
+            raise InvalidModelError("v1 supports exactly one outer shell; cavities are unsupported")
+        raw_sources = value["source_provenance"]
+        if not isinstance(raw_sources, (list, tuple)) or len(raw_sources) > _MAX_PROVENANCE_RECORDS:
+            raise InvalidModelError("source_provenance count exceeds supported hard limits")
+        metadata_chars = len(value["solid_id"]) + len(value["frame_id"]) + len(value["length_unit"])
+        for raw in raw_sources:
+            if not isinstance(raw, Mapping) or set(raw) != {"source_id", "source_sha256"}:
+                raise InvalidModelError("source provenance record has missing or unknown fields")
+            source_id, digest = raw["source_id"], raw["source_sha256"]
+            if (not isinstance(source_id, str) or len(source_id) > _MAX_SOURCE_ID_CHARS
+                    or not _ID.fullmatch(source_id) or not isinstance(digest, str)
+                    or not _DIGEST.fullmatch(digest)):
+                raise InvalidModelError("source provenance requires bounded stable IDs and lowercase SHA-256")
+            metadata_chars += len(source_id) + len(digest)
+        if metadata_chars > _MAX_METADATA_CHARS:
+            raise InvalidModelError("aggregate metadata character budget exceeded")
         vertices = []
+        aggregate_budget = [0]
         for raw_point in raw_vertices:
             if not isinstance(raw_point, (list, tuple)) or len(raw_point) != 3:
                 raise InvalidModelError("each rational vertex must contain three coordinates")
-            vertices.append(tuple(_parse_rational(item, "coordinate", max_coordinate_bits)
+            vertices.append(tuple(_parse_rational(item, "coordinate", max_coordinate_bits,
+                                                  aggregate_budget)
                                   for item in raw_point))
         triangles = []
         for raw_face in raw_triangles:
             if not isinstance(raw_face, (list, tuple)) or len(raw_face) != 3:
                 raise InvalidModelError("each rational triangle must contain three indices")
             triangles.append(tuple(raw_face))
-        shells = value["shells"]
-        if shells != [{"shell_id": "outer", "role": "OUTER",
-                       "triangle_indices": list(range(len(triangles))),
-                       "parent_outer_shell_id": None}]:
-            raise InvalidModelError("v1 supports exactly one outer shell; cavities are unsupported")
-        raw_sources = value["source_provenance"]
-        if not isinstance(raw_sources, (list, tuple)):
-            raise InvalidModelError("source_provenance must be an array")
-        sources = []
-        for raw in raw_sources:
-            if not isinstance(raw, Mapping) or set(raw) != {"source_id", "source_sha256"}:
-                raise InvalidModelError("source provenance record has missing or unknown fields")
-            sources.append((raw["source_id"], raw["source_sha256"]))
+        sources = [(raw["source_id"], raw["source_sha256"]) for raw in raw_sources]
         counters = value["resource_counters"]
         expected_counters = {
             "vertex_count": len(vertices), "triangle_count": len(triangles),
