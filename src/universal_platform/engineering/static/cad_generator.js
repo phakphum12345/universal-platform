@@ -40,6 +40,7 @@
   let selectedFeatureDependenciesActive = false;
   let navigationState = null;
   let navigationBusy = false;
+  let loadedRevision = null;
   let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
@@ -72,7 +73,8 @@
     const expected = Number(expectedRevisionInput.value);
     const currentHead = connected &&
       Number.isSafeInteger(expected) && expected >= 1 &&
-      !revisionSelect.disabled && revisionSelect.value === String(expected);
+      loadedRevision === expected && !revisionSelect.disabled &&
+      revisionSelect.value === String(expected);
     const canUndo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_undo);
     const canRedo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_redo);
     byId("undo").disabled = !canUndo;
@@ -132,7 +134,9 @@
         "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
       );
       snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+      loadedRevision = result.revision;
       renderFeatureTree();
+      updateNavigationControls();
       byId("revision-state").textContent =
         operation.toUpperCase() + " created revision " + result.revision +
         " from revision " + result.target_revision;
@@ -317,7 +321,10 @@
 
   function setConnected(value) {
     connected = value;
-    if (!value) navigationState = null;
+    if (!value) {
+      navigationState = null;
+      loadedRevision = null;
+    }
     connectionState.textContent = value ? "Connected" : "Not connected";
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
@@ -728,6 +735,7 @@
       byId("regenerate").disabled = true;
       expectedRevisionInput.value = "0";
       navigationState = null;
+      loadedRevision = null;
       byId("revision-state").textContent = "No revision loaded";
       updateFeatureEditorControls(false);
       updateNavigationControls();
@@ -811,6 +819,9 @@
         body: { history, expected_revision: expected },
       });
       await refreshRevisions(result.revision);
+      loadedRevision = result.revision;
+      updateFeatureEditorControls(selectedFeatureId !== null);
+      updateNavigationControls();
       setStatus("Saved immutable revision " + result.revision + ".", "good");
       showResult(result);
     } catch (error) {
@@ -847,7 +858,9 @@
         "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(revision)
       );
       snapshotInput.value = JSON.stringify(result.history, null, 2);
+      loadedRevision = revision;
       renderFeatureTree();
+      updateNavigationControls();
       byId("revision-state").textContent = "Loaded revision " + revision;
       setStatus("Loaded immutable source revision " + revision + ".", "good");
       showResult({
