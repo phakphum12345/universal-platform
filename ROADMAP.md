@@ -674,3 +674,11 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head workflow #42461990534: workflow-sanity PASS; Python 906 PASS (15.32s).
 - Post-merge workflow #42462067390: workflow-sanity PASS; Python 906 PASS (16.06s).
 - These are regression tests/contracts only; no production algorithm or schema changes. General 3D Boolean remains a separate work package.
+
+
+## CAD multi-shell fail-closed audit — PR #189 PASS
+
+- Synchronizes implementation status, requirements traceability, contract, README and documentation index with PR #188 evidence.
+- PR #189 exact-head push #42462189154: Python 906 PASS (14.87s); PR #42462199774: Python 906 PASS (15.28s).
+- Post-merge workflow #42462267653: Python 906 PASS (16.26s).
+- Current merge SHA: `050d18d863653103fb62d6d39426c8c255a8f99c`.
