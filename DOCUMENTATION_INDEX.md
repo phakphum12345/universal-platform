@@ -305,3 +305,6 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 
 - [Pre-PR #193 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md) — exact baseline, current Boolean limits, existing mesh-intersection primitives and fail-closed implementation gates.
+
+
+- [Post-PR #197 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR197.md) — exact PR-head 925-test evidence, merge SHA, UNKNOWN post-merge CI and remaining full-mesh arrangement gates.

@@ -285,3 +285,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-BREP-BOOLEAN-001A | Extract deterministic exact-rational intersection segment endpoints for a proper transverse pair of source triangles | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), PR #195, `triangle_intersection_events.py`, `test_triangle_intersection_events.py` | PASS for the narrow PR-head primitive: exact head `1bcfa0ceb1aab8839ec7ee5e06ae8ffe0ecc6e9e`, workflow #42468475501 workflow-sanity PASS and Python 921 PASS (21.16s). Post-merge CI on `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b` is UNKNOWN. Triangle splitting, point-in-solid classification, fragment selection, Boolean assembly and degeneracy support remain OPEN. |
+
+
+## CAD-BREP-BOOLEAN-001B — Exact single-plane triangle fragment splitting
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-BREP-BOOLEAN-001B | Split one source triangle by a properly intersecting cutter plane into deterministic exact-rational fragments while preserving winding and area | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), PR #197, `triangle_intersection_events.py`, `test_triangle_intersection_events.py` | PASS for the bounded PR-head primitive: exact head `49029f71f161afe2d3ba787c66eb21bd2127c02d`, workflow #42468939670 workflow-sanity PASS and Python 925 PASS (31.98s). Post-merge CI on `f31ca0135cafc17c1489d88f62c09be1c18cc97e` is UNKNOWN. Multi-plane arrangement, global fragment adjacency, material classification and Boolean assembly remain OPEN. |

@@ -1377,3 +1377,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Earlier run found six invalid fixtures using unsupported source kind `TEST`; fixtures were corrected to `BOX` and the updated exact head passed.
 - Post-merge workflow/status on merge SHA: UNKNOWN (no associated run or combined status returned). Do not count as PASS.
 - Explicit limit: no triangle fragment splitting, material classification, Boolean operation or shell assembly. General faceted Boolean remains PARTIAL/INCOMPLETE.
+
+
+## Exact triangle fragment splitting by intersecting plane — PR #197
+
+- PR #197 exact head: `49029f71f161afe2d3ba787c66eb21bd2127c02d`; merge SHA: `f31ca0135cafc17c1489d88f62c09be1c18cc97e`.
+- Adds `TriangleFragment` and `split_triangle_by_intersecting_plane` for one source triangle and one properly intersecting cutter plane.
+- Uses exact-rational half-plane clipping, deterministic triangulation, source-winding preservation and exact area conservation; maximum three output triangles per single-plane split.
+- Tests in `tests/test_triangle_intersection_events.py`; exact-head workflow #42468939670: workflow-sanity PASS; Python 925 PASS (31.98s).
+- Earlier test run exposed an incorrect expected positive/negative fragment distribution; the expectation was corrected and the updated exact head passed.
+- Post-merge workflow/status on `f31ca0135cafc17c1489d88f62c09be1c18cc97e`: UNKNOWN; no associated run/status returned.
+- Explicit limit: no multi-plane full-mesh arrangement, global edge pairing, material classification or Boolean shell assembly.

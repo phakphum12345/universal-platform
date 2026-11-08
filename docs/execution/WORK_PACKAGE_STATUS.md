@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`  
+**Last verified integration baseline:** `f31ca0135cafc17c1489d88f62c09be1c18cc97e`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -260,4 +260,15 @@
 - Scope: for a properly intersecting triangle pair, split one source triangle by the full cutter-plane chord using exact-rational half-plane clipping; triangulate both convex sides deterministically; preserve source winding; verify exact area conservation and a maximum of three output triangles.
 - Disjoint pairs return one unchanged fragment. Coplanar/contact/degenerate cases fail closed through the existing event contract.
 - Explicit non-claims: no full-mesh arrangement, multi-plane accumulation, Boolean material classification, fragment boundary pairing or solid assembly.
-- Status: implementation candidate — pending exact-head CI and review.
+- PR #197 merged at `f31ca0135cafc17c1489d88f62c09be1c18cc97e`; exact PR head `49029f71f161afe2d3ba787c66eb21bd2127c02d`.
+- Exact-head workflow #42468939670: workflow-sanity PASS; Python tests 925 PASS (31.98s). An earlier fragment-side expectation was corrected before this passing run.
+- Post-merge CI/status on merge SHA: UNKNOWN; no associated run or combined status was returned. Browser E2E not triggered for this geometry-core-only change.
+- Status: PASS for the bounded single-plane triangle fragment splitter at PR head; post-merge verification UNKNOWN. Full-mesh arrangement and Boolean assembly remain OPEN.
+
+
+## PR #197 post-merge evidence boundary
+
+- Exact merge SHA: `f31ca0135cafc17c1489d88f62c09be1c18cc97e`.
+- Exact PR-head workflow #42468939670: workflow-sanity PASS; Python 925 PASS (31.98s).
+- The available workflow query returned no post-merge run and combined commit statuses were empty; post-merge CI is UNKNOWN, not PASS.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR197.md`.
