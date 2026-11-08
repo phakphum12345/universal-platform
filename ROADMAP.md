@@ -559,15 +559,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - **Still open:** graph branch/merge, feature reordering, generalized B-rep/3D Boolean, broader hardware/physics/runtime integration and whole-repository completion.
 
 
-## FeatureHistory undo/redo — design phase
+## FeatureHistory Undo/Redo — end-to-end complete
 
-- CAD-EDIT-008 contract drafted at `docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md`.
-- Design uses persistent SQLite Undo/Redo stacks and append-only restore revisions; prior snapshots and digests are never rewritten or deleted.
-- New normal edits clear Redo; Undo/Redo use expected-revision compare-and-swap and atomically append a new revision plus navigation-state changes.
-- Existing histories initialize deterministic Undo state from their immutable linear revision chain.
-- PR #168 merged the contract at `6c5f77168cca1947bf79678696613ef1ef9c84ea`.
-- PR #169 merged the store layer at `93744335f3e50a07dde2f78a18f9a307308b73ef`: persistent stacks, atomic append-only restore revisions, legacy backfill, CAS and fail-closed validation. Exact PR-head and post-merge CI: 860 Python tests PASS, workflow-sanity PASS.
-- PR #170 merged service/API navigation state and Undo/Redo routes at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`; PR-head CI passed 865 Python tests and 5 Chromium E2E tests. Post-merge Chromium E2E exposed a revision-option readiness race (4 PASS / 1 ERROR); Python and workflow-sanity passed.
-- PR #171 adds current-head gated Undo/Redo controls, persisted navigation refresh, separate loaded-revision safety, empty revision guards and browser tests for reload persistence, historical read-only gating and redo invalidation.
-- PR #171 also addresses the post-merge revision-option readiness race by waiting for the saved option and rejecting empty/non-positive values before Load/Regenerate.
-- **Next:** validate PR #171 on exact head and post-merge; only then mark Undo/Redo end-to-end complete.
+- PR #168 merged the immutable revision-restore contract at `6c5f77168cca1947bf79678696613ef1ef9c84ea`.
+- PR #169 merged persistent SQLite navigation stacks and append-only restore revisions at `93744335f3e50a07dde2f78a18f9a307308b73ef`.
+- PR #170 merged strict service/API navigation and Undo/Redo routes at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`.
+- PR #171 merged workbench controls and browser race fix at `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- Exact PR-head and post-merge CI on PR #171 merge SHA: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
+- Browser acceptance covers multi-step Undo/Redo, persistence after reload, historical-revision read-only gating, redo invalidation after a new edit and revision-option readiness.
+- **Status:** PASS for the bounded FeatureHistory Undo/Redo work package. Existing revisions remain immutable; Undo/Redo append restore revisions.
+- **Still open:** graph branch/merge, feature reordering semantics, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
