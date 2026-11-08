@@ -591,3 +591,14 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Successful merge appends one immutable target revision with source/base provenance and expected-revision concurrency protection; failed merge must leave all state unchanged.
 - Required implementation sequence: additive metadata and fork creation; pure merge analyzer; atomic store merge; service/API; workbench; Chromium E2E.
 - **Status:** Design contract complete; implementation is OPEN and no branch/merge capability is claimed yet.
+
+
+## FeatureHistory Branch/Fork — store-level slice complete
+
+- PR #176 merged at `2bc96a79c9c341dc896da980c1117d37928023ba`; exact PR head `aa4a24c71242c861fdff387475e711d3e22756c6`.
+- Adds an additive SQLite branch-origin catalog and atomic fork of a verified root revision into a new independent FeatureHistory history ID.
+- Branch provenance records root history ID, exact fork revision and source digest; branch revision 1 preserves node content, outputs, suppression and presentation order.
+- Database schema advances additively to v2 while the existing revision digest envelope remains v1, preserving all prior revision hashes.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (875 tests); Chromium E2E PASS (7 tests).
+- **Status:** PASS for local immutable branch creation/forking only.
+- **Still open:** three-way merge engine, conflict reporting, transactional merge provenance, service/API merge routes, workbench branch/merge controls, recompute propagation and whole-repository completion.
