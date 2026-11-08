@@ -872,7 +872,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 
 - Integration HEAD: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 334 ahead / 0 behind.
 - PR #125 added signed directed ANGLE between two stable segment IDs and ParametricSketch schema v1.1 with v1.0 snapshot compatibility. Exact PR-head and post-merge CI both passed 785 tests; post-merge workflow #42336694017 passed both required jobs.
-- Next implementation branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on the exact integration SHA above. It adds circular arc references, positive RADIUS constraints, endpoint TANGENT constraints, and explicit fail-closed behavior in the straight-line region converter. Exact-head CI is pending.
+- Circular sketch geometry increment was completed by PR #126 at `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd`; the later current CAD baseline and curved-loop limitations are documented below.
 - The arc implementation is not a curved-profile CAD kernel: arc tessellation, curved planar regions, curved Boolean operations and B-rep conversion remain OPEN.
 - Local workstation working-tree state remains UNKNOWN from remote repository inspection.
 
@@ -1153,12 +1153,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge CI: workflow-sanity PASS; 860 Python tests PASS (workflow #42441684849).
 - Store-level Undo/Redo now persists stacks, initializes legacy histories, appends restore revisions and invalidates Redo after new edits. No prior revision is rewritten or deleted.
 
-## PR #170 — Undo/Redo service/API (OPEN)
-
-- Adds service navigation-state access, strict HTTP GET navigation and POST undo/redo routes.
-- Empty stacks return NO_UNDO/NO_REDO; stale expected revisions return REVISION_CONFLICT.
-- Exact-head CI is pending for the current PR head. Workbench controls and Chromium navigation E2E remain separate.
-
+## PR #170 — Undo/Redo service/API (MERGED; final evidence below)
 
 ## PR #170 — Undo/Redo service/API (MERGED)
 
@@ -1168,22 +1163,9 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge CI: 865 Python tests PASS; workflow-sanity PASS; Chromium E2E 4 PASS / 1 ERROR because the browser fixture attempted to load a revision before its option was attached, causing a transient revision=0 request.
 - API routes are merged: GET navigation, POST undo and POST redo; strict expected-revision and audit boundaries remain enforced.
 
-## PR #171 — Undo/Redo workbench (OPEN)
+## PR #171 — Undo/Redo workbench (MERGED; final evidence below)
 
-- Adds current-head gated Undo/Redo buttons, persistent navigation-state refresh and post-action revision reload.
-- Guards empty or invalid revision selection before Load/Regenerate.
-- Updates Chromium fixture to wait for the saved revision option; adds reload persistence and Redo invalidation coverage.
-- Exact-head and post-merge CI are pending. Do not claim Undo/Redo end-to-end complete yet.
-
-
-## PR #171 — Undo/Redo workbench and browser race fix (OPEN)
-
-- Adds persistent navigation-state reads, Undo/Redo controls, current-head gating and server-driven refresh after every restore.
-- Tracks the actually loaded revision separately from the selected dropdown value; historical snapshots remain read-only even if the user changes the selection back to the head without loading it.
-- Rejects empty/non-positive revision selection before Load or Regenerate.
-- Chromium fixture waits for the revision option to be attached before loading; adds reload persistence, redo invalidation after a new edit and historical read-only coverage.
-- Exact-head CI pending. The previous PR #170 post-merge browser error remains a known failure until this PR passes post-merge.
-
+## PR #171 — Undo/Redo workbench and browser race fix (MERGED; final evidence below)
 
 ## PR #171 — Undo/Redo workbench and browser acceptance (MERGED)
 
