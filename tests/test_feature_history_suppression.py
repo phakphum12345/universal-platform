@@ -72,12 +72,17 @@ def test_unsuppress_requires_dependencies_to_be_active_and_never_cascades():
 def test_suppression_validates_unknown_ids_last_output_and_v11_canonical_form():
     with pytest.raises(InvalidModelError, match="does not exist"):
         suppress_feature(graph(), "missing")
+    single_output = FeatureHistory(
+        "history.single-output",
+        (FeatureNode.create("output", FeatureKind.MESH),),
+        ("output",),
+    )
     with pytest.raises(InvalidModelError, match="at least one active output"):
-        suppress_feature(graph(), "output")
+        suppress_feature(single_output, "output")
     base = graph()
     raw = base.to_dict()
     raw["schema_version"] = "1.1"
-    raw["suppressed_feature_ids"] = ["source", "middle"]
+    raw["suppressed_feature_ids"] = ["middle", "source"]
     with pytest.raises(InvalidModelError, match="active feature"):
         FeatureHistory.from_dict(raw)
     raw["suppressed_feature_ids"] = ["source", "source"]
