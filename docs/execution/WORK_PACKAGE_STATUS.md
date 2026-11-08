@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `93744335f3e50a07dde2f78a18f9a307308b73ef`  
+**Last verified integration baseline:** `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -155,3 +155,25 @@
 - Adds service access to navigation state, strict GET navigation route and POST Undo/Redo operations.
 - Expected-revision CAS applies; NO_UNDO/NO_REDO are explicit 409 responses; no arbitrary target revision is accepted.
 - Pending exact-head CI and merge. Workbench/browser layer remains open.
+
+
+## CAD-EDIT-010 — Service/API Undo/Redo post-merge
+
+- PR #170 merged at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`.
+- Exact PR-head CI: 865 Python tests, 5 Chromium E2E tests and workflow-sanity PASS.
+- Exact post-merge CI: 865 Python tests and workflow-sanity PASS; Chromium E2E 4 PASS / 1 ERROR due a test-fixture timing race on revision option readiness. No service/API test failed.
+
+## CAD-EDIT-011 — Workbench Undo/Redo (PR #171)
+
+- Adds persistent navigation availability, current-head gating, Undo/Redo actions and invalid revision guards.
+- Adds browser coverage for reload persistence and redo invalidation after a new edit.
+- Pending exact-head and post-merge gates.
+
+
+## CAD-EDIT-011 — Undo/Redo workbench (PR #171)
+
+- Adds Undo/Redo buttons driven by server navigation state and enabled only when the current head snapshot is actually loaded.
+- Historical revision selection and loading remain read-only; returning the dropdown to the head does not re-enable mutations until the head is loaded again.
+- Guards empty/invalid revision values before Load/Regenerate, fixing the PR #170 post-merge `revision=0` timing race.
+- Browser coverage checks multi-step Undo/Redo, reload persistence, historical read-only gating and redo invalidation after a new edit.
+- Pending exact-head and post-merge gates.

@@ -1,6 +1,6 @@
 # FeatureHistory Undo/Redo Contract — Revision Restore Model
 
-**Status:** Store layer implemented by PR #169, merged at `93744335f3e50a07dde2f78a18f9a307308b73ef`; service/API implementation is in PR #170 pending CI/merge; workbench integration remains open.  
+**Status:** Store layer implemented by PR #169 and service/API implemented by PR #170; workbench controls and browser acceptance are in PR #171 pending exact-head/post-merge gates.  
 **Scope:** One linear editing session per FeatureHistory, with persistent undo/redo state backed by immutable source revisions.  
 **Depends on:** FeatureHistory revision store, expected-revision compare-and-swap, authenticated loopback API, workbench current-head gating and audit log.
 
@@ -167,6 +167,6 @@ PR #169 merged the store-level slice at `93744335f3e50a07dde2f78a18f9a307308b73e
 - Operation/source/target revision metadata and navigation-state reads.
 - Store tests for multi-step transitions, restart persistence, redo invalidation after new edits, legacy backfill, stale writers and corrupted state.
 
-Exact PR-head and post-merge CI for PR #169 passed 860 Python tests and workflow-sanity. PR #170 adds the service/API layer: persistent navigation-state reads, strict undo/redo endpoints, expected-revision checks and explicit NO_UNDO/NO_REDO responses; exact-head CI is pending. Workbench controls and Chromium navigation E2E remain open. Undo/Redo is not end-to-end complete until those layers pass exact-head and post-merge evidence.
+Exact PR-head and post-merge CI for PR #169 passed 860 Python tests and workflow-sanity. PR #170 merged the service/API layer at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`: persistent navigation-state reads, strict undo/redo endpoints, expected-revision checks and explicit NO_UNDO/NO_REDO responses. Exact PR-head CI passed 865 Python tests, 5 Chromium E2E tests and workflow-sanity. Post-merge CI passed 865 Python tests and workflow-sanity; Chromium E2E had 4 PASS / 1 ERROR from a revision-option readiness race. PR #171 adds current-head gated workbench controls, tracks the actually loaded revision separately from the dropdown selection, guards empty/non-positive revisions before Load/Regenerate and adds browser coverage for reload persistence, historical read-only gating and redo invalidation. It also fixes the PR #170 post-merge revision-option readiness race. Undo/Redo is not end-to-end complete until PR #171 passes exact-head and post-merge evidence.
 
 This does not claim graph branching/merging, collaborative editing, arbitrary revision selection as a mutation, or whole-repository completion.

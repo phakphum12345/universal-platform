@@ -20,7 +20,7 @@
 | R-014 | 3D design, tools, machines, mechanisms, structures and products | 3D_DESIGN_INTELLIGENCE; 3D_TOOL_GENERATION_ENGINE | Specification; only analytic primitives, nominal joint contracts and narrow tree/planar kinematics slices implemented |
 | R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | EFI/OpenCore candidate partially inspected; generic source UNKNOWN |
 | R-016 | FeatureHistory suppression preserves source nodes and immutable revision history | FEATURE_HISTORY_SUPPRESSION_CONTRACT; FEATURE_HISTORY_REGENERATION_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS end-to-end by PRs #163/#165/#166; exact merge SHA `34148fc359076567eaa4b931304f61f536a41779`, 854 Python tests and 5 Chromium E2E tests PASS on PR head and post-merge |
-| R-017 | FeatureHistory Undo/Redo restores prior content without rewriting or deleting immutable revisions | FEATURE_HISTORY_UNDO_REDO_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PARTIAL — store layer merged by PR #169 (860 Python tests PASS post-merge); service/API in PR #170 pending validation; workbench/browser E2E OPEN |
+| R-017 | FeatureHistory Undo/Redo restores prior content without rewriting or deleting immutable revisions | FEATURE_HISTORY_UNDO_REDO_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PARTIAL — store and service/API merged by PRs #169/#170; 865 Python tests and workflow-sanity PASS post-merge; Chromium E2E has a revision-option readiness error under repair in PR #171; workbench/browser acceptance in PR #171; exact-head and post-merge gates pending |
 
 ## Engineering and 3D sub-requirements
 

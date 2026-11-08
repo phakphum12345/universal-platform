@@ -15,7 +15,7 @@
   const featureTreeState = byId("feature-tree-state");
   const featureInspector = byId("feature-inspector");
   const featureEditParametersInput = byId("feature-edit-parameters");
-  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress"].map(byId);
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress", "undo", "redo"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
@@ -38,6 +38,9 @@
   let selectedFeatureId = null;
   let selectedFeatureSuppressed = false;
   let selectedFeatureDependenciesActive = false;
+  let navigationState = null;
+  let navigationBusy = false;
+  let loadedRevision = null;
   let suppressMeshClick = false;
 
   function setStatus(message, kind = "") {
@@ -53,7 +56,8 @@
     const expected = Number(expectedRevisionInput.value);
     const canEditCurrentHead = connected &&
       Number.isSafeInteger(expected) && expected >= 1 &&
-      !revisionSelect.disabled && revisionSelect.value === String(expected);
+      loadedRevision === expected && !revisionSelect.disabled &&
+      revisionSelect.value === String(expected);
     const canEditSelection = canEditCurrentHead && hasSelection;
     featureEditParametersInput.disabled = !canEditSelection;
     byId("feature-apply-edit").disabled = !canEditSelection;
@@ -64,6 +68,96 @@
       canEditSelection && selectedFeatureSuppressed && selectedFeatureDependenciesActive
     );
     byId("feature-suppress-cascade").disabled = !(canEditSelection && !selectedFeatureSuppressed);
+  }
+
+  function updateNavigationControls() {
+    const expected = Number(expectedRevisionInput.value);
+    const currentHead = connected &&
+      Number.isSafeInteger(expected) && expected >= 1 &&
+      loadedRevision === expected && !revisionSelect.disabled &&
+      revisionSelect.value === String(expected);
+    const canUndo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_undo);
+    const canRedo = currentHead && !navigationBusy && Boolean(navigationState && navigationState.can_redo);
+    byId("undo").disabled = !canUndo;
+    byId("redo").disabled = !canRedo;
+    if (!connected || !navigationState) {
+      byId("navigation-state").textContent = "Undo/Redo unavailable until a saved current revision is loaded.";
+    } else if (!currentHead) {
+      byId("navigation-state").textContent = "Undo/Redo is disabled while viewing a historical revision.";
+    } else {
+      byId("navigation-state").textContent =
+        (navigationState.can_undo ? "Undo available" : "No Undo target") + " · " +
+        (navigationState.can_redo ? "Redo available" : "No Redo target") +
+        " · current revision " + navigationState.current_revision;
+    }
+  }
+
+  async function refreshNavigation() {
+    if (!connected) {
+      navigationState = null;
+      updateNavigationControls();
+      return null;
+    }
+    try {
+      navigationState = await api(
+        "/v1/histories/" + encodeURIComponent(currentHistoryId()) + "/navigation"
+      );
+    } catch (error) {
+      if (error.status === 404) {
+        navigationState = null;
+      } else {
+        throw error;
+      }
+    }
+    updateNavigationControls();
+    return navigationState;
+  }
+
+  async function performNavigation(operation) {
+    if (operation !== "undo" && operation !== "redo") {
+      throw new Error("Unsupported navigation operation.");
+    }
+    const expected = Number(expectedRevisionInput.value);
+    if (!Number.isSafeInteger(expected) || expected < 1 ||
+        loadedRevision !== expected || revisionSelect.disabled ||
+        revisionSelect.value !== String(expected)) {
+      throw new Error("Load the current head revision before using Undo/Redo.");
+    }
+    navigationBusy = true;
+    updateNavigationControls();
+    try {
+      const id = currentHistoryId();
+      const result = await api(
+        "/v1/histories/" + encodeURIComponent(id) + "/" + operation,
+        { method: "POST", body: { expected_revision: expected } }
+      );
+      await refreshRevisions(result.revision);
+      const loaded = await api(
+        "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
+      );
+      snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+      loadedRevision = result.revision;
+      renderFeatureTree();
+      updateNavigationControls();
+      byId("revision-state").textContent =
+        operation.toUpperCase() + " created revision " + result.revision +
+        " from revision " + result.target_revision;
+      setStatus(
+        operation.toUpperCase() + " restored revision " + result.target_revision +
+        " as new immutable revision " + result.revision + ".",
+        "good"
+      );
+      showResult(result);
+      return result;
+    } catch (error) {
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+      if (error.status === 409) await refreshRevisions();
+      throw error;
+    } finally {
+      navigationBusy = false;
+      updateNavigationControls();
+    }
   }
 
   function renderFeatureTree() {
@@ -229,11 +323,16 @@
 
   function setConnected(value) {
     connected = value;
+    if (!value) {
+      navigationState = null;
+      loadedRevision = null;
+    }
     connectionState.textContent = value ? "Connected" : "Not connected";
     connectionState.className = "state" + (value ? " good" : "");
     buttons.forEach((button) => { button.disabled = !value; });
     renderProfile();
     renderFeatureTree();
+    updateNavigationControls();
   }
 
   function profileToCanvas(point) {
@@ -595,7 +694,8 @@
     if (!Number.isSafeInteger(expected) || expected < 1) {
       throw new Error("A saved current head revision is required before editing.");
     }
-    if (revisionSelect.disabled || revisionSelect.value !== String(expected)) {
+    if (loadedRevision !== expected || revisionSelect.disabled ||
+        revisionSelect.value !== String(expected)) {
       throw new Error("Load the current head revision before editing; historical revisions are read-only.");
     }
     const result = await api("/v1/histories/" + encodeURIComponent(id) + "/edit", {
@@ -607,7 +707,9 @@
       "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(result.revision)
     );
     snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+    loadedRevision = result.revision;
     renderFeatureTree();
+    updateNavigationControls();
     byId("revision-state").textContent = "Loaded edited head revision " + result.revision;
     setStatus("Saved " + operation + " as immutable revision " + result.revision + ".", "good");
     showResult(result);
@@ -637,8 +739,11 @@
       byId("load").disabled = true;
       byId("regenerate").disabled = true;
       expectedRevisionInput.value = "0";
+      navigationState = null;
+      loadedRevision = null;
       byId("revision-state").textContent = "No revision loaded";
       updateFeatureEditorControls(false);
+      updateNavigationControls();
       return result;
     }
     revisions.forEach((number) => {
@@ -656,6 +761,7 @@
     byId("regenerate").disabled = false;
     byId("revision-state").textContent = "Head revision " + head;
     updateFeatureEditorControls(false);
+    await refreshNavigation();
     return result;
   }
 
@@ -684,6 +790,8 @@
         revisionSelect.disabled = true;
         byId("load").disabled = true;
         byId("regenerate").disabled = true;
+        navigationState = null;
+        updateNavigationControls();
         setStatus("Connected. No saved history exists for this ID yet; create the first revision.", "good");
       }
       showResult(health);
@@ -711,11 +819,18 @@
       if (!Number.isSafeInteger(expected) || expected < 0) {
         throw new Error("Expected current revision must be a non-negative integer.");
       }
+      if (expected > 0 && (loadedRevision !== expected ||
+          revisionSelect.disabled || revisionSelect.value !== String(expected))) {
+        throw new Error("Load the current head revision before saving; historical revisions are read-only.");
+      }
       const result = await api("/v1/histories", {
         method: "POST",
         body: { history, expected_revision: expected },
       });
       await refreshRevisions(result.revision);
+      loadedRevision = result.revision;
+      updateFeatureEditorControls(selectedFeatureId !== null);
+      updateNavigationControls();
       setStatus("Saved immutable revision " + result.revision + ".", "good");
       showResult(result);
     } catch (error) {
@@ -735,15 +850,26 @@
     }
   });
 
+  revisionSelect.addEventListener("change", () => {
+    updateFeatureEditorControls(selectedFeatureId !== null);
+    updateNavigationControls();
+  });
+
   byId("load").addEventListener("click", async () => {
     try {
       const id = currentHistoryId();
-      const revision = Number(revisionSelect.value);
+      const revisionValue = revisionSelect.value;
+      const revision = Number(revisionValue);
+      if (!revisionValue || !Number.isSafeInteger(revision) || revision < 1) {
+        throw new Error("Select a saved revision before loading.");
+      }
       const result = await api(
         "/v1/histories/" + encodeURIComponent(id) + "?revision=" + encodeURIComponent(revision)
       );
       snapshotInput.value = JSON.stringify(result.history, null, 2);
+      loadedRevision = revision;
       renderFeatureTree();
+      updateNavigationControls();
       byId("revision-state").textContent = "Loaded revision " + revision;
       setStatus("Loaded immutable source revision " + revision + ".", "good");
       showResult({
@@ -759,10 +885,30 @@
     }
   });
 
+  byId("undo").addEventListener("click", async () => {
+    try {
+      await performNavigation("undo");
+    } catch (_) {
+      // performNavigation reports the actionable error in the status region.
+    }
+  });
+
+  byId("redo").addEventListener("click", async () => {
+    try {
+      await performNavigation("redo");
+    } catch (_) {
+      // performNavigation reports the actionable error in the status region.
+    }
+  });
+
   byId("regenerate").addEventListener("click", async () => {
     try {
       const id = currentHistoryId();
-      const revision = Number(revisionSelect.value);
+      const revisionValue = revisionSelect.value;
+      const revision = Number(revisionValue);
+      if (!revisionValue || !Number.isSafeInteger(revision) || revision < 1) {
+        throw new Error("Select a saved revision before regeneration.");
+      }
       const result = await api(
         "/v1/histories/" + encodeURIComponent(id) + "/regenerate",
         { method: "POST", body: { revision } }
