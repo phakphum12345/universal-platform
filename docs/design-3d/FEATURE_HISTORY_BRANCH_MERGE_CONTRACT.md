@@ -162,3 +162,13 @@ Each stage is independently reviewable. The whole FeatureHistory branching/mergi
 - Conflict/stale-writer tests prove no head, revision or navigation mutation on failure. Source branch remains unchanged.
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (886); Chromium E2E PASS (7).
 - **Still OPEN:** strict HTTP API routes, workbench branch/merge controls and branch/merge browser acceptance.
+
+
+## 14. End-to-end branch/fork/merge completion — PRs #179–#180
+
+- PR #179 merged at `01d9afaeb9a7f9c3eecee7659d966bdcbae55983`; exact PR head `431ddc298601320f38e3f7bde74633b4c7c655c2`. Adds authenticated loopback branch list/fork/merge routes, strict payload validation, structured conflict responses and merge provenance in revision inspection.
+- PR #180 merged at `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`; exact PR head `4513b0d8d310a37db002edd467e315800f4e589e`. Adds workbench branch listing, fork from selected immutable revision, current-head-gated merge, merge provenance display and text-only conflict review.
+- Browser acceptance covers successful fork/edit/merge and conflict display with unchanged source/target heads.
+- Exact PR-head and post-merge CI: PR #179 workflow-sanity PASS, Python 889 PASS, Chromium 7 PASS; PR #180 workflow-sanity PASS, Python 889 PASS, Chromium 9 PASS.
+- **Status: PASS** for this bounded FeatureHistory branch/fork/merge workflow.
+- The contract does not imply general DAG collaboration, nested forks, rebase/cherry-pick, automatic conflict resolution, recompute propagation or whole-repository completion.
