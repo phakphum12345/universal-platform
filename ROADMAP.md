@@ -613,3 +613,15 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (882 tests). Chromium E2E: SKIPPED / not triggered because this analyzer-only change does not touch API or UI.
 - **Status:** PASS for pure three-way merge analysis only.
 - **Still open:** transactional merge append/provenance, API routes, workbench controls, browser acceptance, recompute propagation and whole-repository completion.
+
+
+## FeatureHistory transactional branch merge — store/service complete
+
+- PR #178 merged at `cc58f90d56fc7b8102b4f79a04706836da7b756f`; exact PR head `1f4c2bf1112e29af6b017a9aad051ccd32c3f67c`.
+- Adds SQLite schema v3 merge-action provenance without changing the v1 revision digest envelope or rewriting existing hashes.
+- Merge is permitted only into the exact root or a sibling branch with the same root/fork revision/digest; both source and target expected heads are rechecked inside a write transaction.
+- A successful merge appends one immutable target revision, updates target Undo/Redo stacks atomically, and records source/base/algorithm provenance. Source branch remains unchanged.
+- Conflicts and stale writers fail before writes; revision inspection exposes merge provenance.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (886); Chromium E2E PASS (7).
+- **Status:** PASS for transactional store/service branch merge.
+- **Still open:** strict HTTP routes, workbench controls, branch/merge browser acceptance, recompute propagation and whole-repository completion.
