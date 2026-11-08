@@ -1,15 +1,15 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified implementation baseline:** 10404099ccaa85cef24adedffa7bce789abd691e  
+**Last verified integration baseline:** `91def9b8367969d0dcef04806b831cc34022e797`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
-| WP | Domain | Initial status | Evidence / next action |
+| WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; interactive browser editing, suppression, undo/redo and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; suppression, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -19,7 +19,7 @@
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
-| 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; full dependency, license, secret, browser E2E and isolation audits are not established |
+| 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for the CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
 
 ## Active slice
@@ -62,8 +62,19 @@
 - Implementation: selected-feature parameter replacement, feature add/remove, explicit cascade checkbox, revision-head guard, immutable revision reload, HTTP 409 stale-write guidance and text-only rendering.
 - A missing UI control-state helper discovered during verification was added; regression assertions now verify that edit controls are enabled only for the loaded current head.
 - Status: PASS for bounded browser editing controls and CI; overall WP-03 remains PARTIAL.
-- Browser E2E interaction testing remains SKIPPED and is not claimed as passed.
+- Browser E2E interaction testing was completed in PR #158 and is recorded below; do not retain the earlier SKIPPED state as current.
 
 ## Next dependency-ready slice
 
-- CAD-EDIT-004 — add real browser interaction tests for current-head editing, historical-revision read-only behavior, add/remove/cascade flows, stale revision conflicts, and safe rendering. First inspect available browser tooling; prefer an open-source, local/CI-only test setup without introducing paid services. Keep the same-origin loopback and bearer-token boundaries.
+## CAD-EDIT-004 — Real-browser FeatureHistory editor coverage
+
+- PR #158 merged to integration at `9d899f70a97372f689ba07a8e90b479bf14494b4`.
+- Exact PR head `9aa96157eb6e5ebbf324aa6614178ffd8af17495`: Chromium E2E PASS (4 tests); Python suite PASS (843 tests); workflow-sanity PASS.
+- Exact merge SHA: Chromium E2E PASS (4 tests; run `42438295044`); Python suite PASS (843 tests; run `42438295110`); workflow-sanity PASS.
+- Coverage: startup/no uncaught page errors, current-head vs historical revision gating, parameter replacement, add/remove and explicit cascade confirmation, stale-writer HTTP 409, safe text-only rendering.
+- Review submissions: 0; unresolved review threads: 0. No paid browser service or production deployment.
+- Status: PASS for the browser-verification slice; overall WP-03 remains PARTIAL.
+
+## Next dependency-ready slice
+
+- CAD-EDIT-005 — specify FeatureHistory suppression semantics and compatibility/migration rules before implementation. Define downstream dependency behavior, output invariants, revision/audit behavior, cache invalidation and UI/API expectations. Do not introduce implicit cascade or silently change the FeatureHistory v1.0 schema.
