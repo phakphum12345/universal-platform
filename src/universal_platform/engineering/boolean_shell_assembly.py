@@ -86,7 +86,7 @@ def _mesh_from_faces(faces:tuple[RationalTriangle3,...],template:TriangleMesh,so
         for value in point:
             as_float=float(value)
             if Fraction.from_float(as_float)!=value:
-                raise InvalidModelError("exact shell coordinate is not losslessly representable as binary64")
+                raise InvalidModelError(f"exact shell coordinate {value} at {point} is not losslessly representable as binary64")
             converted.append(as_float)
         vertices.append(Vec3(*converted))
     triangles=tuple(tuple(indices[point] for point in face) for face in faces)
