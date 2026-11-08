@@ -14,7 +14,8 @@ from typing import ClassVar, Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .mesh import TriangleMesh, validate_triangle_mesh
+from .mesh import TriangleMesh, _triangulate_profile_region, validate_triangle_mesh
+from .primitive_geometry import Vec2
 
 _ID = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -599,34 +600,115 @@ def brep_from_triangle_mesh(mesh: TriangleMesh, *, solid_id: str | None = None) 
 
 
 def triangle_mesh_from_brep(solid: BRepSolid) -> TriangleMesh:
-    """Rebuild the v1.0 triangular mesh representation from a validated faceted B-rep."""
+    """Triangulate validated planar polygonal B-rep faces, including inner loops.
+
+    Triangulation reuses the deterministic bridge-and-ear-clipping implementation
+    used by profile meshing. It creates no new geometric vertices and preserves
+    each face's boundary orientation, source identity, frame, unit and digest.
+    """
     if not isinstance(solid, BRepSolid):
         raise InvalidModelError("triangle_mesh_from_brep requires a BRepSolid")
     validation = validate_brep_solid(solid)
     if not validation.valid:
         raise InvalidModelError("cannot mesh invalid BRep: " + "; ".join(validation.issues))
-    if any(
-        face.inner_loop_ids or len(next(
-            loop for loop in solid.loops if loop.loop_id == face.outer_loop_id
-        ).edge_uses) != 3
-        for face in solid.faces
-    ):
-        raise InvalidModelError(
-            "BRep-to-mesh conversion currently supports triangular faces without inner loops"
-        )
+
     vertices = tuple(item.position for item in solid.vertices)
     vertex_indices = {item.vertex_id: index for index, item in enumerate(solid.vertices)}
     edges = {item.edge_id: item for item in solid.edges}
     loops = {item.loop_id: item for item in solid.loops}
-    triangles = []
+    triangles: list[tuple[int, int, int]] = []
+
     for face in solid.faces:
-        loop = loops[face.outer_loop_id]
-        starts = []
-        for use in loop.edge_uses:
-            edge = edges[use.edge_id]
-            start = edge.start_vertex_id if use.forward else edge.end_vertex_id
-            starts.append(vertex_indices[start])
-        triangles.append(tuple(starts))
+        boundary_ids: list[str] = []
+        projected_loops: list[tuple[Vec2, ...]] = []
+        outer_points: tuple[Vec3, ...] | None = None
+
+        for loop_index, loop_id in enumerate((face.outer_loop_id, *face.inner_loop_ids)):
+            loop = loops[loop_id]
+            loop_vertex_ids = []
+            for use in loop.edge_uses:
+                edge = edges[use.edge_id]
+                start_id = edge.start_vertex_id if use.forward else edge.end_vertex_id
+                loop_vertex_ids.append(start_id)
+            if len(loop_vertex_ids) > 10_000:
+                raise InvalidModelError("BRep face boundary exceeds the 10000-vertex triangulation limit")
+            boundary_ids.extend(loop_vertex_ids)
+            points = tuple(vertices[vertex_indices[item]] for item in loop_vertex_ids)
+            if loop_index == 0:
+                outer_points = points
+
+            if outer_points is None:
+                raise InvalidModelError("BRep face is missing its outer boundary")
+            if loop_index == 0:
+                plane_points = outer_points
+            else:
+                plane_points = outer_points
+
+            # Find a non-zero exact-rational normal from the outer loop.
+            p0 = plane_points[0]
+            q0 = tuple(_q(value) for value in (p0.x, p0.y, p0.z))
+            normal = (Fraction(0), Fraction(0), Fraction(0))
+            for first in range(1, len(plane_points) - 1):
+                for second in range(first + 1, len(plane_points)):
+                    first_point = plane_points[first]
+                    second_point = plane_points[second]
+                    a = tuple(
+                        _q(value) - q0[index]
+                        for index, value in enumerate((first_point.x, first_point.y, first_point.z))
+                    )
+                    b = tuple(
+                        _q(value) - q0[index]
+                        for index, value in enumerate((second_point.x, second_point.y, second_point.z))
+                    )
+                    candidate = _cross(a, b)
+                    if candidate != (0, 0, 0):
+                        normal = candidate
+                        break
+                if normal != (0, 0, 0):
+                    break
+            if normal == (0, 0, 0):
+                raise InvalidModelError(f"BRep face {face.face_id} has a degenerate outer loop")
+
+            drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
+            keep_axes = tuple(axis for axis in range(3) if axis != drop_axis)
+
+            def project(loop_points: tuple[Vec3, ...]) -> tuple[Vec2, ...]:
+                return tuple(
+                    Vec2(
+                        (point.x, point.y, point.z)[keep_axes[0]],
+                        (point.x, point.y, point.z)[keep_axes[1]],
+                    )
+                    for point in loop_points
+                )
+
+            projected_loops.append(project(points))
+
+        outer = projected_loops[0]
+        holes = tuple(projected_loops[1:])
+        offsets = []
+        offset = len(outer)
+        for hole in holes:
+            offsets.append(offset)
+            offset += len(hole)
+
+        face_triangles = _triangulate_profile_region(outer, holes, tuple(offsets))
+        outer_area = _polygon_area2(tuple((_q(point.x), _q(point.y)) for point in outer))
+        if outer_area == 0:
+            raise InvalidModelError(f"BRep face {face.face_id} has zero projected area")
+        if outer_area < 0:
+            face_triangles = tuple((a, c, b) for a, b, c in face_triangles)
+
+        for triangle in face_triangles:
+            if len(set(triangle)) != 3:
+                raise InvalidModelError(f"BRep face {face.face_id} triangulation produced a repeated vertex")
+            try:
+                mapped = tuple(vertex_indices[boundary_ids[index]] for index in triangle)
+            except (IndexError, KeyError) as exc:
+                raise InvalidModelError(f"BRep face {face.face_id} triangulation returned an invalid boundary index") from exc
+            triangles.append(mapped)
+            if len(triangles) > 200_000:
+                raise InvalidModelError("BRep triangulation exceeds the 200000-triangle resource limit")
+
     mesh = TriangleMesh(
         solid.solid_id, solid.frame_id, solid.length_unit, "IMPORTED_BREP",
         solid.source_geometry_sha256, vertices, tuple(triangles),
