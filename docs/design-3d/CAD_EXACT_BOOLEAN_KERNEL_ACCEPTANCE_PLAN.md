@@ -105,7 +105,7 @@ Use only `PASS`, `FAIL`, `SKIPPED`, or `UNKNOWN`. Missing tests, missing CI, and
 
 The rational solid input path now has an initial hardening implementation on the resource-preflight branch:
 
-- Decimal integer strings are length-bounded from `max_coordinate_bits` before `int()` is called. Conversion errors are normalized to `InvalidModelError`.
+- Decimal integer strings are length-bounded from `max_coordinate_bits` before conversion; bounded 9-digit chunks avoid Python's process-wide large-decimal conversion cap while preserving the configured 16,384-bit ceiling. Conversion errors are normalized to `InvalidModelError`.
 - `from_dict` validates the caller-supplied coordinate-bit and pair-check limits, including boolean/type/positive-value checks and hard ceilings, before parsing coordinate arrays.
 - Geometry counts and the derived triangle-pair work count are checked against supported ceilings before coordinate parsing; a request that exceeds the pair budget is rejected before rational coordinate construction.
 - Shell envelope, provenance record count, identifier lengths, provenance identifier/digest shape, and aggregate metadata character count are preflighted before rational coordinate parsing.
