@@ -1,10 +1,12 @@
 import hashlib
 import json
+from types import SimpleNamespace
 from math import cos, pi, sin
 from pathlib import Path
 
 import pytest
 
+import universal_platform.engineering.brep_multishell as multishell_module
 from universal_platform.engineering import (
     BRepMultiShellSolid,
     BRepSolid,
@@ -232,3 +234,22 @@ def test_multi_shell_accepts_concave_polygonal_cavity_shell():
     assert validate_brep_multishell_solid(solid).valid
     assert result.valid and result.watertight and result.consistently_oriented
     assert result.signed_volume == pytest.approx(986.0)
+
+
+def test_multi_shell_rejects_cavity_touching_outer_boundary():
+    outer = box_brep("outer", (0, 0, 0), (10, 10, 10))
+    touching = box_brep("cavity.touching", (0, 2, 2), (2, 4, 4))
+    with pytest.raises(InvalidModelError, match="not proven disjoint|outside or on"):
+        BRepMultiShellSolid("part.touching-cavity", outer, (touching,))
+
+
+def test_multi_shell_fails_closed_when_intersection_analysis_is_unknown(monkeypatch):
+    outer = box_brep("outer", (0, 0, 0), (10, 10, 10))
+    cavity = box_brep("cavity", (2, 2, 2), (4, 4, 4))
+    monkeypatch.setattr(
+        multishell_module,
+        "analyze_mesh_intersections",
+        lambda _mesh: SimpleNamespace(status="UNKNOWN"),
+    )
+    with pytest.raises(InvalidModelError, match="not proven disjoint: UNKNOWN"):
+        BRepMultiShellSolid("part.unknown-intersection", outer, (cavity,))
