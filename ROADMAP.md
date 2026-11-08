@@ -569,4 +569,15 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Browser acceptance covers multi-step Undo/Redo, persistence after reload, historical-revision read-only gating, redo invalidation after a new edit and revision-option readiness.
 - **Status:** PASS for the bounded FeatureHistory Undo/Redo work package. Existing revisions remain immutable; Undo/Redo append restore revisions.
 - CAD-EDIT-008 is complete: persistent Undo/Redo semantics are implemented through the store, service/API, workbench and browser acceptance.
-- **Still open:** graph branch/merge, feature reordering semantics, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
+- **Still open:** graph branch/merge, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
+
+
+## FeatureHistory Presentation Reordering — end-to-end complete
+
+- PR #173 merged the immutable, dependency-safe reorder service/API at `3d7504ec64433e90aedf6c11ef760cf66b801390` ancestry.
+- PR #174 merged current-head-gated Move Up/Move Down controls and Chromium acceptance at `3d7504ec64433e90aedf6c11ef760cf66b801390`.
+- Reorder persists a complete topological presentation order as a new immutable revision; it does not change dependency edges or deterministic execution order.
+- Invalid dependency inversions are disabled in the workbench and rejected by the backend; historical revisions remain read-only.
+- Exact PR-head `14df81bffdf991133b5c3b5fcbee089ba7d409c3` and post-merge SHA `3d7504ec64433e90aedf6c11ef760cf66b801390`: workflow-sanity PASS, Python tests PASS (870 tests), Chromium E2E PASS (7 tests).
+- **Status:** PASS for bounded FeatureHistory presentation reordering.
+- **Still open:** graph branch/merge, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
