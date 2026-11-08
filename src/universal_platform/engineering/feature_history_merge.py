@@ -91,6 +91,7 @@ def _merge_presentation_order(
     source_order = tuple(node.feature_id for node in source.nodes)
     target_order = tuple(node.feature_id for node in target.nodes)
     edges: dict[str, set[str]] = {item: set() for item in ids}
+    dependency_edges: dict[str, set[str]] = {item: set() for item in ids}
     indegree = {item: 0 for item in ids}
 
     def add_before(first: str, second: str) -> None:
@@ -98,6 +99,35 @@ def _merge_presentation_order(
             return
         edges[first].add(second)
         indegree[second] += 1
+
+    # Dependency constraints are authoritative; stored order is only a
+    # presentation hint and older snapshots may not have topological order.
+    for node in nodes.values():
+        for dependency in node.input_feature_ids:
+            if dependency not in nodes:
+                conflicts.append(FeatureHistoryMergeConflict(
+                    "missing_dependency", node.feature_id,
+                    f"merged feature references missing dependency {dependency!r}",
+                ))
+            else:
+                dependency_edges[dependency].add(node.feature_id)
+                add_before(dependency, node.feature_id)
+
+    if conflicts:
+        return ()
+
+    def has_dependency_path(first: str, second: str) -> bool:
+        pending = [first]
+        visited = {first}
+        while pending:
+            current = pending.pop()
+            if current == second:
+                return True
+            for child in dependency_edges[current]:
+                if child not in visited:
+                    visited.add(child)
+                    pending.append(child)
+        return False
 
     for left, right in combinations(sorted(ids), 2):
         base_relation = _pair_order(base_order, left, right)
@@ -126,20 +156,11 @@ def _merge_presentation_order(
                 continue
             selected = source_relation if source_relation is not None else target_relation
         if selected is True:
-            add_before(left, right)
+            if not has_dependency_path(right, left):
+                add_before(left, right)
         elif selected is False:
-            add_before(right, left)
-
-    # Dependency edges are mandatory regardless of presentation hints.
-    for node in nodes.values():
-        for dependency in node.input_feature_ids:
-            if dependency not in nodes:
-                conflicts.append(FeatureHistoryMergeConflict(
-                    "missing_dependency", node.feature_id,
-                    f"merged feature references missing dependency {dependency!r}",
-                ))
-            else:
-                add_before(dependency, node.feature_id)
+            if not has_dependency_path(left, right):
+                add_before(right, left)
 
     if conflicts:
         return ()

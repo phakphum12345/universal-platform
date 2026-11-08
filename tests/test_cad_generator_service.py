@@ -359,3 +359,28 @@ def test_cad_generator_service_forks_immutable_history_revision(tmp_path):
     assert tuple(node.feature_id for node in forked.history.nodes) == tuple(
         node.feature_id for node in source.history.nodes
     )
+
+
+
+def test_cad_generator_service_merges_branch_into_root_history(tmp_path):
+    service = make_service(tmp_path)
+    root = service.save_history(make_history(), expected_revision=0)
+    branch = service.fork_history(
+        root.history_id,
+        branch_history_id="history.cad-service.experiment",
+        branch_name="experiment",
+    )
+
+    merged = service.merge_history_branch(
+        branch.branch_history_id,
+        root.history_id,
+        expected_source_revision=1,
+        expected_target_revision=1,
+    )
+
+    assert merged.operation == "merge"
+    assert merged.revision == 2
+    assert merged.history.history_id == root.history_id
+    assert merged.merge_provenance is not None
+    assert merged.merge_provenance.source_history_id == branch.branch_history_id
+    assert service.get_revision(branch.branch_history_id).revision == 1

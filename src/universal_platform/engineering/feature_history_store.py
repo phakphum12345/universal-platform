@@ -19,9 +19,10 @@ from typing import Final
 
 from .errors import InvalidModelError
 from .feature_history import FeatureHistory
+from .feature_history_merge import FeatureHistoryMergeResult, merge_feature_histories
 
 _STORE_SCHEMA_VERSION: Final[int] = 1  # Revision digest envelope version; stable across additive DB migrations.
-_DATABASE_SCHEMA_VERSION: Final[int] = 2
+_DATABASE_SCHEMA_VERSION: Final[int] = 3
 _HISTORY_ID: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
 _HEX_DIGEST: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _BRANCH_NAME: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
@@ -42,6 +43,15 @@ class FeatureHistoryRevisionConflict(RuntimeError):
 
 class FeatureHistoryStoreIntegrityError(RuntimeError):
     """Raised when persisted revision data fails its hash-chain or schema checks."""
+
+
+class FeatureHistoryMergeConflictError(RuntimeError):
+    """Raised when a branch merge has unresolved semantic conflicts."""
+
+    def __init__(self, result: FeatureHistoryMergeResult):
+        self.result = result
+        self.conflicts = result.conflicts
+        super().__init__("FeatureHistory merge has unresolved conflicts")
 
 
 class FeatureHistoryNavigationUnavailable(RuntimeError):
@@ -65,6 +75,29 @@ class FeatureHistoryRevision:
     operation: str = "legacy"
     source_revision: int | None = None
     target_revision: int | None = None
+    merge_provenance: FeatureHistoryMergeProvenance | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryMergeProvenance:
+    source_history_id: str
+    source_revision: int
+    source_sha256: str
+    root_history_id: str
+    fork_revision: int
+    fork_sha256: str
+    algorithm_version: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "source_history_id": self.source_history_id,
+            "source_revision": self.source_revision,
+            "source_sha256": self.source_sha256,
+            "root_history_id": self.root_history_id,
+            "fork_revision": self.fork_revision,
+            "fork_sha256": self.fork_sha256,
+            "algorithm_version": self.algorithm_version,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -226,6 +259,28 @@ class SQLiteFeatureHistoryStore:
                     target_revision INTEGER,
                     PRIMARY KEY (history_id, revision),
                     FOREIGN KEY (history_id, revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_merge_actions (
+                    target_history_id TEXT NOT NULL,
+                    target_revision INTEGER NOT NULL,
+                    source_history_id TEXT NOT NULL,
+                    source_revision INTEGER NOT NULL,
+                    source_sha256 TEXT NOT NULL,
+                    root_history_id TEXT NOT NULL,
+                    fork_revision INTEGER NOT NULL,
+                    fork_sha256 TEXT NOT NULL,
+                    algorithm_version TEXT NOT NULL,
+                    PRIMARY KEY (target_history_id, target_revision),
+                    FOREIGN KEY (target_history_id, target_revision)
+                      REFERENCES feature_history_revisions(history_id, revision),
+                    FOREIGN KEY (source_history_id, source_revision)
+                      REFERENCES feature_history_revisions(history_id, revision),
+                    FOREIGN KEY (root_history_id, fork_revision)
                       REFERENCES feature_history_revisions(history_id, revision)
                 )
                 """
@@ -472,6 +527,15 @@ class SQLiteFeatureHistoryStore:
                 """,
                 (history_id, target),
             ).fetchall()
+            merge_row = connection.execute(
+                """
+                SELECT source_history_id, source_revision, source_sha256,
+                       root_history_id, fork_revision, fork_sha256, algorithm_version
+                FROM feature_history_merge_actions
+                WHERE target_history_id = ? AND target_revision = ?
+                """,
+                (history_id, target),
+            ).fetchone()
 
         expected_parent: str | None = None
         selected: FeatureHistoryRevision | None = None
@@ -509,6 +573,16 @@ class SQLiteFeatureHistoryStore:
             raise FeatureHistoryStoreIntegrityError("requested revision is missing")
         if target == int(head[0]) and selected.content_sha256 != head[1]:
             raise FeatureHistoryStoreIntegrityError("head digest does not match the latest revision")
+        if merge_row is not None:
+            provenance = FeatureHistoryMergeProvenance(
+                str(merge_row[0]), int(merge_row[1]), str(merge_row[2]),
+                str(merge_row[3]), int(merge_row[4]), str(merge_row[5]), str(merge_row[6]),
+            )
+            selected = FeatureHistoryRevision(
+                selected.history_id, selected.revision, selected.parent_sha256,
+                selected.content_sha256, selected.created_at, selected.history,
+                "merge", selected.source_revision, selected.target_revision, provenance,
+            )
         return selected
 
     def undo(self, history_id: str, *, expected_revision: int) -> FeatureHistoryRevision:
@@ -706,6 +780,182 @@ class SQLiteFeatureHistoryStore:
             connection.close()
         return FeatureHistoryBranch(
             branch_history_id, root_history_id, branch_name, source.revision, source.content_sha256, now
+        )
+
+    def merge_branch(
+        self,
+        source_branch_history_id: str,
+        target_history_id: str,
+        *,
+        expected_source_revision: int,
+        expected_target_revision: int,
+    ) -> FeatureHistoryRevision:
+        """Three-way merge a branch into its root or a sibling branch atomically."""
+        for label, value in (
+            ("source_branch_history_id", source_branch_history_id),
+            ("target_history_id", target_history_id),
+        ):
+            if not isinstance(value, str) or not _HISTORY_ID.fullmatch(value):
+                raise ValueError(f"{label} must be a stable history identifier")
+        for label, value in (
+            ("expected_source_revision", expected_source_revision),
+            ("expected_target_revision", expected_target_revision),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+        if source_branch_history_id == target_history_id:
+            raise ValueError("source and target histories must differ")
+
+        source = self.load(source_branch_history_id)
+        target = self.load(target_history_id)
+        if source.revision != expected_source_revision:
+            raise FeatureHistoryRevisionConflict(
+                source_branch_history_id, expected_source_revision, source.revision
+            )
+        if target.revision != expected_target_revision:
+            raise FeatureHistoryRevisionConflict(
+                target_history_id, expected_target_revision, target.revision
+            )
+        branch = self.get_branch(source_branch_history_id)
+        try:
+            target_branch = self.get_branch(target_history_id)
+        except KeyError:
+            target_branch = None
+        if target_branch is None:
+            if target_history_id != branch.root_history_id:
+                raise ValueError("merge target must be the branch root or a sibling branch")
+        elif (
+            target_branch.root_history_id != branch.root_history_id
+            or target_branch.fork_revision != branch.fork_revision
+            or target_branch.fork_sha256 != branch.fork_sha256
+        ):
+            raise ValueError("source and target branches must share the exact fork base")
+
+        base = self.load(branch.root_history_id, revision=branch.fork_revision)
+        if base.content_sha256 != branch.fork_sha256:
+            raise FeatureHistoryStoreIntegrityError("branch fork base digest does not match origin metadata")
+        analysis = merge_feature_histories(base.history, source.history, target.history)
+        if not analysis.successful or analysis.merged_history is None:
+            raise FeatureHistoryMergeConflictError(analysis)
+
+        now = datetime.now(timezone.utc).isoformat()
+        snapshot_json = _canonical_json(analysis.merged_history.to_dict())
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            source_head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (source_branch_history_id,),
+            ).fetchone()
+            target_head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (target_history_id,),
+            ).fetchone()
+            if source_head is None or int(source_head[0]) != expected_source_revision:
+                current = int(source_head[0]) if source_head else 0
+                raise FeatureHistoryRevisionConflict(
+                    source_branch_history_id, expected_source_revision, current
+                )
+            if target_head is None or int(target_head[0]) != expected_target_revision:
+                current = int(target_head[0]) if target_head else 0
+                raise FeatureHistoryRevisionConflict(target_history_id, expected_target_revision, current)
+            source_digest = str(source_head[1])
+            target_digest = str(target_head[1])
+            if source_digest != source.content_sha256 or target_digest != target.content_sha256:
+                raise FeatureHistoryStoreIntegrityError("merge source or target head digest changed")
+            origin = connection.execute(
+                """
+                SELECT root_history_id, fork_revision, fork_sha256
+                FROM feature_history_branches WHERE branch_history_id = ?
+                """,
+                (source_branch_history_id,),
+            ).fetchone()
+            if origin is None or (
+                str(origin[0]), int(origin[1]), str(origin[2])
+            ) != (branch.root_history_id, branch.fork_revision, branch.fork_sha256):
+                raise FeatureHistoryStoreIntegrityError("source branch origin metadata changed")
+            if target_branch is not None:
+                target_origin = connection.execute(
+                    """
+                    SELECT root_history_id, fork_revision, fork_sha256
+                    FROM feature_history_branches WHERE branch_history_id = ?
+                    """,
+                    (target_history_id,),
+                ).fetchone()
+                if target_origin is None or (
+                    str(target_origin[0]), int(target_origin[1]), str(target_origin[2])
+                ) != (branch.root_history_id, branch.fork_revision, branch.fork_sha256):
+                    raise FeatureHistoryStoreIntegrityError("target branch origin metadata changed")
+            base_row = connection.execute(
+                "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = ?",
+                (branch.root_history_id, branch.fork_revision),
+            ).fetchone()
+            if base_row is None or str(base_row[0]) != branch.fork_sha256:
+                raise FeatureHistoryStoreIntegrityError("merge base revision is missing or has changed")
+
+            undo_stack, _redo_stack = self._read_navigation_stacks(
+                connection, target_history_id, expected_target_revision
+            )
+            undo_stack.append(expected_target_revision)
+            revision = expected_target_revision + 1
+            digest = _revision_digest(
+                target_history_id, revision, target_digest, snapshot_json
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (target_history_id, revision, target_digest, snapshot_json, digest, now),
+            )
+            connection.execute(
+                """
+                UPDATE feature_history_heads
+                SET revision = ?, content_sha256 = ?
+                WHERE history_id = ?
+                """,
+                (revision, digest, target_history_id),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, ?, 'edit', ?, NULL)
+                """,
+                (target_history_id, revision, expected_target_revision),
+            )
+            self._write_navigation_stacks(
+                connection, target_history_id, undo_stack, []
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_merge_actions
+                  (target_history_id, target_revision, source_history_id, source_revision,
+                   source_sha256, root_history_id, fork_revision, fork_sha256, algorithm_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    target_history_id, revision, source_branch_history_id,
+                    expected_source_revision, source_digest, branch.root_history_id,
+                    branch.fork_revision, branch.fork_sha256, "feature-history-merge-v1",
+                ),
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        provenance = FeatureHistoryMergeProvenance(
+            source_branch_history_id, expected_source_revision, source_digest,
+            branch.root_history_id, branch.fork_revision, branch.fork_sha256,
+            "feature-history-merge-v1",
+        )
+        return FeatureHistoryRevision(
+            target_history_id, revision, target_digest, digest, now,
+            analysis.merged_history, "merge", expected_target_revision, None, provenance,
         )
 
     def get_branch(self, branch_history_id: str) -> FeatureHistoryBranch:
