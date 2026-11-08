@@ -19,6 +19,7 @@ class FacetedBooleanArrangement:
     source_triangle_count: int
     unique_plane_count: int
     coplanar_pair_checks: int
+    coplanar_coverage_checks: int = 0
 
 def _q(value:float)->Fraction:
     return Fraction.from_float(float(value))
@@ -81,7 +82,8 @@ def arrange_faceted_boolean_meshes(
     for name,value in (("max_source_triangles",max_source_triangles),("max_unique_planes",max_unique_planes),
                        ("max_fragments",max_fragments),("max_coordinate_bits",max_coordinate_bits),
                        ("max_edges",max_edges),("max_topology_checks",max_topology_checks),
-                       ("max_coverage_checks",max_coverage_checks),("max_coplanar_checks",max_coplanar_checks)):
+                       ("max_coverage_checks",max_coverage_checks),("max_coplanar_checks",max_coplanar_checks),
+                       ("max_coplanar_coverage_checks",max_coplanar_coverage_checks)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
     if any(not isinstance(mesh,TriangleMesh) for mesh in meshes):
