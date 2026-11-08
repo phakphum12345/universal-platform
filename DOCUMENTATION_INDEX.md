@@ -277,3 +277,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Post-PR #179 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR179.md) — exact branch/fork/merge API PR-head and post-merge CI evidence.
 - [Post-PR #180 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR180.md) — exact branch/merge workbench PR-head and post-merge browser acceptance evidence.
+
+
+## Faceted B-rep Topology v2.0 — PR #181
+
+- [Faceted B-rep Topology Contract v2.0](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — polygonal planar faces, inner loops, exact containment/orientation and Euler/genus semantics.
+- [Post-PR #181 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR181.md) — exact PR-head and post-merge Python/workflow-sanity evidence.
+- Status: PASS for single-shell polygonal BRep with face holes; multi-shell solids and general 3D Boolean remain OPEN.
