@@ -6,7 +6,7 @@
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
 **Latest integration-head CI:** exact SHA `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b` — workflow-sanity PASS, python-tests PASS (851 tests), Chromium E2E PASS (4 tests). The documentation-only marker was SKIPPED and is not counted as a pass. The documentation-only marker was SKIPPED and is not counted as a pass.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
-**Current tree:** 358 entries, 121 Markdown, 167 Python, 24 JSON files, 86 Python test files; recursive tree response truncated=false.  
+**Current tree:** 359 entries, 122 Markdown, 167 Python, 24 JSON files, 86 Python test files; recursive tree response truncated=false.  
 **Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
@@ -1119,3 +1119,13 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440679828); 5 Chromium E2E tests PASS (workflow #42440679848).
 - Workbench displays suppressed nodes without deletion, gates unsuppression on active dependencies and requires explicit checkbox plus browser confirmation for cascade.
 - FeatureHistory suppression is now end-to-end implemented and verified. Broader CAD editing (undo/redo, branching/merging, reorder), generalized B-rep and overall repository completion remain open.
+
+
+## PR #167 — Suppression completion documentation (MERGED)
+
+- Exact PR head: `a18ae2bf08d72844d0038a882787c1a59e2013dd`.
+- Exact PR-head CI: 854 Python tests PASS; workflow-sanity PASS.
+- Merge SHA: `d71fc36b29f4e1b1056c738294c1529e823be671`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440952865).
+- Documentation and traceability now mark FeatureHistory suppression R-016 as end-to-end PASS across PRs #163, #165 and #166.
+- Overall repository remains INCOMPLETE; next CAD work is the undo/redo design contract and subsequent implementation.
