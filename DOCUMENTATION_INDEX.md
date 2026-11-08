@@ -296,3 +296,4 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Post-PR #182 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR182.md) — exact PR-head and post-merge SHA, CI evidence, inventory, safety boundaries and next work package.
 - [Post-PR #184 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR184.md) — exact PR-head and post-merge CI, multi-shell implementation scope, repository inventory and remaining boundaries.
+- [Post-PR #186 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md) — exact PR-head/post-merge evidence, rotated/concave cavity references, current inventory and remaining boundaries.
