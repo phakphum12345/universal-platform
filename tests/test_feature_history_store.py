@@ -11,6 +11,7 @@ from universal_platform.engineering.feature_history import (
     FeatureHistory, FeatureKind, FeatureNode,
 )
 from universal_platform.engineering.feature_history_store import (
+    FeatureHistoryBranch,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
