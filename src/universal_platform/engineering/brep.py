@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
-from itertools import combinations
 import re
 from typing import ClassVar, Mapping
 
@@ -390,16 +389,13 @@ def _validate_brep_topology(solid: BRepSolid) -> BRepValidationResult:
     loop_owner: dict[str, str] = {}
     used_vertices: set[str] = set()
     signed_volume = Fraction(0, 1)
-    face_hole_count = 0
 
     for face in solid.faces:
         face_loop_ids = (face.outer_loop_id, *face.inner_loop_ids)
-        face_hole_count += len(face.inner_loop_ids)
         if len(set(face_loop_ids)) != len(face_loop_ids):
             issues.append(f"face {face.face_id} repeats a boundary loop")
             continue
         face_points: list[list[Vec3]] = []
-        face_loop_records: list[BRepLoop] = []
         for loop_id in face_loop_ids:
             loop = loops.get(loop_id)
             if loop is None:
@@ -434,7 +430,6 @@ def _validate_brep_topology(solid: BRepSolid) -> BRepValidationResult:
                 issues.append(f"loop {loop.loop_id} repeats a vertex")
             if len(points) >= 3:
                 face_points.append(points)
-                face_loop_records.append(loop)
 
         if not face_points or len(face_points) != len(face_loop_ids):
             continue
