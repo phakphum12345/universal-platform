@@ -228,3 +228,14 @@
 - Gate A (next implementation slice): deterministic exact triangle-pair intersection events and triangle fragment splitting for a narrow transverse-intersection profile.
 - Coplanar overlap, tangency, contact branching and ambiguous boundary classification must fail closed until dedicated reference-backed gates pass.
 - Status: PLANNED — documentation and acceptance contract only; no arbitrary-faceted Boolean implementation or PASS claim.
+
+
+## CAD-BREP-BOOLEAN-001A — Exact transverse triangle-pair segment primitive
+
+- Source: `src/universal_platform/engineering/triangle_intersection_events.py`.
+- Tests: `tests/test_triangle_intersection_events.py`.
+- Public API: `TriangleIntersectionSegment`, `extract_transverse_triangle_intersection`.
+- Behavior: deterministic pair ordering; exact represented-binary64 rational endpoint construction; strict endpoint/plane/triangle checks; canonical serialization; no source mutation.
+- Supported profile: proper transverse pair crossings only. Disjoint pairs return `None`; coplanar overlap, contact, duplicate/degenerate and unsupported classifications fail closed.
+- Explicit non-claims: no triangle fragment splitting, point-in-solid classification, Boolean operation, or solid assembly.
+- Status: implementation candidate — pending exact-head CI and review. Overall CAD-BREP-BOOLEAN-001 remains PARTIAL/PLANNED.
