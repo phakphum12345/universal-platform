@@ -1264,3 +1264,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (889); Chromium E2E PASS (9).
 
 **FeatureHistory branch/fork/merge status:** PASS for this bounded end-to-end workflow. The overall CAD vertical slice and repository remain PARTIAL / INCOMPLETE; recompute propagation, general CAD kernel/Boolean capabilities, physics/hardware/runtime integration and other roadmap requirements remain OPEN.
+
+
+## Current integration update — PR #181 MERGED
+
+- PR #181: https://github.com/phakphum12345/universal-platform/pull/181
+- Exact PR head: `70be8fb3c091fd391d994da01c0fb6b4cb912dfd`; merge SHA: `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b`.
+- PR state: CLOSED / MERGED; reviews: 0; unresolved review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (892). Chromium E2E was SKIPPED / not triggered because the change is a geometry model/schema implementation with no API/UI modifications.
+- Faceted BRep schema/profile v2.0 supports polygonal planar face loops and explicit inner loops; exact represented-binary64 rational predicates validate planarity, simplicity, strict containment, non-touching and orientation.
+- Euler characteristic/genus account for face holes. The new square through-hole reference is one valid connected closed genus-1 shell with volume 12.
+- v1.0 triangular snapshots remain importable. Mesh conversion intentionally remains triangular/no-hole only and rejects unsupported geometry.
+- Single-shell polygonal BRep with face holes is PASS. Multi-shell solids, general 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
