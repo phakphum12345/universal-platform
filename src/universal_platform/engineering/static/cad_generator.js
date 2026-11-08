@@ -15,7 +15,10 @@
   const featureTreeState = byId("feature-tree-state");
   const featureInspector = byId("feature-inspector");
   const featureEditParametersInput = byId("feature-edit-parameters");
-  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress", "undo", "redo"].map(byId);
+  const branchSourceSelect = byId("branch-source");
+  const branchState = byId("branch-state");
+  const branchConflicts = byId("branch-conflicts");
+  const buttons = ["save", "list", "load", "regenerate", "generate-profile", "feature-apply-edit", "feature-add", "feature-remove", "feature-suppress", "feature-unsuppress", "undo", "redo", "branch-create", "branch-refresh", "branch-merge"].map(byId);
   const profilePoints = [];
   const profileCanvas = byId("profile-canvas");
   const profileGeometry = byId("profile-geometry");
@@ -379,6 +382,7 @@
     renderProfile();
     renderFeatureTree();
     updateNavigationControls();
+    updateBranchControls();
   }
 
   function profileToCanvas(point) {
@@ -811,6 +815,153 @@
     return result;
   }
 
+  function updateBranchControls() {
+    const selectedRevision = Number(revisionSelect.value);
+    const selectedRevisionLoaded = connected && !revisionSelect.disabled &&
+      Number.isSafeInteger(selectedRevision) && selectedRevision >= 1 &&
+      loadedRevision === selectedRevision;
+    const expectedHead = Number(expectedRevisionInput.value);
+    const currentHeadLoaded = selectedRevisionLoaded &&
+      Number.isSafeInteger(expectedHead) && expectedHead >= 1 &&
+      selectedRevision === expectedHead;
+    byId("branch-create").disabled = !selectedRevisionLoaded;
+    byId("branch-refresh").disabled = !connected;
+    branchSourceSelect.disabled = !connected || branchSourceSelect.options.length === 0 ||
+      !branchSourceSelect.value;
+    byId("branch-merge").disabled = !currentHeadLoaded || !branchSourceSelect.value;
+  }
+
+  async function refreshBranches() {
+    if (!connected) {
+      branchSourceSelect.replaceChildren();
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "Connect to list branches";
+      branchSourceSelect.append(empty);
+      branchState.textContent = "Connect to list branches.";
+      updateBranchControls();
+      return null;
+    }
+    const rootId = currentHistoryId();
+    const result = await api("/v1/histories/" + encodeURIComponent(rootId) + "/branches");
+    const previous = branchSourceSelect.value;
+    branchSourceSelect.replaceChildren();
+    const branches = result.branches || [];
+    for (const branch of branches) {
+      let headLabel = "";
+      try {
+        const revisions = await api(
+          "/v1/histories/" + encodeURIComponent(branch.branch_history_id) + "/revisions"
+        );
+        const numbers = revisions.revisions || [];
+        headLabel = numbers.length ? " · r" + numbers[numbers.length - 1] : "";
+      } catch (_) {
+        headLabel = " · unavailable";
+      }
+      const option = document.createElement("option");
+      option.value = branch.branch_history_id;
+      option.textContent = branch.branch_name + " · " + branch.branch_history_id + headLabel;
+      branchSourceSelect.append(option);
+    }
+    if (previous && branches.some((branch) => branch.branch_history_id === previous)) {
+      branchSourceSelect.value = previous;
+    }
+    if (!branches.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No branches";
+      branchSourceSelect.append(option);
+    }
+    branchState.textContent = branches.length
+      ? branches.length + " branch(es) · fork base revisions are immutable"
+      : "No branches for this root history.";
+    branchConflicts.textContent = "No merge conflicts reported.";
+    branchConflicts.classList.remove("conflict");
+    updateBranchControls();
+    return result;
+  }
+
+  async function createHistoryBranch() {
+    const rootId = currentHistoryId();
+    const branchHistoryId = byId("branch-history-id").value.trim();
+    const branchName = byId("branch-name").value.trim();
+    const forkRevision = Number(revisionSelect.value);
+    if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(branchHistoryId)) {
+      throw new Error("Branch history ID must use lowercase letters, digits, dot, underscore or hyphen.");
+    }
+    if (!branchName) throw new Error("Enter a branch name.");
+    if (!Number.isSafeInteger(forkRevision) || forkRevision < 1 ||
+        loadedRevision !== forkRevision || revisionSelect.disabled) {
+      throw new Error("Load the immutable revision to fork before creating a branch.");
+    }
+    const branch = await api(
+      "/v1/histories/" + encodeURIComponent(rootId) + "/branches",
+      {
+        method: "POST",
+        body: {
+          branch_history_id: branchHistoryId,
+          branch_name: branchName,
+          fork_revision: forkRevision,
+        },
+      }
+    );
+    await refreshBranches();
+    branchSourceSelect.value = branch.branch_history_id;
+    updateBranchControls();
+    branchState.textContent = "Forked " + branch.branch_name + " from " +
+      rootId + " revision " + branch.fork_revision + ".";
+    showResult(branch);
+    return branch;
+  }
+
+  async function mergeSelectedHistoryBranch() {
+    const targetId = currentHistoryId();
+    const sourceId = branchSourceSelect.value;
+    if (!sourceId) throw new Error("Select a source branch to merge.");
+    const targetHead = Number(expectedRevisionInput.value);
+    if (!Number.isSafeInteger(targetHead) || targetHead < 1 ||
+        loadedRevision !== targetHead || revisionSelect.disabled ||
+        revisionSelect.value !== String(targetHead)) {
+      throw new Error("Load the current target head revision before merging.");
+    }
+    const sourceRevisions = await api(
+      "/v1/histories/" + encodeURIComponent(sourceId) + "/revisions"
+    );
+    const sourceNumbers = sourceRevisions.revisions || [];
+    if (!sourceNumbers.length) throw new Error("The selected branch has no saved revision.");
+    const sourceHead = sourceNumbers[sourceNumbers.length - 1];
+    const result = await api(
+      "/v1/histories/" + encodeURIComponent(targetId) + "/merge",
+      {
+        method: "POST",
+        body: {
+          source_branch_history_id: sourceId,
+          expected_source_revision: sourceHead,
+          expected_target_revision: targetHead,
+        },
+      }
+    );
+    await refreshRevisions(result.revision);
+    const loaded = await api(
+      "/v1/histories/" + encodeURIComponent(targetId) + "?revision=" +
+        encodeURIComponent(result.revision)
+    );
+    snapshotInput.value = JSON.stringify(loaded.history, null, 2);
+    loadedRevision = result.revision;
+    renderFeatureTree();
+    await refreshNavigation();
+    await refreshBranches();
+    byId("revision-state").textContent = "Loaded merged head revision " + result.revision;
+    branchState.textContent = "Merged " + sourceId + " into " + targetId +
+      " as immutable revision " + result.revision + ".";
+    branchConflicts.textContent = "Merge provenance: " +
+      JSON.stringify(result.merge_provenance || {});
+    branchConflicts.classList.remove("conflict");
+    updateBranchControls();
+    showResult(result);
+    return result;
+  }
+
   connectButton.addEventListener("click", async () => {
     bearerToken = tokenInput.value;
     if (new TextEncoder().encode(bearerToken).length < 32) {
@@ -840,6 +991,7 @@
         updateNavigationControls();
         setStatus("Connected. No saved history exists for this ID yet; create the first revision.", "good");
       }
+      await refreshBranches();
       showResult(health);
     } catch (error) {
       bearerToken = "";
@@ -915,6 +1067,7 @@
       snapshotInput.value = JSON.stringify(result.history, null, 2);
       loadedRevision = revision;
       renderFeatureTree();
+      updateBranchControls();
       updateNavigationControls();
       byId("revision-state").textContent = "Loaded revision " + revision;
       setStatus("Loaded immutable source revision " + revision + ".", "good");
@@ -1143,4 +1296,62 @@
   setConnected(false);
   renderProfile();
   renderFeatureTree();
+
+  byId("branch-refresh").addEventListener("click", async () => {
+    try {
+      await refreshBranches();
+      setStatus("Branch list refreshed.", "good");
+    } catch (error) {
+      branchState.textContent = error.message;
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+    }
+  });
+
+  byId("branch-create").addEventListener("click", async () => {
+    try {
+      await createHistoryBranch();
+      setStatus("FeatureHistory branch created.", "good");
+    } catch (error) {
+      branchState.textContent = error.message;
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+    }
+  });
+
+  byId("branch-merge").addEventListener("click", async () => {
+    try {
+      await mergeSelectedHistoryBranch();
+      setStatus("Branch merged as a new immutable revision.", "good");
+    } catch (error) {
+      const conflicts = error.payload?.error?.conflicts;
+      if (error.status === 409 && error.payload?.error?.code === "MERGE_CONFLICT") {
+        branchState.textContent = "Merge blocked by " + conflicts.length + " conflict(s).";
+        branchConflicts.textContent = conflicts.map((item) =>
+          item.category + (item.feature_id ? " · " + item.feature_id : "") + " — " + item.detail
+        ).join("\n");
+        branchConflicts.classList.add("conflict");
+      } else {
+        branchState.textContent = error.message;
+        branchConflicts.textContent = error.payload?.error?.message || error.message;
+        branchConflicts.classList.remove("conflict");
+      }
+      setStatus(error.message, "bad");
+      showResult(error.payload || error.message);
+    } finally {
+      updateBranchControls();
+    }
+  });
+
+  branchSourceSelect.addEventListener("change", updateBranchControls);
+  revisionSelect.addEventListener("change", updateBranchControls);
+  historyIdInput.addEventListener("change", async () => {
+    if (!connected) return;
+    try {
+      await refreshBranches();
+    } catch (error) {
+      branchState.textContent = error.message;
+    }
+  });
+
 })();
