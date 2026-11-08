@@ -25,7 +25,7 @@ def test_global_registry_unifies_shared_vertices_and_reports_shared_edge_adjacen
         (p(0, 0), p(1, 1), p(0, 1)),
     )
     result = arrange_triangle_mesh_globally(mesh, ())
-    assert len(result.vertices) == 5
+    assert len(result.vertices) == 4
     assert len(result.faces) == 2
     shared = [edge for edge in result.edges if len(edge.incident_face_ids) == 2]
     assert len(shared) == 1
@@ -63,7 +63,7 @@ def test_global_identity_does_not_tolerance_weld_nearby_coordinates():
     )
     result = arrange_triangle_mesh_globally(mesh, ())
     points = {vertex.point for vertex in result.vertices}
-    assert len(result.vertices) == 4
+    assert len(result.vertices) == 5
     assert p(0, 1) in points
     assert (F(0), F(1) + F(1, 10**12), F(0)) in points
 
