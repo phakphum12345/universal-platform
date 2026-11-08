@@ -60,6 +60,7 @@ No Boolean surface reconstruction is performed. This operation composes already 
 
 - One nested cavity: net volume and watertight oriented mesh.
 - Multiple disjoint cavities: deterministic output and subtractive net volume.
+- Rotated non-axis-aligned cavity and concave polygonal-prism cavity reference cases.
 - Outside, touching, intersecting and nested cavity rejection.
 - Frame/unit mismatch rejection.
 - Strict snapshot round-trip, digest verification and schema contract.
