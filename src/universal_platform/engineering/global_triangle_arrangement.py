@@ -158,19 +158,37 @@ def arrange_triangle_mesh_globally(
         if len(boundary_ids)==3:
             conforming.append(fragment)
             continue
-        centroid=tuple((a[axis]+b[axis]+c[axis])/3 for axis in range(3))
-        boundary_points=[global_points[index] for index in boundary_ids]
+        # Ear-clip the convex boundary polygon. This inserts no synthetic
+        # interior coordinates, preserving exact source/intersection points
+        # and avoiding artificial 1/3 coordinates in binary64 B-rep workflows.
+        polygon=[global_points[index] for index in boundary_ids]
         source_normal=_area_vector(fragment.vertices)
-        for index,first in enumerate(boundary_points):
-            second=boundary_points[(index+1)%len(boundary_points)]
-            triangle=(centroid,first,second)
-            orientation=_dot(_area_vector(triangle),source_normal)
-            if orientation==0: continue
-            if orientation<0: triangle=(centroid,second,first)
-            conforming.append(RationalTriangleFragment(
-                fragment.source_triangle_index,fragment.side_signature,triangle))
-            if len(conforming)>max_fragments:
-                raise InvalidModelError("global conforming triangulation exceeded max_fragments")
+        while len(polygon)>3:
+            clipped=False
+            for index in range(len(polygon)):
+                previous=polygon[index-1]
+                current=polygon[index]
+                following=polygon[(index+1)%len(polygon)]
+                orientation=_dot(_cross(_sub(current,previous),_sub(following,current)),source_normal)
+                if orientation<=0:
+                    continue
+                conforming.append(RationalTriangleFragment(
+                    fragment.source_triangle_index,fragment.side_signature,
+                    (previous,current,following)))
+                polygon.pop(index)
+                clipped=True
+                if len(conforming)>max_fragments:
+                    raise InvalidModelError("global conforming triangulation exceeded max_fragments")
+                break
+            if not clipped:
+                raise InvalidModelError("global conforming polygon could not be triangulated exactly")
+        final_triangle=(polygon[0],polygon[1],polygon[2])
+        if _dot(_area_vector(final_triangle),source_normal)<=0:
+            raise InvalidModelError("global conforming triangulation changed source winding")
+        conforming.append(RationalTriangleFragment(
+            fragment.source_triangle_index,fragment.side_signature,final_triangle))
+        if len(conforming)>max_fragments:
+            raise InvalidModelError("global conforming triangulation exceeded max_fragments")
 
     final_by_source={index:[] for index in range(len(source_items))}
     for fragment in conforming: final_by_source[fragment.source_triangle_index].append(fragment.vertices)

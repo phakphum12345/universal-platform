@@ -136,3 +136,44 @@ def certify_triangle_partition(
         source_area, fragment_sum, outside, tuple(overlaps), tuple(duplicates),
         checks, certified,
     )
+
+
+def coplanar_triangle_intersection_kind(
+    first: RationalTriangle3,
+    second: RationalTriangle3,
+) -> str:
+    """Classify exact coplanar triangle relation: DISJOINT, CONTACT or AREA_OVERLAP.
+
+    NON_COPLANAR is returned when the triangles do not share a supporting plane.
+    CONTACT includes edge- and point-only intersections; Boolean orchestration
+    can therefore reject degeneracies without treating them as positive area.
+    """
+    a,b,c=first
+    normal=(
+        (b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),
+        (b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),
+        (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]),
+    )
+    if normal==(0,0,0):
+        raise InvalidModelError("coplanar relation requires non-degenerate triangles")
+    second_normal=(
+        (second[1][1]-second[0][1])*(second[2][2]-second[0][2])-(second[1][2]-second[0][2])*(second[2][1]-second[0][1]),
+        (second[1][2]-second[0][2])*(second[2][0]-second[0][0])-(second[1][0]-second[0][0])*(second[2][2]-second[0][2]),
+        (second[1][0]-second[0][0])*(second[2][1]-second[0][1])-(second[1][1]-second[0][1])*(second[2][0]-second[0][0]),
+    )
+    parallel = (normal[1]*second_normal[2]-normal[2]*second_normal[1],
+                normal[2]*second_normal[0]-normal[0]*second_normal[2],
+                normal[0]*second_normal[1]-normal[1]*second_normal[0]) == (0,0,0)
+    same_plane = all(
+        sum((normal[i]*(point[i]-a[i]) for i in range(3)),Fraction(0))==0
+        for point in second
+    )
+    if not parallel or not same_plane:
+        return "NON_COPLANAR"
+    drop_axis=max(range(3),key=lambda axis:abs(normal[axis]))
+    first_2d=_project_triangle(first,drop_axis)
+    second_2d=_project_triangle(second,drop_axis)
+    intersection=_clip_convex(first_2d,second_2d)
+    if _area(intersection)>0:
+        return "AREA_OVERLAP"
+    return "CONTACT" if intersection else "DISJOINT"

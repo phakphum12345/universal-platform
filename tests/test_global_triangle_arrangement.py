@@ -63,7 +63,7 @@ def test_global_identity_does_not_tolerance_weld_nearby_coordinates():
     )
     result = arrange_triangle_mesh_globally(mesh, ())
     points = {vertex.point for vertex in result.vertices}
-    assert len(result.vertices) == 5
+    assert len(result.vertices) == 4
     assert p(0, 1) in points
     assert (F(0), F(1) + F(1, 10**12), F(0)) in points
 

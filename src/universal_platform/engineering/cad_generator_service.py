@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .errors import InvalidModelError
+from .faceted_boolean_arrangement import FacetedBooleanArrangement, arrange_faceted_boolean_meshes
 from .brep_boolean import BRepBooleanOperation
 from .boolean_boundary_selection import BooleanBoundarySelection, select_boolean_boundary_fragments
 from .boolean_shell_assembly import BooleanShellAssemblyResult, assemble_boolean_shells
@@ -71,11 +72,19 @@ class CADGeneratorBooleanRun:
 
     selection: BooleanBoundarySelection
     assembly: BooleanShellAssemblyResult
+    arrangement: FacetedBooleanArrangement | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
             "schema_version": "1.0",
             "operation": self.selection.operation.value,
+            "arrangement": None if self.arrangement is None else {
+                "source_triangle_count": self.arrangement.source_triangle_count,
+                "unique_plane_count": self.arrangement.unique_plane_count,
+                "coplanar_pair_checks": self.arrangement.coplanar_pair_checks,
+                "generated_fragment_count": sum(len(items) for items in self.arrangement.fragments_by_solid),
+                "global_face_count": len(self.arrangement.global_arrangement.faces),
+            },
             "selected_fragment_count": len(self.selection.selected_fragments),
             "discarded_fragment_count": self.selection.discarded_fragment_count,
             "classification_witness_count": self.selection.classification_witness_count,
@@ -286,6 +295,28 @@ class CADGeneratorService:
             selection, meshes, result_id_prefix=result_id_prefix,
         )
         return CADGeneratorBooleanRun(selection, assembly)
+
+    def execute_faceted_boolean(
+        self,
+        meshes: tuple[TriangleMesh, ...],
+        operation: BRepBooleanOperation,
+        *,
+        result_id_prefix: str = "boolean.result",
+    ) -> CADGeneratorBooleanRun:
+        """Discover a bounded global plane arrangement, select and assemble output.
+
+        Coplanar contact/overlap and unsupported degeneracies fail closed.
+        This path still rejects non-lossless rational coordinates at B-rep
+        assembly; it never rounds or tolerance-welds geometry.
+        """
+        arrangement = arrange_faceted_boolean_meshes(meshes)
+        selection = select_boolean_boundary_fragments(
+            meshes, arrangement.fragments_by_solid, operation,
+        )
+        assembly = assemble_boolean_shells(
+            selection, meshes, result_id_prefix=result_id_prefix,
+        )
+        return CADGeneratorBooleanRun(selection, assembly, arrangement)
 
     def regenerate(
         self,
