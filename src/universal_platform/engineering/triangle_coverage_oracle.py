@@ -188,15 +188,15 @@ def certify_triangle_partition(
     )
 
 
-def coplanar_triangle_intersection_kind(
+def coplanar_triangle_intersection_geometry(
     first: RationalTriangle3,
     second: RationalTriangle3,
-) -> str:
-    """Classify exact coplanar triangle relation: DISJOINT, CONTACT, AREA_OVERLAP.
+) -> tuple[int, tuple[Point2, ...]] | None:
+    """Return the exact projected intersection polygon for coplanar triangles.
 
-    NON_COPLANAR is returned when the triangles do not share a supporting plane.
-    CONTACT includes edge- and point-only intersections; Boolean orchestration
-    can therefore reject degeneracies without treating them as positive area.
+    The returned coordinate plane is selected from the first triangle's
+    dominant normal axis. None means the triangles are non-coplanar.
+    Empty, point and segment polygons are retained for exact contact checks.
     """
     first = _validate_triangle(first, "first triangle")
     second = _validate_triangle(second, "second triangle")
@@ -213,11 +213,121 @@ def coplanar_triangle_intersection_kind(
         for point in second
     )
     if not parallel or not same_plane:
-        return "NON_COPLANAR"
+        return None
     drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
     first_2d = _project_triangle(first, drop_axis)
     second_2d = _project_triangle(second, drop_axis)
-    intersection = _clip_convex(first_2d, second_2d)
+    return drop_axis, tuple(_clip_convex(first_2d, second_2d))
+
+
+def _ccw_polygon(poly: Sequence[Point2]) -> list[Point2]:
+    result = list(poly)
+    if _signed_double_area(result) < 0:
+        result.reverse()
+    return result
+
+
+def _point_in_convex_polygon(point: Point2, polygon: Sequence[Point2]) -> bool:
+    poly = _ccw_polygon(polygon)
+    return len(poly) >= 3 and all(
+        _cross2(poly[index], poly[(index + 1) % len(poly)], point) >= 0
+        for index in range(len(poly))
+    )
+
+
+def _segment_interval_in_convex_polygon(
+    first: Point2, second: Point2, polygon: Sequence[Point2],
+) -> tuple[Fraction, Fraction] | None:
+    poly = _ccw_polygon(polygon)
+    if len(poly) < 3 or _area(poly) == 0:
+        return None
+    low, high = Fraction(0), Fraction(1)
+    for index, edge_start in enumerate(poly):
+        edge_end = poly[(index + 1) % len(poly)]
+        first_side = _cross2(edge_start, edge_end, first)
+        second_side = _cross2(edge_start, edge_end, second)
+        delta = second_side - first_side
+        if delta == 0:
+            if first_side < 0:
+                return None
+            continue
+        crossing = -first_side / delta
+        if delta > 0:
+            low = max(low, crossing)
+        else:
+            high = min(high, crossing)
+        if low > high:
+            return None
+    low, high = max(low, Fraction(0)), min(high, Fraction(1))
+    return (low, high) if low <= high else None
+
+
+def coplanar_contact_is_covered(
+    contact_polygon: Sequence[Point2],
+    overlap_polygons: Sequence[Sequence[Point2]],
+) -> bool:
+    """Return whether a point/segment contact is contained in overlap closure.
+
+    This permits zero-area triangle-pair contacts only when the entire exact
+    contact is already part of the boundary/interior closure of the positive-
+    area coplanar overlay. An unrelated contact elsewhere on the same plane
+    remains unsupported.
+    """
+    unique: list[Point2] = []
+    for point in contact_polygon:
+        if point not in unique:
+            unique.append(point)
+    if not unique:
+        return False
+    if len(unique) == 1:
+        return any(_point_in_convex_polygon(unique[0], polygon)
+                   for polygon in overlap_polygons)
+
+    # A zero-area intersection of two convex triangles is a point or segment.
+    # Select the exact farthest pair to collapse any redundant collinear points.
+    endpoints = max(
+        ((a, b) for index, a in enumerate(unique) for b in unique[index + 1:]),
+        key=lambda pair: (pair[0][0] - pair[1][0]) ** 2
+                         + (pair[0][1] - pair[1][1]) ** 2,
+    )
+    first, second = endpoints
+    if first == second:
+        return any(_point_in_convex_polygon(first, polygon)
+                   for polygon in overlap_polygons)
+
+    intervals = []
+    for polygon in overlap_polygons:
+        interval = _segment_interval_in_convex_polygon(first, second, polygon)
+        if interval is not None:
+            intervals.append(interval)
+    if not intervals:
+        return False
+    intervals.sort()
+    covered_to = Fraction(0)
+    for low, high in intervals:
+        if low > covered_to:
+            return False
+        covered_to = max(covered_to, high)
+        if covered_to >= 1:
+            return True
+    return False
+
+
+def coplanar_triangle_intersection_kind(
+    first: RationalTriangle3,
+    second: RationalTriangle3,
+) -> str:
+    """Classify exact coplanar triangle relation: DISJOINT, CONTACT, AREA_OVERLAP.
+
+    NON_COPLANAR is returned when the triangles do not share a supporting plane.
+    CONTACT includes edge- and point-only intersections; Boolean orchestration
+    must prove that a contact is part of an existing positive-area overlay or
+    reject it as an unsupported degeneracy.
+    """
+    geometry = coplanar_triangle_intersection_geometry(first, second)
+    if geometry is None:
+        return "NON_COPLANAR"
+    _, intersection = geometry
     if _area(intersection) > 0:
         return "AREA_OVERLAP"
     return "CONTACT" if intersection else "DISJOINT"
