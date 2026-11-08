@@ -557,3 +557,13 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - **Status:** PASS for FeatureHistory suppression requirement R-016.
 - **Next CAD editor work:** CAD-EDIT-008 — define immutable revision restore semantics for undo/redo, including redo-stack persistence, audit history and stale-writer behavior, before implementing controls.
 - **Still open:** graph branch/merge, feature reordering, generalized B-rep/3D Boolean, broader hardware/physics/runtime integration and whole-repository completion.
+
+
+## FeatureHistory undo/redo — design phase
+
+- CAD-EDIT-008 contract drafted at `docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md`.
+- Design uses persistent SQLite Undo/Redo stacks and append-only restore revisions; prior snapshots and digests are never rewritten or deleted.
+- New normal edits clear Redo; Undo/Redo use expected-revision compare-and-swap and atomically append a new revision plus navigation-state changes.
+- Existing histories initialize deterministic Undo state from their immutable linear revision chain.
+- PR #168 carries the contract and documentation updates; no Undo/Redo implementation is claimed yet.
+- **Next:** after contract merge, implement store transactions and migration tests, then service/API, then workbench/browser E2E.

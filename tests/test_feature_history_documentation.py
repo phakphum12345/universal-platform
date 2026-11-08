@@ -37,3 +37,19 @@ def test_feature_history_suppression_contract_is_indexed_and_keeps_implementatio
     assert "old immutable revisions" in contract.lower()
     assert "PR #163 merged the first backend slice" in contract
     assert "workbench" in contract.lower()
+
+
+
+def test_feature_history_undo_redo_contract_is_indexed_and_design_only():
+    index = (ROOT / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
+    contract = (
+        ROOT / "docs" / "design-3d" / "FEATURE_HISTORY_UNDO_REDO_CONTRACT.md"
+    ).read_text(encoding="utf-8")
+    matrix = (
+        ROOT / "docs" / "traceability" / "REQUIREMENTS_TRACEABILITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    assert "FEATURE_HISTORY_UNDO_REDO_CONTRACT.md" in index
+    assert "DESIGN CONTRACT — not implemented" in contract
+    assert "Undo and Redo never delete revisions" in contract
+    assert "CAD-EDIT-008" in (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
+    assert "| R-017 |" in matrix

@@ -243,3 +243,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Implementation and evidence | Remaining boundary |
 |---|---|---|---|
 | CAD-FEATURE-TREE-SUPPRESS-001 | Suppress and restore FeatureHistory nodes without deleting source nodes or invalidating historical revisions | PASS — end-to-end suppression implemented across PR #163 (backend), PR #165 (revision-safe service/API) and PR #166 (workbench/browser). PR #166 merged at `34148fc359076567eaa4b931304f61f536a41779`; exact PR-head and post-merge CI passed 854 Python tests, 5 Chromium E2E tests and workflow-sanity. Includes v1.0/v1.1 compatibility, explicit migration, immutable suppression edits, cascade/dependency/output invariants, regeneration skip/report behavior, strict API operations, explicit cascade confirmation, dependency-aware unsuppress controls and immutable revision history. | PASS for FeatureHistory suppression. Broader editor requirements (undo/redo, graph branch/merge, reorder and recompute propagation UI) remain open and are tracked separately. |
+
+
+## FeatureHistory Undo/Redo traceability — R-017
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-FEATURE-TREE-UNDO-REDO-001 | Undo/Redo restores earlier FeatureHistory content without rewriting or deleting immutable revisions | [FeatureHistory Undo/Redo Contract](../design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md), PR #168 | DESIGN IN PROGRESS. Persistent SQLite stacks, append-only restore revisions, redo invalidation after new edits, atomic expected-revision checks and audit semantics are specified. Store, service, API, workbench and browser E2E implementation remain OPEN. |
