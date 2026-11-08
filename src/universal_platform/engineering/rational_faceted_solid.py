@@ -193,20 +193,18 @@ class RationalFacetedSolid:
     PREDICATE_VERSION: ClassVar[str] = "exact-fraction-sat-v1"
 
     def __post_init__(self) -> None:
-        for label, value in (("solid_id", self.solid_id), ("frame_id", self.frame_id),
-                             ("length_unit", self.length_unit)):
-            if not isinstance(value, str) or not value.strip():
-                raise InvalidModelError(f"{label} is required")
-        if not _ID.fullmatch(self.solid_id):
-            raise InvalidModelError("solid_id must be a stable lowercase identifier")
-        _validate_resource_limits(self.max_coordinate_bits, self.max_pairwise_checks)
         for label, value, ceiling in (
             ("solid_id", self.solid_id, _MAX_SOLID_ID_CHARS),
             ("frame_id", self.frame_id, _MAX_FRAME_ID_CHARS),
             ("length_unit", self.length_unit, _MAX_LENGTH_UNIT_CHARS),
         ):
+            if not isinstance(value, str) or not value.strip():
+                raise InvalidModelError(f"{label} is required")
             if len(value) > ceiling:
                 raise InvalidModelError(f"{label} exceeds its maximum length")
+        if not _ID.fullmatch(self.solid_id):
+            raise InvalidModelError("solid_id must be a stable lowercase identifier")
+        _validate_resource_limits(self.max_coordinate_bits, self.max_pairwise_checks)
         if not isinstance(self.vertices, tuple) or not 4 <= len(self.vertices) <= _MAX_VERTICES:
             raise InvalidModelError("vertices must contain 4..100000 exact points")
         if not isinstance(self.triangles, tuple) or not 4 <= len(self.triangles) <= _MAX_TRIANGLES:
