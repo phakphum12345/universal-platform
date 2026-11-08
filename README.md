@@ -285,3 +285,8 @@ Multi-shell fail-closed coverage now explicitly rejects touching cavity boundari
 
 
 The multi-shell contract now explicitly records touching-boundary and UNKNOWN-intersection fail-closed tests. PR #188 and post-merge CI passed 906 tests; PR #189 synchronized the audit and status records with exact-SHA evidence. See the [post-PR #189 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md).
+
+
+## Axis-aligned multi-shell Boolean — PR #191 candidate
+
+A separate exact-grid Boolean adapter is being added for axis-aligned box components that include cavity shells. It reuses the existing 32,768-cell budget and emits validated `BRepMultiShellSolid` components. This remains limited to axis-aligned box boundaries; it is not general 3D Boolean. See the [multi-shell Boolean contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md). Exact-head CI is pending; do not count this candidate as PASS until verified.

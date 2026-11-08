@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Axis-Aligned Multi-Shell B-rep Boolean Result v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "algorithm_version", "operation", "input_solid_ids", "input_source_sha256", "components", "grid_cell_count", "result_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "algorithm_version": {"const": "exact-axis-aligned-multishell-brep-box-grid-v1"},
+    "operation": {"enum": ["UNION", "INTERSECTION", "DIFFERENCE", "SYMMETRIC_DIFFERENCE"]},
+    "input_solid_ids": {"type": "array", "minItems": 2, "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"}},
+    "input_source_sha256": {"type": "array", "minItems": 2, "maxItems": 16, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "components": {"type": "array", "items": {"$ref": "faceted-brep-multishell-solid.schema.json"}},
+    "grid_cell_count": {"type": "integer", "minimum": 0, "maximum": 32768},
+    "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
