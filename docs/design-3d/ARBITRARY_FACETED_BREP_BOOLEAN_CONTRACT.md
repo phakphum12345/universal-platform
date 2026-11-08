@@ -41,6 +41,8 @@ Each output component must represent a closed material region with one outer she
 
 ### Gate A — pairwise intersection arrangement (first code slice)
 
+- **Implemented sub-step:** PR candidate adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` for exact-rational endpoints of a proper transverse triangle-pair crossing. It canonicalizes source triangle order and endpoint order, validates the exact segment, serializes rational coordinates strictly, and rejects coplanar/contact/degenerate cases. This primitive does not split triangles and does not implement Boolean operations.
+- Remaining Gate A work: deterministic intersection events and exact segment/point/overlap records for a source triangle pair; triangle splitting into non-overlapping planar fragments; independent candidate-completeness oracle and resource ceilings.
 - Reuse existing exact-rational triangle-pair predicates and conservative sweep-and-prune candidate generation where their contracts apply.
 - Produce deterministic intersection events and exact segment/point/overlap records for a source triangle pair.
 - Split source triangles into non-overlapping planar fragments while preserving winding and source-face provenance.
