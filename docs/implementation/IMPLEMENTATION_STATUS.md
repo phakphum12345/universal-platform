@@ -1356,3 +1356,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Arbitrary faceted/rotated/curved Boolean inputs and general 3D Boolean remain OPEN.
 - Contract: `docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md`.
 - Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md`.
+
+
+## Arbitrary faceted B-rep Boolean — planned, not implemented
+
+- Design baseline: integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec`.
+- Contract: `docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md`.
+- Pre-implementation audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md`.
+- Existing axis-aligned single-shell and multi-shell Boolean adapters remain limited to box components.
+- Existing exact-rational mesh intersection analysis is reusable as a predicate/candidate-generation foundation, but does not split triangles or assemble Boolean boundary fragments.
+- Gate A remains PLANNED: exact transverse triangle-pair events and deterministic triangle-fragment splitting. No arbitrary-faceted Boolean implementation is claimed.
+- Coplanar overlap, tangency, contact branching, nested material islands and general curved surfaces remain OPEN.

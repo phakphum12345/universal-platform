@@ -287,8 +287,9 @@ Multi-shell fail-closed coverage now explicitly rejects touching cavity boundari
 The multi-shell contract now explicitly records touching-boundary and UNKNOWN-intersection fail-closed tests. PR #188 and post-merge CI passed 906 tests; PR #189 synchronized the audit and status records with exact-SHA evidence. See the [post-PR #189 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md).
 
 
-## Axis-aligned multi-shell Boolean — PR #191 candidate
+## Axis-aligned multi-shell Boolean — PR #191 PASS
 
-A separate exact-grid Boolean adapter is being added for axis-aligned box components that include cavity shells. It reuses the existing 32,768-cell budget and emits validated `BRepMultiShellSolid` components. This remains limited to axis-aligned box boundaries; it is not general 3D Boolean. See the [multi-shell Boolean contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md). Exact-head CI is pending; do not count this candidate as PASS until verified.
+PR #191 merged at `20e03675ec1000bd2bbcfaf251df4790305f2c0c`. Exact PR-head and post-merge workflows passed workflow-sanity and 914 Python tests. The adapter accepts only axis-aligned box outer/cavity components, with a 32,768-cell ceiling; arbitrary faceted, rotated and curved Boolean inputs remain OPEN. Browser E2E was not triggered because no browser UI changed. See the [multi-shell Boolean contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md) and [post-PR #191 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md).
 
-- [Axis-Aligned Multi-Shell B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md)
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — staged future kernel; planned, not implemented.
+- [Pre-PR #192 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md)
