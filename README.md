@@ -293,3 +293,8 @@ PR #191 merged at `20e03675ec1000bd2bbcfaf251df4790305f2c0c`. Exact PR-head and 
 
 - [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — staged future kernel; planned, not implemented.
 - [Pre-PR #192 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md)
+
+
+## Exact transverse triangle intersection segment — PR #195
+
+PR #195 adds a bounded exact-rational event primitive for proper transverse triangle-pair crossings. It returns deterministic segment endpoints and rejects coplanar/contact cases outside the supported profile. Exact PR-head workflow #42468475501 passed workflow-sanity and 921 Python tests (21.16s). Post-merge CI on merge SHA `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b` is UNKNOWN because no associated run/status was returned. Triangle splitting, material classification and Boolean boundary assembly remain OPEN. See the [arbitrary faceted Boolean contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) and [post-PR #195 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR195.md).

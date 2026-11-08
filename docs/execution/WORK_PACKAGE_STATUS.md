@@ -1,14 +1,14 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec`  
+**Last verified integration baseline:** `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes. Arbitrary faceted Boolean remains PLANNED under a staged contract; recompute propagation, general topology and interchange remain open |
+| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. PR #195 adds exact transverse triangle-pair segment extraction, but not triangle splitting or Boolean assembly. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes; general topology, recompute propagation and interchange remain open |
 | 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
@@ -238,4 +238,15 @@
 - Behavior: deterministic pair ordering; exact represented-binary64 rational endpoint construction; strict endpoint/plane/triangle checks; canonical serialization; no source mutation.
 - Supported profile: proper transverse pair crossings only. Disjoint pairs return `None`; coplanar overlap, contact, duplicate/degenerate and unsupported classifications fail closed.
 - Explicit non-claims: no triangle fragment splitting, point-in-solid classification, Boolean operation, or solid assembly.
-- Status: implementation candidate — pending exact-head CI and review. Overall CAD-BREP-BOOLEAN-001 remains PARTIAL/PLANNED.
+- PR: #195, merged at `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`; exact PR head `1bcfa0ceb1aab8839ec7ee5e06ae8ffe0ecc6e9e`.
+- Exact-head workflow #42468475501: workflow-sanity PASS; Python tests 921 PASS (21.16s). An earlier fixture-source-kind failure was corrected before this passing run.
+- Post-merge CI/status on the merge SHA: UNKNOWN; no associated run or combined status was returned. Browser E2E not triggered for this geometry-core-only change.
+- Status: PASS for the narrow exact transverse segment primitive at PR head; post-merge verification UNKNOWN. Triangle splitting and Boolean operations remain OPEN.
+
+
+## PR #195 post-merge evidence boundary
+
+- Exact merge SHA: `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`.
+- Exact PR-head workflow #42468475501: workflow-sanity PASS; Python 921 PASS (21.16s).
+- The available workflow query returned no post-merge run and combined commit statuses were empty; record post-merge CI as UNKNOWN, not PASS.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR195.md`.
