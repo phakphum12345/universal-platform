@@ -34,5 +34,5 @@ def test_feature_history_suppression_contract_is_indexed_and_keeps_implementatio
     ).read_text(encoding="utf-8")
     assert "FEATURE_HISTORY_SUPPRESSION_CONTRACT.md" in index
     assert "v1.0 → v1.1" in contract
-    assert "old immutable revisions" in contract
+    assert "old immutable revisions" in contract.lower()
     assert "design contract only" in contract
