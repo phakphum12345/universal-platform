@@ -239,6 +239,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Master Execution](docs/execution/MASTER_EXECUTION.md) — audit, implementation, PR, verification and documentation synchronization loop.
 - [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) — evidence-based status across the repository work packages.
 - [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md) — immutable add/replace/remove operations and graph-safety rules.
+- [FeatureHistory Reordering Contract](docs/design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md) — presentation-only reorder, complete topological ID permutation and unchanged execution order.
 - [Pre-execution Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_EXECUTION.md) — verified branch, CI, inventory, known gaps and evidence limitations.
 
 - [Post-PR #152 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR152.md) — exact PR-head and post-merge CI evidence, implementation scope and remaining gates.
