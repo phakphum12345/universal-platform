@@ -2,9 +2,10 @@
 
 The oracle projects a source triangle to a non-degenerate coordinate plane,
 then uses exact convex polygon clipping and shoelace area. It certifies
-coverage only when every fragment is contained in the source, pairwise
-interior intersections have zero area, and the fragment-area sum equals the
-source area. No tolerance or floating-point arithmetic is used.
+coverage only when every fragment is exactly coplanar with and contained in
+the source, pairwise interior intersections have zero area, and the fragment
+area sum equals the source area. No tolerance or floating-point arithmetic is
+used.
 """
 from __future__ import annotations
 
@@ -27,6 +28,36 @@ class ExactCoverageResult:
     duplicate_fragment_pairs: tuple[tuple[int, int], ...]
     pairwise_checks: int
     certified: bool
+    non_coplanar_fragment_indices: tuple[int, ...] = ()
+
+
+def _validate_triangle(triangle: object, label: str) -> RationalTriangle3:
+    if not isinstance(triangle, tuple) or len(triangle) != 3:
+        raise InvalidModelError(f"{label} must contain exactly three exact points")
+    for point in triangle:
+        if (not isinstance(point, tuple) or len(point) != 3
+                or any(not isinstance(value, Fraction) for value in point)):
+            raise InvalidModelError(f"{label} vertices must use exact Fraction coordinates")
+    if len(set(triangle)) != 3:
+        raise InvalidModelError(f"{label} vertices must be distinct")
+    a, b, c = triangle
+    normal = (
+        (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]),
+        (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]),
+        (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]),
+    )
+    if normal == (0, 0, 0):
+        raise InvalidModelError(f"{label} must be non-degenerate")
+    return triangle
+
+
+def _normal(triangle: RationalTriangle3) -> tuple[Fraction, Fraction, Fraction]:
+    a, b, c = triangle
+    return (
+        (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]),
+        (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]),
+        (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]),
+    )
 
 
 def _cross2(a: Point2, b: Point2, c: Point2) -> Fraction:
@@ -97,26 +128,34 @@ def certify_triangle_partition(
     *,
     max_pairwise_checks: int = 1_000_000,
 ) -> ExactCoverageResult:
-    """Certify an exact non-overlapping partition of one source triangle."""
+    """Certify an exact, coplanar, non-overlapping partition of one source triangle."""
     if (isinstance(max_pairwise_checks, bool) or not isinstance(max_pairwise_checks, int)
             or max_pairwise_checks < 1):
         raise InvalidModelError("max_pairwise_checks must be a positive integer")
-    count = len(fragments)
+    source = _validate_triangle(source, "coverage source")
+    if not isinstance(fragments, (tuple, list)):
+        raise InvalidModelError("coverage fragments must be a tuple or list")
+    validated = tuple(_validate_triangle(fragment, "coverage fragment")
+                      for fragment in fragments)
+    count = len(validated)
     checks = count + count * (count - 1) // 2
     if checks > max_pairwise_checks:
         raise InvalidModelError("coverage oracle exceeded max_pairwise_checks")
-    a, b, c = source
-    normal = (
-        (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]),
-        (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]),
-        (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]),
+
+    source_normal = _normal(source)
+    source_origin = source[0]
+    non_coplanar = tuple(
+        index for index, triangle in enumerate(validated)
+        if any(sum((source_normal[axis] * (point[axis] - source_origin[axis])
+                    for axis in range(3)), Fraction(0)) != 0
+               for point in triangle)
     )
-    drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
-    if normal[drop_axis] == 0:
+    drop_axis = max(range(3), key=lambda axis: abs(source_normal[axis]))
+    if source_normal[drop_axis] == 0:
         raise InvalidModelError("coverage oracle source triangle is degenerate")
     source_2d = _project_triangle(source, drop_axis)
     source_area = _area(source_2d)
-    projected = [_project_triangle(fragment, drop_axis) for fragment in fragments]
+    projected = [_project_triangle(fragment, drop_axis) for fragment in validated]
     areas = [_area(triangle) for triangle in projected]
     outside = tuple(
         index for index, triangle in enumerate(projected)
@@ -131,10 +170,11 @@ def certify_triangle_partition(
             if _area(_clip_convex(projected[first], projected[second])) > 0:
                 overlaps.append((first, second))
     fragment_sum = sum(areas, Fraction(0))
-    certified = not outside and not overlaps and fragment_sum == source_area
+    certified = (not non_coplanar and not outside and not overlaps
+                 and fragment_sum == source_area)
     return ExactCoverageResult(
         source_area, fragment_sum, outside, tuple(overlaps), tuple(duplicates),
-        checks, certified,
+        checks, certified, non_coplanar,
     )
 
 
@@ -142,38 +182,32 @@ def coplanar_triangle_intersection_kind(
     first: RationalTriangle3,
     second: RationalTriangle3,
 ) -> str:
-    """Classify exact coplanar triangle relation: DISJOINT, CONTACT or AREA_OVERLAP.
+    """Classify exact coplanar triangle relation: DISJOINT, CONTACT, AREA_OVERLAP.
 
     NON_COPLANAR is returned when the triangles do not share a supporting plane.
     CONTACT includes edge- and point-only intersections; Boolean orchestration
     can therefore reject degeneracies without treating them as positive area.
     """
-    a,b,c=first
-    normal=(
-        (b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),
-        (b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),
-        (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]),
-    )
-    if normal==(0,0,0):
-        raise InvalidModelError("coplanar relation requires non-degenerate triangles")
-    second_normal=(
-        (second[1][1]-second[0][1])*(second[2][2]-second[0][2])-(second[1][2]-second[0][2])*(second[2][1]-second[0][1]),
-        (second[1][2]-second[0][2])*(second[2][0]-second[0][0])-(second[1][0]-second[0][0])*(second[2][2]-second[0][2]),
-        (second[1][0]-second[0][0])*(second[2][1]-second[0][1])-(second[1][1]-second[0][1])*(second[2][0]-second[0][0]),
-    )
-    parallel = (normal[1]*second_normal[2]-normal[2]*second_normal[1],
-                normal[2]*second_normal[0]-normal[0]*second_normal[2],
-                normal[0]*second_normal[1]-normal[1]*second_normal[0]) == (0,0,0)
+    first = _validate_triangle(first, "first triangle")
+    second = _validate_triangle(second, "second triangle")
+    normal = _normal(first)
+    second_normal = _normal(second)
+    parallel = (
+        normal[1] * second_normal[2] - normal[2] * second_normal[1],
+        normal[2] * second_normal[0] - normal[0] * second_normal[2],
+        normal[0] * second_normal[1] - normal[1] * second_normal[0],
+    ) == (0, 0, 0)
     same_plane = all(
-        sum((normal[i]*(point[i]-a[i]) for i in range(3)),Fraction(0))==0
+        sum((normal[i] * (point[i] - first[0][i]) for i in range(3)),
+            Fraction(0)) == 0
         for point in second
     )
     if not parallel or not same_plane:
         return "NON_COPLANAR"
-    drop_axis=max(range(3),key=lambda axis:abs(normal[axis]))
-    first_2d=_project_triangle(first,drop_axis)
-    second_2d=_project_triangle(second,drop_axis)
-    intersection=_clip_convex(first_2d,second_2d)
-    if _area(intersection)>0:
+    drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
+    first_2d = _project_triangle(first, drop_axis)
+    second_2d = _project_triangle(second, drop_axis)
+    intersection = _clip_convex(first_2d, second_2d)
+    if _area(intersection) > 0:
         return "AREA_OVERLAP"
     return "CONTACT" if intersection else "DISJOINT"
