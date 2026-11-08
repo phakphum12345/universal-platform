@@ -240,3 +240,5 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Post-PR #154 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md) — exact PR-head and post-merge CI evidence for revision-safe FeatureHistory API editing.
 - [Post-PR #156 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md) — exact PR-head/post-merge CI evidence for browser FeatureHistory editing controls and remaining quality gates.
+
+- [Post-PR #158 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md) — exact PR-head and post-merge CI evidence for real Chromium FeatureHistory editor coverage; remaining CAD and repository-wide gaps.
