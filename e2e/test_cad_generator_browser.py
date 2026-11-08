@@ -411,3 +411,97 @@ def test_feature_tree_reorder_is_dependency_safe_and_presentation_only(workbench
     page.get_by_text("Loaded immutable source revision 3.").wait_for()
     assert page.get_by_role("button", name="Move independent up").is_disabled()
     assert page_errors == []
+
+
+
+def test_feature_history_branch_fork_and_merge_work_in_browser(workbench):
+    page, service, page_errors = workbench
+    page.locator("#branch-history-id").fill("history.browser-e2e.experiment")
+    page.locator("#branch-name").fill("experiment")
+    page.get_by_role("button", name="Fork selected revision").click()
+    page.get_by_text("Forked experiment from history.browser-e2e revision 1.").wait_for()
+    assert service.history_store.load("history.browser-e2e.experiment").revision == 1
+
+    service.edit_history(
+        "history.browser-e2e.experiment",
+        expected_revision=1,
+        operation="add",
+        feature=FeatureNode.create("branch-feature", FeatureKind.MESH),
+        make_output=True,
+    )
+    page.get_by_role("button", name="Refresh branches").click()
+    page.get_by_label("Source branch to merge into this history").select_option(
+        "history.browser-e2e.experiment"
+    )
+    page.get_by_role("button", name="Merge selected branch").click()
+    page.get_by_text("Merged history.browser-e2e.experiment into history.browser-e2e as immutable revision 2.").wait_for()
+
+    root = service.history_store.load("history.browser-e2e")
+    branch = service.history_store.load("history.browser-e2e.experiment")
+    assert root.revision == 2
+    assert "branch-feature" in {node.feature_id for node in root.history.nodes}
+    assert branch.revision == 2
+    assert root.merge_provenance is not None
+    assert root.merge_provenance.source_history_id == branch.history_id
+    assert page_errors == []
+
+
+def test_feature_history_branch_merge_conflicts_are_shown_in_workbench(workbench):
+    page, service, page_errors = workbench
+    page.locator("#branch-history-id").fill("history.browser-e2e.conflict")
+    page.locator("#branch-name").fill("conflict")
+    page.get_by_role("button", name="Fork selected revision").click()
+    page.get_by_text("Forked conflict from history.browser-e2e revision 1.").wait_for()
+
+    base = service.history_store.load("history.browser-e2e", revision=1).history
+    source_nodes = tuple(
+        FeatureNode.create(
+            node.feature_id, node.kind, node.input_feature_ids,
+            {"solid_id": "source.solid", "height": 4.0}
+            if node.feature_id == "extrusion" else node.parameters,
+        )
+        for node in base.nodes
+    )
+    service.save_history(
+        FeatureHistory(
+            "history.browser-e2e.conflict",
+            source_nodes,
+            base.output_feature_ids,
+            base.suppressed_feature_ids,
+            base.document_version,
+        ),
+        expected_revision=1,
+    )
+    target_nodes = tuple(
+        FeatureNode.create(
+            node.feature_id, node.kind, node.input_feature_ids,
+            {"solid_id": "target.solid", "height": 5.0}
+            if node.feature_id == "extrusion" else node.parameters,
+        )
+        for node in base.nodes
+    )
+    service.save_history(
+        FeatureHistory(
+            "history.browser-e2e",
+            target_nodes,
+            base.output_feature_ids,
+            base.suppressed_feature_ids,
+            base.document_version,
+        ),
+        expected_revision=1,
+    )
+    page.get_by_role("button", name="Refresh revisions").click()
+    page.locator('#revision option[value="2"]').wait_for(state="attached")
+    page.locator("#revision").select_option("2")
+    page.get_by_role("button", name="Load revision").click()
+    page.locator("#revision-state").filter(has_text="Loaded revision 2").wait_for()
+    page.get_by_role("button", name="Refresh branches").click()
+    page.get_by_label("Source branch to merge into this history").select_option(
+        "history.browser-e2e.conflict"
+    )
+    page.get_by_role("button", name="Merge selected branch").click()
+    page.get_by_text("Merge blocked by 1 conflict(s).").wait_for()
+    assert "node_content" in page.locator("#branch-conflicts").inner_text()
+    assert service.history_store.load("history.browser-e2e").revision == 2
+    assert service.history_store.load("history.browser-e2e.conflict").revision == 2
+    assert page_errors == []
