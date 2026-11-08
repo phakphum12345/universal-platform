@@ -302,11 +302,18 @@ def test_cad_generator_service_navigation_rejects_stale_head_and_empty_stack(tmp
 
 def test_cad_generator_service_persists_topological_feature_presentation_order(tmp_path):
     service = make_service(tmp_path)
-    initial = make_history()
+    initial = FeatureHistory(
+        "history.cad-reorder",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("dependent", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("independent", FeatureKind.MESH),
+        ),
+        ("dependent", "independent"),
+    )
     first = service.save_history(initial, expected_revision=0)
     original_execution_order = first.history.topological_order()
-    requested = tuple(node.feature_id for node in first.history.nodes)
-    reordered = tuple(sorted(requested, key=lambda item: (item != "profile", item)))
+    reordered = ("base", "independent", "dependent")
     saved = service.edit_history(
         first.history_id,
         expected_revision=first.revision,
@@ -316,3 +323,17 @@ def test_cad_generator_service_persists_topological_feature_presentation_order(t
     assert saved.revision == 2
     assert tuple(node.feature_id for node in saved.history.nodes) == reordered
     assert saved.history.topological_order() == original_execution_order
+    assert saved.history.to_dict()["nodes"][1]["feature_id"] == "independent"
+
+
+def test_cad_generator_service_rejects_reorder_fields_on_other_operations(tmp_path):
+    service = make_service(tmp_path)
+    first = service.save_history(make_history(), expected_revision=0)
+    with pytest.raises(InvalidModelError, match="only accepted for reorder"):
+        service.edit_history(
+            first.history_id,
+            expected_revision=first.revision,
+            operation="add",
+            feature=FeatureNode.create("extra", FeatureKind.MESH),
+            ordered_feature_ids=("extra",),
+        )
