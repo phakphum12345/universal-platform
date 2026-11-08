@@ -177,3 +177,37 @@ def test_from_dict_rejects_geometry_counts_before_parsing_coordinates(monkeypatc
     monkeypatch.setattr(rational_module, "_parse_rational", unexpected_parse)
     with pytest.raises(InvalidModelError, match="geometry count"):
         RationalFacetedSolid.from_dict(snapshot)
+
+
+
+def test_rational_solid_bounds_all_metadata_fields_before_identifier_parsing():
+    import universal_platform.engineering.rational_faceted_solid as rational_module
+
+    solid = tetrahedron()
+    with pytest.raises(InvalidModelError, match="frame_id exceeds"):
+        RationalFacetedSolid(
+            solid.solid_id, "a" * (rational_module._MAX_FRAME_ID_CHARS + 1),
+            solid.length_unit, solid.vertices, solid.triangles,
+        )
+    with pytest.raises(InvalidModelError, match="length_unit exceeds"):
+        RationalFacetedSolid(
+            solid.solid_id, solid.frame_id,
+            "a" * (rational_module._MAX_LENGTH_UNIT_CHARS + 1),
+            solid.vertices, solid.triangles,
+        )
+    snapshot = solid.to_dict()
+    snapshot["frame_id"] = "a" * (rational_module._MAX_FRAME_ID_CHARS + 1)
+    with pytest.raises(InvalidModelError, match="frame_id is missing or exceeds"):
+        RationalFacetedSolid.from_dict(snapshot)
+
+
+def test_rational_solid_enforces_aggregate_metadata_character_budget(monkeypatch):
+    import universal_platform.engineering.rational_faceted_solid as rational_module
+
+    solid = tetrahedron()
+    monkeypatch.setattr(rational_module, "_MAX_METADATA_CHARS", 32)
+    with pytest.raises(InvalidModelError, match="aggregate metadata character budget"):
+        RationalFacetedSolid(
+            solid.solid_id, solid.frame_id, solid.length_unit,
+            solid.vertices, solid.triangles, solid.source_provenance,
+        )
