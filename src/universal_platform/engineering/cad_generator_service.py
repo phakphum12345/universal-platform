@@ -120,7 +120,7 @@ class CADGeneratorService:
         if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
             raise InvalidModelError("expected_revision must be a positive integer for an edit")
         if not isinstance(operation, str) or operation not in {"add", "replace", "remove", "suppress", "unsuppress"}:
-            raise InvalidModelError("operation must be add, replace or remove")
+            raise InvalidModelError("operation must be add, replace, remove, suppress or unsuppress")
         if not isinstance(cascade, bool) or not isinstance(make_output, bool):
             raise InvalidModelError("cascade and make_output must be booleans")
 
