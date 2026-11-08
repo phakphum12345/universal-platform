@@ -92,6 +92,18 @@ def test_global_topology_scan_fails_closed_at_budget():
         arrange_triangle_mesh_globally(mesh, (), max_topology_checks=1)
 
 
+def test_global_topology_scan_budget_counts_each_fragment_edge_not_unique_edges():
+    # Four global vertices and two fragments produce five unique edges, but
+    # the T-junction pass checks all four vertices against six fragment edges.
+    # The old unique-edge estimate was 20; the actual conservative charge is 24.
+    mesh = (
+        (p(0, 0), p(1, 0), p(1, 1)),
+        (p(0, 0), p(1, 1), p(0, 1)),
+    )
+    with pytest.raises(InvalidModelError, match="max_topology_checks"):
+        arrange_triangle_mesh_globally(mesh, (), max_topology_checks=20)
+
+
 def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
     # Face 0 has one long edge (0,0)-(2,0). Face 1 uses the two exact
     # subsegments through (1,0); all three edge records must share incidence.
