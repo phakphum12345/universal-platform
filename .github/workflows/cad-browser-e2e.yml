@@ -1,0 +1,46 @@
+name: CAD Generator Browser E2E
+
+on:
+  pull_request:
+    branches:
+      - docs/phase-0-complete-requirements
+    paths:
+      - "e2e/**"
+      - "src/universal_platform/engineering/static/**"
+      - "src/universal_platform/engineering/cad_generator_http_api.py"
+      - "src/universal_platform/engineering/cad_generator_service.py"
+      - "src/universal_platform/engineering/feature_history_editor.py"
+      - "pyproject.toml"
+      - ".github/workflows/cad-browser-e2e.yml"
+  push:
+    branches:
+      - docs/phase-0-complete-requirements
+    paths:
+      - "e2e/**"
+      - "src/universal_platform/engineering/static/**"
+      - "src/universal_platform/engineering/cad_generator_http_api.py"
+      - "src/universal_platform/engineering/cad_generator_service.py"
+      - "src/universal_platform/engineering/feature_history_editor.py"
+      - "pyproject.toml"
+      - ".github/workflows/cad-browser-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and browser test dependencies
+        run: python -m pip install -e ".[dev,browser]"
+      - name: Install Chromium and system dependencies
+        run: python -m playwright install --with-deps chromium
+      - name: Run CAD Generator browser interaction tests
+        run: python -m pytest -q e2e/test_cad_generator_browser.py
