@@ -20,7 +20,6 @@ def plane_x(x):
 
 
 def test_global_registry_unifies_shared_vertices_and_reports_shared_edge_adjacency():
-    # Two coplanar source facets share the exact diagonal (0,0)-(1,1).
     mesh = (
         (p(0, 0), p(1, 0), p(1, 1)),
         (p(0, 0), p(1, 1), p(0, 1)),
@@ -76,10 +75,7 @@ def test_non_exact_or_degenerate_source_is_rejected():
         arrange_triangle_mesh_globally(((p(0, 0), p(1, 1), p(2, 2)),), ())
 
 
-
 def test_global_topology_reports_exact_t_junction_candidates():
-    # The second facet contributes (1,0,0), strictly inside the first
-    # facet's unsplit edge from (0,0,0) to (2,0,0).
     mesh = (
         (p(0, 0), p(2, 0), p(0, 2)),
         (p(1, 0), p(1, -1), p(2, -1)),
@@ -94,3 +90,23 @@ def test_global_topology_scan_fails_closed_at_budget():
     mesh = ((p(0, 0), p(2, 0), p(0, 2)),)
     with pytest.raises(InvalidModelError, match="max_topology_checks"):
         arrange_triangle_mesh_globally(mesh, (), max_topology_checks=1)
+
+
+def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
+    # Face 0 has one long edge (0,0)-(2,0). Face 1 uses the two exact
+    # subsegments through (1,0); all three edge records must share incidence.
+    mesh = (
+        (p(0, 0), p(2, 0), p(0, 2)),
+        (p(0, 0), p(1, 0), p(0, -1)),
+        (p(1, 0), p(2, 0), p(2, -1)),
+    )
+    result = arrange_triangle_mesh_globally(mesh, ())
+    ids = {vertex.point: vertex.vertex_id for vertex in result.vertices}
+    left = tuple(sorted((ids[p(0, 0)], ids[p(1, 0)])))
+    right = tuple(sorted((ids[p(1, 0)], ids[p(2, 0)])))
+    by_edge = {edge.vertex_ids: edge.incident_face_ids for edge in result.edges}
+    assert by_edge[left] == (0, 1)
+    assert by_edge[right] == (0, 2)
+    assert left not in result.boundary_edge_ids
+    assert right not in result.boundary_edge_ids
+    assert (ids[p(0, 0)], ids[p(2, 0)], ids[p(1, 0)]) in result.t_junctions

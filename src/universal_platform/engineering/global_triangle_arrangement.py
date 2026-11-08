@@ -1,9 +1,9 @@
 """Global exact-rational topology assembly for per-triangle arrangements.
 
 The module gives exact coordinate identity across source facets and derives
-fragment edge incidence/adjacency. It is not a solid classifier or Boolean
-shell builder; geometric coverage certification is deliberately limited to
-per-source exact area accounting and manifold edge-incidence diagnostics.
+conforming subdivided edge incidence/adjacency. It is not a solid classifier
+or Boolean shell builder; geometric coverage certification is deliberately
+limited to per-source exact area accounting and topology diagnostics.
 """
 from __future__ import annotations
 
@@ -104,13 +104,14 @@ def arrange_triangle_mesh_globally(
     max_edges: int = 65536,
     max_topology_checks: int = 1_000_000,
 ) -> GlobalTriangleArrangement:
-    """Arrange all source facets, unify exact vertices and derive edge topology.
+    """Arrange source facets and derive exact conforming edge incidence.
 
-    A global coordinate is identified only by exact Fraction tuple equality;
-    no tolerance welding or float conversion is performed. Each source facet
-    is split by the same ordered plane sequence. Exact area is independently
-    accumulated per source facet. Edges with one incident face are reported
-    as boundary; edges with more than two are reported as non-manifold.
+    Global coordinate identity uses exact Fraction tuple equality. The edge
+    registry is subdivided at every registered global vertex lying strictly
+    inside an original face edge, so long/short cross-facet edge descriptions
+    share canonical subedges. Face triangles themselves are not retriangulated
+    or mutated. T-junction triples preserve the original unsplit-edge
+    diagnostics. The bounded vertex/edge scan fails closed on budget overflow.
     """
     for name, value in (("max_fragments", max_fragments),
                         ("max_coordinate_bits", max_coordinate_bits),
@@ -163,18 +164,56 @@ def arrange_triangle_mesh_globally(
                      for index, point in enumerate(all_points))
 
     faces: list[GlobalArrangementFace] = []
-    edge_faces: dict[tuple[int, int], list[int]] = {}
+    face_edges: list[tuple[int, tuple[int, int, int]]] = []
+    raw_edges: set[tuple[int, int]] = set()
     for face_id, fragment in enumerate(fragments):
         ids = tuple(point_ids[point] for point in fragment.vertices)
         faces.append(GlobalArrangementFace(
             face_id, fragment.source_triangle_index,
             fragment.side_signature, ids,
         ))
+        face_edges.append((face_id, ids))
         for first, second in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
-            edge = (first, second) if first < second else (second, first)
-            edge_faces.setdefault(edge, []).append(face_id)
-        if len(edge_faces) > max_edges:
-            raise InvalidModelError("global arrangement exceeded max_edges")
+            raw_edges.add((first, second) if first < second else (second, first))
+
+    # Bound the exact candidate scan before performing any edge subdivision.
+    topology_checks = len(vertices) * len(raw_edges)
+    if topology_checks > max_topology_checks:
+        raise InvalidModelError("global topology scan exceeded max_topology_checks")
+
+    t_junctions: list[tuple[int, int, int]] = []
+    edge_faces: dict[tuple[int, int], set[int]] = {}
+    for face_id, ids in face_edges:
+        for start_id, end_id in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
+            first_id, second_id = ((start_id, end_id) if start_id < end_id
+                                   else (end_id, start_id))
+            first = vertices[first_id].point
+            second = vertices[second_id].point
+            direction = _sub(second, first)
+            length_squared = _dot(direction, direction)
+            interior: list[tuple[Fraction, int]] = []
+            for candidate in vertices:
+                if candidate.vertex_id in (first_id, second_id):
+                    continue
+                offset = _sub(candidate.point, first)
+                if _cross(direction, offset) == (0, 0, 0):
+                    projection = _dot(offset, direction)
+                    if 0 < projection < length_squared:
+                        interior.append((projection, candidate.vertex_id))
+            if interior:
+                t_junctions.extend(
+                    (first_id, second_id, candidate_id)
+                    for _, candidate_id in interior
+                )
+            ordered_ids = [first_id] + [
+                candidate_id for _, candidate_id in sorted(interior)
+            ] + [second_id]
+            for sub_start, sub_end in zip(ordered_ids, ordered_ids[1:]):
+                edge = ((sub_start, sub_end) if sub_start < sub_end
+                        else (sub_end, sub_start))
+                edge_faces.setdefault(edge, set()).add(face_id)
+                if len(edge_faces) > max_edges:
+                    raise InvalidModelError("global arrangement exceeded max_edges")
 
     edges = tuple(GlobalArrangementEdge(edge, tuple(sorted(incident)))
                   for edge, incident in sorted(edge_faces.items()))
@@ -187,29 +226,7 @@ def arrange_triangle_mesh_globally(
     boundary = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) == 1)
     non_manifold = tuple(edge.vertex_ids for edge in edges if len(edge.incident_face_ids) > 2)
 
-    # Detect exact T-junction candidates: a registered vertex lies strictly
-    # inside another edge. The bounded Cartesian scan fails closed rather
-    # than silently skipping diagnostics on large inputs.
-    topology_checks = len(vertices) * len(edges)
-    if topology_checks > max_topology_checks:
-        raise InvalidModelError("global topology scan exceeded max_topology_checks")
-    t_junctions: list[tuple[int, int, int]] = []
-    for edge in edges:
-        first_id, second_id = edge.vertex_ids
-        first = vertices[first_id].point
-        second = vertices[second_id].point
-        direction = _sub(second, first)
-        length_squared = _dot(direction, direction)
-        for candidate in vertices:
-            if candidate.vertex_id in edge.vertex_ids:
-                continue
-            offset = _sub(candidate.point, first)
-            if _cross(direction, offset) == (0, 0, 0):
-                projection = _dot(offset, direction)
-                if 0 < projection < length_squared:
-                    t_junctions.append((first_id, second_id, candidate.vertex_id))
-
     return GlobalTriangleArrangement(
         vertices, tuple(faces), edges, tuple(adjacent), boundary, non_manifold,
-        tuple(sorted(t_junctions)), tuple(coverage), tuple(fragments),
+        tuple(sorted(set(t_junctions))), tuple(coverage), tuple(fragments),
     )
