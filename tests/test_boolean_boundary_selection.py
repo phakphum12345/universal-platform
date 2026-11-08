@@ -1,7 +1,10 @@
 from fractions import Fraction
 from hashlib import sha256
 
+import pytest
+
 from universal_platform.engineering.brep_boolean import BRepBooleanOperation
+from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.boolean_boundary_selection import select_boolean_boundary_fragments
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box
@@ -36,6 +39,7 @@ def test_union_keeps_outer_boundary_and_discards_nested_inner_boundary():
     assert len(result.selected_fragments) == 12
     assert {item.source_solid_index for item in result.selected_fragments} == {0}
     assert result.discarded_fragment_count == 12
+    assert result.ray_triangle_check_count > 0
 
 
 def test_intersection_keeps_inner_boundary():
@@ -63,3 +67,12 @@ def test_selection_rejects_incomplete_source_face_partition():
         assert "cover every source mesh triangle" in str(exc) or "coverage failed" in str(exc)
     else:
         raise AssertionError("incomplete face partition must fail closed")
+
+
+def test_selection_fails_closed_at_aggregate_ray_triangle_budget():
+    meshes, fragments = _inputs()
+    with pytest.raises(InvalidModelError, match="max_total_ray_checks"):
+        select_boolean_boundary_fragments(
+            meshes, fragments, BRepBooleanOperation.UNION,
+            max_total_ray_checks=1,
+        )
