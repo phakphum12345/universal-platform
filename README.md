@@ -4,16 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Latest verified integration baseline: `9c84d4d94030c0e3084d7a288064491d8160a71f` (PR #182 merged).
+- Latest verified integration baseline: `db7ce54efe3d9334b87b3902a14b089b6ce67ebd` (PR #184 merged).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge integration CI: workflow #42460044330 on exact merge SHA `9c84d4d94030c0e3084d7a288064491d8160a71f` — workflow-sanity PASS and python-tests PASS (**894 passed in 14.56s**). Exact PR-head workflow #42459969975 also passed (**894 passed in 14.43s**). Chromium E2E was SKIPPED/not triggered because no UI changed.
-- Current inventory at `9c84d4d94030c0e3084d7a288064491d8160a71f`: 372 entries, 133 Markdown, 169 Python, 24 JSON files, 87 Python test files (recursive tree; truncated=false).
-- Open PRs after PR #182: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
+- Latest post-merge integration CI: workflow #42461294867 on exact merge SHA `db7ce54efe3d9334b87b3902a14b089b6ce67ebd` — workflow-sanity PASS and python-tests PASS (**902 passed in 14.17s**). PR #184 exact-head workflow #42461224579 passed (**902 passed in 15.63s**); exact-head push workflow #42461220462 passed (**902 passed in 15.53s**). Browser E2E was not triggered because no UI changed.
+- Current inventory at `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`: 377 entries, 135 Markdown, 171 Python, 25 JSON files, 88 Python test files (recursive tree; truncated=false).
+- Open PRs after PR #184: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; multi-shell solids; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
+- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -126,6 +126,7 @@ This remains an incremental engineering foundation, not a completed universal pl
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md)
 - [2D Convex Profile Boolean Topology](docs/design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md)
 - [Faceted B-rep Topology](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md)
+- [Faceted B-rep Multi-Shell Solid](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md)
 - [Axis-Aligned Faceted B-rep Boolean](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md)
 
 ### Hardware, laboratories, governance
