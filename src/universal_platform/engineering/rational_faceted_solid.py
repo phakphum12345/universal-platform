@@ -349,6 +349,9 @@ class RationalFacetedSolid:
             raise InvalidModelError("vertices and triangles must be arrays")
         if not 4 <= len(raw_vertices) <= _MAX_VERTICES or not 4 <= len(raw_triangles) <= _MAX_TRIANGLES:
             raise InvalidModelError("rational solid geometry count is outside supported hard limits")
+        pair_checks = len(raw_triangles) * (len(raw_triangles) - 1) // 2
+        if pair_checks > max_pairwise_checks:
+            raise InvalidModelError("rational self-intersection pair budget exceeded before coordinate parsing")
         shells = value["shells"]
         if shells != [{"shell_id": "outer", "role": "OUTER",
                        "triangle_indices": list(range(len(raw_triangles))),
