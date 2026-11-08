@@ -9,6 +9,11 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .errors import InvalidModelError
+from .brep_boolean import BRepBooleanOperation
+from .boolean_boundary_selection import BooleanBoundarySelection, select_boolean_boundary_fragments
+from .boolean_shell_assembly import BooleanShellAssemblyResult, assemble_boolean_shells
+from .mesh import TriangleMesh
+from .triangle_fragment_arrangement import RationalTriangleFragment
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history import (
     FeatureHistory,
@@ -56,6 +61,41 @@ class CADGeneratorRun:
                 "Local SQLite source and artifact stores; no distributed transaction or replication",
                 "Only built-in allow-listed FeatureHistory operations execute",
                 "No user code, plugin, shell, firmware, physical-device or deployment actions",
+            ],
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CADGeneratorBooleanRun:
+    """Offline Boolean result from caller-supplied, complete source-face partitions."""
+
+    selection: BooleanBoundarySelection
+    assembly: BooleanShellAssemblyResult
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": "1.0",
+            "operation": self.selection.operation.value,
+            "selected_fragment_count": len(self.selection.selected_fragments),
+            "discarded_fragment_count": self.selection.discarded_fragment_count,
+            "classification_witness_count": self.selection.classification_witness_count,
+            "coverage_check_count": self.selection.coverage_check_count,
+            "component_count": len(self.assembly.components),
+            "connected_shell_count": self.assembly.connected_shell_count,
+            "total_exact_volume": str(self.assembly.total_exact_volume),
+            "components": [
+                {
+                    "solid": item.solid.to_dict(),
+                    "exact_net_volume": str(item.exact_net_volume),
+                    "outer_face_count": item.outer_face_count,
+                    "cavity_face_counts": list(item.cavity_face_counts),
+                }
+                for item in self.assembly.components
+            ],
+            "limitations": [
+                "Caller must supply a complete exact partition of every source mesh face",
+                "Triangle-triangle intersection discovery and automatic face splitting are not performed",
+                "Non-binary-rational shell coordinates are rejected rather than rounded",
             ],
         }
 
@@ -225,6 +265,27 @@ class CADGeneratorService:
     ) -> FeatureHistoryRevision:
         """Append a new immutable revision restoring the next Redo target."""
         return self.history_store.redo(history_id, expected_revision=expected_revision)
+
+    def execute_prearranged_boolean(
+        self,
+        meshes: tuple[TriangleMesh, ...],
+        fragments_by_solid: tuple[tuple[RationalTriangleFragment, ...], ...],
+        operation: BRepBooleanOperation,
+        *,
+        result_id_prefix: str = "boolean.result",
+    ) -> CADGeneratorBooleanRun:
+        """Execute classification, boundary selection and shell validation offline.
+
+        This deliberately accepts pre-arranged source-face fragments. It does
+        not discover cross-solid intersections or split crossing faces.
+        """
+        selection = select_boolean_boundary_fragments(
+            meshes, fragments_by_solid, operation,
+        )
+        assembly = assemble_boolean_shells(
+            selection, meshes, result_id_prefix=result_id_prefix,
+        )
+        return CADGeneratorBooleanRun(selection, assembly)
 
     def regenerate(
         self,

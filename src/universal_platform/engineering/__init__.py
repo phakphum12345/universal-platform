@@ -43,6 +43,17 @@ from .global_triangle_arrangement import (
     GlobalArrangementEdge, GlobalArrangementFace, GlobalArrangementVertex,
     GlobalTriangleArrangement, SourceCoverageReport, arrange_triangle_mesh_globally,
 )
+from .triangle_coverage_oracle import ExactCoverageResult, certify_triangle_partition
+from .material_classification import (
+    ExactMeshMaterialClassifier, MaterialClassification, MaterialClassificationResult,
+    classify_point_against_mesh,
+)
+from .boolean_boundary_selection import (
+    BooleanBoundarySelection, SelectedBoundaryFragment, select_boolean_boundary_fragments,
+)
+from .boolean_shell_assembly import (
+    AssembledBooleanComponent, BooleanShellAssemblyResult, assemble_boolean_shells,
+)
 from .planar_region import PlanarRegion, PRECISION_POLICY as PLANAR_REGION_PRECISION_POLICY
 from .planar_boolean import PlanarRegionBooleanOperation, PlanarRegionBooleanResult, boolean_planar_regions
 from .planar_region_set_boolean import PlanarRegionSetBooleanResult, boolean_planar_region_set
@@ -148,7 +159,7 @@ from .feature_history_store import (
 from .feature_artifact_store import (
     FeatureArtifactCacheIntegrityError, SQLiteFeatureArtifactCache,
 )
-from .cad_generator_service import CADGeneratorRun, CADGeneratorService
+from .cad_generator_service import CADGeneratorBooleanRun, CADGeneratorRun, CADGeneratorService
 from .cad_generator_templates import build_polygon_extrusion_history
 from .cad_generator_http_api import (
     CADAPIAuditIntegrityError,
@@ -220,5 +231,5 @@ __all__ = [
     "JacobianScaleStatus", "JacobianRankDiagnostics", "JacobianRankStatus",
     "NonlinearConstraint", "NonlinearConstraintResidual", "NonlinearSolveResult",
     "NonlinearSolveStatus", "NonlinearSolverOptions", "VariableBound",
-    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "upgrade_feature_history", "add_feature", "replace_feature", "remove_feature", "suppress_feature", "unsuppress_feature", "FeatureHistoryRevision", "FeatureHistoryNavigationState", "FeatureHistoryNavigationUnavailable", "FeatureHistoryRevisionConflict", "FeatureHistoryStoreIntegrityError", "SQLiteFeatureHistoryStore", "FeatureArtifactCacheIntegrityError", "SQLiteFeatureArtifactCache", "CADGeneratorRun", "CADGeneratorService", "build_polygon_extrusion_history", "CADAPIAuditIntegrityError", "CADGeneratorHTTPServer", "SQLiteCADAPIAuditLog", "create_cad_generator_http_server", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "SketchArc", "solve_parametric_sketch", "STEPArtifact", "STEPImportResult", "export_step", "import_step", "ThreeMFArtifact", "ThreeMFImportResult", "export_3mf", "import_3mf", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "TriangleIntersectionSegment", "extract_transverse_triangle_intersection", "TriangleFragment", "split_triangle_by_intersecting_plane", "RationalPlane", "RationalTriangleFragment", "arrange_triangles_by_planes", "GlobalArrangementEdge", "GlobalArrangementFace", "GlobalArrangementVertex", "GlobalTriangleArrangement", "SourceCoverageReport", "arrange_triangle_mesh_globally", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
+    "solve_nonlinear_constraints", "FeatureArtifact", "FeatureHistory", "FeatureKind", "FeatureNode", "FeatureRegenerationResult", "RegenerationStatus", "regenerate_feature_history", "upgrade_feature_history", "add_feature", "replace_feature", "remove_feature", "suppress_feature", "unsuppress_feature", "FeatureHistoryRevision", "FeatureHistoryNavigationState", "FeatureHistoryNavigationUnavailable", "FeatureHistoryRevisionConflict", "FeatureHistoryStoreIntegrityError", "SQLiteFeatureHistoryStore", "FeatureArtifactCacheIntegrityError", "SQLiteFeatureArtifactCache", "CADGeneratorRun", "CADGeneratorBooleanRun", "CADGeneratorService", "build_polygon_extrusion_history", "CADAPIAuditIntegrityError", "CADGeneratorHTTPServer", "SQLiteCADAPIAuditLog", "create_cad_generator_http_server", "SketchRegionConversionResult", "sketch_to_planar_regions", "ParametricSketch", "ParametricSketchSolveResult", "SketchConstraint", "SketchConstraintKind", "SketchPoint", "SketchSegment", "SketchArc", "solve_parametric_sketch", "STEPArtifact", "STEPImportResult", "export_step", "import_step", "ThreeMFArtifact", "ThreeMFImportResult", "export_3mf", "import_3mf", "BinarySTLArtifact", "STLInterchangeManifest", "export_binary_stl", "validate_binary_stl_artifact", "MeshTopologyAnalysis", "analyze_mesh_topology", "MeshIntersection", "MeshIntersectionAnalysis", "analyze_mesh_intersections", "TriangleIntersectionSegment", "extract_transverse_triangle_intersection", "TriangleFragment", "split_triangle_by_intersecting_plane", "RationalPlane", "RationalTriangleFragment", "arrange_triangles_by_planes", "GlobalArrangementEdge", "GlobalArrangementFace", "GlobalArrangementVertex", "GlobalTriangleArrangement", "SourceCoverageReport", "arrange_triangle_mesh_globally", "ExactCoverageResult", "certify_triangle_partition", "ExactMeshMaterialClassifier", "MaterialClassification", "MaterialClassificationResult", "classify_point_against_mesh", "BooleanBoundarySelection", "SelectedBoundaryFragment", "select_boolean_boundary_fragments", "AssembledBooleanComponent", "BooleanShellAssemblyResult", "assemble_boolean_shells", "PlanarRegion", "PLANAR_REGION_PRECISION_POLICY", "PlanarRegionBooleanOperation", "PlanarRegionBooleanResult", "boolean_planar_regions", "PlanarRegionSetBooleanResult", "boolean_planar_region_set", "PlanarRegionExtrusionResult", "extrude_planar_region",
 ]
