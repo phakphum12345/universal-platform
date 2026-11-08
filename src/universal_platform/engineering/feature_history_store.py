@@ -20,9 +20,11 @@ from typing import Final
 from .errors import InvalidModelError
 from .feature_history import FeatureHistory
 
-_STORE_SCHEMA_VERSION: Final[int] = 1
+_STORE_SCHEMA_VERSION: Final[int] = 1  # Revision digest envelope version; stable across additive DB migrations.
+_DATABASE_SCHEMA_VERSION: Final[int] = 2
 _HISTORY_ID: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
 _HEX_DIGEST: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
+_BRANCH_NAME: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 
 
 class FeatureHistoryRevisionConflict(RuntimeError):
@@ -63,6 +65,16 @@ class FeatureHistoryRevision:
     operation: str = "legacy"
     source_revision: int | None = None
     target_revision: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryBranch:
+    branch_history_id: str
+    root_history_id: str
+    branch_name: str
+    fork_revision: int
+    fork_sha256: str
+    created_at: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,7 +159,7 @@ class SQLiteFeatureHistoryStore:
     def _initialize(self) -> None:
         with closing(self._connect()) as connection:
             existing_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-            if existing_version > _STORE_SCHEMA_VERSION:
+            if existing_version > _DATABASE_SCHEMA_VERSION:
                 raise FeatureHistoryStoreIntegrityError("database schema version is newer than this implementation")
             connection.execute("PRAGMA journal_mode = WAL")
             connection.execute(
@@ -184,6 +196,23 @@ class SQLiteFeatureHistoryStore:
                     updated_at TEXT NOT NULL,
                     FOREIGN KEY (history_id)
                       REFERENCES feature_history_heads(history_id)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_branches (
+                    branch_history_id TEXT PRIMARY KEY,
+                    root_history_id TEXT NOT NULL,
+                    branch_name TEXT NOT NULL,
+                    fork_revision INTEGER NOT NULL CHECK (fork_revision > 0),
+                    fork_sha256 TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE (root_history_id, branch_name),
+                    FOREIGN KEY (branch_history_id)
+                      REFERENCES feature_history_heads(history_id),
+                    FOREIGN KEY (root_history_id, fork_revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
                 )
                 """
             )
@@ -227,7 +256,7 @@ class SQLiteFeatureHistoryStore:
                 FROM feature_history_revisions
                 """
             )
-            connection.execute(f"PRAGMA user_version = {_STORE_SCHEMA_VERSION}")
+            connection.execute(f"PRAGMA user_version = {_DATABASE_SCHEMA_VERSION}")
 
     @staticmethod
     def _read_navigation_stacks(
@@ -577,6 +606,144 @@ class SQLiteFeatureHistoryStore:
         return FeatureHistoryRevision(
             history_id, revision, parent_sha256, digest, now, history,
             operation, current_revision, target_revision,
+        )
+
+    def create_branch(
+        self,
+        root_history_id: str,
+        branch_history_id: str,
+        branch_name: str,
+        *,
+        fork_revision: int | None = None,
+    ) -> FeatureHistoryBranch:
+        """Fork an immutable root revision into a new independent history chain."""
+        if not isinstance(root_history_id, str) or not _HISTORY_ID.fullmatch(root_history_id):
+            raise ValueError("root_history_id must be a stable history identifier")
+        if not isinstance(branch_history_id, str) or not _HISTORY_ID.fullmatch(branch_history_id):
+            raise ValueError("branch_history_id must be a stable history identifier")
+        if branch_history_id == root_history_id:
+            raise ValueError("branch_history_id must differ from root_history_id")
+        if not isinstance(branch_name, str) or not _BRANCH_NAME.fullmatch(branch_name) or len(branch_name) > 64:
+            raise ValueError("branch_name must be a lowercase stable name of at most 64 characters")
+        if fork_revision is not None and (
+            isinstance(fork_revision, bool) or not isinstance(fork_revision, int) or fork_revision < 1
+        ):
+            raise ValueError("fork_revision must be a positive integer")
+        source = self.load(root_history_id, revision=fork_revision)
+        branch_history = FeatureHistory(
+            branch_history_id, source.history.nodes, source.history.output_feature_ids,
+            source.history.suppressed_feature_ids, source.history.document_version,
+        )
+        snapshot_json = _canonical_json(branch_history.to_dict())
+        now = datetime.now(timezone.utc).isoformat()
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_branches WHERE branch_history_id = ?",
+                (root_history_id,),
+            ).fetchone():
+                raise ValueError("branching from another branch is not supported")
+            root_row = connection.execute(
+                "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = ?",
+                (root_history_id, source.revision),
+            ).fetchone()
+            if root_row is None or str(root_row[0]) != source.content_sha256:
+                raise FeatureHistoryStoreIntegrityError("fork source revision changed or is missing")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_heads WHERE history_id = ?",
+                (branch_history_id,),
+            ).fetchone():
+                raise ValueError("branch_history_id already exists")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_branches WHERE root_history_id = ? AND branch_name = ?",
+                (root_history_id, branch_name),
+            ).fetchone():
+                raise ValueError("branch_name already exists for this root history")
+            digest = _revision_digest(branch_history_id, 1, None, snapshot_json)
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, 1, NULL, ?, ?, ?)
+                """,
+                (branch_history_id, snapshot_json, digest, now),
+            )
+            connection.execute(
+                "INSERT INTO feature_history_heads (history_id, revision, content_sha256) VALUES (?, 1, ?)",
+                (branch_history_id, digest),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_navigation
+                  (history_id, undo_stack_json, redo_stack_json, updated_at)
+                VALUES (?, '[]', '[]', ?)
+                """,
+                (branch_history_id, now),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, 1, 'create', NULL, NULL)
+                """,
+                (branch_history_id,),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_branches
+                  (branch_history_id, root_history_id, branch_name, fork_revision, fork_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (branch_history_id, root_history_id, branch_name, source.revision, source.content_sha256, now),
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        return FeatureHistoryBranch(
+            branch_history_id, root_history_id, branch_name, source.revision, source.content_sha256, now
+        )
+
+    def get_branch(self, branch_history_id: str) -> FeatureHistoryBranch:
+        if not isinstance(branch_history_id, str) or not _HISTORY_ID.fullmatch(branch_history_id):
+            raise ValueError("branch_history_id must be a stable history identifier")
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                """
+                SELECT branch_history_id, root_history_id, branch_name,
+                       fork_revision, fork_sha256, created_at
+                FROM feature_history_branches WHERE branch_history_id = ?
+                """,
+                (branch_history_id,),
+            ).fetchone()
+        if row is None:
+            raise KeyError(branch_history_id)
+        return FeatureHistoryBranch(
+            str(row[0]), str(row[1]), str(row[2]), int(row[3]), str(row[4]), str(row[5])
+        )
+
+    def list_branches(self, root_history_id: str) -> tuple[FeatureHistoryBranch, ...]:
+        if not isinstance(root_history_id, str) or not _HISTORY_ID.fullmatch(root_history_id):
+            raise ValueError("root_history_id must be a stable history identifier")
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                """
+                SELECT branch_history_id, root_history_id, branch_name,
+                       fork_revision, fork_sha256, created_at
+                FROM feature_history_branches
+                WHERE root_history_id = ? ORDER BY branch_name, branch_history_id
+                """,
+                (root_history_id,),
+            ).fetchall()
+        return tuple(
+            FeatureHistoryBranch(
+                str(row[0]), str(row[1]), str(row[2]), int(row[3]), str(row[4]), str(row[5])
+            )
+            for row in rows
         )
 
     def list_revisions(self, history_id: str) -> tuple[int, ...]:
