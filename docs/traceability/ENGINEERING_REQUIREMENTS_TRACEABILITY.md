@@ -292,3 +292,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-BREP-BOOLEAN-001B | Split one source triangle by a properly intersecting cutter plane into deterministic exact-rational fragments while preserving winding and area | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), PR #197, `triangle_intersection_events.py`, `test_triangle_intersection_events.py` | PASS for the bounded PR-head primitive: exact head `49029f71f161afe2d3ba787c66eb21bd2127c02d`, workflow #42468939670 workflow-sanity PASS and Python 925 PASS (31.98s). Post-merge CI on `f31ca0135cafc17c1489d88f62c09be1c18cc97e` is UNKNOWN. Multi-plane arrangement, global fragment adjacency, material classification and Boolean assembly remain OPEN. |
+
+
+## CAD-BREP-BOOLEAN-001C — Exact multi-plane per-source-triangle arrangement
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-BREP-BOOLEAN-001C | Apply multiple ordered cutter planes to each source triangle using exact rational clipping while preserving source winding, provenance and area | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), PR #199, `triangle_fragment_arrangement.py`, `test_triangle_fragment_arrangement.py` | PASS for bounded per-source-triangle arrangement at exact PR head `6e4508fdf0f6f3a0a6498f916f13c2970f204523`; workflow #42470843529 workflow-sanity PASS and Python tests PASS. Documentation marker SKIPPED is not a pass. Merge SHA `bc5f2a1bffb632ef1440ea9740e69f89cf50737e`; post-merge CI/status UNKNOWN. Global multi-triangle arrangement, canonical cross-facet adjacency, independent coverage oracle, material classification and Boolean assembly remain OPEN. |
