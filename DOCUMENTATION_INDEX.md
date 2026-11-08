@@ -27,6 +27,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md) — tool, solver and CAD technology evaluation policy.
 - [Domain Catalogue](docs/DOMAIN_CATALOGUE.md) — cross-disciplinary domain taxonomy.
 - [Universal Requirements](docs/requirements/UNIVERSAL_REQUIREMENTS.md) — top-level requirements and quality attributes.
+- [Requirements Traceability Matrix](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) — product-level requirement status and remaining gaps.
 
 ## Architecture and system contracts
 
