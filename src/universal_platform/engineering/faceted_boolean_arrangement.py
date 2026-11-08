@@ -73,7 +73,7 @@ def arrange_faceted_boolean_meshes(
     every source facet. This intentionally over-splits but ensures that a
     non-coplanar source face cannot cross another input facet's supporting
     plane inside a returned fragment. Exact global T-junctions are then
-    converted to conforming triangles. Coplanar contact/overlap is rejected.
+    converted to conforming triangles. Positive-area coplanar overlaps add exact edge-line cutters; point/edge-only contact is rejected.
     """
     if not isinstance(meshes,tuple) or not 2<=len(meshes)<=16:
         raise InvalidModelError("faceted Boolean arrangement requires 2..16 immutable TriangleMesh inputs")
@@ -129,8 +129,28 @@ def arrange_faceted_boolean_meshes(
                         if coplanar_checks>max_coplanar_checks:
                             raise InvalidModelError("coplanar pair scan exceeded max_coplanar_checks")
                         relation=coplanar_triangle_intersection_kind(first,second)
-                        if relation!="DISJOINT":
-                            raise InvalidModelError("coplanar triangle "+relation.lower()+" is unsupported")
+                        if relation=="DISJOINT":
+                            continue
+                        if relation=="CONTACT":
+                            raise InvalidModelError("coplanar point/edge contact is unsupported")
+                        if relation!="AREA_OVERLAP":
+                            raise InvalidModelError("unexpected coplanar relation: "+relation)
+                        # Each edge line becomes the intersection of a cutter
+                        # plane with the shared supporting plane. Adding the
+                        # edges from both triangles creates a planar overlay
+                        # arrangement while retaining exact rational geometry.
+                        for triangle in (first,second):
+                            normal=_cross(_sub(triangle[1],triangle[0]),_sub(triangle[2],triangle[0]))
+                            for edge_start,edge_end in ((triangle[0],triangle[1]),
+                                                        (triangle[1],triangle[2]),
+                                                        (triangle[2],triangle[0])):
+                                off_plane=tuple(edge_start[axis]+normal[axis] for axis in range(3))
+                                cutter=(edge_start,edge_end,off_plane)
+                                cutter_key=_plane_key(cutter)
+                                if cutter_key not in plane_by_key:
+                                    plane_by_key[cutter_key]=RationalPlane(len(plane_by_key),cutter)
+                                    if len(plane_by_key)>max_unique_planes:
+                                        raise InvalidModelError("coplanar cutters exceeded max_unique_planes")
 
     arrangement=arrange_triangle_mesh_globally(
         tuple(source_triangles),tuple(plane_by_key.values()),
