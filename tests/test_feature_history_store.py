@@ -11,6 +11,7 @@ from universal_platform.engineering.feature_history import (
     FeatureHistory, FeatureKind, FeatureNode,
 )
 from universal_platform.engineering.feature_history_store import (
+    FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
     SQLiteFeatureHistoryStore,
@@ -115,6 +116,10 @@ def test_store_detects_missing_revision_in_chain(tmp_path):
     store.save(history("mesh-b"), expected_revision=1)
     with sqlite3.connect(path) as connection:
         connection.execute(
+            "DELETE FROM feature_history_revision_actions WHERE history_id = ? AND revision = 1",
+            ("document.part",),
+        )
+        connection.execute(
             "DELETE FROM feature_history_revisions WHERE history_id = ? AND revision = 1",
             ("document.part",),
         )
@@ -160,3 +165,123 @@ def test_store_detects_head_pointer_digest_tampering(tmp_path):
 
     with pytest.raises(FeatureHistoryStoreIntegrityError, match="head digest"):
         store.load("document.part")
+
+
+
+def test_store_undo_redo_appends_immutable_revisions_and_persists_navigation(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    first = store.save(history("mesh-a"), expected_revision=0)
+    second = store.save(history("mesh-b"), expected_revision=1)
+    third = store.save(history("mesh-c"), expected_revision=2)
+
+    undone_once = store.undo("document.part", expected_revision=3)
+    assert undone_once.revision == 4
+    assert undone_once.history == history("mesh-b")
+    assert undone_once.operation == "undo"
+    assert undone_once.source_revision == 3
+    assert undone_once.target_revision == 2
+
+    undone_twice = store.undo("document.part", expected_revision=4)
+    assert undone_twice.revision == 5
+    assert undone_twice.history == history("mesh-a")
+    assert undone_twice.operation == "undo"
+    assert undone_twice.target_revision == 1
+
+    redone_once = store.redo("document.part", expected_revision=5)
+    assert redone_once.revision == 6
+    assert redone_once.history == history("mesh-b")
+    assert redone_once.operation == "redo"
+    assert redone_once.target_revision == 4
+
+    redone_twice = store.redo("document.part", expected_revision=6)
+    assert redone_twice.revision == 7
+    assert redone_twice.history == history("mesh-c")
+    assert redone_twice.operation == "redo"
+    assert redone_twice.target_revision == 3
+
+    assert store.list_revisions("document.part") == (1, 2, 3, 4, 5, 6, 7)
+    assert store.load("document.part", revision=1).content_sha256 == first.content_sha256
+    assert store.load("document.part", revision=2).content_sha256 == second.content_sha256
+    assert store.load("document.part", revision=3).content_sha256 == third.content_sha256
+
+    reopened = SQLiteFeatureHistoryStore(path)
+    state = reopened.get_navigation_state("document.part")
+    assert state.current_revision == 7
+    assert state.can_undo is True
+    assert state.can_redo is False
+    assert state.undo_depth == 2
+    assert state.redo_depth == 0
+
+
+def test_store_new_edit_after_undo_clears_redo_and_stale_undo_is_atomic(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    store.save(history("mesh-a"), expected_revision=0)
+    store.save(history("mesh-b"), expected_revision=1)
+    store.save(history("mesh-c"), expected_revision=2)
+
+    with pytest.raises(FeatureHistoryRevisionConflict):
+        store.undo("document.part", expected_revision=2)
+    before = store.get_navigation_state("document.part")
+    assert before.undo_depth == 2
+    assert before.redo_depth == 0
+
+    store.undo("document.part", expected_revision=3)
+    state_after_undo = store.get_navigation_state("document.part")
+    assert state_after_undo.can_redo is True
+    assert state_after_undo.redo_depth == 1
+
+    edited = store.save(history("mesh-new"), expected_revision=4)
+    assert edited.revision == 5
+    state_after_edit = store.get_navigation_state("document.part")
+    assert state_after_edit.can_redo is False
+    assert state_after_edit.redo_depth == 0
+    with pytest.raises(FeatureHistoryNavigationUnavailable) as error:
+        store.redo("document.part", expected_revision=5)
+    assert error.value.code == "NO_REDO"
+
+
+def test_store_reports_empty_undo_and_redo_stacks(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    store.save(history(), expected_revision=0)
+    with pytest.raises(FeatureHistoryNavigationUnavailable) as undo_error:
+        store.undo("document.part", expected_revision=1)
+    assert undo_error.value.code == "NO_UNDO"
+    with pytest.raises(FeatureHistoryNavigationUnavailable) as redo_error:
+        store.redo("document.part", expected_revision=1)
+    assert redo_error.value.code == "NO_REDO"
+
+
+def test_store_backfills_navigation_for_existing_revision_chain_without_rewriting_it(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    first = store.save(history("mesh-a"), expected_revision=0)
+    second = store.save(history("mesh-b"), expected_revision=1)
+    with sqlite3.connect(path) as connection:
+        connection.execute("DROP TABLE feature_history_navigation")
+
+    migrated = SQLiteFeatureHistoryStore(path)
+    state = migrated.get_navigation_state("document.part")
+    assert state.current_revision == 2
+    assert state.undo_depth == 1
+    assert state.redo_depth == 0
+    assert migrated.load("document.part", revision=1).content_sha256 == first.content_sha256
+    assert migrated.load("document.part", revision=2).content_sha256 == second.content_sha256
+    restored = migrated.undo("document.part", expected_revision=2)
+    assert restored.history == history("mesh-a")
+    assert restored.operation == "undo"
+
+
+def test_store_fails_closed_on_corrupt_navigation_stack_json(tmp_path):
+    path = tmp_path / "history.db"
+    store = SQLiteFeatureHistoryStore(path)
+    store.save(history("mesh-a"), expected_revision=0)
+    store.save(history("mesh-b"), expected_revision=1)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE feature_history_navigation SET undo_stack_json = ? WHERE history_id = ?",
+            ("{invalid", "document.part"),
+        )
+    reopened = SQLiteFeatureHistoryStore(path)
+    with pytest.raises(FeatureHistoryStoreIntegrityError, match="navigation stack JSON is invalid"):
+        reopened.get_navigation_state("document.part")

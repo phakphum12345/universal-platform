@@ -1129,3 +1129,17 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440952865).
 - Documentation and traceability now mark FeatureHistory suppression R-016 as end-to-end PASS across PRs #163, #165 and #166.
 - Overall repository remains INCOMPLETE; next CAD work is the undo/redo design contract and subsequent implementation.
+
+
+## PR #168 — FeatureHistory Undo/Redo contract (MERGED)
+
+- Exact merge SHA: `6c5f77168cca1947bf79678696613ef1ef9c84ea`.
+- Design only: persistent SQLite stacks, append-only restore revisions, redo invalidation after new edits, atomic compare-and-swap and audit requirements.
+- PR-head and post-merge workflow-sanity/python-tests passed; no runtime behavior was changed by the contract PR.
+
+## PR #169 — Persistent Undo/Redo store (OPEN)
+
+- Implements additive navigation/action metadata tables, legacy backfill, persistent stacks, atomic append-only Undo/Redo revisions, expected-revision checks and fail-closed state validation.
+- Exact-head CI: 860 Python tests PASS; workflow-sanity PASS.
+- Store layer only. Service/API navigation routes, workbench controls and browser E2E remain open.
+- No PR merge performed at this status snapshot.
