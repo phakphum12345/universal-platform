@@ -1,10 +1,10 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited integration baseline:** `91def9b8367969d0dcef04806b831cc34022e797` (PR #158 implementation merged at `9d899f70a97372f689ba07a8e90b479bf14494b4`; subsequent documentation reconciliation recorded in commit `91def9b8367969d0dcef04806b831cc34022e797`).  
+**Last audited integration baseline:** `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a` (PR #160 documentation reconciliation merged after PR #158).  
 **Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **404 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration-head CI:** workflow run `42438451084` on exact SHA `91def9b8367969d0dcef04806b831cc34022e797` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass.  
+**Latest integration-head CI:** workflow run `42438814910` on exact SHA `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
 **Current tree:** 356 entries, 120 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
 **Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
@@ -1060,3 +1060,12 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - WP-03 remains PARTIAL: feature suppression, reordering semantics, undo/redo, branching/merging, expression parameters, B-rep editing, face/edge/vertex selection and general geometry recomputation remain open.
 - Integration head at audit: `9d899f70a97372f689ba07a8e90b479bf14494b4`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 403 commits ahead and 0 behind. No main promotion.
 - Repository-wide completion remains INCOMPLETE. Branch protection, local working-tree state and full security/dependency audit remain UNKNOWN where the connected API did not provide evidence.
+
+
+## PR #160 — Documentation status reconciliation (MERGED)
+
+- PR #160 merged to `docs/phase-0-complete-requirements` at exact merge SHA `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a`.
+- Exact PR head `f0734ceb7a2651468392abbfc34758bc5c879912`: `workflow-sanity` PASS and `python-tests` PASS. One earlier test attempt failed because a historical baseline SHA used by a documentation regression test had been removed; the historical traceability entry was restored and the final exact head passed.
+- Exact post-merge workflow run `42438814910` on the merge SHA: `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED, not counted as a pass.
+- Updates align the implementation baseline and work-package register with PR #158 browser E2E evidence; CAD-EDIT-004 is PASS, while overall WP-03 and repository completion remain PARTIAL / INCOMPLETE.
+- No source behavior changed; no main merge or deployment.
