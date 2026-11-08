@@ -63,7 +63,7 @@ def test_global_identity_does_not_tolerance_weld_nearby_coordinates():
     )
     result = arrange_triangle_mesh_globally(mesh, ())
     points = {vertex.point for vertex in result.vertices}
-    assert len(result.vertices) == 4
+    assert len(result.vertices) == 5
     assert p(0, 1) in points
     assert (F(0), F(1) + F(1, 10**12), F(0)) in points
 
@@ -105,8 +105,28 @@ def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
     left = tuple(sorted((ids[p(0, 0)], ids[p(1, 0)])))
     right = tuple(sorted((ids[p(1, 0)], ids[p(2, 0)])))
     by_edge = {edge.vertex_ids: edge.incident_face_ids for edge in result.edges}
-    assert by_edge[left] == (0, 1)
-    assert by_edge[right] == (0, 2)
+    assert tuple(sorted(result.faces[i].source_triangle_index for i in by_edge[left])) == (0, 1)
+    assert tuple(sorted(result.faces[i].source_triangle_index for i in by_edge[right])) == (0, 2)
     assert left not in result.boundary_edge_ids
     assert right not in result.boundary_edge_ids
     assert (ids[p(0, 0)], ids[p(2, 0)], ids[p(1, 0)]) in result.t_junctions
+    assert len(result.faces) > 3
+    assert len(result.fragments) == len(result.faces)
+    # The returned face set is conforming: no registered vertex lies strictly
+    # inside any returned face edge.
+    for edge in result.edges:
+        first = result.vertices[edge.vertex_ids[0]].point
+        second = result.vertices[edge.vertex_ids[1]].point
+        direction = tuple(second[i] - first[i] for i in range(3))
+        length_squared = sum((direction[i] * direction[i] for i in range(3)), F(0))
+        for candidate in result.vertices:
+            if candidate.point in (first, second):
+                continue
+            offset = tuple(candidate.point[i] - first[i] for i in range(3))
+            cross = (
+                direction[1] * offset[2] - direction[2] * offset[1],
+                direction[2] * offset[0] - direction[0] * offset[2],
+                direction[0] * offset[1] - direction[1] * offset[0],
+            )
+            projection = sum((direction[i] * offset[i] for i in range(3)), F(0))
+            assert cross != (F(0), F(0), F(0)) or not (0 < projection < length_squared)
