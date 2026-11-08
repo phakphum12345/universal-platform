@@ -53,7 +53,7 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: combined durable source-revision plus artifact-cache workflow acceptance, cache eviction/retention and backup automation, feature suppression (specified separately in [FeatureHistory Suppression Contract](FEATURE_HISTORY_SUPPRESSION_CONTRACT.md); design only), rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation remains fingerprint-based: without an optional artifact cache, reuse is process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`; with a cache, only exact algorithm-version-aware computation signatures are reused.
+Not yet implemented: combined durable source-revision plus artifact-cache workflow acceptance, cache eviction/retention and backup automation, end-to-end feature suppression (backend model/editor/regeneration is implemented in PR #163; revision-safe service/API/workbench integration remains open), rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation remains fingerprint-based: without an optional artifact cache, reuse is process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`; with a cache, only exact algorithm-version-aware computation signatures are reused.
 
 The sketch-to-region converter accepts closed straight-edge and circular-arc loops through bounded polygonal tessellation (PR #128); exact analytic curved topology is not provided. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
 
@@ -98,7 +98,7 @@ and computed-artifact caching.
 `FeatureArtifact.value`, solver state, mesh objects, or a durable computation
 cache. Those values require explicit versioned serializers and trusted
 rehydration contracts before cross-process artifact reuse can be claimed.
-There is no suppression, rollback mutation, branch/merge model, replication,
+There is no rollback mutation, branch/merge model, replication,
 encryption-at-rest, backup scheduler, or distributed consensus in this slice.
 
 ## 9. Durable-store acceptance evidence
@@ -156,3 +156,8 @@ The transport-neutral `CADGeneratorService` is implemented in `engineering/cad_g
 It combines the immutable source revision store and local artifact cache. It supports typed/snapshot save, revision read/list, explicit revision regeneration and a provenance-bearing `CADGeneratorRun` response. The complete source+cache cross-process acceptance is covered by PR #134.
 
 **Transport remains OPEN:** no HTTP listener, CLI command surface or UI is included. A future transport adapter must define authentication, authorization, request-size/time limits, audit, cancellation, structured errors and loopback-only defaults before enabling any network listener.
+
+
+## 11. Feature suppression backend status
+
+PR #163 adds the FeatureHistory v1.1 suppression set, strict v1.0 compatibility, explicit migration, immutable suppress/unsuppress editor operations and regeneration skip/report behavior. The source-revision store continues to hash the original v1.0 serialization for legacy revisions; a suppression edit appends a v1.1 revision. Service/API/workbench integration and browser E2E remain open. See [FeatureHistory Suppression Contract](FEATURE_HISTORY_SUPPRESSION_CONTRACT.md) for the complete behavior and acceptance matrix.
