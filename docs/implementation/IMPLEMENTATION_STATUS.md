@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `050d18d863653103fb62d6d39426c8c255a8f99c` (PR #189 merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **539 commits ahead / 0 behind** at this audit.  
+**Last verified integration baseline:** `20e03675ec1000bd2bbcfaf251df4790305f2c0c` (PR #191 merged).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **560 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest post-merge integration CI:** exact SHA `050d18d863653103fb62d6d39426c8c255a8f99c`, workflow #42462267653 — workflow-sanity PASS; python-tests PASS (**906 passed in 16.26s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
-**Current tree at exact integration SHA `050d18d863653103fb62d6d39426c8c255a8f99c`:** 380 entries, 138 Markdown, 171 Python, 25 JSON files, 88 Python test files; recursive tree response truncated=false.  
-**Open PRs after PR #189:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
+**Latest post-merge integration CI:** exact SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c`, workflow #42462960964 — workflow-sanity PASS; python-tests PASS (**914 passed in 29.65s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
+**Current tree at exact integration SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c`:** 384 entries, 140 Markdown, 172 Python, 26 JSON files, 89 Python test files; recursive tree response truncated=false.  
+**Open PRs after PR #191:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1342,3 +1342,17 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - PR #189 post-merge workflow #42462267653: workflow-sanity PASS; Python 906 PASS (16.26s).
 - PR #188 rejects cavity/outer boundary contact and injected intersection-analysis UNKNOWN. Browser E2E not triggered because no UI changed.
 - Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md`.
+
+
+## Axis-aligned multi-shell Boolean — PR #191 PASS
+
+- Exact PR head: `9e069f85e840147d541491a7b424bfd7eef8de1c`.
+- Merge SHA / current integration HEAD: `20e03675ec1000bd2bbcfaf251df4790305f2c0c`.
+- Exact-head push workflow #42462848667: workflow-sanity PASS; Python 914 PASS (32.41s).
+- Exact-head PR workflow #42462853863: workflow-sanity PASS; Python 914 PASS (20.87s).
+- Post-merge workflow #42462960964: workflow-sanity PASS; Python 914 PASS (29.65s).
+- Supports exact axis-aligned box outer/cavity components, 2–16 inputs and a 32,768-cell grid ceiling. Output reconstructs multi-shell components with cavities.
+- Browser E2E was not triggered because no browser UI changed; not counted as PASS.
+- Arbitrary faceted/rotated/curved Boolean inputs and general 3D Boolean remain OPEN.
+- Contract: `docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md`.
