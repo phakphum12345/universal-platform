@@ -170,8 +170,21 @@ def test_polygonal_brep_supports_quad_faces_and_a_square_through_hole():
     assert len(solid.faces) == 10
     restored = BRepSolid.from_dict(solid.to_dict())
     assert restored.to_dict() == solid.to_dict()
-    with pytest.raises(InvalidModelError, match="triangular faces without inner loops"):
-        triangle_mesh_from_brep(solid)
+    mesh = triangle_mesh_from_brep(solid)
+    mesh_validation = validate_triangle_mesh(mesh)
+    assert mesh_validation.valid and mesh_validation.watertight
+    assert mesh_validation.consistently_oriented
+    assert len(mesh.triangles) == 32
+    assert mesh.vertices == tuple(item.position for item in solid.vertices)
+    assert mesh.solid_id == solid.solid_id
+    assert mesh.frame_id == solid.frame_id
+    assert mesh.length_unit == solid.length_unit
+    assert mesh.source_geometry_sha256 == solid.source_geometry_sha256
+    assert mesh.triangles == triangle_mesh_from_brep(solid).triangles
+    round_trip = brep_from_triangle_mesh(mesh)
+    round_trip_validation = validate_brep_solid(round_trip)
+    assert round_trip_validation.valid and round_trip_validation.genus == 1
+    assert round_trip_validation.signed_volume == pytest.approx(12.0)
 
 
 def test_polygonal_brep_rejects_non_planar_face_and_invalid_inner_loop_reference():
@@ -203,3 +216,131 @@ def test_faceted_brep_v1_triangular_snapshot_remains_importable():
     assert restored.SCHEMA_VERSION == "2.0"
     assert all(not face.inner_loop_ids for face in restored.faces)
     assert validate_brep_solid(restored).valid
+
+
+def polygonal_pentagonal_prism_brep():
+    bottom = {
+        "p0": (0, 0, 0), "p1": (2, 0, 0), "p2": (3, 1, 0),
+        "p3": (1.5, 3, 0), "p4": (0, 2, 0),
+    }
+    coordinates = dict(bottom)
+    coordinates.update({
+        f"q{index}": (point[0], point[1], 1)
+        for index, point in enumerate(bottom.values())
+    })
+    bottom_ids = tuple(bottom)
+    top_ids = tuple(f"q{index}" for index in range(5))
+    face_specs = [
+        ("top", top_ids),
+        ("bottom", tuple(reversed(bottom_ids))),
+    ]
+    face_specs.extend(
+        (f"side.{index}", (bottom_ids[index], bottom_ids[(index + 1) % 5],
+                           top_ids[(index + 1) % 5], top_ids[index]))
+        for index in range(5)
+    )
+    edge_by_pair = {}
+    loops = []
+    faces = []
+    for face_id, vertex_ids in face_specs:
+        uses = []
+        for index, start in enumerate(vertex_ids):
+            end = vertex_ids[(index + 1) % len(vertex_ids)]
+            canonical = tuple(sorted((start, end)))
+            edge_id = "edge." + canonical[0] + "." + canonical[1]
+            edge_by_pair.setdefault(canonical, BRepEdge(edge_id, *canonical))
+            uses.append(BRepEdgeUse(edge_id, (start, end) == canonical))
+        loop_id = f"loop.{face_id}"
+        loops.append(BRepLoop(loop_id, tuple(uses)))
+        faces.append(BRepFace(face_id, loop_id))
+    vertices = tuple(BRepVertex(key, Vec3(*point)) for key, point in coordinates.items())
+    return BRepSolid(
+        "solid.pentagonal-prism", "part.frame", "mm", "b" * 64,
+        vertices, tuple(edge_by_pair.values()), tuple(loops), tuple(faces),
+        BRepShell("shell.pentagonal-prism", tuple(face.face_id for face in faces)),
+    )
+
+
+def test_polygonal_n_gon_faces_triangulate_to_a_closed_mesh():
+    solid = polygonal_pentagonal_prism_brep()
+    assert validate_brep_solid(solid).valid
+    mesh = triangle_mesh_from_brep(solid)
+    result = validate_triangle_mesh(mesh)
+    assert result.valid and result.watertight and result.consistently_oriented
+    assert len(mesh.triangles) == 16
+    assert mesh.vertices == tuple(item.position for item in solid.vertices)
+
+
+def two_hole_box_brep():
+    coordinates = {
+        "o0": (0, 0, 0), "o1": (6, 0, 0), "o2": (6, 4, 0), "o3": (0, 4, 0),
+        "t0": (0, 0, 1), "t1": (6, 0, 1), "t2": (6, 4, 1), "t3": (0, 4, 1),
+    }
+    holes = []
+    for prefix, x0 in (("a", 1), ("b", 4)):
+        bottom = (
+            f"{prefix}0", f"{prefix}1", f"{prefix}2", f"{prefix}3"
+        )
+        top = tuple(f"t{prefix}{index}" for index in range(4))
+        points = ((x0, 1), (x0, 2), (x0 + 1, 2), (x0 + 1, 1))
+        for index, (x, y) in enumerate(points):
+            coordinates[bottom[index]] = (x, y, 0)
+            coordinates[top[index]] = (x, y, 1)
+        holes.append((bottom, top))
+
+    face_specs = [
+        ("top", ("t0", "t1", "t2", "t3"),
+         tuple((f"top.{index}", top) for index, (_, top) in enumerate(holes))),
+        ("bottom", ("o0", "o3", "o2", "o1"),
+         tuple((f"bottom.{index}", (bottom[0], bottom[3], bottom[2], bottom[1]))
+               for index, (bottom, _) in enumerate(holes))),
+        ("outer.front", ("o0", "o1", "t1", "t0"), ()),
+        ("outer.right", ("o1", "o2", "t2", "t1"), ()),
+        ("outer.back", ("o2", "o3", "t3", "t2"), ()),
+        ("outer.left", ("o3", "o0", "t0", "t3"), ()),
+    ]
+    for hole_index, (bottom, top) in enumerate(holes):
+        for edge_index in range(4):
+            following = (edge_index + 1) % 4
+            face_specs.append((
+                f"hole.{hole_index}.{edge_index}",
+                (bottom[edge_index], bottom[following], top[following], top[edge_index]),
+                (),
+            ))
+
+    edge_by_pair = {}
+    loops = []
+    faces = []
+    for face_id, outer_vertices, inner_specs in face_specs:
+        for loop_id, vertex_ids in ((f"{face_id}.outer", outer_vertices), *inner_specs):
+            uses = []
+            for index, start in enumerate(vertex_ids):
+                end = vertex_ids[(index + 1) % len(vertex_ids)]
+                canonical = tuple(sorted((start, end)))
+                edge_id = "edge." + canonical[0] + "." + canonical[1]
+                edge_by_pair.setdefault(canonical, BRepEdge(edge_id, *canonical))
+                uses.append(BRepEdgeUse(edge_id, (start, end) == canonical))
+            loops.append(BRepLoop(loop_id, tuple(uses)))
+        faces.append(BRepFace(
+            face_id, f"{face_id}.outer", tuple(loop_id for loop_id, _ in inner_specs)
+        ))
+    vertices = tuple(BRepVertex(key, Vec3(*point)) for key, point in coordinates.items())
+    return BRepSolid(
+        "solid.two-hole-box", "part.frame", "mm", "c" * 64,
+        vertices, tuple(edge_by_pair.values()), tuple(loops), tuple(faces),
+        BRepShell("shell.two-hole-box", tuple(face.face_id for face in faces)),
+    )
+
+
+def test_polygonal_brep_triangulates_multiple_face_inner_loops():
+    solid = two_hole_box_brep()
+    source_validation = validate_brep_solid(solid)
+    assert source_validation.valid and source_validation.genus == 2
+    mesh = triangle_mesh_from_brep(solid)
+    result = validate_triangle_mesh(mesh)
+    assert result.valid and result.watertight and result.consistently_oriented
+    assert len(mesh.triangles) == 52
+    restored = brep_from_triangle_mesh(mesh)
+    restored_validation = validate_brep_solid(restored)
+    assert restored_validation.valid and restored_validation.genus == 2
+    assert restored_validation.signed_volume == pytest.approx(22.0)
