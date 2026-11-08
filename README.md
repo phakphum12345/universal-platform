@@ -4,16 +4,16 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Latest verified integration baseline: `9c84d4d94030c0e3084d7a288064491d8160a71f` (PR #182 merged).
+- Latest verified integration baseline: `db7ce54efe3d9334b87b3902a14b089b6ce67ebd` (PR #184 merged).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge integration CI: workflow #42460044330 on exact merge SHA `9c84d4d94030c0e3084d7a288064491d8160a71f` — workflow-sanity PASS and python-tests PASS (**894 passed in 14.56s**). Exact PR-head workflow #42459969975 also passed (**894 passed in 14.43s**). Chromium E2E was SKIPPED/not triggered because no UI changed.
-- Current inventory at `9c84d4d94030c0e3084d7a288064491d8160a71f`: 372 entries, 133 Markdown, 169 Python, 24 JSON files, 87 Python test files (recursive tree; truncated=false).
-- Open PRs after PR #182: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
+- Latest post-merge integration CI: workflow #42461294867 on exact merge SHA `db7ce54efe3d9334b87b3902a14b089b6ce67ebd` — workflow-sanity PASS and python-tests PASS (**902 passed in 14.17s**). PR #184 exact-head workflow #42461224579 passed (**902 passed in 15.63s**); exact-head push workflow #42461220462 passed (**902 passed in 15.53s**). Browser E2E was not triggered because no UI changed.
+- Current inventory at `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`: 377 entries, 135 Markdown, 171 Python, 25 JSON files, 88 Python test files (recursive tree; truncated=false).
+- Open PRs after PR #184: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; multi-shell solids; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
+- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
 - Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
 
 ## Initial implementation (active development)
@@ -126,6 +126,7 @@ This remains an incremental engineering foundation, not a completed universal pl
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md)
 - [2D Convex Profile Boolean Topology](docs/design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md)
 - [Faceted B-rep Topology](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md)
+- [Faceted B-rep Multi-Shell Solid](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md)
 - [Axis-Aligned Faceted B-rep Boolean](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md)
 
 ### Hardware, laboratories, governance
@@ -153,7 +154,7 @@ Documentation and proposals do not mean capabilities are implemented. Evidence s
 
 ### CAD-neutral geometry
 
-- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: PR #181 adds polygonal faces and inner loops; PR #182 implements their triangle-mesh bridge. Multiple shells/cavities, arbitrary faceted 3D Boolean, rotated solids, curved surfaces, general 3D arrangements, ambiguous branching, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
+- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: PR #181 adds polygonal faces and inner loops; PR #182 implements their triangle-mesh bridge. PR #184 adds a bounded aggregate for one outer shell plus disjoint, strictly-contained cavities; exact-head and post-merge Python suites passed 902 tests. Nested material islands, arbitrary faceted 3D Boolean, rotated/curved general arrangements, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
 - Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
 - Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.
 
@@ -272,4 +273,4 @@ PR #182 merged to the integration branch at `9c84d4d94030c0e3084d7a288064491d816
 
 ## CAD multi-shell solids
 
-The CAD foundation now has a bounded implementation candidate for composing one validated polygonal outer shell with strictly-contained, disjoint cavity shells. See the [multi-shell solid contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md). This is an aggregate shell-composition adapter, not general 3D Boolean or multi-shell neutral-format interchange. PR #184 exact-head CI is the acceptance gate; do not treat this capability as PASS until the evidence is recorded.
+PR #184 merged at `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`. The bounded multi-shell adapter composes one validated polygonal outer shell with strictly-contained, disjoint, non-nested cavity shells. Exact-head and post-merge Python tests passed 902 tests; browser E2E was not triggered because no UI changed. See the [multi-shell solid contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md). This is not general 3D Boolean or multi-shell neutral-format interchange.

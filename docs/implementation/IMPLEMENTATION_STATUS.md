@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `9c84d4d94030c0e3084d7a288064491d8160a71f` (PR #182 merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **482 commits ahead / 0 behind** at this audit.  
+**Last verified integration baseline:** `db7ce54efe3d9334b87b3902a14b089b6ce67ebd` (PR #184 merged).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **505 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest post-merge integration CI:** exact SHA `9c84d4d94030c0e3084d7a288064491d8160a71f`, workflow #42460044330 — workflow-sanity PASS; python-tests PASS (**894 passed in 14.56s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
-**Current tree at exact integration SHA `9c84d4d94030c0e3084d7a288064491d8160a71f`:** 372 entries, 133 Markdown, 169 Python, 24 JSON files, 87 Python test files; recursive tree response truncated=false.  
-**Open PRs after PR #182:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
+**Latest post-merge integration CI:** exact SHA `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`, workflow #42461294867 — workflow-sanity PASS; python-tests PASS (**902 passed in 14.17s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
+**Current tree at exact integration SHA `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`:** 377 entries, 135 Markdown, 171 Python, 25 JSON files, 88 Python test files; recursive tree response truncated=false.  
+**Open PRs after PR #184:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1274,7 +1274,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Faceted BRep schema/profile v2.0 supports polygonal planar face loops and explicit inner loops; exact represented-binary64 rational predicates validate planarity, simplicity, strict containment, non-touching and orientation.
 - Euler characteristic/genus account for face holes. The new square through-hole reference is one valid connected closed genus-1 shell with volume 12.
 - v1.0 triangular snapshots remain importable. Mesh conversion intentionally remains triangular/no-hole only and rejects unsupported geometry.
-- Single-shell polygonal BRep with face holes is PASS. Multi-shell solids, general 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
+- Single-shell polygonal BRep with face holes is PASS. Multi-shell outer-shell plus disjoint-cavity aggregation is PASS for its bounded profile (PR #184). General 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
 
 
 ## B-rep mesh triangulation — PR #182 PASS
@@ -1295,14 +1295,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Status: PASS for the bounded single-shell polygonal/holed B-rep mesh adapter. Whole-repository completion remains INCOMPLETE.
 
 
-## B-rep multi-shell solid and cavity composition — PR #184 candidate
+## B-rep multi-shell solid and cavity composition — PR #184 PASS
 
-- Adds a separate `BRepMultiShellSolid` aggregate; the established `BRepSolid` v2.0 API and snapshots remain unchanged.
-- One outer shell plus zero or more independently validated cavity shells.
-- Strict exact-rational point-in-shell classification for cavity vertices; deterministic ray ambiguity fails closed.
-- Complete combined-mesh intersection analysis; only `NO_INTERSECTIONS_FOUND` is accepted.
-- Cavity triangle winding is reversed only in aggregate mesh output. The combined mesh must be watertight, consistently oriented and have positive net signed volume.
-- Pairwise overlapping/touching/nested cavities, out-of-outer cavities and frame/unit mismatches are rejected.
-- Schema: `schemas/geometry/faceted-brep-multishell-solid.schema.json`; contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`; tests: `tests/test_brep_multishell.py`.
-- PR #184 exact head: `4128a7f0b086b25b29c27870761603ee6be4147a`. Exact-head CI is pending; implementation status remains CANDIDATE, not PASS.
-- Explicitly unsupported: nested cavity islands, multiple material regions, curved surfaces, general 3D Boolean, shell healing and STEP/AP242 multi-shell interchange.
+- Exact PR head: `850e521cd3499ede4e8a00a5cb1698cee32347d0`.
+- Merge SHA / current integration HEAD: `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`.
+- PR workflow #42461224579: workflow-sanity PASS; Python 902 PASS (15.63s).
+- Push workflow #42461220462: workflow-sanity PASS; Python 902 PASS (15.53s).
+- Post-merge workflow #42461294867: workflow-sanity PASS; Python 902 PASS (14.17s).
+- Supports one outer shell and zero or more strictly-contained, disjoint, non-nested cavity shells. Cavity winding is reversed only in aggregate mesh conversion; combined output must be watertight, consistently oriented and positive-volume.
+- Browser E2E was not triggered because no browser UI changed; not counted as PASS.
+- Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR184.md`.
+- Nested cavity islands, arbitrary 3D Boolean, curved surfaces and multi-shell STEP/AP242 remain OPEN.
