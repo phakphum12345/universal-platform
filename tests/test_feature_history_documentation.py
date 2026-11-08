@@ -40,7 +40,7 @@ def test_feature_history_suppression_contract_is_indexed_and_keeps_implementatio
 
 
 
-def test_feature_history_undo_redo_contract_is_indexed_and_design_only():
+def test_feature_history_undo_redo_contract_is_indexed_and_end_to_end_verified():
     index = (ROOT / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
     contract = (
         ROOT / "docs" / "design-3d" / "FEATURE_HISTORY_UNDO_REDO_CONTRACT.md"
@@ -49,9 +49,11 @@ def test_feature_history_undo_redo_contract_is_indexed_and_design_only():
         ROOT / "docs" / "traceability" / "REQUIREMENTS_TRACEABILITY_MATRIX.md"
     ).read_text(encoding="utf-8")
     assert "FEATURE_HISTORY_UNDO_REDO_CONTRACT.md" in index
-    assert "Store layer implemented by PR #169" in contract
+    assert "**Status:** END-TO-END IMPLEMENTED" in contract
+    assert "PR #169" in contract
     assert "PR #170" in contract
-    assert "workbench controls" in contract.lower()
+    assert "PR #171" in contract
+    assert "6 Chromium E2E tests" in contract
     assert "Undo and Redo never delete revisions" in contract
     assert "CAD-EDIT-008" in (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
     assert "| R-017 |" in matrix
