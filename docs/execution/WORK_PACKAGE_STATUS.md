@@ -1,14 +1,14 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline before PR #182:** `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`  
+**Last verified integration baseline:** `9c84d4d94030c0e3084d7a288064491d8160a71f`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | PR #181 adds polygonal planar faces and inner loops; PR #182 candidate adds mesh triangulation. Multi-shell solids, arbitrary 3D Boolean and ambiguous branching remain open |
+| 02 | CAD geometry | PARTIAL | PR #181 adds polygonal planar faces and inner loops; PR #182 implements polygonal/inner-loop mesh triangulation. Multi-shell solids, arbitrary 3D Boolean and ambiguous branching remain open |
 | 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
@@ -200,7 +200,7 @@
 - **Status: PASS** for single-shell polygonal BRep with face holes. Multi-shell solids, general 3D Boolean and polygonal/hole mesh triangulation remain OPEN.
 
 
-## CAD-BREP-002 — Polygonal and holed B-rep mesh triangulation (PR #182 candidate)
+## CAD-BREP-002 — Polygonal and holed B-rep mesh triangulation (PR #182 PASS)
 
 - Source: `src/universal_platform/engineering/brep.py`, `triangle_mesh_from_brep`.
 - Reuses: `mesh._triangulate_profile_region` for deterministic bridge-and-ear clipping.
@@ -209,6 +209,10 @@
 - Acceptance: n-gon faces; face inner loops; preserved outer-loop orientation; no new geometric vertices; source ID/frame/unit/digest preservation; valid/watertight/consistently-oriented mesh; deterministic output; fail-closed resource limits.
 - Resource bounds: 10,000 boundary vertices per face; 200,000 output triangles per solid.
 - Base integration SHA: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`.
-- PR-head and exact-SHA CI: PENDING.
-- Merge to integration: NOT AUTHORIZED until exact-head checks pass and review is complete; main remains protected from this workflow.
-- Status: IMPLEMENTATION CANDIDATE; do not count as PASS until evidence is recorded.
+- Exact PR head: `c4c1a5c642096f2c030982c567fe308cb2df07e4`.
+- Merge SHA: `9c84d4d94030c0e3084d7a288064491d8160a71f`.
+- Exact PR-head workflow #42459969975: workflow-sanity PASS; Python 894 PASS (14.43s).
+- Post-merge workflow #42460044330: workflow-sanity PASS; Python 894 PASS (14.56s).
+- Chromium E2E: SKIPPED/not triggered because no UI surface changed.
+- PR #182 merged to integration only; main unchanged.
+- Status: PASS for this bounded adapter; WP-02 and repository overall remain PARTIAL / INCOMPLETE.

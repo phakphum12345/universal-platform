@@ -1,12 +1,12 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline before PR #182:** `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34` (post-PR #181 repository audit).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **468 commits ahead / 0 behind** at this audit.  
+**Last verified integration baseline:** `9c84d4d94030c0e3084d7a288064491d8160a71f` (PR #182 merged).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **482 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration push CI:** exact SHA `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`, workflow #42457244454 — workflow-sanity PASS and python-tests PASS. No Chromium workflow was triggered by the documentation-only audit update. The test count is not copied without a captured job-log result.  
-**Current tree at exact integration SHA `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`:** 371 entries, 132 Markdown, 169 Python, 24 JSON files, 87 Python test files; recursive tree response truncated=false.  
-**Open PRs before PR #182:** 0. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
+**Latest post-merge integration CI:** exact SHA `9c84d4d94030c0e3084d7a288064491d8160a71f`, workflow #42460044330 — workflow-sanity PASS; python-tests PASS (**894 passed in 14.56s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
+**Current tree at exact integration SHA `9c84d4d94030c0e3084d7a288064491d8160a71f`:** 372 entries, 133 Markdown, 169 Python, 24 JSON files, 87 Python test files; recursive tree response truncated=false.  
+**Open PRs after PR #182:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1277,9 +1277,11 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Single-shell polygonal BRep with face holes is PASS. Multi-shell solids, general 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
 
 
-## Current B-rep mesh triangulation increment — PR #182 candidate
+## B-rep mesh triangulation — PR #182 PASS
 
 - Base integration SHA: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`.
+- Exact PR head: `c4c1a5c642096f2c030982c567fe308cb2df07e4`.
+- Merge SHA / current integration HEAD: `9c84d4d94030c0e3084d7a288064491d8160a71f`.
 - Scope: deterministic triangulation of polygonal n-gon faces and one or more inner loops in `triangle_mesh_from_brep`.
 - Reuses the existing profile-region bridge-and-ear-clipping implementation; no third-party dependency or new geometric vertices.
 - Preserves source vertex order/positions, outer-loop orientation, solid ID, frame, unit and source geometry digest.
@@ -1287,4 +1289,7 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Resource bounds: 10,000 boundary vertices per face and 200,000 triangles per solid.
 - Contract: `docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md`.
 - Tests: `tests/test_faceted_brep.py` covers polygonal prism and holed-shell conversion, deterministic output, identity preservation and round-trip genus/volume.
-- Status: IMPLEMENTATION CANDIDATE. Exact-head CI and review evidence pending; do not claim PASS or merge until verified.
+- Exact PR-head CI: workflow #42459969975; workflow-sanity PASS; Python 894 PASS (14.43s).
+- Post-merge CI: workflow #42460044330; workflow-sanity PASS; Python 894 PASS (14.56s).
+- Chromium E2E: SKIPPED/not triggered (no UI change); not counted as PASS.
+- Status: PASS for the bounded single-shell polygonal/holed B-rep mesh adapter. Whole-repository completion remains INCOMPLETE.

@@ -1,6 +1,6 @@
 # Faceted B-rep Polygonal Mesh Triangulation Contract
 
-**Status:** Implemented candidate; pending exact-head CI and review.  
+**Status:** IMPLEMENTED — PR #182 merged to the integration branch.  
 **Input profile:** `FACETED_POLYGONAL_PLANAR_SHELL_V2`.  
 **Output:** Validated `TriangleMesh` with `source_kind=IMPORTED_BREP`.
 
@@ -65,4 +65,4 @@ The bridge used to represent a hole in the temporary 2D polygon is topological o
 
 ## 8. Implementation evidence
 
-PR #182 implements this adapter in `triangle_mesh_from_brep`, reusing the existing deterministic polygon-with-holes triangulation helper. The exact PR-head Python/workflow results and post-merge evidence must be recorded here after CI completes. A skipped browser test is not counted as a pass when the change has no UI surface.
+PR #182 implements this adapter in `triangle_mesh_from_brep`, reusing the existing deterministic polygon-with-holes triangulation helper. Exact PR head `c4c1a5c642096f2c030982c567fe308cb2df07e4`; merge SHA `9c84d4d94030c0e3084d7a288064491d8160a71f`. Exact-head workflow #42459969975: workflow-sanity PASS; Python 894 PASS (14.43s). Post-merge workflow #42460044330: workflow-sanity PASS; Python 894 PASS (14.56s). Chromium E2E was SKIPPED/not triggered because no UI surface changed; it is not counted as PASS. See [post-PR #182 audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR182.md).
