@@ -262,3 +262,9 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [FeatureHistory Reordering Contract](docs/design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md) — dependency-safe presentation order, immutable revision and unchanged execution order.
 - [Post-PR #174 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR174.md) — exact PR-head and post-merge Python, Chromium and workflow-sanity evidence.
 - FeatureHistory presentation reordering is PASS for the bounded workflow. Graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
+
+
+## FeatureHistory Branch and Merge — design contract
+
+- [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — independent branch history identities, exact fork provenance, conservative three-way merge, conflict rules and atomic append-only merge requirements.
+- **Status:** DESIGN COMPLETE / IMPLEMENTATION OPEN. Branch creation, merge engine, service/API, workbench and browser acceptance are not yet implemented by this contract.
