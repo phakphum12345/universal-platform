@@ -15,6 +15,7 @@ Provide validated, immutable operations for adding, replacing and removing nodes
 | Replace | Replace an existing node without changing its ID | Preserve stable identity; validate dependencies and cycles |
 | Remove | Remove one node | Reject removal when dependents exist unless cascade is explicitly requested |
 | Cascade remove | Remove a node and all transitive dependents | Remove affected outputs and reject a result with no output |
+| Reorder | Change the stored feature-tree presentation sequence | Must be a complete permutation and preserve dependency-before-dependent order; execution order remains dependency-derived and unchanged |
 
 The operations are pure transformations: the input FeatureHistory is never mutated. Every returned document is reconstructed through the strict FeatureHistory validator.
 
@@ -29,7 +30,7 @@ The operations are pure transformations: the input FeatureHistory is never mutat
 
 ## 4. Explicit limitations
 
-This slice does not implement feature suppression, reordering semantics, undo/redo, branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Browser controls provide basic add/replace/remove operations only. Real Chromium browser automation/E2E interaction coverage is implemented and passing (PR #158); it does not expand the feature-editing capability boundary. Feature order for execution remains deterministic topological order, not the stored tuple order.
+This slice does not implement branch/merge history, expression parameters, arbitrary B-rep editing, face/edge/vertex selection, or new geometry operations. Reordering is presentation-only: the stored node sequence must be a complete topological presentation order, while execution remains deterministic and dependency-derived. Browser controls provide basic add/replace/remove operations only. Real Chromium browser automation/E2E interaction coverage is implemented and passing (PR #158); it does not expand the feature-editing capability boundary. Feature order for execution remains deterministic topological order, not the stored tuple order.
 
 ## 5. Acceptance criteria
 
@@ -54,3 +55,12 @@ This slice does not implement feature suppression, reordering semantics, undo/re
 - Exact PR head `9aa96157eb6e5ebbf324aa6614178ffd8af17495`: browser E2E PASS (4 tests); Python suite PASS (843 tests); workflow sanity PASS.
 - Exact merge SHA `9d899f70a97372f689ba07a8e90b479bf14494b4`: post-merge browser E2E PASS (4 tests), Python suite PASS (843 tests), workflow sanity PASS.
 - Browser coverage is a distinct verification gate; it does not imply feature suppression, reordering, undo/redo, or broader CAD editing support.
+
+
+## 7. Feature-tree presentation reordering — bounded semantics
+
+- A reorder request supplies the complete ordered feature-ID tuple; partial moves and duplicate/unknown IDs are rejected.
+- Every dependency must appear before its dependent. A reorder cannot change dependency edges, feature IDs, parameters, outputs or suppression metadata.
+- Reordering creates a new immutable source revision through the existing expected-revision compare-and-swap path.
+- `FeatureHistory.topological_order()` remains unchanged and determines execution order independently of stored presentation order. No geometry recomputation semantics are changed by this operation.
+- Reordering is not graph editing, dependency rewiring, feature execution reprioritization, branch/merge or a general CAD history editor.
