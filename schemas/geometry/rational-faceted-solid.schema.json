@@ -75,14 +75,37 @@
       }
     },
     "shells": {
-      "const": [
-        {
-          "shell_id": "outer",
-          "role": "OUTER",
-          "triangle_indices": "ALL_TRIANGLES",
-          "parent_outer_shell_id": null
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shell_id",
+          "role",
+          "triangle_indices",
+          "parent_outer_shell_id"
+        ],
+        "properties": {
+          "shell_id": {
+            "const": "outer"
+          },
+          "role": {
+            "const": "OUTER"
+          },
+          "triangle_indices": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "parent_outer_shell_id": {
+            "type": "null"
+          }
         }
-      ]
+      }
     },
     "source_provenance": {
       "type": "array",
