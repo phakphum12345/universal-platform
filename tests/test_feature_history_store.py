@@ -116,6 +116,10 @@ def test_store_detects_missing_revision_in_chain(tmp_path):
     store.save(history("mesh-b"), expected_revision=1)
     with sqlite3.connect(path) as connection:
         connection.execute(
+            "DELETE FROM feature_history_revision_actions WHERE history_id = ? AND revision = 1",
+            ("document.part",),
+        )
+        connection.execute(
             "DELETE FROM feature_history_revisions WHERE history_id = ? AND revision = 1",
             ("document.part",),
         )
