@@ -1158,3 +1158,19 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Adds service navigation-state access, strict HTTP GET navigation and POST undo/redo routes.
 - Empty stacks return NO_UNDO/NO_REDO; stale expected revisions return REVISION_CONFLICT.
 - Exact-head CI is pending for the current PR head. Workbench controls and Chromium navigation E2E remain separate.
+
+
+## PR #170 — Undo/Redo service/API (MERGED)
+
+- Exact PR head: `e3db1fe6556c9b9d4ac6e742d9b51a95c357815f`.
+- Exact PR-head CI: 865 Python tests PASS; 5 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`.
+- Exact post-merge CI: 865 Python tests PASS; workflow-sanity PASS; Chromium E2E 4 PASS / 1 ERROR because the browser fixture attempted to load a revision before its option was attached, causing a transient revision=0 request.
+- API routes are merged: GET navigation, POST undo and POST redo; strict expected-revision and audit boundaries remain enforced.
+
+## PR #171 — Undo/Redo workbench (OPEN)
+
+- Adds current-head gated Undo/Redo buttons, persistent navigation-state refresh and post-action revision reload.
+- Guards empty or invalid revision selection before Load/Regenerate.
+- Updates Chromium fixture to wait for the saved revision option; adds reload persistence and Redo invalidation coverage.
+- Exact-head and post-merge CI are pending. Do not claim Undo/Redo end-to-end complete yet.
