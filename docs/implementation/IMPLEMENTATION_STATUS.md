@@ -1,5 +1,7 @@
 # Implementation Status — UEIC Foundation
 
+> **Latest audit:** [Repository Audit post-PR #219](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR219.md). Pinned integration SHA: `7a0d2a21d05709ccfead7f95e57349310c878a58`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #218 and #219 have exact-head and post-merge required checks PASS. PR #217 remains open with exact-head Python CI pending at the audit snapshot. Bounded faceted Boolean remains PARTIAL; exact rational B-rep output and repository-wide acceptance remain INCOMPLETE.
+
 > **Latest audit supersedes the historical baseline below:** see [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md). Current integration SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. The latest bounded CAD Boolean work includes PRs #200–#207, but arbitrary faceted Boolean and the overall repository remain INCOMPLETE. Post-merge CI on exact merge SHA passed workflow-sanity, python-tests and Chromium E2E.
 
 
