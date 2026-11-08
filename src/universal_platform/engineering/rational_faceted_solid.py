@@ -73,8 +73,9 @@ def _parse_rational(value: object, label: str, max_bits: int) -> Fraction:
 
 
 def _axes_overlap(first: tuple[RationalPoint3, ...],
-                  second: tuple[RationalPoint3, ...]) -> bool:
-    """Conservative exact SAT test; touching is treated as non-overlap."""
+                  second: tuple[RationalPoint3, ...], *,
+                  touching_is_overlap: bool = True) -> bool:
+    """Conservative exact SAT test; optionally classify touching as overlap."""
     edges_a = tuple(_sub(first[(i+1)%3], first[i]) for i in range(3))
     edges_b = tuple(_sub(second[(i+1)%3], second[i]) for i in range(3))
     normal_a = _cross(edges_a[0], edges_a[1])
@@ -88,7 +89,11 @@ def _axes_overlap(first: tuple[RationalPoint3, ...],
             continue
         a_values = tuple(_dot(point, axis) for point in first)
         b_values = tuple(_dot(point, axis) for point in second)
-        if max(a_values) <= min(b_values) or max(b_values) <= min(a_values):
+        if touching_is_overlap:
+            separated = max(a_values) < min(b_values) or max(b_values) < min(a_values)
+        else:
+            separated = max(a_values) <= min(b_values) or max(b_values) <= min(a_values)
+        if separated:
             return False
     return True
 
@@ -189,8 +194,12 @@ class RationalFacetedSolid:
                 raise InvalidModelError("degenerate rational triangle is not permitted")
         if not isinstance(self.source_provenance, tuple):
             raise InvalidModelError("source_provenance must be an immutable tuple")
-        for source_id, digest in self.source_provenance:
-            if not isinstance(source_id, str) or not _ID.fullmatch(source_id) or not _DIGEST.fullmatch(digest):
+        for item in self.source_provenance:
+            if not isinstance(item, tuple) or len(item) != 2:
+                raise InvalidModelError("source provenance entries must be (source_id, sha256) pairs")
+            source_id, digest = item
+            if (not isinstance(source_id, str) or not _ID.fullmatch(source_id)
+                    or not isinstance(digest, str) or not _DIGEST.fullmatch(digest)):
                 raise InvalidModelError("source provenance requires stable IDs and lowercase SHA-256")
         if tuple(sorted(set(self.source_provenance))) != self.source_provenance:
             raise InvalidModelError("source provenance must be sorted and unique")
@@ -247,7 +256,8 @@ class RationalFacetedSolid:
                 continue
             first_points = tuple(self.vertices[index] for index in first_face)
             second_points = tuple(self.vertices[index] for index in second_face)
-            if _axes_overlap(first_points, second_points):
+            if _axes_overlap(first_points, second_points,
+                             touching_is_overlap=not bool(shared)):
                 raise InvalidModelError("rational self-intersection or unsupported contact detected")
 
     @property
