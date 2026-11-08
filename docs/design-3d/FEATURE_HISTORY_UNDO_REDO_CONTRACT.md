@@ -94,7 +94,7 @@ The sequence demonstrates that Undo/Redo append new revisions; they never move t
 
 ## 6. Store and service contract
 
-PR #169 merged the store exposes transactional methods such as:
+PR #169 merged the store layer. It exposes transactional methods such as:
 
 - `undo(history_id, expected_revision)`
 - `redo(history_id, expected_revision)`
