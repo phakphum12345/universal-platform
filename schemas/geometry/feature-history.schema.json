@@ -1,39 +1,87 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "FeatureHistory",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "history_id",
-    "nodes",
-    "output_feature_ids"
-  ],
-  "properties": {
-    "schema_version": {
-      "const": "1.0"
-    },
-    "history_id": {
-      "type": "string",
-      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
-    },
-    "nodes": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/node"
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "history_id",
+        "nodes",
+        "output_feature_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "history_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "output_feature_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
-    "output_feature_ids": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "minLength": 1
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "history_id",
+        "nodes",
+        "output_feature_ids",
+        "suppressed_feature_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.1"
+        },
+        "history_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "output_feature_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "suppressed_feature_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+          }
+        }
       }
     }
-  },
+  ],
   "$defs": {
     "node": {
       "type": "object",

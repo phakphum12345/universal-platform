@@ -24,3 +24,16 @@ def test_feature_history_status_records_merge_evidence_and_non_claims():
     assert "CAD-FEATURE-HISTORY-001" in traceability
     assert "does not invoke user Python" in contract
     assert "incremental recomputation" in contract.lower()
+
+
+
+def test_feature_history_suppression_contract_is_indexed_and_keeps_implementation_boundary():
+    index = (ROOT / "DOCUMENTATION_INDEX.md").read_text(encoding="utf-8")
+    contract = (
+        ROOT / "docs" / "design-3d" / "FEATURE_HISTORY_SUPPRESSION_CONTRACT.md"
+    ).read_text(encoding="utf-8")
+    assert "FEATURE_HISTORY_SUPPRESSION_CONTRACT.md" in index
+    assert "v1.0 → v1.1" in contract
+    assert "old immutable revisions" in contract.lower()
+    assert "PR #163 implements the first backend slice" in contract
+    assert "workbench controls" in contract

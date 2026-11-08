@@ -1,13 +1,13 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited integration baseline:** `35f06a304090176eb6d10697d6da67b53b1ec9ba` (PR #161 post-merge documentation audit).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **406 commits ahead / 0 behind** at this audit.  
+**Last audited integration baseline:** `a952fd927e5b6a0fa7fd9701343c2bffb52091e1` (PR #162 suppression contract merged; PR #163 backend implementation remains open).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **407 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration-head CI:** workflow run `42438919113` on exact SHA `35f06a304090176eb6d10697d6da67b53b1ec9ba` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass. The documentation-only marker was SKIPPED and is not counted as a pass.  
+**Latest integration-head CI:** exact SHA `a952fd927e5b6a0fa7fd9701343c2bffb52091e1` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass. The documentation-only marker was SKIPPED and is not counted as a pass.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
-**Current tree:** 356 entries, 120 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
-**Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
+**Current tree:** 357 entries, 121 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
+**Open PRs:** PR #163 is open at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
 **Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
 **Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
 
@@ -1077,3 +1077,17 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact PR-head CI on `d8bd1dd803de9a45686839876e91710e6a5bdce1`: workflow-sanity PASS; python-tests PASS.
 - Exact post-merge workflow `42438919113` on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
 - Documentation index, implementation baseline and work-package evidence are now aligned with PR #160; no source behavior changed.
+
+
+## PR #162 — FeatureHistory suppression contract (MERGED)
+
+- PR #162 merged at exact integration SHA `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS.
+- Post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS.
+- Added a design contract for v1.0/v1.1 compatibility, immutable revision digests, cascade/unsuppress semantics, regeneration and cache behavior. It does not itself implement suppression.
+
+## PR #163 — FeatureHistory suppression backend core (OPEN)
+
+- Backend implementation scope: strict v1.0/v1.1 source serialization, explicit migration, immutable suppress/unsuppress operations, dependency/output invariants, regeneration skip/report behavior and cache preservation.
+- Service/API/workbench integration and suppression-specific browser E2E remain open and are not claimed complete.
+- Exact-head CI must pass on the final PR SHA before merge; PR is not merged at this audit.
