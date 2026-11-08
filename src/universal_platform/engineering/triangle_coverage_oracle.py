@@ -127,16 +127,26 @@ def certify_triangle_partition(
     fragments: Sequence[RationalTriangle3],
     *,
     max_pairwise_checks: int = 1_000_000,
+    max_coordinate_bits: int = 4096,
 ) -> ExactCoverageResult:
     """Certify an exact, coplanar, non-overlapping partition of one source triangle."""
     if (isinstance(max_pairwise_checks, bool) or not isinstance(max_pairwise_checks, int)
             or max_pairwise_checks < 1):
         raise InvalidModelError("max_pairwise_checks must be a positive integer")
+    if (isinstance(max_coordinate_bits, bool) or not isinstance(max_coordinate_bits, int)
+            or max_coordinate_bits < 1):
+        raise InvalidModelError("max_coordinate_bits must be a positive integer")
     source = _validate_triangle(source, "coverage source")
     if not isinstance(fragments, (tuple, list)):
         raise InvalidModelError("coverage fragments must be a tuple or list")
     validated = tuple(_validate_triangle(fragment, "coverage fragment")
                       for fragment in fragments)
+    for triangle in (source, *validated):
+        for point in triangle:
+            for value in point:
+                if (abs(value.numerator).bit_length() > max_coordinate_bits
+                        or value.denominator.bit_length() > max_coordinate_bits):
+                    raise InvalidModelError("coverage coordinate exceeded max_coordinate_bits")
     count = len(validated)
     checks = count + count * (count - 1) // 2
     if checks > max_pairwise_checks:
