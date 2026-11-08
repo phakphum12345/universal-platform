@@ -16,7 +16,7 @@
 | Recursive tree | 365 blobs; 146 Markdown, 187 Python, 26 JSON, 99 files under `tests/`; response not truncated |
 | Open PRs at audit point | 0 |
 | PR #207 exact-head checks | workflow-sanity PASS; python-tests PASS; Chromium E2E PASS |
-| PR #207 post-merge checks | IN_PROGRESS at audit snapshot; do not treat as PASS until rechecked |
+| PR #207 post-merge checks | workflow-sanity PASS; python-tests PASS; Chromium E2E PASS on exact merge SHA |
 | Working tree | UNKNOWN — GitHub API only; no local filesystem state inspected |
 | Branch protection | DISABLED on inspected `main` and integration refs; required checks not enforced by GitHub branch protection |
 | Deployment | Not performed |
