@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`  
+**Last verified integration baseline:** `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration is implemented in PR #163 pending merge; revision-safe service/API/workbench integration, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration merged in PR #163; revision-safe service/API/workbench integration, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -75,8 +75,9 @@
 
 ## Next dependency-ready slice
 
-- CAD-EDIT-005 — suppression semantics contract merged in PR #162. Backend model/editor/regeneration implementation is in PR #163; exact-head validation is pending.
-- CAD-EDIT-006 — add revision-safe service/API operations for suppress/unsuppress, preserving expected-revision compare-and-swap, strict request parsing and historical-revision read-only behavior. Keep UI/browser work separate.
+- CAD-EDIT-005 — suppression semantics contract merged in PR #162; backend model/editor/regeneration merged in PR #163. Exact PR-head and post-merge tests passed.
+- CAD-EDIT-006 — add revision-safe service/API operations for suppress/unsuppress, preserving expected-revision compare-and-swap, strict request parsing and historical-revision read-only behavior.
+- CAD-EDIT-007 — add workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E after the API contract is stable.
 
 
 ## Documentation reconciliation — PR #160
@@ -100,7 +101,7 @@
 - Scope: FeatureHistory v1.1 metadata with v1.0 serialization compatibility, explicit migration, immutable suppress/unsuppress edits, active-output/dependency invariants, regeneration skip/report behavior, JSON Schema and public exports.
 - Tests added for v1.0 round-trip, immutable revision digest preservation, v1.1 validation, explicit cascade, dependency-order unsuppression and regeneration skip behavior.
 - Service/API/workbench/browser E2E are intentionally not claimed in this slice.
-- PR #163 is open; verify latest exact head and all CI before merge.
+- PR #163 merged at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`. Exact PR-head CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS. Exact post-merge CI: 851 Python tests PASS, 4 Chromium E2E tests PASS, workflow-sanity PASS.
 
 
 ## Documentation reconciliation — PR #162
@@ -108,3 +109,11 @@
 - PR #162 merged at `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`.
 - Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS.
 - Suppression contract is now indexed and merged; design is not counted as implementation.
+
+
+## CAD-EDIT-005 — Post-merge verification
+
+- PR #163 exact merge SHA: `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`.
+- Post-merge engineering workflow #42439562896: 851 Python tests PASS; workflow-sanity PASS.
+- Post-merge Chromium workflow #42439562884: 4 tests PASS.
+- Status: PASS for backend model/editor/regeneration; overall WP-03 remains PARTIAL until service/API/workbench integration and browser tests are complete.
