@@ -288,3 +288,13 @@ Conflicts return HTTP 409 / `MERGE_CONFLICT` with structured conflict categories
 `GET /v1/histories/{history_id}?revision={n}` now includes `operation` and nullable `merge_provenance`, so merge source/base provenance can be inspected on the immutable target revision.
 
 **Remaining boundary:** the workbench does not yet expose branch list/fork/merge controls or interactive conflict review. Chromium branch/merge acceptance remains OPEN until those UI controls are implemented.
+
+
+## Workbench branch/merge implementation status — PR #180
+
+- PR #180 merged at `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`; exact PR head `4513b0d8d310a37db002edd467e315800f4e589e`.
+- The local workbench lists root branches, forks the currently loaded immutable revision, gates merge on the loaded current target head, fetches the source head and calls the strict merge API.
+- Successful merge reloads the new immutable target revision and displays provenance. Conflicts are rendered through text-only DOM operations with stable categories; no automatic side selection or HTML injection.
+- Chromium acceptance covers successful fork → branch edit → root merge and a divergent-edit conflict with both heads unchanged.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python 889 PASS; Chromium 9 PASS.
+- **Status:** PASS for the bounded browser branch/merge workflow. Nested forks and advanced conflict resolution remain out of scope.
