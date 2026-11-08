@@ -1174,3 +1174,12 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Guards empty or invalid revision selection before Load/Regenerate.
 - Updates Chromium fixture to wait for the saved revision option; adds reload persistence and Redo invalidation coverage.
 - Exact-head and post-merge CI are pending. Do not claim Undo/Redo end-to-end complete yet.
+
+
+## PR #171 — Undo/Redo workbench and browser race fix (OPEN)
+
+- Adds persistent navigation-state reads, Undo/Redo controls, current-head gating and server-driven refresh after every restore.
+- Tracks the actually loaded revision separately from the selected dropdown value; historical snapshots remain read-only even if the user changes the selection back to the head without loading it.
+- Rejects empty/non-positive revision selection before Load or Regenerate.
+- Chromium fixture waits for the revision option to be attached before loading; adds reload persistence, redo invalidation after a new edit and historical read-only coverage.
+- Exact-head CI pending. The previous PR #170 post-merge browser error remains a known failure until this PR passes post-merge.
