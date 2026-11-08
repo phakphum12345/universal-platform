@@ -259,7 +259,7 @@ def test_suppression_cascade_confirmation_and_dependency_order_restore_in_browse
 
     # Active dependents must not be suppressed implicitly.
     page.get_by_role("button", name="Suppress selected feature", exact=True).click()
-    page.get_by_text("active dependents", exact=False).wait_for()
+    page.locator("#status-message").filter(has_text="active dependents").wait_for()
     assert service.history_store.load("history.browser-e2e").revision == 1
 
     # Explicit cascade requires a browser confirmation and preserves source nodes.
