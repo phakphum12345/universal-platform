@@ -1388,3 +1388,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Earlier test run exposed an incorrect expected positive/negative fragment distribution; the expectation was corrected and the updated exact head passed.
 - Post-merge workflow/status on `f31ca0135cafc17c1489d88f62c09be1c18cc97e`: UNKNOWN; no associated run/status returned.
 - Explicit limit: no multi-plane full-mesh arrangement, global edge pairing, material classification or Boolean shell assembly.
+
+
+## Exact multi-plane per-source-triangle arrangement — PR #199
+
+- PR #199 merged to `docs/phase-0-complete-requirements` at `bc5f2a1bffb632ef1440ea9740e69f89cf50737e`; exact PR head `6e4508fdf0f6f3a0a6498f916f13c2970f204523`.
+- Adds `RationalPlane`, `RationalTriangleFragment` and `arrange_triangles_by_planes` in `triangle_fragment_arrangement.py`, exported through `engineering`.
+- Applies ordered exact-rational planes without float round-tripping; records POSITIVE / NEGATIVE / COPLANAR provenance, preserves winding and verifies exact area conservation for each strict split.
+- Fail-closed limits cover fragment count and rational numerator/denominator bit length.
+- Exact PR-head workflow #42470843529: workflow-sanity PASS; Python tests PASS. Documentation marker SKIPPED, not counted as PASS.
+- Post-merge CI/status: UNKNOWN; no associated run or combined status returned.
+- PASS for the bounded per-source-triangle primitive at PR head. Global mesh arrangement, independent coverage oracle, material classification and Boolean shell assembly remain OPEN; arbitrary faceted Boolean remains PARTIAL/INCOMPLETE.
