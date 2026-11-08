@@ -602,3 +602,14 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (875 tests); Chromium E2E PASS (7 tests).
 - **Status:** PASS for local immutable branch creation/forking only.
 - **Still open:** three-way merge engine, conflict reporting, transactional merge provenance, service/API merge routes, workbench branch/merge controls, recompute propagation and whole-repository completion.
+
+
+## FeatureHistory three-way merge analysis — pure engine complete
+
+- PR #177 merged at `c1d291e3d48a6757642400303dd035a7491bd9ff`; exact PR head `0dcba4786caba9aeb1b8c8eb6c28c878b7ce0f3a`.
+- Adds a pure merge analyzer that compares base/source/target by stable feature ID, merges disjoint changes, accepts identical changes, and reports divergent node edits/delete-vs-edit conflicts.
+- Output and suppression membership are merged independently; presentation constraints are combined with deterministic topological ordering and explicit order conflicts/cycles.
+- Final snapshots pass normal FeatureHistory validation; no inputs are mutated and no conflicts are auto-resolved.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (882 tests). Chromium E2E: SKIPPED / not triggered because this analyzer-only change does not touch API or UI.
+- **Status:** PASS for pure three-way merge analysis only.
+- **Still open:** transactional merge append/provenance, API routes, workbench controls, browser acceptance, recompute propagation and whole-repository completion.
