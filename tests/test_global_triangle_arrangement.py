@@ -63,7 +63,10 @@ def test_global_identity_does_not_tolerance_weld_nearby_coordinates():
          (F(0), F(1) + F(1, 10**12), F(0))),
     )
     result = arrange_triangle_mesh_globally(mesh, ())
-    assert len(result.vertices) == 5
+    points = {vertex.point for vertex in result.vertices}
+    assert len(result.vertices) == 4
+    assert p(0, 1) in points
+    assert (F(0), F(1) + F(1, 10**12), F(0)) in points
 
 
 def test_non_exact_or_degenerate_source_is_rejected():
