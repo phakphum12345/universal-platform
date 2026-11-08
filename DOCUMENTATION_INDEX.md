@@ -267,8 +267,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## FeatureHistory Branch and Merge — design contract
 
 - [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — independent branch history identities, exact fork provenance, conservative three-way merge, conflict rules and atomic append-only merge requirements.
-- **Status:** PARTIAL — PR #176 implements local immutable branch/fork storage and PR #177 adds pure three-way merge analysis. Transactional merge append/provenance, merge API/UI and browser workflow remain OPEN.
+- **Status:** PARTIAL — PR #176 implements local immutable branch/fork storage and PR #177 adds pure three-way merge analysis. PR #178 implements transactional merge append and provenance in the store/service. Strict merge API routes, workbench controls and branch/merge browser acceptance remain OPEN.
 
 - [Post-PR #176 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR176.md) — exact branch/fork PR-head and post-merge Python, Chromium and workflow-sanity evidence.
 
 - [Post-PR #177 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR177.md) — exact pure merge analyzer PR-head and post-merge Python/workflow-sanity evidence; browser E2E not triggered for analyzer-only scope.
+
+- [Post-PR #178 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR178.md) — exact transactional merge PR-head and post-merge Python, Chromium and workflow-sanity evidence.
