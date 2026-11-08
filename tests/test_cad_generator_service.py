@@ -298,3 +298,21 @@ def test_cad_generator_service_navigation_rejects_stale_head_and_empty_stack(tmp
     with pytest.raises(FeatureHistoryNavigationUnavailable) as error:
         service.redo_history("history.cad-service", expected_revision=1)
     assert error.value.code == "NO_REDO"
+
+
+def test_cad_generator_service_persists_topological_feature_presentation_order(tmp_path):
+    service = make_service(tmp_path)
+    initial = make_history()
+    first = service.save_history(initial, expected_revision=0)
+    original_execution_order = first.history.topological_order()
+    requested = tuple(node.feature_id for node in first.history.nodes)
+    reordered = tuple(sorted(requested, key=lambda item: (item != "profile", item)))
+    saved = service.edit_history(
+        first.history_id,
+        expected_revision=first.revision,
+        operation="reorder",
+        ordered_feature_ids=reordered,
+    )
+    assert saved.revision == 2
+    assert tuple(node.feature_id for node in saved.history.nodes) == reordered
+    assert saved.history.topological_order() == original_execution_order
