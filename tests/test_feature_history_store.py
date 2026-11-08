@@ -342,8 +342,9 @@ def test_store_branch_creation_preserves_suppression_and_source_independence(tmp
         (
             FeatureNode.create("base", FeatureKind.MESH),
             FeatureNode.create("dependent", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("independent", FeatureKind.MESH),
         ),
-        ("dependent",),
+        ("independent",),
         ("base", "dependent"),
         "1.1",
     )
