@@ -129,7 +129,12 @@ def arrange_triangle_mesh_globally(
         ids=tuple(point_ids[p] for p in fragment.vertices)
         for first,second in ((ids[0],ids[1]),(ids[1],ids[2]),(ids[2],ids[0])):
             raw_edges.add((first,second) if first<second else (second,first))
-    if len(global_points)*len(raw_edges)>max_topology_checks:
+    # The T-junction pass visits every registered global vertex for each
+    # of the three edges of every raw fragment. Unique edge count is smaller
+    # than (or equal to) this work for shared-edge meshes, so charging only
+    # len(global_points) * len(raw_edges) under-counts the actual scan.
+    topology_checks = len(global_points) * 3 * len(raw_fragments)
+    if topology_checks > max_topology_checks:
         raise InvalidModelError("global topology scan exceeded max_topology_checks")
 
     t_junctions=set()
