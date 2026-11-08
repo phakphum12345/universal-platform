@@ -568,4 +568,5 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Exact PR-head and post-merge CI on PR #171 merge SHA: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
 - Browser acceptance covers multi-step Undo/Redo, persistence after reload, historical-revision read-only gating, redo invalidation after a new edit and revision-option readiness.
 - **Status:** PASS for the bounded FeatureHistory Undo/Redo work package. Existing revisions remain immutable; Undo/Redo append restore revisions.
+- CAD-EDIT-008 is complete: persistent Undo/Redo semantics are implemented through the store, service/API, workbench and browser acceptance.
 - **Still open:** graph branch/merge, feature reordering semantics, recompute propagation, generalized B-rep/3D Boolean, broad hardware/physics/runtime integration and whole-repository completion.
