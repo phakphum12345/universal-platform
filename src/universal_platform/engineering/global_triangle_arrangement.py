@@ -171,6 +171,20 @@ def arrange_triangle_mesh_globally(
                 following=polygon[(index+1)%len(polygon)]
                 orientation=_dot(_cross(_sub(current,previous),_sub(following,current)),source_normal)
                 if orientation>0:
+                    diagonal=_sub(following,previous)
+                    diagonal_length=_dot(diagonal,diagonal)
+                    diagonal_blocked=False
+                    for candidate_index,candidate in enumerate(polygon):
+                        if candidate_index in (index,(index-1)%len(polygon),(index+1)%len(polygon)):
+                            continue
+                        offset=_sub(candidate,previous)
+                        if _cross(diagonal,offset)==(0,0,0):
+                            projection=_dot(offset,diagonal)
+                            if 0<projection<diagonal_length:
+                                diagonal_blocked=True
+                                break
+                    if diagonal_blocked:
+                        continue
                     key=(current,min(previous,following),max(previous,following))
                     ears.append((key,index,previous,current,following))
             if not ears:
