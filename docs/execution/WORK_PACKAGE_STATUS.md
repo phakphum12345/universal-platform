@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a`  
+**Last verified integration baseline:** `35f06a304090176eb6d10697d6da67b53b1ec9ba`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; suppression, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; suppression design contract is in progress; suppression implementation, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -75,7 +75,7 @@
 
 ## Next dependency-ready slice
 
-- CAD-EDIT-005 — specify FeatureHistory suppression semantics and compatibility/migration rules before implementation. Define downstream dependency behavior, output invariants, revision/audit behavior, cache invalidation and UI/API expectations. Do not introduce implicit cascade or silently change the FeatureHistory v1.0 schema.
+- CAD-EDIT-005 — define FeatureHistory suppression semantics and compatibility/migration rules before implementation. Contract drafted in `docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md`; pending review/CI in PR #162. Implementation remains a separate work package.
 
 
 ## Documentation reconciliation — PR #160
@@ -84,3 +84,11 @@
 - Exact PR-head CI: workflow-sanity PASS; python-tests PASS after preserving the historical baseline identifier required by `tests/test_post_pr113_status_docs.py`.
 - Exact post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
 - Status: PASS for documentation reconciliation; no source/runtime behavior changed.
+
+
+## Documentation reconciliation — PR #161
+
+- PR #161 merged at `35f06a304090176eb6d10697d6da67b53b1ec9ba`.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS.
+- Exact post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
+- Status: PASS for post-merge documentation audit; no source/runtime behavior changed.
