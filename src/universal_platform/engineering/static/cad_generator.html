@@ -182,6 +182,34 @@
       <p class="hint">Regeneration always targets the selected immutable source revision and returns its provenance, artifact digests and validation results.</p>
     </section>
 
+    <section class="panel" aria-labelledby="branch-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">05 / BRANCH & MERGE</div><h2 id="branch-heading">FeatureHistory branches</h2></div>
+        <span id="branch-state" class="state" role="status" aria-live="polite">Connect to list branches.</span>
+      </div>
+      <p class="hint">Fork the selected immutable revision into an isolated history. Merge a branch into the current root history only after loading its latest head. Conflicts are reported; no side is chosen automatically.</p>
+      <div class="two-column">
+        <div>
+          <label for="branch-history-id">New branch history ID</label>
+          <input id="branch-history-id" autocomplete="off" spellcheck="false" placeholder="history.example.experiment">
+        </div>
+        <div>
+          <label for="branch-name">Branch name</label>
+          <input id="branch-name" autocomplete="off" spellcheck="false" placeholder="experiment">
+        </div>
+      </div>
+      <div class="actions">
+        <button id="branch-create" disabled>Fork selected revision</button>
+        <button id="branch-refresh" class="quiet" disabled>Refresh branches</button>
+      </div>
+      <label for="branch-source">Source branch to merge into this history</label>
+      <select id="branch-source" disabled><option value="">No branches</option></select>
+      <div class="actions">
+        <button id="branch-merge" class="primary" disabled>Merge selected branch</button>
+      </div>
+      <p id="branch-conflicts" class="branch-conflicts" role="status" aria-live="polite">No merge conflicts reported.</p>
+    </section>
+
     <section class="panel" aria-labelledby="mesh-heading">
       <div class="section-heading">
         <div><div class="eyebrow">05 / GENERATED GEOMETRY</div><h2 id="mesh-heading">Isometric mesh preview</h2></div>
