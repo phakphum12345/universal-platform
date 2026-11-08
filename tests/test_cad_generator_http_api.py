@@ -778,7 +778,7 @@ def test_http_api_lists_forks_and_merges_feature_history_branches(api):
     assert status == 200
     assert revision["operation"] == "merge"
     assert revision["merge_provenance"]["algorithm_version"] == "feature-history-merge-v1"
-    assert service.get_revision("history.http-api").merge_provenance is not None
+    assert service.generator_service.get_revision("history.http-api").merge_provenance is not None
     assert audit.verify()
 
 
@@ -887,6 +887,6 @@ def test_http_api_returns_structured_branch_merge_conflicts(api):
     assert status == 409
     assert conflict["error"]["code"] == "MERGE_CONFLICT"
     assert conflict["error"]["conflicts"][0]["category"] == "node_content"
-    assert service.get_revision("history.http-conflict").revision == 2
-    assert service.get_revision("history.http-conflict.source").revision == 2
+    assert service.generator_service.get_revision("history.http-conflict").revision == 2
+    assert service.generator_service.get_revision("history.http-conflict.source").revision == 2
     assert audit.verify()
