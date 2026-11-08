@@ -4,13 +4,13 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Latest verified integration baseline: `050d18d863653103fb62d6d39426c8c255a8f99c` (PR #189 merged).
+- Latest verified integration baseline: `20e03675ec1000bd2bbcfaf251df4790305f2c0c` (PR #191 merged).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge integration CI: workflow #42462267653 on exact merge SHA `050d18d863653103fb62d6d39426c8c255a8f99c` — workflow-sanity PASS and python-tests PASS (**906 passed in 16.26s**). PR #189 exact-head workflows #42462189154 and #42462199774 passed (**906 tests** each). Browser E2E was not triggered because no UI changed.
-- Current inventory at `050d18d863653103fb62d6d39426c8c255a8f99c`: 380 entries, 138 Markdown, 171 Python, 25 JSON files, 88 Python test files (recursive tree; truncated=false).
-- Open PRs after PR #189: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
+- Latest post-merge integration CI: workflow #42462960964 on exact merge SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c` — workflow-sanity PASS and python-tests PASS (**914 passed in 29.65s**). PR #191 exact-head push and PR workflows also passed 914 tests each. PR #189 exact-head workflows #42462189154 and #42462199774 passed (**906 tests** each). Browser E2E was not triggered because no UI changed.
+- Current inventory at `20e03675ec1000bd2bbcfaf251df4790305f2c0c`: 384 entries, 140 Markdown, 172 Python, 26 JSON files, 89 Python test files (recursive tree; truncated=false).
+- Open PRs after PR #191: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
 - Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
@@ -290,3 +290,5 @@ The multi-shell contract now explicitly records touching-boundary and UNKNOWN-in
 ## Axis-aligned multi-shell Boolean — PR #191 candidate
 
 A separate exact-grid Boolean adapter is being added for axis-aligned box components that include cavity shells. It reuses the existing 32,768-cell budget and emits validated `BRepMultiShellSolid` components. This remains limited to axis-aligned box boundaries; it is not general 3D Boolean. See the [multi-shell Boolean contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md). Exact-head CI is pending; do not count this candidate as PASS until verified.
+
+- [Axis-Aligned Multi-Shell B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md)
