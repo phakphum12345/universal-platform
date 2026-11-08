@@ -231,7 +231,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — bounded read-only FeatureHistory tree preview and selected-node inspection.
 - [Post-PR #150 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md) — exact PR-head/post-merge CI, JavaScript syntax validation, tree inventory and security-audit limitations.
-- Backend immutable add/replace/remove graph operations, revision-safe loopback service/API editing and bounded browser parameter/add/remove controls are implemented by PRs #152, #154 and #156. Browser E2E interaction coverage, feature suppression, undo/redo, reordering and recompute propagation remain OPEN.
+- Backend immutable add/replace/remove graph operations, revision-safe loopback service/API editing, bounded browser editing, feature suppression, undo/redo and presentation reordering are implemented by PRs #152–#174. Graph branch/merge and recompute propagation remain OPEN.
 
 
 ## Documentation-driven execution
@@ -254,7 +254,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — append-only revision restore model, persistent stacks, expected-revision safety and workbench rules.
 - [Post-PR #171 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR171.md) — exact merge SHA and post-merge Python, Chromium and workflow-sanity evidence.
-- Undo/Redo is PASS for this bounded FeatureHistory workflow. Graph branch/merge, reorder semantics, recompute propagation and general CAD-kernel capabilities remain OPEN.
+- Undo/Redo is PASS for this bounded FeatureHistory workflow. Presentation reordering is separately PASS under PRs #173–#174; graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
 
 
 ## FeatureHistory Presentation Reordering — PRs #173–#174
