@@ -208,3 +208,10 @@ Latest integration SHA: `da5b34182396c485760aa1940ab2623d52d89cbc`; main remains
 | CAD-VIEWPORT-INTERACTION-001 | Interactive orbit/pan/zoom mesh viewport | Future bounded interaction and browser regression tests | OPEN — static projection only; no interactive camera controls. |
 
 Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 96e75010716226037893155b9fd4b13410fb0d6f. Post-merge workflow #42383384086 passed both required jobs.
+
+
+## B-rep polygonal mesh triangulation — PR #182
+
+| ID | Requirement | Primary specification / implementation | Current state |
+|---|---|---|---|
+| CAD-BREP-MESH-TRIANGULATION-001 | Convert validated single-shell planar polygonal B-rep faces, including one or more inner loops, into a deterministic watertight triangle mesh without adding geometric vertices | [Faceted B-rep Polygonal Mesh Triangulation Contract](../design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md); `src/universal_platform/engineering/brep.py`; `mesh._triangulate_profile_region`; `tests/test_faceted_brep.py` | IMPLEMENTATION CANDIDATE — PR #182 adds dominant-axis projection, deterministic bridge/ear clipping, source orientation restoration, identity/frame/unit/digest preservation and fail-closed mesh validation. Exact-head CI pending. Multiple shells and general 3D Boolean remain OPEN. |
