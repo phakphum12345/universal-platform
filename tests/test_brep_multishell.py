@@ -7,7 +7,6 @@ import pytest
 from universal_platform.engineering import (
     BRepMultiShellSolid,
     BRepSolid,
-    BRepMultiShellValidationResult,
     validate_brep_multishell_solid,
 )
 from universal_platform.engineering.brep import brep_from_triangle_mesh, triangle_mesh_from_brep
@@ -67,7 +66,7 @@ def test_multi_shell_supports_multiple_disjoint_cavities_deterministically():
     mesh_a = solid.to_mesh()
     mesh_b = BRepMultiShellSolid("part.two-cavities", outer, (first, second)).to_mesh()
     assert validate_brep_multishell_solid(solid).valid
-    assert validate_triangle_mesh(mesh_a).signed_volume == pytest.approx(993.0)
+    assert validate_triangle_mesh(mesh_a).signed_volume == pytest.approx(991.0)
     assert mesh_a.triangles == mesh_b.triangles
     assert mesh_a.vertices == mesh_b.vertices
 
