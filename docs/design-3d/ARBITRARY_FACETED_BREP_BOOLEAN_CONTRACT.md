@@ -174,3 +174,8 @@ The exact post-merge workflow for #212 completed with workflow-sanity PASS and P
 - The CAD browser E2E workflow is path-filtered to browser/API/service assets. Kernel-only PRs do not trigger it; an untriggered browser workflow is not recorded as PASS.
 
 **Current gate verdict:** bounded multi-mesh faceted Boolean execution is implemented and tested for the listed reference cases. The general arbitrary-faceted B-rep Boolean requirement remains **PARTIAL / INCOMPLETE** until broader independent adversarial coverage, degeneracy semantics and rational-coordinate B-rep output are implemented and validated.
+
+
+### PR #213 — rational input resource ceilings
+
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). Direct `arrange_triangles_by_planes` calls now validate plane object types and apply the configured rational numerator/denominator bit ceiling to cutter-plane coordinates. The standalone coverage oracle also applies a coordinate bit ceiling before projection/clipping. Exact-head workflow-sanity and Python tests PASS. Post-merge checks were still running at the time of this documentation update.
