@@ -1,6 +1,6 @@
 # Faceted B-rep Multi-Shell Solid Contract v1.0
 
-**Status:** Implementation candidate in PR #184; exact-head CI is the acceptance gate.  
+**Status:** IMPLEMENTED — PR #184 merged to the integration branch.  
 **Profile:** `FACETED_MULTI_SHELL_SOLID_V1`.  
 **Component profile:** `FACETED_POLYGONAL_PLANAR_SHELL_V2`.
 
@@ -71,3 +71,14 @@ No Boolean surface reconstruction is performed. This operation composes already 
 2. Explicit cavity classification and shell hierarchy if material islands become a requirement.
 3. STEP/AP242 multi-shell serialization and round-trip conformance.
 4. General 3D Boolean operations only after independent geometric reference cases and failure injection.
+
+
+## 9. PR #184 implementation evidence
+
+- Exact PR head: `850e521cd3499ede4e8a00a5cb1698cee32347d0`.
+- Merge SHA: `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`.
+- Exact-head PR workflow #42461224579: workflow-sanity PASS; Python 902 PASS (15.63s).
+- Exact-head push workflow #42461220462: workflow-sanity PASS; Python 902 PASS (15.53s).
+- Post-merge workflow #42461294867: workflow-sanity PASS; Python 902 PASS (14.17s).
+- Browser E2E was not triggered because no browser UI changed; it is not counted as PASS.
+- See [post-PR #184 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR184.md).
