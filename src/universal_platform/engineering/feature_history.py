@@ -103,8 +103,12 @@ class FeatureHistory:
     history_id: str
     nodes: tuple[FeatureNode, ...]
     output_feature_ids: tuple[str, ...]
+    suppressed_feature_ids: tuple[str, ...] = ()
+    document_version: str = "1.0"
 
     SCHEMA_VERSION: ClassVar[str] = "1.0"
+    CURRENT_SCHEMA_VERSION: ClassVar[str] = "1.1"
+    SUPPORTED_SCHEMA_VERSIONS: ClassVar[tuple[str, ...]] = ("1.0", "1.1")
 
     def __post_init__(self) -> None:
         if not isinstance(self.history_id, str) or not _FEATURE_ID.fullmatch(self.history_id):
@@ -115,17 +119,41 @@ class FeatureHistory:
             raise InvalidModelError("feature history requires an immutable non-empty node tuple")
         if not isinstance(self.output_feature_ids, tuple) or not self.output_feature_ids:
             raise InvalidModelError("feature history requires at least one output feature")
+        if self.document_version not in self.SUPPORTED_SCHEMA_VERSIONS:
+            raise InvalidModelError("unsupported FeatureHistory schema_version")
+        if not isinstance(self.suppressed_feature_ids, tuple) or any(
+            not isinstance(item, str) or not _FEATURE_ID.fullmatch(item)
+            for item in self.suppressed_feature_ids
+        ):
+            raise InvalidModelError("suppressed_feature_ids must be an immutable tuple of feature identifiers")
+        if self.document_version == "1.0" and self.suppressed_feature_ids:
+            raise InvalidModelError("FeatureHistory v1.0 cannot contain suppressed features")
+        if self.document_version == "1.1" and (
+            tuple(sorted(set(self.suppressed_feature_ids))) != self.suppressed_feature_ids
+        ):
+            raise InvalidModelError("suppressed_feature_ids must be unique and lexicographically sorted")
         ids = [node.feature_id for node in self.nodes]
         if len(ids) != len(set(ids)):
             raise InvalidModelError("feature identifiers must be unique")
         known = set(ids)
+        suppressed = set(self.suppressed_feature_ids)
+        if not suppressed.issubset(known):
+            raise InvalidModelError("suppressed_feature_ids reference a missing feature")
         for node in self.nodes:
             if any(item not in known for item in node.input_feature_ids):
                 raise InvalidModelError(f"feature {node.feature_id!r} references a missing dependency")
+            if node.feature_id not in suppressed and any(
+                item in suppressed for item in node.input_feature_ids
+            ):
+                raise InvalidModelError(
+                    f"active feature {node.feature_id!r} depends on a suppressed feature"
+                )
         if any(item not in known for item in self.output_feature_ids):
             raise InvalidModelError("feature history output references a missing feature")
         if len(set(self.output_feature_ids)) != len(self.output_feature_ids):
             raise InvalidModelError("feature history output identifiers must be unique")
+        if not (set(self.output_feature_ids) - suppressed):
+            raise InvalidModelError("feature history requires at least one active output feature")
         self.topological_order()
 
     def topological_order(self) -> tuple[str, ...]:
@@ -143,20 +171,37 @@ class FeatureHistory:
         return tuple(order)
 
     def to_dict(self) -> dict[str, object]:
-        return {
-            "schema_version": self.SCHEMA_VERSION,
+        snapshot: dict[str, object] = {
+            "schema_version": self.document_version,
             "history_id": self.history_id,
             "nodes": [node.to_dict() for node in self.nodes],
             "output_feature_ids": list(self.output_feature_ids),
         }
+        if self.document_version == self.CURRENT_SCHEMA_VERSION:
+            snapshot["suppressed_feature_ids"] = list(self.suppressed_feature_ids)
+        return snapshot
 
     @classmethod
     def from_dict(cls, value: Mapping[str, object]) -> "FeatureHistory":
-        required = {"schema_version", "history_id", "nodes", "output_feature_ids"}
-        if not isinstance(value, Mapping) or set(value) != required:
-            raise InvalidModelError("FeatureHistory snapshot has missing or unknown fields")
-        if value["schema_version"] != cls.SCHEMA_VERSION:
+        if not isinstance(value, Mapping):
+            raise InvalidModelError("FeatureHistory snapshot must be an object")
+        version = value.get("schema_version")
+        if version == "1.0":
+            required = {"schema_version", "history_id", "nodes", "output_feature_ids"}
+            suppressed: tuple[str, ...] = ()
+        elif version == "1.1":
+            required = {
+                "schema_version", "history_id", "nodes", "output_feature_ids",
+                "suppressed_feature_ids",
+            }
+            raw_suppressed = value.get("suppressed_feature_ids")
+            if not isinstance(raw_suppressed, (list, tuple)):
+                raise InvalidModelError("suppressed_feature_ids must be an array")
+            suppressed = tuple(raw_suppressed)
+        else:
             raise InvalidModelError("unsupported FeatureHistory schema_version")
+        if set(value) != required:
+            raise InvalidModelError("FeatureHistory snapshot has missing or unknown fields")
         if not isinstance(value["nodes"], (list, tuple)) or not isinstance(value["output_feature_ids"], (list, tuple)):
             raise InvalidModelError("FeatureHistory nodes and output_feature_ids must be arrays")
         nodes = []
@@ -172,7 +217,22 @@ class FeatureHistory:
             nodes.append(FeatureNode.create(
                 raw["feature_id"], kind, tuple(raw["input_feature_ids"]), raw["parameters"]
             ))
-        return cls(value["history_id"], tuple(nodes), tuple(value["output_feature_ids"]))
+        return cls(
+            value["history_id"], tuple(nodes), tuple(value["output_feature_ids"]),
+            suppressed, version,
+        )
+
+
+def upgrade_feature_history(history: FeatureHistory) -> FeatureHistory:
+    """Explicitly migrate a v1.0 document to v1.1 without changing graph data."""
+    if not isinstance(history, FeatureHistory):
+        raise InvalidModelError("upgrade_feature_history requires a FeatureHistory")
+    if history.document_version == FeatureHistory.CURRENT_SCHEMA_VERSION:
+        return history
+    return FeatureHistory(
+        history.history_id, history.nodes, history.output_feature_ids, (),
+        FeatureHistory.CURRENT_SCHEMA_VERSION,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,14 +323,15 @@ class FeatureRegenerationResult:
     error: str | None = None
     reused_feature_ids: tuple[str, ...] = ()
     recomputed_feature_ids: tuple[str, ...] = ()
+    suppressed_feature_ids: tuple[str, ...] = ()
 
     @property
     def successful(self) -> bool:
         return self.status is RegenerationStatus.SUCCESS
 
     def to_dict(self) -> dict[str, object]:
-        return {
-            "schema_version": "1.0",
+        payload: dict[str, object] = {
+            "schema_version": "1.1" if self.suppressed_feature_ids else "1.0",
             "history_id": self.history_id,
             "status": self.status.value,
             "execution_order": list(self.execution_order),
@@ -282,10 +343,14 @@ class FeatureRegenerationResult:
             "limitations": [
                 "Only built-in allow-listed SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH operations execute",
                 "No user code, plugin, shell, network or physical device execution",
-                "Incremental reuse is in-memory unless an optional local SQLite artifact cache is supplied; no distributed cache, suppression or branch/merge history",
+                "Incremental reuse is in-memory unless an optional local SQLite artifact cache is supplied; no distributed cache or branch/merge history",
                 "Geometry remains bounded by the source PlanarRegion and mesh kernel limitations",
             ],
         }
+        if self.suppressed_feature_ids:
+            payload["suppressed_feature_ids"] = list(self.suppressed_feature_ids)
+        return payload
+
 
 
 def _make_artifact(
@@ -386,10 +451,13 @@ def regenerate_feature_history(
     }
     by_id = {node.feature_id: node for node in history.nodes}
     computed: dict[str, FeatureArtifact] = {}
+    suppressed = set(history.suppressed_feature_ids)
     completed: list[str] = []
     reused: list[str] = []
     recomputed: list[str] = []
     for feature_id in history.topological_order():
+        if feature_id in suppressed:
+            continue
         node = by_id[feature_id]
         parameters = node.parameters
         inputs = [computed[item] for item in node.input_feature_ids]
@@ -419,6 +487,7 @@ def regenerate_feature_history(
                 return FeatureRegenerationResult(
                     history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
                     feature_id, f"artifact cache load failed: {exc}", tuple(reused), tuple(recomputed),
+                    suppressed_feature_ids=tuple(sorted(suppressed)),
                 )
         try:
             if node.kind is FeatureKind.SKETCH_PROFILE:
@@ -478,6 +547,7 @@ def regenerate_feature_history(
                     return FeatureRegenerationResult(
                         history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
                         feature_id, f"artifact cache save failed: {exc}", tuple(reused), tuple(recomputed),
+                        suppressed_feature_ids=tuple(sorted(suppressed)),
                     )
             computed[feature_id] = artifact
             completed.append(feature_id)
@@ -486,10 +556,12 @@ def regenerate_feature_history(
             return FeatureRegenerationResult(
                 history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
                 feature_id, str(exc), tuple(reused), tuple(recomputed),
+                suppressed_feature_ids=tuple(sorted(suppressed)),
             )
     return FeatureRegenerationResult(
         history.history_id, RegenerationStatus.SUCCESS, tuple(completed),
-        tuple(computed[item] for item in history.topological_order()),
+        tuple(computed[item] for item in history.topological_order() if item not in suppressed),
         reused_feature_ids=tuple(reused),
         recomputed_feature_ids=tuple(recomputed),
+        suppressed_feature_ids=tuple(sorted(suppressed)),
     )
