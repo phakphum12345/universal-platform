@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://universal-platform.invalid/schemas/geometry/rational-faceted-solid.schema.json",
+  "title": "Rational Faceted Solid V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile",
+    "solid_id",
+    "frame_id",
+    "length_unit",
+    "vertices",
+    "triangles",
+    "shells",
+    "source_provenance",
+    "algorithm_version",
+    "predicate_version",
+    "resource_counters",
+    "exact_signed_volume",
+    "result_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "profile": {
+      "const": "RATIONAL_FACETED_SOLID_V1"
+    },
+    "solid_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "length_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vertices": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 100000,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "$ref": "#/$defs/rational"
+          },
+          {
+            "$ref": "#/$defs/rational"
+          },
+          {
+            "$ref": "#/$defs/rational"
+          }
+        ],
+        "minItems": 3,
+        "maxItems": 3
+      }
+    },
+    "triangles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 200000,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 3,
+        "maxItems": 3
+      }
+    },
+    "shells": {
+      "const": [
+        {
+          "shell_id": "outer",
+          "role": "OUTER",
+          "triangle_indices": "ALL_TRIANGLES",
+          "parent_outer_shell_id": null
+        }
+      ]
+    },
+    "source_provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "source_sha256"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "algorithm_version": {
+      "const": "exact-rational-faceted-solid-v1"
+    },
+    "predicate_version": {
+      "const": "exact-fraction-sat-v1"
+    },
+    "resource_counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vertex_count",
+        "triangle_count",
+        "self_intersection_pair_checks"
+      ],
+      "properties": {
+        "vertex_count": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 100000
+        },
+        "triangle_count": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 200000
+        },
+        "self_intersection_pair_checks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000000
+        }
+      }
+    },
+    "exact_signed_volume": {
+      "$ref": "#/$defs/rational"
+    },
+    "result_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "rational": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "pattern": "^(?:0|-?[1-9][0-9]*)$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "Reduced numerator and positive denominator decimal strings; gcd and bit ceilings are enforced by the semantic validator."
+    }
+  }
+}
