@@ -94,8 +94,10 @@ def _point_inside_mesh(point: Vec3, mesh: TriangleMesh) -> bool | None:
             v = inverse * _dot(direction, qvec)
             distance = inverse * _dot(edge2, qvec)
             if distance == 0:
-                ambiguous = True
-                break
+                if u >= 0 and v >= 0 and u + v <= 1:
+                    ambiguous = True
+                    break
+                continue
             if distance > 0 and u >= 0 and v >= 0 and u + v <= 1:
                 if u == 0 or v == 0 or u + v == 1:
                     ambiguous = True
