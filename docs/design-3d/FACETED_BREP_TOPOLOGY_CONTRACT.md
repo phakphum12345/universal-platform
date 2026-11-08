@@ -1,11 +1,11 @@
-# Faceted B-rep Topology Contract v1.0
+# Faceted B-rep Topology Contract v2.0
 
-**Status:** Initial bounded topology model; PR candidate on `feat/faceted-brep-topology-v1`.  
-**Profile:** `FACETED_TRIANGULAR_PLANAR_SHELL_V1`.
+**Status:** Polygonal planar faces with inner loops; one connected orientable shell.  
+**Profile:** `FACETED_POLYGONAL_PLANAR_SHELL_V2`.
 
 ## 1. Purpose
 
-Provide an explicit topological boundary representation for one closed, connected, consistently oriented shell composed only of triangular planar faces. The first adapter converts an already validated `TriangleMesh` into this representation and back again.
+Provide an explicit topological boundary representation for one closed, connected, consistently oriented shell composed of planar polygonal faces, including strictly contained face inner loops. TriangleMesh conversion remains a separate triangular-only adapter.
 
 This is a foundation for future B-rep work. It is not a general CAD boundary-representation kernel and does not implement 3D Boolean operations.
 
@@ -39,16 +39,23 @@ Schema: `schemas/geometry/faceted-brep-solid.schema.json`.
 
 ## 5. Explicit limits
 
-- Triangular planar faces only; no polygonal n-gons, face holes, analytic curved surfaces, NURBS, trims, wires or shells with multiple disconnected components.
-- One closed orientable shell per solid.
+- Planar polygonal faces only; no analytic curved surfaces, NURBS, trims or non-linear wires.
+- One closed orientable connected shell per solid; multiple disconnected shells are not supported.
+- Exact represented-binary64 predicates validate face planarity, simple loops, strict inner-loop containment, non-contact and opposite hole orientation.
+- TriangleMesh conversion remains limited to triangular faces without inner loops; polygonal/hole B-reps fail closed at that adapter.
 - Topological manifold checks do not prove geometric non-self-intersection; use the separate mesh intersection analysis.
 - No 3D UNION / INTERSECTION / DIFFERENCE / XOR, no shell healing, no tolerance-based vertex welding, no feature history integration and no manufacturing/certification claim.
 - STEP AP214 faceted-BREP interchange remains a separate serialization boundary.
 
 ## 6. Next gates
 
-1. Add polygonal planar faces and face-loop holes with exact loop containment and orientation checks.
-2. Add shell/solid aggregation and multiple-shell semantics.
-3. Define exact geometric intersection and classification contracts for 3D Boolean operations.
-4. Implement bounded Boolean operations only after independent reference cases, manifold checks and failure injection.
+1. Add shell/solid aggregation and multiple-shell semantics.
+2. Define exact geometric intersection and classification contracts for 3D Boolean operations.
+3. Implement bounded Boolean operations only after independent reference cases, manifold checks and failure injection.
+4. Add a polygonal-with-holes triangulation adapter with independent deviation/topology tests.
 5. Add curved-edge/surface representations and neutral-format interoperability only with explicit tolerance and provenance contracts.
+
+
+## 7. v2.0 implementation evidence
+
+PR #181 implements arbitrary simple planar polygon loops and face inner loops. Exact rational predicates validate coplanarity, non-degenerate/simple boundaries, strict containment, non-touching/non-overlapping holes and opposite inner-loop orientation. The Euler characteristic accounts for face holes, allowing a valid single-shell genus-1 through-hole solid. v1.0 triangular snapshots remain importable and normalize to v2.0. Mesh conversion deliberately remains triangular/no-hole only and fails closed for the new topology.
