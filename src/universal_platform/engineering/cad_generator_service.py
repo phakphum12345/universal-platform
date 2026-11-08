@@ -68,7 +68,7 @@ class CADGeneratorRun:
 
 @dataclass(frozen=True, slots=True)
 class CADGeneratorBooleanRun:
-    """Offline Boolean result from caller-supplied, complete source-face partitions."""
+    """Bounded offline Boolean result, with optional automatic arrangement."""
 
     selection: BooleanBoundarySelection
     assembly: BooleanShellAssemblyResult
@@ -101,11 +101,18 @@ class CADGeneratorBooleanRun:
                 }
                 for item in self.assembly.components
             ],
-            "limitations": [
-                "Caller must supply a complete exact partition of every source mesh face",
-                "Triangle-triangle intersection discovery and automatic face splitting are not performed",
-                "Non-binary-rational shell coordinates are rejected rather than rounded",
-            ],
+            "limitations": (
+                [
+                    "Caller supplied the complete exact source-face partitions",
+                    "Triangle-triangle intersection discovery and automatic face splitting are not performed by this pre-arranged path",
+                    "Non-binary-rational shell coordinates are rejected rather than rounded",
+                ]
+                if self.arrangement is None else [
+                    "Automatic arrangement is bounded to exact supporting-plane and coplanar positive-area overlay splitting",
+                    "Point/edge-only contact, arbitrary tangencies, branching and unsupported degeneracies fail closed",
+                    "Non-binary-rational shell coordinates are rejected rather than rounded",
+                ]
+            ),
         }
 
 
@@ -305,9 +312,11 @@ class CADGeneratorService:
     ) -> CADGeneratorBooleanRun:
         """Discover a bounded global plane arrangement, select and assemble output.
 
-        Coplanar contact/overlap and unsupported degeneracies fail closed.
-        This path still rejects non-lossless rational coordinates at B-rep
-        assembly; it never rounds or tolerance-welds geometry.
+        Coplanar positive-area overlap is handled by an exact planar overlay.
+        Point/edge-only contact, arbitrary tangencies, branching and other
+        unsupported degeneracies fail closed. The path still rejects
+        non-lossless rational coordinates at B-rep assembly; it never rounds
+        or tolerance-welds geometry.
         """
         arrangement = arrange_faceted_boolean_meshes(meshes)
         selection = select_boolean_boundary_fragments(

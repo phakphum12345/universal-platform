@@ -1,6 +1,6 @@
 # Arbitrary Faceted B-rep Boolean Contract
 
-**Status:** PARTIAL — PR #195 implements exact transverse triangle-pair segment extraction; PR #197 implements single-plane triangle splitting; PR #199 implements exact multi-plane arrangement per source triangle. Global mesh arrangement, material classification and general 3D Boolean remain PLANNED.  
+**Status:** PARTIAL — PRs #195–#212 implement bounded exact intersection/fragment primitives, global multi-mesh arrangement, independent coverage certification, fail-closed material classification, Boolean boundary selection, shell assembly and CAD Generator execution for supported faceted cases. General arbitrary-topology Boolean remains incomplete.  
 **Target profile:** `FACETED_BREP_BOOLEAN_V1`.  
 **Predecessor:** axis-aligned single-shell and multi-shell box-grid adapters in PR #191.  
 **Design baseline:** integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec` (post-PR #192 documentation reconciliation).
@@ -44,7 +44,7 @@ Each output component must represent a closed material region with one outer she
 - **Implemented sub-step:** PR candidate adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` for exact-rational endpoints of a proper transverse triangle-pair crossing. It canonicalizes source triangle order and endpoint order, validates the exact segment, serializes rational coordinates strictly, and rejects coplanar/contact/degenerate cases. This primitive does not split triangles and does not implement Boolean operations.
 - Implemented bounded sub-step: PR #197 splits one source triangle by one properly intersecting cutter plane with exact clipping, deterministic triangulation, source-winding preservation and exact area conservation.
 - Implemented bounded sub-step: PR #199 applies ordered exact-rational planes to each source triangle without float round-tripping, records per-plane side provenance, preserves winding, checks exact area conservation and enforces per-call fragment/rational-bit ceilings.
-- Remaining Gate A work: global multi-triangle arrangement orchestration; canonical fragment/vertex identity and adjacency across source triangle boundaries; independent exact coverage oracle for gaps, overlaps, duplicates and orientation; aggregate candidate-pair, fragment, memory and rational-bit budgets.
+- Gate A bounded implementation: PRs #200–#203 add global exact vertex/edge topology, T-junction diagnostics, independent exact coverage certification and aggregate arrangement budgets. PR #209 converts registered T-junctions into conforming facets; PR #210 orchestrates all-source supporting-plane arrangement for multiple meshes. PR #212 hardens the coverage oracle against non-coplanar fragments that could otherwise look identical after projection.
 - Reuse existing exact-rational triangle-pair predicates and conservative sweep-and-prune candidate generation where their contracts apply.
 - Produce deterministic intersection events and exact segment/point/overlap records for a source triangle pair.
 - Split source triangles into non-overlapping planar fragments while preserving winding and source-face provenance.
@@ -134,3 +134,48 @@ Latest integration SHA at this reconciliation: `f77e3cf7ba413c97d32c3a800e07938d
 - PR #207 integration is service-level. It does not expose an unrestricted Boolean HTTP/browser endpoint and does not establish arbitrary faceted Boolean E2E.
 
 **Gate status:** The global arrangement, material classification, boundary selection and shell assembly slices have bounded implementations. The general arbitrary-faceted Boolean kernel remains **PARTIAL / INCOMPLETE** until automatic arrangement completeness, degeneracy semantics, rational-coordinate output, generator E2E and independent acceptance fixtures all pass.
+
+
+## 11. Current implementation evidence — 2026-11-08, post-PR #212
+
+The following PRs are merged to `docs/phase-0-complete-requirements`:
+
+| PR | Bounded capability | Merge SHA | Post-merge required checks |
+|---|---|---|---|
+| #200 | Global exact-rational vertex identity, face/edge incidence, adjacency and coverage accounting | `ee4c7420d230616270be3513f9ef2b4e530761a6` | PASS on available post-merge runs |
+| #201 | Exact global T-junction diagnostics with bounded scan | `504dc12e6e6bbfcb2a4932a0b5ec3a6af5eefd9b` | PASS |
+| #202 | Exact subedge incidence for long-edge / short-edge facet conformity | `17406635f623011dfff51e24fbfa9ed16ef3ce69` | PASS |
+| #203 | Independent exact 2D coverage oracle for containment, overlap, duplicates and area | `5670d17ee7dc059c11d44ada0a7e9da2b3bbd9d1` | PASS |
+| #204 | Fail-closed exact mesh material classification | `29f41a2be5c2c9699c8a18e17732edf63bd2dbc6` | PASS |
+| #205 | Boolean boundary selection for UNION / INTERSECTION / DIFFERENCE / SYMMETRIC_DIFFERENCE | `6238085aebebba2199ac5170061c0cec0f4aed85` | PASS |
+| #206 | Connected shell assembly, orientation, volume and B-rep validation | `9c1834ee79b90d559fd5075560c0677124e18290` | PASS |
+| #207 | Public exports and CADGeneratorService Boolean orchestration | `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8` | PASS; Chromium E2E PASS |
+| #208 | Repository audit reconciliation | `60919a663e7a81f0105d5aebf477400479c5f4e6` | PASS |
+| #209 | Conforming facet triangulation across global T-junctions | `5da14bcbaa4265fcb6b965462c0ceeeb3a266cf7` | PASS |
+| #210 | Automatic bounded multi-mesh Boolean arrangement and non-coplanar intersecting-box workflow | `954f17b6add03e294a8707be03ff37b03827e57a` | PASS; Chromium E2E PASS |
+| #211 | Coplanar positive-area overlay and two-sided Boolean material classification; overlapping-box UNION exact volume 12 | `bde93ccf2a3fe3bec90ec36afe724df40ed9c505` | Exact PR-head Python/workflow-sanity PASS |
+| #212 | Exact 3D coplanarity gate in coverage oracle; rejects projected-but-off-plane partitions | `7fd78fa40886694bd46cfb6a61f60c3f716033f2` | Exact PR-head and post-merge Python/workflow-sanity PASS |
+
+The exact post-merge workflow for #212 completed with workflow-sanity PASS and Python tests PASS. These checks establish the bounded code/test behavior on that merge SHA; they do not certify unrestricted geometry classes.
+
+### Current bounded end-to-end examples
+
+- Non-coplanar intersecting box UNION through `CADGeneratorService.execute_faceted_boolean`: exact expected volume `15`.
+- Coplanar-overlapping box UNION through the same service: exact expected volume `12`.
+- Input mesh validation, exact supporting-plane splitting, conforming facet generation, independent per-source coverage, material classification, boundary selection and closed-shell/B-rep validation are connected for these bounded fixtures.
+
+### Remaining restrictions and gaps
+
+- Point/edge-only coplanar contact, arbitrary tangencies, branching, vertex/edge degeneracy and other unsupported arrangements remain fail-closed.
+- The output B-rep coordinate model remains binary64. Exact rational intersection coordinates that cannot round-trip losslessly are rejected; no rounding or tolerance welding is allowed.
+- Nested positive material islands and generalized shell-parent semantics remain unsupported.
+- The exact coverage oracle certifies coplanar per-source triangle partitions; it is not by itself a global proof of all possible multi-solid arrangement completeness.
+- The service integration is in-process/offline. The current HTTP/browser workbench does not expose an unrestricted Boolean authoring endpoint.
+- The CAD browser E2E workflow is path-filtered to browser/API/service assets. Kernel-only PRs do not trigger it; an untriggered browser workflow is not recorded as PASS.
+
+**Current gate verdict:** bounded multi-mesh faceted Boolean execution is implemented and tested for the listed reference cases. The general arbitrary-faceted B-rep Boolean requirement remains **PARTIAL / INCOMPLETE** until broader independent adversarial coverage, degeneracy semantics and rational-coordinate B-rep output are implemented and validated.
+
+
+### PR #213 — rational input resource ceilings
+
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact head `093db080ebbb2a04431bd6254c889ceb53d8afed`). Direct `arrange_triangles_by_planes` calls now validate plane object types and apply the configured rational numerator/denominator bit ceiling to cutter-plane coordinates. The standalone coverage oracle also applies a coordinate bit ceiling before projection/clipping. Exact-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests.
