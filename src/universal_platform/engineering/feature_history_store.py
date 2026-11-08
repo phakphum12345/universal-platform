@@ -268,6 +268,18 @@ class SQLiteFeatureHistoryStore:
                 raise FeatureHistoryStoreIntegrityError("navigation stack contains an invalid revision")
         if set(undo_stack).intersection(redo_stack):
             raise FeatureHistoryStoreIntegrityError("a revision cannot be in both navigation stacks")
+        for target_revision in set(undo_stack + redo_stack):
+            target = connection.execute(
+                """
+                SELECT 1 FROM feature_history_revisions
+                WHERE history_id = ? AND revision = ?
+                """,
+                (history_id, target_revision),
+            ).fetchone()
+            if target is None:
+                raise FeatureHistoryStoreIntegrityError(
+                    "navigation stack references a missing revision"
+                )
         return undo_stack, redo_stack
 
     @staticmethod
