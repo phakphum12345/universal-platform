@@ -2,7 +2,9 @@ from fractions import Fraction
 from hashlib import sha256
 
 from universal_platform.engineering.brep_boolean import BRepBooleanOperation
-from universal_platform.engineering.boolean_boundary_selection import select_boolean_boundary_fragments
+from universal_platform.engineering.boolean_boundary_selection import (
+    BooleanBoundarySelection, select_boolean_boundary_fragments,
+)
 from universal_platform.engineering.boolean_shell_assembly import assemble_boolean_shells
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box
@@ -58,7 +60,7 @@ def test_shell_assembly_rejects_resource_exhaustion():
 
 def test_shell_assembly_returns_empty_for_empty_boolean_result():
     meshes=(_box("outer",4.0),_box("inner",2.0,1.0))
-    empty=select_boolean_boundary_fragments(meshes,((),()),BRepBooleanOperation.INTERSECTION)
+    empty=BooleanBoundarySelection(BRepBooleanOperation.INTERSECTION,(),0,0,0)
     result=assemble_boolean_shells(empty,meshes)
     assert result.components==()
     assert result.total_exact_volume==0
