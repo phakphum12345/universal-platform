@@ -1,6 +1,6 @@
 # Arbitrary Faceted B-rep Boolean Contract
 
-**Status:** PLANNED — architecture and acceptance contract only; no general 3D Boolean implementation is claimed.  
+**Status:** PARTIAL — PR #195 implements exact transverse triangle-pair segment extraction; triangle splitting and general 3D Boolean remain PLANNED.  
 **Target profile:** `FACETED_BREP_BOOLEAN_V1`.  
 **Predecessor:** axis-aligned single-shell and multi-shell box-grid adapters in PR #191.  
 **Design baseline:** integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec` (post-PR #192 documentation reconciliation).
