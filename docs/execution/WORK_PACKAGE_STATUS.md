@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`  
+**Last verified integration baseline:** `34148fc359076567eaa4b931304f61f536a41779`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
 | 02 | CAD geometry | PARTIAL | Planar topology and bounded faceted B-rep/axis-aligned Boolean exist; general n-gon, multi-shell, arbitrary 3D Boolean and ambiguous branching remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration merged in PR #163; revision-safe service/API/workbench integration, undo/redo, branching/merging and broader CAD/kernel/UI capabilities remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory regeneration, durable revisions/cache, local service, immutable backend add/replace/remove operations and revision-safe loopback edit API exist; real-browser editing coverage now passes; FeatureHistory v1.1 backend model/editor/regeneration merged in PR #163; undo/redo, branching/merging, feature reorder and broader CAD/kernel/UI capabilities remain open |
 | 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
 | 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
@@ -76,8 +76,9 @@
 ## Next dependency-ready slice
 
 - CAD-EDIT-005 — suppression semantics contract merged in PR #162; backend model/editor/regeneration merged in PR #163. Exact PR-head and post-merge tests passed.
-- CAD-EDIT-006 — add revision-safe service/API operations for suppress/unsuppress, preserving expected-revision compare-and-swap, strict request parsing and historical-revision read-only behavior.
-- CAD-EDIT-007 — add workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E after the API contract is stable.
+- CAD-EDIT-006 — revision-safe service/API operations for suppress/unsuppress merged in PR #165; strict request parsing, expected-revision compare-and-swap and loopback auth verified.
+- CAD-EDIT-007 — workbench controls, explicit cascade confirmation and suppression-specific Chromium E2E merged in PR #166; exact-head and post-merge browser checks PASS.
+- CAD-EDIT-008 — define undo/redo semantics as immutable revision restore operations before implementation; specify redo behavior, persistence across reload, stale-writer handling and audit evidence.
 
 
 ## Documentation reconciliation — PR #160
@@ -117,3 +118,11 @@
 - Post-merge engineering workflow #42439562896: 851 Python tests PASS; workflow-sanity PASS.
 - Post-merge Chromium workflow #42439562884: 4 tests PASS.
 - Status: PASS for backend model/editor/regeneration; overall WP-03 remains PARTIAL until service/API/workbench integration and browser tests are complete.
+
+
+## CAD-EDIT-006 / CAD-EDIT-007 — Suppression end-to-end completion
+
+- PR #165 merged service/API operations at `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge gates: 854 Python tests, 4 Chromium E2E tests and workflow-sanity PASS.
+- PR #166 merged workbench controls at `34148fc359076567eaa4b931304f61f536a41779`; exact PR-head and post-merge gates: 854 Python tests, 5 Chromium E2E tests and workflow-sanity PASS.
+- Browser acceptance: implicit cascade rejected; explicit cascade checkbox and confirmation required; source nodes retained; unsuppress blocked until dependencies are active; restoration creates immutable revisions.
+- Status: PASS for FeatureHistory suppression end-to-end. WP-03 overall remains PARTIAL because undo/redo, branching/merging, reorder and broader CAD kernel capabilities remain open.
