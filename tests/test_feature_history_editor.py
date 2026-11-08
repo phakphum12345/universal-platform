@@ -6,6 +6,7 @@ from universal_platform.engineering.feature_history_editor import (
     add_feature,
     remove_feature,
     replace_feature,
+    reorder_features,
 )
 
 
@@ -102,3 +103,26 @@ def test_remove_leaf_updates_outputs_but_never_allows_an_outputless_history():
 def test_remove_feature_rejects_unknown_target():
     with pytest.raises(InvalidModelError, match="does not exist"):
         remove_feature(sample_history(), "unknown")
+
+
+def test_reorder_features_changes_presentation_order_without_changing_execution_order():
+    history = sample_history()
+    updated = reorder_features(history, ("base", "independent", "branch", "leaf"))
+    assert tuple(node.feature_id for node in updated.nodes) == ("base", "independent", "branch", "leaf")
+    assert updated.topological_order() == history.topological_order()
+    assert tuple(node.feature_id for node in history.nodes) == ("base", "branch", "leaf", "independent")
+    assert updated.output_feature_ids == history.output_feature_ids
+
+
+def test_reorder_features_rejects_missing_duplicate_unknown_and_dependency_inversion():
+    history = sample_history()
+    with pytest.raises(InvalidModelError, match="every feature ID exactly once"):
+        reorder_features(history, ("base", "branch", "leaf"))
+    with pytest.raises(InvalidModelError, match="every feature ID exactly once"):
+        reorder_features(history, ("base", "branch", "leaf", "leaf"))
+    with pytest.raises(InvalidModelError, match="every feature ID exactly once"):
+        reorder_features(history, ("base", "branch", "leaf", "unknown"))
+    with pytest.raises(InvalidModelError, match="dependency before"):
+        reorder_features(history, ("branch", "base", "leaf", "independent"))
+    with pytest.raises(InvalidModelError, match="immutable tuple"):
+        reorder_features(history, ["base", "branch", "leaf", "independent"])
