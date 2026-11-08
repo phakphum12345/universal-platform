@@ -12,6 +12,7 @@ from universal_platform.engineering.feature_history import (
 )
 from universal_platform.engineering.feature_history_store import (
     FeatureHistoryBranch,
+    FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
@@ -388,8 +389,172 @@ def test_store_additive_schema_migration_preserves_revisions_and_creates_branch_
     assert migrated.list_revisions("document.part") == (1,)
     assert migrated.list_branches("document.part") == ()
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
         assert connection.execute(
             "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = 1",
             ("document.part",),
         ).fetchone()[0] == original.content_sha256
+
+
+
+def test_store_merges_sibling_branches_atomically_and_exposes_provenance(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    base = FeatureHistory(
+        "document.part",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("body", FeatureKind.MESH, ("base",)),
+        ),
+        ("body",),
+    )
+    store.save(base, expected_revision=0)
+    source = store.create_branch("document.part", "document.part.source", "source")
+    target = store.create_branch("document.part", "document.part.target", "target")
+
+    source_history = FeatureHistory(
+        source.branch_history_id,
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("body", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("source-feature", FeatureKind.MESH, ("base",)),
+        ),
+        ("body", "source-feature"),
+    )
+    target_history = FeatureHistory(
+        target.branch_history_id,
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("body", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("target-feature", FeatureKind.MESH, ("base",)),
+        ),
+        ("body", "target-feature"),
+    )
+    store.save(source_history, expected_revision=1)
+    store.save(target_history, expected_revision=1)
+
+    merged = store.merge_branch(
+        source.branch_history_id,
+        target.branch_history_id,
+        expected_source_revision=2,
+        expected_target_revision=2,
+    )
+
+    assert merged.operation == "merge"
+    assert merged.revision == 3
+    assert merged.history.history_id == target.branch_history_id
+    assert {node.feature_id for node in merged.history.nodes} == {
+        "base", "body", "source-feature", "target-feature"
+    }
+    assert merged.merge_provenance is not None
+    assert merged.merge_provenance.source_history_id == source.branch_history_id
+    assert merged.merge_provenance.source_revision == 2
+    assert merged.merge_provenance.root_history_id == "document.part"
+    assert merged.merge_provenance.fork_revision == 1
+    assert merged.merge_provenance.fork_sha256 == source.fork_sha256
+    loaded = store.load(target.branch_history_id, revision=3)
+    assert loaded.operation == "merge"
+    assert loaded.merge_provenance == merged.merge_provenance
+    assert store.load(source.branch_history_id).revision == 2
+    assert store.load(target.branch_history_id).revision == 3
+    assert store.list_revisions(source.branch_history_id) == (1, 2)
+    assert store.list_revisions(target.branch_history_id) == (1, 2, 3)
+    navigation = store.get_navigation_state(target.branch_history_id)
+    assert navigation.can_undo
+    assert navigation.undo_depth == 2
+
+
+def test_store_failed_merge_conflict_leaves_heads_and_navigation_unchanged(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    base = FeatureHistory(
+        "document.part",
+        (FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 1}),),
+        ("body",),
+    )
+    store.save(base, expected_revision=0)
+    source = store.create_branch("document.part", "document.part.source", "source")
+    target = store.create_branch("document.part", "document.part.target", "target")
+    store.save(
+        FeatureHistory(
+            source.branch_history_id,
+            (FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 2}),),
+            ("body",),
+        ),
+        expected_revision=1,
+    )
+    store.save(
+        FeatureHistory(
+            target.branch_history_id,
+            (FeatureNode.create("body", FeatureKind.MESH, parameters={"width": 3}),),
+            ("body",),
+        ),
+        expected_revision=1,
+    )
+    source_before = store.get_navigation_state(source.branch_history_id)
+    target_before = store.get_navigation_state(target.branch_history_id)
+
+    with pytest.raises(FeatureHistoryMergeConflictError) as error:
+        store.merge_branch(
+            source.branch_history_id,
+            target.branch_history_id,
+            expected_source_revision=2,
+            expected_target_revision=2,
+        )
+
+    assert any(item.category == "node_content" for item in error.value.conflicts)
+    assert store.list_revisions(source.branch_history_id) == (1, 2)
+    assert store.list_revisions(target.branch_history_id) == (1, 2)
+    assert store.load(source.branch_history_id).revision == 2
+    assert store.load(target.branch_history_id).revision == 2
+    assert store.get_navigation_state(source.branch_history_id) == source_before
+    assert store.get_navigation_state(target.branch_history_id) == target_before
+
+
+def test_store_merge_accepts_root_target_and_rejects_stale_expected_revision(tmp_path):
+    store = SQLiteFeatureHistoryStore(tmp_path / "history.db")
+    base = FeatureHistory(
+        "document.part",
+        (FeatureNode.create("body", FeatureKind.MESH),),
+        ("body",),
+    )
+    store.save(base, expected_revision=0)
+    branch = store.create_branch("document.part", "document.part.experiment", "experiment")
+    store.save(
+        FeatureHistory(
+            branch.branch_history_id,
+            (
+                FeatureNode.create("body", FeatureKind.MESH),
+                FeatureNode.create("extra", FeatureKind.MESH),
+            ),
+            ("body", "extra"),
+        ),
+        expected_revision=1,
+    )
+    store.save(
+        FeatureHistory(
+            "document.part",
+            (
+                FeatureNode.create("body", FeatureKind.MESH),
+                FeatureNode.create("root-extra", FeatureKind.MESH),
+            ),
+            ("body", "root-extra"),
+        ),
+        expected_revision=1,
+    )
+    with pytest.raises(FeatureHistoryRevisionConflict):
+        store.merge_branch(
+            branch.branch_history_id,
+            "document.part",
+            expected_source_revision=1,
+            expected_target_revision=2,
+        )
+    merged = store.merge_branch(
+        branch.branch_history_id,
+        "document.part",
+        expected_source_revision=2,
+        expected_target_revision=2,
+    )
+    assert merged.revision == 3
+    assert {node.feature_id for node in merged.history.nodes} == {
+        "body", "extra", "root-extra"
+    }
+    assert store.load(branch.branch_history_id).revision == 2
