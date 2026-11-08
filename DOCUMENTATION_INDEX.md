@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited implementation snapshot: 10404099ccaa85cef24adedffa7bce789abd691e; PR #156 post-merge workflow #42407835073 passed workflow-sanity (including the JavaScript syntax check) and python-tests with 843 tests in 9.76s. Main remains 96e75010716226037893155b9fd4b13410fb0d6f. Inventory at post-PR #156: 351 entries, 118 Markdown, 165 Python, 24 JSON files and 85 Python test files. See [Repository Audit post-PR #156](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md) for exact evidence and limitations.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: 35f06a304090176eb6d10697d6da67b53b1ec9ba; PR #161 post-merge workflow #42438919113 passed workflow-sanity and python-tests. Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 406 commits ahead / 0 behind. Inventory at this baseline: 356 entries, 120 Markdown, 166 Python, 24 JSON files and 85 Python test files. Browser E2E for the CAD FeatureHistory workbench is PASS (4 tests); broader repository completion remains INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -52,6 +52,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Failure Modes](docs/engineering/ENGINEERING_FAILURE_MODES.md) — error taxonomy and failure semantics.
 - [Engineering Reference Cases](docs/engineering/ENGINEERING_REFERENCE_CASES.md) — reference-case design catalogue.
 - [CAD-neutral Primitive Geometry](docs/engineering/CAD_NEUTRAL_PRIMITIVE_GEOMETRY.md) — analytic primitives, straight/curved profile extrusion and known CAD-kernel boundaries.
+
+- [FeatureHistory Suppression Contract](docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md) — proposed v1.1 suppression semantics, v1.0 compatibility and acceptance gates; design only.
 
 ## 3D design, geometry, mechanisms and manufacturing
 

@@ -1,10 +1,10 @@
 # Implementation Status — UEIC Foundation
 
 **Integration branch:** `docs/phase-0-complete-requirements`  
-**Last audited integration baseline:** `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a` (PR #160 documentation reconciliation merged after PR #158).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **404 commits ahead / 0 behind** at this audit.  
+**Last audited integration baseline:** `35f06a304090176eb6d10697d6da67b53b1ec9ba` (PR #161 post-merge documentation audit).  
+**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **406 commits ahead / 0 behind** at this audit.  
 **Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest integration-head CI:** workflow run `42438814910` on exact SHA `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass.  
+**Latest integration-head CI:** workflow run `42438919113` on exact SHA `35f06a304090176eb6d10697d6da67b53b1ec9ba` — `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED and is not counted as a pass. The documentation-only marker was SKIPPED and is not counted as a pass.  
 **PR #158 browser gate:** exact PR-head and post-merge Chromium E2E PASS (4 tests); Python tests PASS (843 tests); workflow sanity PASS. See the PR #158 section below and `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR158.md`.  
 **Current tree:** 356 entries, 120 Markdown, 166 Python, 24 JSON files, 85 Python test files; recursive tree response truncated=false.  
 **Open PRs:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** GitHub branch metadata reports `protected=false` for the inspected integration and main branches; no required status checks are configured on those branch objects.  
@@ -1069,3 +1069,11 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Exact post-merge workflow run `42438814910` on the merge SHA: `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED, not counted as a pass.
 - Updates align the implementation baseline and work-package register with PR #158 browser E2E evidence; CAD-EDIT-004 is PASS, while overall WP-03 and repository completion remain PARTIAL / INCOMPLETE.
 - No source behavior changed; no main merge or deployment.
+
+
+## PR #161 — PR #160 post-merge documentation audit (MERGED)
+
+- PR #161 merged at exact integration SHA `35f06a304090176eb6d10697d6da67b53b1ec9ba`.
+- Exact PR-head CI on `d8bd1dd803de9a45686839876e91710e6a5bdce1`: workflow-sanity PASS; python-tests PASS.
+- Exact post-merge workflow `42438919113` on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
+- Documentation index, implementation baseline and work-package evidence are now aligned with PR #160; no source behavior changed.
