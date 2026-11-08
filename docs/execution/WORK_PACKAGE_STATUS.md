@@ -186,3 +186,12 @@
 - Workbench controls are driven by persistent server navigation state; actions are enabled only when the actual loaded snapshot is the current head.
 - Browser tests verify historical read-only behavior, multi-step Undo/Redo, persistence after reload and Redo invalidation after a new edit.
 - Status: PASS for FeatureHistory Undo/Redo end-to-end. WP-03 remains PARTIAL for broader CAD branching/merging, reorder, generalized B-rep and other kernel/editor capabilities.
+
+
+## CAD-EDIT-008 through CAD-EDIT-011 — FeatureHistory Undo/Redo end-to-end PASS
+
+- PR #168 defined the contract; PR #169 implemented the store; PR #170 implemented service/API; PR #171 implemented workbench/browser acceptance.
+- Final merge SHA: `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- Exact PR-head and post-merge CI: 865 Python tests PASS, 6 Chromium E2E tests PASS, workflow-sanity PASS.
+- Undo/Redo appends immutable revisions, persists stacks across restart, clears Redo after new edits, rejects stale writers and keeps historical views read-only.
+- R-017 status: PASS for linear FeatureHistory Undo/Redo. WP-03 remains PARTIAL due graph branching/merging, feature reorder, generalized B-rep and other CAD kernel capabilities.
