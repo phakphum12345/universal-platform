@@ -123,6 +123,9 @@ from .feature_history import (
     FeatureArtifact, FeatureHistory, FeatureKind, FeatureNode,
     FeatureRegenerationResult, RegenerationStatus, regenerate_feature_history, upgrade_feature_history,
 )
+from .feature_history_merge import (
+    FeatureHistoryMergeConflict, FeatureHistoryMergeResult, merge_feature_histories,
+)
 from .feature_history_editor import (
     add_feature, replace_feature, remove_feature, suppress_feature, unsuppress_feature,
 )
