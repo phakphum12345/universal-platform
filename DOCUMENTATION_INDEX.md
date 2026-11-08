@@ -135,7 +135,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 5. Check relative links after documentation changes; report any link not verifiable from the pinned tree as UNKNOWN.
 
 
-- [Repository Audit post-PR #207](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) — current pinned integration baseline, CAD Boolean progress, cross-domain inventory and repository-wide remaining gates.\n- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
+- [Repository Audit post-PR #207](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) — current pinned integration baseline, CAD Boolean progress, cross-domain inventory and repository-wide remaining gates.
+- [Repository Audit post-PR #213](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR213.md) — exact integration/main SHAs, PR #200–#213 bounded Boolean evidence, cross-domain inventory and remaining repository-wide gates.\n- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
 - [Repository Audit post-PR #80](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md) — current integration SHA, PR #80 evidence, maturity boundaries and remaining gated work.
 
 - [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — dependency-free exact-rational predicate policy for PlanarRegion v1.
