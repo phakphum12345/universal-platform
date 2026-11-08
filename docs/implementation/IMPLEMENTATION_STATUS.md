@@ -1212,3 +1212,15 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Added [FeatureHistory Branch and Merge Contract](../design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) defining isolated branch history identities, exact fork provenance, conservative three-way merge semantics, conflict reporting and atomic append-only target merges.
 - This is design evidence only. Branch metadata storage, branch creation, merge analysis, transactional merge, service/API, workbench and browser acceptance remain NOT IMPLEMENTED / OPEN.
 - The current per-history revision chain and Undo/Redo behavior remain unchanged until the additive schema and transactional implementation pass migration and regression tests.
+
+
+## Current integration update — PR #176 MERGED
+
+- PR #176: https://github.com/phakphum12345/universal-platform/pull/176
+- Exact PR head: `aa4a24c71242c861fdff387475e711d3e22756c6`; merge SHA: `2bc96a79c9c341dc896da980c1117d37928023ba`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (875 tests); Chromium E2E PASS (7 tests).
+- Adds additive SQLite schema v2 branch-origin metadata while preserving the v1 revision digest envelope and existing revision hashes.
+- Store supports atomic fork from a verified root head or historical revision into a new history ID, exact base digest provenance, branch metadata lookup/listing, and rejection of nested forks/duplicate IDs/names/invalid inputs.
+- CADGeneratorService exposes the transport-neutral `fork_history` method. No HTTP route or workbench UI for branch operations is claimed yet.
+- Branch creation is PASS as a bounded store/service slice; three-way merge, conflict analysis, merge API/UI and browser workflow remain OPEN. Overall repository remains PARTIAL / INCOMPLETE.
