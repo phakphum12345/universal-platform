@@ -658,3 +658,11 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Nested cavity islands, multiple material regions, curved surfaces, general 3D Boolean and multi-shell STEP/AP242 interchange remain outside this bounded increment.
 - Exact PR head `850e521cd3499ede4e8a00a5cb1698cee32347d0`; merge SHA `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`.
 - Exact PR-head Python 902 PASS; exact push Python 902 PASS; post-merge Python 902 PASS. Browser E2E not triggered because no UI changed.
+
+
+## CAD multi-shell non-axis reference coverage — PR #186 PASS
+
+- Adds a rotated 45-degree box cavity and a concave L-prism cavity reference.
+- Exact PR-head workflow #42461621856: workflow-sanity PASS; Python 904 PASS (14.52s).
+- Post-merge workflow #42461678728: workflow-sanity PASS; Python 904 PASS (14.44s).
+- No production algorithm or schema behavior changed. General 3D Boolean and nested material-region semantics remain separate work packages.
