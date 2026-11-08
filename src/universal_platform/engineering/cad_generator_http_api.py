@@ -410,18 +410,22 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                     raise _HTTPError(400, "INVALID_FIELDS", "replace requires expected_revision, operation, feature_id and feature")
                 feature_id = body["feature_id"]
                 feature = _parse_feature_node(body["feature"])
-            elif operation == "remove":
+            elif operation in {"remove", "suppress"}:
                 if set(body) not in (
                     {"expected_revision", "operation", "feature_id"},
                     {"expected_revision", "operation", "feature_id", "cascade"},
                 ):
-                    raise _HTTPError(400, "INVALID_FIELDS", "remove requires expected_revision, operation, feature_id and optional cascade")
+                    raise _HTTPError(400, "INVALID_FIELDS", f"{operation} requires expected_revision, operation, feature_id and optional cascade")
                 feature_id = body["feature_id"]
                 cascade = body.get("cascade", False)
                 if not isinstance(cascade, bool):
                     raise _HTTPError(400, "INVALID_FIELDS", "cascade must be a boolean")
+            elif operation == "unsuppress":
+                if set(body) != {"expected_revision", "operation", "feature_id"}:
+                    raise _HTTPError(400, "INVALID_FIELDS", "unsuppress requires expected_revision, operation and feature_id")
+                feature_id = body["feature_id"]
             else:
-                raise _HTTPError(400, "INVALID_OPERATION", "operation must be add, replace or remove")
+                raise _HTTPError(400, "INVALID_OPERATION", "operation must be add, replace, remove, suppress or unsuppress")
 
             revision = self.server.generator_service.edit_history(
                 history_id,

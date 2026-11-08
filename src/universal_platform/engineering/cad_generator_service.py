@@ -16,7 +16,9 @@ from .feature_history import (
     FeatureRegenerationResult,
     regenerate_feature_history,
 )
-from .feature_history_editor import add_feature, remove_feature, replace_feature
+from .feature_history_editor import (
+    add_feature, remove_feature, replace_feature, suppress_feature, unsuppress_feature,
+)
 from .feature_history_store import (
     FeatureHistoryRevision,
     FeatureHistoryRevisionConflict,
@@ -117,8 +119,8 @@ class CADGeneratorService:
         """
         if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
             raise InvalidModelError("expected_revision must be a positive integer for an edit")
-        if not isinstance(operation, str) or operation not in {"add", "replace", "remove"}:
-            raise InvalidModelError("operation must be add, replace or remove")
+        if not isinstance(operation, str) or operation not in {"add", "replace", "remove", "suppress", "unsuppress"}:
+            raise InvalidModelError("operation must be add, replace, remove, suppress or unsuppress")
         if not isinstance(cascade, bool) or not isinstance(make_output, bool):
             raise InvalidModelError("cascade and make_output must be booleans")
 
@@ -138,10 +140,18 @@ class CADGeneratorService:
             if cascade or make_output:
                 raise InvalidModelError("replace does not accept cascade or make_output")
             updated = replace_feature(current.history, feature_id, feature)
-        else:
+        elif operation == "remove":
             if feature is not None or not isinstance(feature_id, str) or make_output:
                 raise InvalidModelError("remove requires feature_id and does not accept feature or make_output")
             updated = remove_feature(current.history, feature_id, cascade=cascade)
+        elif operation == "suppress":
+            if feature is not None or not isinstance(feature_id, str) or make_output:
+                raise InvalidModelError("suppress requires feature_id and does not accept feature or make_output")
+            updated = suppress_feature(current.history, feature_id, cascade=cascade)
+        else:
+            if feature is not None or not isinstance(feature_id, str) or cascade or make_output:
+                raise InvalidModelError("unsuppress requires feature_id and does not accept cascade, feature or make_output")
+            updated = unsuppress_feature(current.history, feature_id)
 
         return self.history_store.save(updated, expected_revision=expected_revision)
 

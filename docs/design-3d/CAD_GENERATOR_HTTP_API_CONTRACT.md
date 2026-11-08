@@ -86,8 +86,10 @@ Appends one revision after applying exactly one allow-listed graph operation. Th
 - Add: `expected_revision`, `operation: "add"`, `feature`, optional `make_output`.
 - Replace: `expected_revision`, `operation: "replace"`, `feature_id`, `feature`.
 - Remove: `expected_revision`, `operation: "remove"`, `feature_id`, optional `cascade`.
+- Suppress: `expected_revision`, `operation: "suppress"`, `feature_id`, optional `cascade`.
+- Unsuppress: `expected_revision`, `operation: "unsuppress"`, `feature_id` (no cascade field).
 
-A feature snapshot contains exactly `feature_id`, `kind`, `input_feature_ids` and `parameters`. The complete candidate graph is reconstructed through FeatureHistory validation. Replacement preserves stable feature IDs. Removal refuses dependent nodes unless cascade is explicitly true; output invariants still apply.
+A feature snapshot contains exactly `feature_id`, `kind`, `input_feature_ids` and `parameters`. The complete candidate graph is reconstructed through FeatureHistory validation. Replacement preserves stable feature IDs. Removal refuses dependent nodes unless cascade is explicitly true; output invariants still apply. Suppression retains source nodes and writes a FeatureHistory v1.1 revision; active dependents require explicit cascade, and at least one output must remain active. Unsuppression restores only the selected feature and is rejected while any direct dependency remains suppressed. The expected-revision compare-and-swap applies to all operations.
 
 Returns HTTP 201 with the new immutable revision envelope. A stale expected revision returns HTTP 409 / `REVISION_CONFLICT`. Invalid operation fields or graph changes return HTTP 400. The endpoint never executes user code, plugins, shell commands or physical device actions.
 
@@ -141,6 +143,7 @@ This hash chain detects accidental/tampered records when the attacker cannot rew
 - [x] Strict JSON parsing, route allow-list and structured errors.
 - [x] Append-only local audit chain with integrity verification.
 - [x] Save, read, list and regenerate an exact FeatureHistory revision.
+- [ ] Suppress/unsuppress HTTP operations are specified; implementation and exact-head acceptance are pending PR #165.
 - [x] Exact PR-head CI and post-merge CI pass: 822 tests on each exact SHA.
 - [ ] Production-grade rate limiting, TLS, remote authentication, browser session controls and external audit witness remain out of scope.
 

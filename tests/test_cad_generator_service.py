@@ -174,3 +174,84 @@ def test_cad_generator_service_edit_requires_current_revision_and_valid_operatio
             feature=feature,
             cascade=True,
         )
+
+
+
+def make_history_with_alternate_output():
+    original = make_history()
+    profile = next(node for node in original.nodes if node.feature_id == "profile")
+    alternate = (
+        FeatureNode.create(
+            "profile.alt", FeatureKind.SKETCH_PROFILE, (),
+            {"sketch": profile.parameters["sketch"]},
+        ),
+        FeatureNode.create(
+            "extrusion.alt", FeatureKind.EXTRUSION, ("profile.alt",),
+            {"solid_id": "solid.alt", "height": 1.5},
+        ),
+        FeatureNode.create("mesh.alt", FeatureKind.MESH, ("extrusion.alt",)),
+    )
+    return FeatureHistory(
+        original.history_id, original.nodes + alternate, ("mesh", "mesh.alt")
+    )
+
+
+def test_cad_generator_service_suppresses_and_restores_revisioned_features(tmp_path):
+    service = make_service(tmp_path)
+    first = service.save_history(make_history_with_alternate_output(), expected_revision=0)
+
+    suppressed = service.edit_history(
+        first.history_id,
+        expected_revision=1,
+        operation="suppress",
+        feature_id="extrusion",
+        cascade=True,
+    )
+    assert suppressed.revision == 2
+    assert suppressed.history.document_version == "1.1"
+    assert suppressed.history.suppressed_feature_ids == ("extrusion", "mesh")
+
+    run = service.regenerate(first.history_id, revision=2)
+    assert run.successful
+    assert run.regeneration.suppressed_feature_ids == ("extrusion", "mesh")
+    assert set(run.regeneration.execution_order) == {"profile", "profile.alt", "extrusion.alt", "mesh.alt"}
+
+    restored_parent = service.edit_history(
+        first.history_id,
+        expected_revision=2,
+        operation="unsuppress",
+        feature_id="extrusion",
+    )
+    assert restored_parent.revision == 3
+    assert restored_parent.history.suppressed_feature_ids == ("mesh",)
+
+    restored_output = service.edit_history(
+        first.history_id,
+        expected_revision=3,
+        operation="unsuppress",
+        feature_id="mesh",
+    )
+    assert restored_output.revision == 4
+    assert restored_output.history.suppressed_feature_ids == ()
+
+    with pytest.raises(FeatureHistoryRevisionConflict):
+        service.edit_history(
+            first.history_id,
+            expected_revision=3,
+            operation="unsuppress",
+            feature_id="mesh",
+        )
+
+
+def test_cad_generator_service_rejects_invalid_suppression_operation_fields(tmp_path):
+    service = make_service(tmp_path)
+    first = service.save_history(make_history_with_alternate_output(), expected_revision=0)
+
+    with pytest.raises(InvalidModelError, match="unsuppress requires"):
+        service.edit_history(
+            first.history_id,
+            expected_revision=1,
+            operation="unsuppress",
+            feature_id="mesh",
+            cascade=True,
+        )

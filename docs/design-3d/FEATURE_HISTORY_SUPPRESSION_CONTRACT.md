@@ -1,6 +1,6 @@
 # FeatureHistory Suppression Contract — Proposed Schema v1.1
 
-**Status:** Backend model/editor/regeneration IMPLEMENTED by PR #163, merged at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`; service/API/workbench integration remains open.  
+**Status:** Backend model/editor/regeneration IMPLEMENTED by PR #163; revision-safe service/API operations are in PR #165 pending CI/merge; workbench integration remains open.  
 **Depends on:** FeatureHistory v1.0, immutable revision store, revision-safe edit API, local workbench and real-browser E2E gate.  
 **Purpose:** Define suppression and unsuppression semantics before changing source schemas, persistence, regeneration or UI behavior.
 
@@ -84,7 +84,7 @@ The cache remains keyed by history ID, feature ID and computation signature. Sup
 
 ## 7. Service, API and workbench behavior
 
-- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields.
+- Extend the service edit allow-list with `suppress` and `unsuppress`; preserve exact operation-specific request fields. PR #165 adds this service/API slice, pending exact-head and post-merge CI.
 - Suppress accepts `feature_id`, `cascade` and `expected_revision`; unsuppress accepts `feature_id` and `expected_revision`.
 - The HTTP API continues to require bearer authentication, same-origin loopback access, strict JSON parsing and current-head optimistic concurrency.
 - Historical revisions remain read-only.
@@ -130,4 +130,4 @@ PR #163 merged the first backend slice at `e6a6196aeaa84fca2eff8ce2f0417cc0a4014
 - Regeneration skips suppressed nodes and reports suppressed IDs; the artifact cache is not deleted or cleaned.
 - JSON Schema and public package exports for the new model/helper operations.
 
-This slice does not yet implement service-level edit operations, HTTP routes, workbench controls, cascade confirmation UI or suppression-specific browser E2E. Those are required before claiming end-to-end suppression capability. Exact PR-head CI passed 851 Python tests, 4 Chromium E2E tests and workflow-sanity. Exact post-merge CI passed 851 Python tests, 4 Chromium E2E tests and workflow-sanity. End-to-end suppression remains incomplete until service/API/workbench integration and suppression-specific browser tests are merged.
+PR #165 adds revision-safe service/API mutation operations with strict request fields and expected-revision compare-and-swap; it remains pending validation. Workbench controls, cascade confirmation UI and suppression-specific browser E2E remain open. Those are required before claiming end-to-end suppression capability. Exact PR-head and post-merge evidence for PR #163: 851 Python tests, 4 Chromium E2E tests and workflow-sanity all PASS.

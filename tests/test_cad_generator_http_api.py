@@ -451,3 +451,92 @@ def test_http_api_edits_feature_history_with_revision_checks_and_immutable_snaps
     assert status == 200
     assert revisions["revisions"] == [1, 2, 3, 4]
     assert audit.verify()
+
+
+
+def make_history_with_alternate_output():
+    original = make_history()
+    profile = next(node for node in original.nodes if node.feature_id == "profile")
+    alternate = (
+        FeatureNode.create(
+            "profile.alt", FeatureKind.SKETCH_PROFILE, (),
+            {"sketch": profile.parameters["sketch"]},
+        ),
+        FeatureNode.create(
+            "extrusion.alt", FeatureKind.EXTRUSION, ("profile.alt",),
+            {"solid_id": "solid.alt", "height": 1.5},
+        ),
+        FeatureNode.create("mesh.alt", FeatureKind.MESH, ("extrusion.alt",)),
+    )
+    return FeatureHistory(
+        original.history_id, original.nodes + alternate, ("mesh", "mesh.alt")
+    )
+
+
+def test_http_api_suppresses_and_restores_features_with_revision_checks(api):
+    base, audit, _ = api
+    status, saved = send(
+        base, "/v1/histories", method="POST",
+        body={"history": make_history_with_alternate_output().to_dict(), "expected_revision": 0},
+    )
+    assert status == 201
+    assert saved["revision"] == 1
+
+    status, suppressed = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 1,
+            "operation": "suppress",
+            "feature_id": "extrusion",
+            "cascade": True,
+        },
+    )
+    assert status == 201
+    assert suppressed["revision"] == 2
+
+    status, snapshot = send(base, "/v1/histories/history.http-api?revision=2")
+    assert status == 200
+    assert snapshot["history"]["schema_version"] == "1.1"
+    assert snapshot["history"]["suppressed_feature_ids"] == ["extrusion", "mesh"]
+
+    status, regenerated = send(
+        base, "/v1/histories/history.http-api/regenerate", method="POST",
+        body={"revision": 2},
+    )
+    assert status == 200
+    assert regenerated["regeneration"]["status"] == "SUCCESS"
+    assert regenerated["regeneration"]["suppressed_feature_ids"] == ["extrusion", "mesh"]
+
+    status, restored_parent = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={"expected_revision": 2, "operation": "unsuppress", "feature_id": "extrusion"},
+    )
+    assert status == 201
+    assert restored_parent["revision"] == 3
+
+    status, restored_output = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={"expected_revision": 3, "operation": "unsuppress", "feature_id": "mesh"},
+    )
+    assert status == 201
+    assert restored_output["revision"] == 4
+
+    status, conflict = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={"expected_revision": 3, "operation": "unsuppress", "feature_id": "mesh"},
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "REVISION_CONFLICT"
+
+    status, invalid = send(
+        base, "/v1/histories/history.http-api/edit", method="POST",
+        body={
+            "expected_revision": 4,
+            "operation": "unsuppress",
+            "feature_id": "mesh",
+            "cascade": True,
+        },
+    )
+    assert status == 400
+    assert invalid["error"]["code"] == "INVALID_FIELDS"
+    assert audit.verify()
