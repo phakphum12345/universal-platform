@@ -110,3 +110,23 @@ def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
     assert left not in result.boundary_edge_ids
     assert right not in result.boundary_edge_ids
     assert (ids[p(0, 0)], ids[p(2, 0)], ids[p(1, 0)]) in result.t_junctions
+    assert len(result.faces) > 3
+    assert len(result.fragments) == len(result.faces)
+    # The returned face set is conforming: no registered vertex lies strictly
+    # inside any returned face edge.
+    for edge in result.edges:
+        first = result.vertices[edge.vertex_ids[0]].point
+        second = result.vertices[edge.vertex_ids[1]].point
+        direction = tuple(second[i] - first[i] for i in range(3))
+        length_squared = sum((direction[i] * direction[i] for i in range(3)), F(0))
+        for candidate in result.vertices:
+            if candidate.point in (first, second):
+                continue
+            offset = tuple(candidate.point[i] - first[i] for i in range(3))
+            cross = (
+                direction[1] * offset[2] - direction[2] * offset[1],
+                direction[2] * offset[0] - direction[0] * offset[2],
+                direction[0] * offset[1] - direction[1] * offset[0],
+            )
+            projection = sum((direction[i] * offset[i] for i in range(3)), F(0))
+            assert cross != (F(0), F(0), F(0)) or not (0 < projection < length_squared)
