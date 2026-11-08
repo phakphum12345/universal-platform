@@ -1224,3 +1224,14 @@ See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR
 - Store supports atomic fork from a verified root head or historical revision into a new history ID, exact base digest provenance, branch metadata lookup/listing, and rejection of nested forks/duplicate IDs/names/invalid inputs.
 - CADGeneratorService exposes the transport-neutral `fork_history` method. No HTTP route or workbench UI for branch operations is claimed yet.
 - Branch creation is PASS as a bounded store/service slice; three-way merge, conflict analysis, merge API/UI and browser workflow remain OPEN. Overall repository remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #177 MERGED
+
+- PR #177: https://github.com/phakphum12345/universal-platform/pull/177
+- Exact PR head: `0dcba4786caba9aeb1b8c8eb6c28c878b7ce0f3a`; merge SHA: `c1d291e3d48a6757642400303dd035a7491bd9ff`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (882 tests). Chromium E2E was SKIPPED / not triggered because the change is a pure analyzer with no API/UI modifications.
+- Adds `merge_feature_histories(base, source, target)`, typed conflict/result records, stable-ID three-way node merge, delete-vs-edit detection, output/suppression membership merge and conservative deterministic presentation-order merge.
+- Analyzer is pure and does not mutate histories, write revisions or resolve conflicts. Store-level transactional merge, merge provenance, API, workbench and browser flow remain OPEN.
+- FeatureHistory branch/fork and pure merge analysis are PASS as separate bounded slices; full branch/merge requirement remains PARTIAL / INCOMPLETE.
