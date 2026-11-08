@@ -10,7 +10,7 @@ from universal_platform.engineering import (
     BRepMultiShellValidationResult,
     validate_brep_multishell_solid,
 )
-from universal_platform.engineering.brep import brep_from_triangle_mesh
+from universal_platform.engineering.brep import brep_from_triangle_mesh, triangle_mesh_from_brep
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
@@ -128,7 +128,7 @@ def test_multi_shell_snapshot_round_trip_digest_and_strict_schema():
 def test_multi_shell_accepts_single_shell_compatibility_without_cavities():
     outer = box_brep("outer", (0, 0, 0), (2, 2, 2))
     solid = BRepMultiShellSolid("part.solid", outer)
-    assert solid.to_mesh().triangles == outer and solid.to_mesh().triangles or solid.to_mesh().triangles
+    assert solid.to_mesh().triangles == triangle_mesh_from_brep(outer).triangles
     assert validate_brep_multishell_solid(solid).net_signed_volume == pytest.approx(8.0)
 
 
