@@ -64,8 +64,6 @@
 - Status: PASS for bounded browser editing controls and CI; overall WP-03 remains PARTIAL.
 - Browser E2E interaction testing was completed in PR #158 and is recorded below; do not retain the earlier SKIPPED state as current.
 
-## Next dependency-ready slice
-
 ## CAD-EDIT-004 — Real-browser FeatureHistory editor coverage
 
 - PR #158 merged to integration at `9d899f70a97372f689ba07a8e90b479bf14494b4`.
