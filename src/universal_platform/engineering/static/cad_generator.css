@@ -109,3 +109,7 @@ footer { display: flex; justify-content: space-between; gap: 14px; color: #71839
 .feature-tree-node.is-suppressed { border-style: dashed; opacity: .72; }
 .feature-tree-node.is-suppressed::after { content: ""; }
 #feature-suppress-cascade:disabled { opacity: .45; }
+
+.feature-tree-order-controls { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 0; }
+.feature-tree-order-button { padding: 4px 8px; font-size: 11px; }
+.feature-tree-order-button:disabled { opacity: .4; cursor: not-allowed; }

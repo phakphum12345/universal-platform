@@ -68,6 +68,9 @@
       canEditSelection && selectedFeatureSuppressed && selectedFeatureDependenciesActive
     );
     byId("feature-suppress-cascade").disabled = !(canEditSelection && !selectedFeatureSuppressed);
+    featureTree.querySelectorAll("button[data-reorder-feature-id]").forEach((button) => {
+      button.disabled = !canEditCurrentHead || button.dataset.reorderAllowed !== "true";
+    });
   }
 
   function updateNavigationControls() {
@@ -158,6 +161,16 @@
       navigationBusy = false;
       updateNavigationControls();
     }
+  }
+
+  function isValidFeaturePresentationOrder(orderedIds, nodeById) {
+    if (!Array.isArray(orderedIds) || orderedIds.length !== nodeById.size ||
+        new Set(orderedIds).size !== nodeById.size ||
+        orderedIds.some((id) => !nodeById.has(id))) return false;
+    const positions = new Map(orderedIds.map((id, index) => [id, index]));
+    return [...nodeById.values()].every((node) =>
+      node.input_feature_ids.every((dependency) => positions.get(dependency) < positions.get(node.feature_id))
+    );
   }
 
   function renderFeatureTree() {
@@ -277,10 +290,15 @@
       return;
     }
 
+    const storedOrder = snapshot.nodes.map((node) => node.feature_id);
+    const storedOrderIsTopological = isValidFeaturePresentationOrder(storedOrder, nodeById);
+    const displayNodes = storedOrderIsTopological ? snapshot.nodes.map((node) => nodeById.get(node.feature_id)) : ordered;
+    const displayIds = displayNodes.map((node) => node.feature_id);
     featureTreeState.textContent =
-      "Structure preview only · " + ordered.length + " features · " +
+      "Structure preview only · " + displayNodes.length + " features · " +
       suppressed.size + " suppressed · outputs: " +
-      snapshot.output_feature_ids.join(", ") + " · deterministic topological order";
+      snapshot.output_feature_ids.join(", ") + (storedOrderIsTopological
+        ? " · stored topological presentation order" : " · deterministic topological fallback");
     const showFeature = (node) => {
       selectedFeatureId = node.feature_id;
       selectedFeatureSuppressed = suppressed.has(node.feature_id);
@@ -298,10 +316,12 @@
         parameters: node.parameters,
       }, null, 2);
     };
-    for (const node of ordered) {
+    for (let index = 0; index < displayNodes.length; index += 1) {
+      const node = displayNodes[index];
       const item = document.createElement("li");
       const button = document.createElement("button");
       const dependencies = document.createElement("span");
+      const orderControls = document.createElement("div");
       button.type = "button";
       button.className = "feature-tree-node" + (suppressed.has(node.feature_id) ? " is-suppressed" : "");
       button.dataset.featureId = node.feature_id;
@@ -314,7 +334,33 @@
       dependencies.textContent = node.input_feature_ids.length
         ? "Depends on: " + node.input_feature_ids.join(", ")
         : "No dependencies";
-      item.append(button, dependencies);
+      orderControls.className = "feature-tree-order-controls";
+      for (const [direction, label] of [[-1, "up"], [1, "down"]]) {
+        const control = document.createElement("button");
+        const targetIndex = index + direction;
+        const candidate = [...displayIds];
+        if (targetIndex >= 0 && targetIndex < candidate.length) {
+          [candidate[index], candidate[targetIndex]] = [candidate[targetIndex], candidate[index]];
+        }
+        control.type = "button";
+        control.className = "quiet feature-tree-order-button";
+        control.textContent = label === "up" ? "Move up" : "Move down";
+        control.setAttribute("aria-label", "Move " + node.feature_id + " " + label);
+        control.dataset.reorderFeatureId = node.feature_id;
+        control.dataset.reorderAllowed = String(
+          targetIndex >= 0 && targetIndex < candidate.length &&
+          isValidFeaturePresentationOrder(candidate, nodeById)
+        );
+        control.addEventListener("click", async () => {
+          try {
+            await commitFeatureEdit("reorder", { ordered_feature_ids: candidate });
+          } catch (error) {
+            reportFeatureEditError(error);
+          }
+        });
+        orderControls.append(control);
+      }
+      item.append(button, dependencies, orderControls);
       featureTree.append(item);
     }
     const initial = ordered.find((node) => node.feature_id === selectedFeatureId) || ordered[0];

@@ -360,3 +360,54 @@ def test_undo_redo_controls_persist_across_reload_and_new_edit_clears_redo(workb
     assert state.current_revision == 6
     assert state.can_redo is False
     assert page_errors == []
+
+
+def test_feature_tree_reorder_is_dependency_safe_and_presentation_only(workbench):
+    page, service, page_errors = workbench
+    reordered_source = FeatureHistory(
+        "history.browser-e2e",
+        (
+            FeatureNode.create("base", FeatureKind.MESH),
+            FeatureNode.create("dependent", FeatureKind.MESH, ("base",)),
+            FeatureNode.create("independent", FeatureKind.MESH),
+        ),
+        ("dependent", "independent"),
+    )
+    service.save_history(reordered_source, expected_revision=1)
+    page.get_by_role("button", name="Refresh revisions").click()
+    page.locator('#revision option[value="2"]').wait_for(state="attached")
+    page.locator("#revision").select_option("2")
+    page.get_by_role("button", name="Load revision").click()
+    page.get_by_text("Loaded immutable source revision 2.").wait_for()
+
+    def order():
+        return [button.get_attribute("data-feature-id") for button in page.locator(
+            "#feature-tree li > button[data-feature-id]"
+        ).all()]
+
+    original_execution = service.history_store.load("history.browser-e2e", revision=2).history.topological_order()
+    assert order() == ["base", "dependent", "independent"]
+    assert "stored topological presentation order" in page.locator("#feature-tree-state").inner_text()
+    assert page.get_by_role("button", name="Move independent up").is_enabled()
+    page.get_by_role("button", name="Move independent up").click()
+    page.get_by_text("Saved reorder as immutable revision 3.").wait_for()
+    assert order() == ["base", "independent", "dependent"]
+    revision_three = service.history_store.load("history.browser-e2e", revision=3).history
+    assert tuple(node.feature_id for node in revision_three.nodes) == ("base", "independent", "dependent")
+    assert revision_three.topological_order() == original_execution
+
+    # A dependency cannot be moved below its consumer.
+    assert page.get_by_role("button", name="Move base down").is_enabled()
+    page.get_by_role("button", name="Move base down").click()
+    page.get_by_text("Saved reorder as immutable revision 4.").wait_for()
+    assert order() == ["independent", "base", "dependent"]
+    assert page.get_by_role("button", name="Move base down").is_disabled()
+    revision_four = service.history_store.load("history.browser-e2e", revision=4).history
+    assert revision_four.topological_order() == original_execution
+
+    # Historical revisions remain read-only for reorder actions.
+    page.locator("#revision").select_option("3")
+    page.get_by_role("button", name="Load revision").click()
+    page.get_by_text("Loaded immutable source revision 3.").wait_for()
+    assert page.get_by_role("button", name="Move independent up").is_disabled()
+    assert page_errors == []
