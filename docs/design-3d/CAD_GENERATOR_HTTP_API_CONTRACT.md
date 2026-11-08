@@ -246,4 +246,4 @@ The local workbench renders a bounded read-only structural preview from the JSON
 
 ## Undo/Redo API implementation status
 
-PR #170 adds the strict navigation endpoint and append-only Undo/Redo HTTP operations, mapping empty stacks to `NO_UNDO`/`NO_REDO` and stale heads to `REVISION_CONFLICT`. Exact-head CI and merge evidence are pending. Workbench controls and Chromium navigation E2E remain a separate work package.
+PR #170 merged the strict navigation endpoint and append-only Undo/Redo HTTP operations at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`, mapping empty stacks to `NO_UNDO`/`NO_REDO` and stale heads to `REVISION_CONFLICT`. Exact PR-head CI passed 865 Python tests and 5 Chromium E2E tests; post-merge Python and workflow-sanity passed, while Chromium E2E had 4 PASS / 1 fixture timing ERROR. PR #171 addresses revision-option readiness and adds the workbench controls/browser acceptance.
