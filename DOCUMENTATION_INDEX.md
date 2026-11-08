@@ -14,7 +14,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot: 21bee045ea4d06aa07c7130f9123afaa64372638; PR #171 post-merge workflow-sanity PASS, python-tests PASS (865 tests) and Chromium E2E PASS (6 tests). Main remains 96e75010716226037893155b9fd4b13410fb0d6f; integration is 416 commits ahead / 0 behind. Inventory at this baseline: 359 entries, 122 Markdown, 167 Python, 24 JSON files and 86 Python test files. FeatureHistory suppression is end-to-end IMPLEMENTED; Undo/Redo store and service/API are IMPLEMENTED by PRs #169/#170; workbench/browser acceptance is in PR #171 (current-head gating, revision readiness guard and reload persistence E2E); branching/merging, reorder, generalized B-rep and overall repository completion remain INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Last audited integration snapshot before PR #182: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`; push workflow #42457244454 completed with workflow-sanity PASS and python-tests PASS. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 468 commits ahead / 0 behind. The last complete inventory is historical and is not presented as current. FeatureHistory suppression, Undo/Redo, reorder and branch/fork/merge are PASS for their bounded workflows; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -177,7 +177,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — current registry, recovery, trusted process supervision, adapter routing, evidence integrity, resource health and security limits.
 
 
-- [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v1.0 closed triangular planar shell topology, exact validation invariants, mesh bridge and explicit limitations.
+- [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v2.0 closed single-shell polygonal planar topology, inner loops, exact validation invariants and explicit limits.
+- [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md) — deterministic n-gon/inner-loop triangulation, source identity preservation, resource limits and mesh-validation gates.
 - [Faceted B-rep Solid Schema](schemas/geometry/faceted-brep-solid.schema.json) — strict versioned topology snapshot schema.
 
 
@@ -284,3 +285,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Faceted B-rep Topology Contract v2.0](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — polygonal planar faces, inner loops, exact containment/orientation and Euler/genus semantics.
 - [Post-PR #181 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR181.md) — exact PR-head and post-merge Python/workflow-sanity evidence.
 - Status: PASS for single-shell polygonal BRep with face holes; multi-shell solids and general 3D Boolean remain OPEN.
+
+
+## Faceted B-rep polygonal mesh triangulation — PR #182
+
+- [Faceted B-rep Polygonal Mesh Triangulation Contract](docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md) — bounded deterministic conversion of polygonal faces and inner loops to a validated triangle mesh.
+- [Faceted B-rep Topology Contract v2.0](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — source topology and exact validation invariants.
+- Status: implementation candidate on `feat/cad-brep-polygonal-mesh-triangulation`; exact-head CI and review evidence pending. Multi-shell solids and general 3D Boolean remain OPEN.
