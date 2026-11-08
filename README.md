@@ -4,13 +4,13 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Latest verified integration baseline: `7b02337fb6bfe678ba950135c913b910c6e5fd40` (PR #186 merged).
+- Latest verified integration baseline: `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f` (PR #188 merged).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Historical integration baseline before PR #116 (post-PR #113, superseded): `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s** (superseded by the PR #118 baseline above).
-- Latest post-merge integration CI: workflow #42461678728 on exact merge SHA `7b02337fb6bfe678ba950135c913b910c6e5fd40` — workflow-sanity PASS and python-tests PASS (**904 passed in 14.44s**). PR #186 exact-head workflow #42461621856 passed (**904 passed in 14.52s**). Browser E2E was not triggered because no UI changed.
-- Current inventory at `7b02337fb6bfe678ba950135c913b910c6e5fd40`: 378 entries, 136 Markdown, 171 Python, 25 JSON files, 88 Python test files (recursive tree; truncated=false).
-- Open PRs after PR #186: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
+- Latest post-merge integration CI: workflow #42462067390 on exact merge SHA `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f` — workflow-sanity PASS and python-tests PASS (**906 passed in 16.06s**). PR #188 exact-head workflow #42461990534 passed (**906 passed in 15.32s**). Browser E2E was not triggered because no UI changed.
+- Current inventory at `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`: 379 entries, 137 Markdown, 171 Python, 25 JSON files, 88 Python test files (recursive tree; truncated=false).
+- Open PRs after PR #188: 0 at this audit. Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
 - Principles: Local-first, cost-aware, evidence-driven, modular, secure.
 - Hardware boundary: Analysis and simulation only; no physical control.
 - Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
@@ -279,3 +279,6 @@ PR #184 merged at `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`. The bounded multi-
 ## Multi-shell cavity reference coverage
 
 PR #186 adds a rotated 45-degree box cavity and a concave L-prism cavity reference. Exact PR-head and post-merge workflows pass **904 tests**. A separate push-event run was not returned for the exact PR head; it is not counted as PASS. See the [post-PR #186 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md).
+
+
+Multi-shell fail-closed coverage now explicitly rejects touching cavity boundaries and injected `UNKNOWN` intersection results. PR #188 exact-head and post-merge workflows passed 906 Python tests. A separate push-event run for the exact PR head was not returned; it is not counted as PASS. See the [post-PR #188 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md).
