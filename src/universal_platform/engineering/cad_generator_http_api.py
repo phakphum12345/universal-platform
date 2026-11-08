@@ -25,6 +25,7 @@ from .errors import InvalidModelError
 from .feature_history import FeatureKind, FeatureNode
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history_store import (
+    FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
 )
@@ -352,6 +353,11 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if not _HISTORY_ID.fullmatch(history_id):
             raise _HTTPError(400, "INVALID_HISTORY_ID", "history ID is invalid")
 
+        if self.command == "GET" and len(parts) == 2 and parts[1] == "navigation":
+            if parsed.query:
+                raise _HTTPError(400, "UNEXPECTED_QUERY", "This route does not accept query parameters")
+            return 200, self.server.generator_service.get_navigation_state(history_id).to_dict()
+
         if self.command == "GET" and len(parts) == 2 and parts[1] == "revisions":
             if parsed.query:
                 raise _HTTPError(400, "UNEXPECTED_QUERY", "This route does not accept query parameters")
@@ -382,6 +388,30 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 "content_sha256": revision.content_sha256,
                 "created_at": revision.created_at,
                 "history": revision.history.to_dict(),
+            }
+
+        if self.command == "POST" and len(parts) == 2 and parts[1] in {"undo", "redo"}:
+            body = self._read_json()
+            if set(body) != {"expected_revision"}:
+                raise _HTTPError(400, "INVALID_FIELDS", "Undo/Redo requires exactly expected_revision")
+            expected = body["expected_revision"]
+            if isinstance(expected, bool) or not isinstance(expected, int) or expected < 1:
+                raise _HTTPError(400, "INVALID_REVISION", "expected_revision must be a positive integer")
+            operation = parts[1]
+            revision = (
+                self.server.generator_service.undo_history(history_id, expected_revision=expected)
+                if operation == "undo"
+                else self.server.generator_service.redo_history(history_id, expected_revision=expected)
+            )
+            return 201, {
+                "history_id": revision.history_id,
+                "revision": revision.revision,
+                "parent_sha256": revision.parent_sha256,
+                "content_sha256": revision.content_sha256,
+                "created_at": revision.created_at,
+                "operation": revision.operation,
+                "source_revision": revision.source_revision,
+                "target_revision": revision.target_revision,
             }
 
         if self.command == "POST" and len(parts) == 2 and parts[1] == "edit":
@@ -501,6 +531,9 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             status = exc.status
             outcome = exc.code
             payload = {"error": {"code": exc.code, "message": exc.message}}
+        except FeatureHistoryNavigationUnavailable as exc:
+            status, outcome = 409, exc.code
+            payload = {"error": {"code": outcome, "message": str(exc)}}
         except FeatureHistoryRevisionConflict as exc:
             status, outcome = 409, "REVISION_CONFLICT"
             payload = {"error": {"code": outcome, "message": str(exc)}}
