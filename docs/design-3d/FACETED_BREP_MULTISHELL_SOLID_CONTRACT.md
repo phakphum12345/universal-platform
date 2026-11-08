@@ -83,3 +83,12 @@ No Boolean surface reconstruction is performed. This operation composes already 
 - Post-merge workflow #42461294867: workflow-sanity PASS; Python 902 PASS (14.17s).
 - Browser E2E was not triggered because no browser UI changed; it is not counted as PASS.
 - See [post-PR #184 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR184.md).
+
+
+## 10. PR #186 non-axis-aligned and concave reference evidence
+
+- PR #186 exact head: `4d8f253078ccfc202e275db9494c25d7f0174227`; merge SHA: `7b02337fb6bfe678ba950135c913b910c6e5fd40`.
+- Exact PR-head workflow #42461621856: workflow-sanity PASS; Python 904 PASS (14.52s).
+- Post-merge workflow #42461678728: workflow-sanity PASS; Python 904 PASS (14.44s).
+- The rotated 45-degree box cavity and concave L-prism cavity reference cases both pass containment, intersection, watertightness, orientation and net-volume checks.
+- See [post-PR #186 repository audit](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md).
