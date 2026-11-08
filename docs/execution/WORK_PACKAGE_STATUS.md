@@ -1,7 +1,7 @@
 # Work Package Status Register
 
 **Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `35f06a304090176eb6d10697d6da67b53b1ec9ba`  
+**Last verified integration baseline:** `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`  
 **Audit date:** 2026-11-08  
 **Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
 
@@ -101,3 +101,10 @@
 - Tests added for v1.0 round-trip, immutable revision digest preservation, v1.1 validation, explicit cascade, dependency-order unsuppression and regeneration skip behavior.
 - Service/API/workbench/browser E2E are intentionally not claimed in this slice.
 - PR #163 is open; verify latest exact head and all CI before merge.
+
+
+## Documentation reconciliation — PR #162
+
+- PR #162 merged at `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS.
+- Suppression contract is now indexed and merged; design is not counted as implementation.
