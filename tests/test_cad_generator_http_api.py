@@ -123,6 +123,9 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'id="feature-suppress"' in html
     assert 'id="feature-unsuppress"' in html
     assert 'id="feature-suppress-cascade"' in html
+    assert 'id="undo"' in html
+    assert 'id="redo"' in html
+    assert 'id="navigation-state"' in html
 
     with urlopen(base + "/static/cad_generator.js", timeout=3) as response:
         script = response.read().decode("utf-8")
@@ -172,6 +175,10 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert 'commitFeatureEdit("unsuppress"' in script
     assert "window.confirm(" in script
     assert "selectedFeatureSuppressed" in script
+    assert "updateNavigationControls" in script
+    assert 'performNavigation("undo")' in script
+    assert 'performNavigation("redo")' in script
+    assert "Select a saved revision before loading." in script
     assert "revisionSelect.value !== String(expected)" in script
     assert "function updateFeatureEditorControls(hasSelection)" in script
     assert "revisionSelect.value === String(expected)" in script
