@@ -179,4 +179,35 @@ def unsuppress_feature(history: FeatureHistory, feature_id: str) -> FeatureHisto
     )
 
 
-__all__ = ["add_feature", "replace_feature", "remove_feature", "suppress_feature", "unsuppress_feature"]
+def reorder_features(
+    history: FeatureHistory,
+    ordered_feature_ids: tuple[str, ...],
+) -> FeatureHistory:
+    """Return a new history with a validated topological presentation order.
+
+    Reordering changes only the immutable source node sequence used for display.
+    Feature execution order remains the deterministic dependency-derived order
+    returned by FeatureHistory.topological_order(). Every dependency must still
+    appear before its dependent in the requested presentation sequence.
+    """
+    if not isinstance(history, FeatureHistory):
+        raise InvalidModelError("reorder_features requires a FeatureHistory")
+    if not isinstance(ordered_feature_ids, tuple) or any(
+        not isinstance(item, str) or not item for item in ordered_feature_ids
+    ):
+        raise InvalidModelError("ordered_feature_ids must be an immutable tuple of feature IDs")
+    by_id = {node.feature_id: node for node in history.nodes}
+    if len(ordered_feature_ids) != len(by_id) or set(ordered_feature_ids) != set(by_id):
+        raise InvalidModelError("ordered_feature_ids must contain every feature ID exactly once")
+    positions = {feature_id: index for index, feature_id in enumerate(ordered_feature_ids)}
+    for node in history.nodes:
+        if any(positions[dependency] >= positions[node.feature_id] for dependency in node.input_feature_ids):
+            raise InvalidModelError("ordered_feature_ids must place every dependency before its dependent")
+    nodes = tuple(by_id[feature_id] for feature_id in ordered_feature_ids)
+    return FeatureHistory(
+        history.history_id, nodes, history.output_feature_ids,
+        history.suppressed_feature_ids, history.document_version,
+    )
+
+
+__all__ = ["add_feature", "replace_feature", "remove_feature", "reorder_features", "suppress_feature", "unsuppress_feature"]
