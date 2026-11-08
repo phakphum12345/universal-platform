@@ -250,3 +250,14 @@
 - Exact PR-head workflow #42468475501: workflow-sanity PASS; Python 921 PASS (21.16s).
 - The available workflow query returned no post-merge run and combined commit statuses were empty; record post-merge CI as UNKNOWN, not PASS.
 - Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR195.md`.
+
+
+## CAD-BREP-BOOLEAN-001B — Exact triangle split by intersecting plane
+
+- Source candidate: `src/universal_platform/engineering/triangle_intersection_events.py`.
+- Public API candidate: `TriangleFragment`, `split_triangle_by_intersecting_plane`.
+- Tests candidate: `tests/test_triangle_intersection_events.py`.
+- Scope: for a properly intersecting triangle pair, split one source triangle by the full cutter-plane chord using exact-rational half-plane clipping; triangulate both convex sides deterministically; preserve source winding; verify exact area conservation and a maximum of three output triangles.
+- Disjoint pairs return one unchanged fragment. Coplanar/contact/degenerate cases fail closed through the existing event contract.
+- Explicit non-claims: no full-mesh arrangement, multi-plane accumulation, Boolean material classification, fragment boundary pairing or solid assembly.
+- Status: implementation candidate — pending exact-head CI and review.

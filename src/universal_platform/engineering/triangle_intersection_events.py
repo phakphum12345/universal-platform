@@ -162,3 +162,150 @@ def extract_transverse_triangle_intersection(
             raise InvalidModelError("intersection endpoint failed exact plane/triangle verification")
 
     return TriangleIntersectionSegment(first, second, start, end)
+
+
+@dataclass(frozen=True, slots=True)
+class TriangleFragment:
+    """One oriented triangle fragment with exact coordinates and source lineage."""
+
+    source_triangle_index: int
+    cutter_triangle_index: int
+    side: str
+    vertices: tuple[_RATIONAL_POINT, _RATIONAL_POINT, _RATIONAL_POINT]
+
+    def __post_init__(self) -> None:
+        if (isinstance(self.source_triangle_index, bool)
+                or not isinstance(self.source_triangle_index, int)
+                or self.source_triangle_index < 0
+                or isinstance(self.cutter_triangle_index, bool)
+                or not isinstance(self.cutter_triangle_index, int)
+                or self.cutter_triangle_index < 0
+                or self.source_triangle_index == self.cutter_triangle_index):
+            raise InvalidModelError("fragment source and cutter indices must be distinct non-negative integers")
+        if not isinstance(self.side, str) or self.side not in {"POSITIVE", "NEGATIVE", "UNSPLIT"}:
+            raise InvalidModelError("fragment side is unsupported")
+        if (not isinstance(self.vertices, tuple) or len(self.vertices) != 3
+                or any(not isinstance(point, tuple) or len(point) != 3
+                       or any(not isinstance(value, Fraction) for value in point)
+                       for point in self.vertices)):
+            raise InvalidModelError("fragment vertices must be three exact-rational 3D points")
+        if len(set(self.vertices)) != 3:
+            raise InvalidModelError("fragment triangle vertices must be distinct")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_triangle_index": self.source_triangle_index,
+            "cutter_triangle_index": self.cutter_triangle_index,
+            "side": self.side,
+            "vertices": [
+                [[value.numerator, value.denominator] for value in point]
+                for point in self.vertices
+            ],
+        }
+
+
+def _dedupe_exact_points(points: list[_RATIONAL_POINT]) -> list[_RATIONAL_POINT]:
+    result: list[_RATIONAL_POINT] = []
+    for point in points:
+        if not result or result[-1] != point:
+            result.append(point)
+    if len(result) > 1 and result[0] == result[-1]:
+        result.pop()
+    return result
+
+
+def split_triangle_by_intersecting_plane(
+    mesh: TriangleMesh, source_triangle_index: int, cutter_triangle_index: int,
+) -> tuple[TriangleFragment, ...]:
+    """Split one source triangle by the plane of a properly intersecting triangle.
+
+    The cutter triangle must have a proper transverse intersection segment with
+    the source triangle. The full cutter-plane chord is used to partition the
+    source triangle, not merely the clipped segment inside the cutter triangle.
+    Exact rational Sutherland-Hodgman clipping preserves source winding and
+    verifies exact area conservation. Disjoint pairs return the original
+    source triangle as one UNSPLIT fragment. Unsupported contact/coplanar
+    cases fail closed.
+    """
+    event = extract_transverse_triangle_intersection(
+        mesh, source_triangle_index, cutter_triangle_index
+    )
+    if source_triangle_index == cutter_triangle_index:
+        raise InvalidModelError("source and cutter triangles must be distinct")
+    if not isinstance(mesh, TriangleMesh):
+        raise InvalidModelError("mesh must be a TriangleMesh")
+    if (isinstance(source_triangle_index, bool) or not isinstance(source_triangle_index, int)
+            or isinstance(cutter_triangle_index, bool) or not isinstance(cutter_triangle_index, int)):
+        raise InvalidModelError("triangle indices must be integers")
+    if not (0 <= source_triangle_index < len(mesh.triangles)
+            and 0 <= cutter_triangle_index < len(mesh.triangles)):
+        raise InvalidModelError("triangle index is outside the source mesh")
+
+    source_face = mesh.triangles[source_triangle_index]
+    cutter_face = mesh.triangles[cutter_triangle_index]
+
+    def exact_triangle(face: tuple[int, int, int]) -> tuple[_POINT, _POINT, _POINT]:
+        return tuple(
+            (_q(mesh.vertices[index].x), _q(mesh.vertices[index].y), _q(mesh.vertices[index].z))
+            for index in face
+        )  # type: ignore[return-value]
+
+    source = exact_triangle(source_face)
+    cutter = exact_triangle(cutter_face)
+    if event is None:
+        return (TriangleFragment(
+            source_triangle_index, cutter_triangle_index, "UNSPLIT", source
+        ),)
+
+    cutter_normal = _cross(_sub(cutter[1], cutter[0]), _sub(cutter[2], cutter[0]))
+    source_normal = _cross(_sub(source[1], source[0]), _sub(source[2], source[0]))
+    distances = tuple(_dot(cutter_normal, _sub(point, cutter[0])) for point in source)
+    if not (any(value > 0 for value in distances) and any(value < 0 for value in distances)):
+        raise InvalidModelError("proper intersection did not induce a transverse source-triangle split")
+
+    def clip(keep_positive: bool) -> list[_RATIONAL_POINT]:
+        polygon = list(source)
+        output: list[_RATIONAL_POINT] = []
+        previous = polygon[-1]
+        d_previous = _dot(cutter_normal, _sub(previous, cutter[0]))
+        previous_inside = d_previous >= 0 if keep_positive else d_previous <= 0
+        for current in polygon:
+            d_current = _dot(cutter_normal, _sub(current, cutter[0]))
+            current_inside = d_current >= 0 if keep_positive else d_current <= 0
+            if previous_inside != current_inside:
+                ratio = d_previous / (d_previous - d_current)
+                intersection = tuple(
+                    previous[axis] + ratio * (current[axis] - previous[axis])
+                    for axis in range(3)
+                )
+                output.append(intersection)  # type: ignore[arg-type]
+            if current_inside:
+                output.append(current)
+            previous = current
+            d_previous = d_current
+            previous_inside = current_inside
+        return _dedupe_exact_points(output)
+
+    original_area2 = _dot(source_normal, source_normal)
+    fragments: list[TriangleFragment] = []
+    total_area2 = Fraction(0)
+    for side, polygon in (("POSITIVE", clip(True)), ("NEGATIVE", clip(False))):
+        if len(polygon) < 3:
+            raise InvalidModelError("triangle split produced a degenerate half-plane polygon")
+        for index in range(1, len(polygon) - 1):
+            triangle = (polygon[0], polygon[index], polygon[index + 1])
+            fragment_normal = _cross(_sub(triangle[1], triangle[0]), _sub(triangle[2], triangle[0]))
+            signed_area2 = _dot(fragment_normal, source_normal)
+            if signed_area2 == 0:
+                continue
+            if signed_area2 < 0:
+                raise InvalidModelError("triangle fragment winding differs from its source triangle")
+            total_area2 += signed_area2
+            fragments.append(TriangleFragment(
+                source_triangle_index, cutter_triangle_index, side, triangle
+            ))
+    if not fragments or total_area2 != original_area2:
+        raise InvalidModelError("triangle fragment split failed exact area conservation")
+    if len(fragments) > 3:
+        raise InvalidModelError("triangle split exceeded its proven fragment bound")
+    return tuple(fragments)
