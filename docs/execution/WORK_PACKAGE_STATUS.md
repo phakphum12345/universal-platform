@@ -133,3 +133,12 @@
 - PR #167 merged at `d71fc36b29f4e1b1056c738294c1529e823be671`.
 - Exact PR-head and post-merge CI: 854 Python tests PASS; workflow-sanity PASS.
 - FeatureHistory suppression end-to-end work packages CAD-EDIT-005/006/007 are PASS. Overall WP-03 remains PARTIAL because undo/redo, branch/merge and reorder are still open.
+
+
+## CAD-EDIT-009 — Store-level Undo/Redo (PR #169)
+
+- Adds persistent SQLite navigation stacks and revision action metadata without rewriting existing revision snapshots or digests.
+- Legacy histories backfill Undo targets from their immutable revision chain.
+- Undo/Redo append a new revision with current head as parent; all stack and head changes occur in one transaction.
+- A new edit after Undo clears Redo. Stale expected revisions leave both stacks and revision count unchanged.
+- Exact PR-head CI: 860 Python tests PASS; workflow-sanity PASS. Store slice is not yet merged at this status snapshot.
