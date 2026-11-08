@@ -568,7 +568,10 @@ def test_http_api_undo_redo_navigation_and_revision_conflicts(api):
 
     status, navigation = send(base, "/v1/histories/history.http-api/navigation")
     assert status == 200
-    assert navigation == {
+    assert {key: navigation[key] for key in (
+        "history_id", "current_revision", "can_undo", "can_redo",
+        "undo_depth", "redo_depth",
+    )} == {
         "history_id": "history.http-api",
         "current_revision": 2,
         "can_undo": True,
@@ -576,6 +579,7 @@ def test_http_api_undo_redo_navigation_and_revision_conflicts(api):
         "undo_depth": 1,
         "redo_depth": 0,
     }
+    assert isinstance(navigation["request_id"], str)
 
     status, unavailable = send(
         base, "/v1/histories/history.http-api/redo", method="POST",
