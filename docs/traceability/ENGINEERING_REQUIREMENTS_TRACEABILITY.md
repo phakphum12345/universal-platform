@@ -271,3 +271,10 @@ Adds immutable versioned module and operation declarations, deterministic regist
 | ID | Requirement | Design evidence | Status / remaining boundary |
 |---|---|---|---|
 | CAD-BREP-POLYGON-HOLES-001 | Represent and validate planar polygonal B-rep faces with strictly contained inner loops | [Faceted B-rep Topology Contract v2.0](../design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md), PR #181 | PASS — schema/profile v2.0; exact rational planarity/simple-loop/containment/orientation checks; genus-1 through-hole fixture; v1.0 import compatibility. Exact PR-head and post-merge SHA `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b`: workflow-sanity PASS, Python 892 PASS. Chromium E2E SKIPPED/not triggered (no UI change). Mesh triangulation for n-gons/holes and multi-shell solids remain OPEN. |
+
+
+## CAD-BREP-BOOLEAN-001 — Arbitrary faceted B-rep Boolean
+
+| ID | Requirement | Design evidence | Status / remaining boundary |
+|---|---|---|---|
+| CAD-BREP-BOOLEAN-001 | Evaluate bounded set Boolean operations on validated non-axis-aligned polygonal faceted solids without mutating source geometry | [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), [Pre-implementation Audit](../audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md) | PLANNED — no arbitrary-faceted Boolean kernel exists yet. Existing PR #191 adapters accept only axis-aligned box components. Gate A must implement exact transverse triangle intersections and deterministic fragment splitting with independent oracle coverage; all unsupported/ambiguous degeneracies must fail closed. |
