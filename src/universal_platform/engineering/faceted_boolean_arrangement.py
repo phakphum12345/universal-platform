@@ -8,7 +8,7 @@ from typing import Sequence
 from .errors import InvalidModelError
 from .mesh import TriangleMesh, validate_triangle_mesh
 from .mesh_intersection import analyze_mesh_intersections
-from .triangle_coverage_oracle import coplanar_triangle_intersection_kind
+from .triangle_coverage_oracle import (coplanar_contact_is_covered, coplanar_triangle_intersection_geometry, coplanar_triangle_intersection_kind)
 from .triangle_fragment_arrangement import RationalPlane, RationalPoint3, RationalTriangle3, RationalTriangleFragment
 from .global_triangle_arrangement import GlobalTriangleArrangement, arrange_triangle_mesh_globally
 
@@ -115,7 +115,8 @@ def arrange_faceted_boolean_meshes(
 
     coplanar_checks=0
     active_coplanar_planes=set()
-    contact_coplanar_planes=set()
+    area_polygons_by_plane={}
+    contact_polygons_by_plane={}
     for first_index in range(len(meshes)):
         for second_index in range(first_index+1,len(meshes)):
             first_by_plane={}
@@ -132,12 +133,26 @@ def arrange_faceted_boolean_meshes(
                             raise InvalidModelError("coplanar pair scan exceeded max_coplanar_checks")
                         relation=coplanar_triangle_intersection_kind(first,second)
                         if relation=="AREA_OVERLAP":
+                            geometry=coplanar_triangle_intersection_geometry(first,second)
+                            if geometry is None:
+                                raise InvalidModelError("coplanar overlap lost its supporting plane")
+                            _, polygon=geometry
                             active_coplanar_planes.add(key)
+                            area_polygons_by_plane.setdefault(key,[]).append(polygon)
                         elif relation=="CONTACT":
-                            contact_coplanar_planes.add(key)
+                            geometry=coplanar_triangle_intersection_geometry(first,second)
+                            if geometry is None:
+                                raise InvalidModelError("coplanar contact lost its supporting plane")
+                            _, polygon=geometry
+                            contact_polygons_by_plane.setdefault(key,[]).append(polygon)
                         elif relation!="DISJOINT":
                             raise InvalidModelError("unexpected coplanar relation: "+relation)
-    unsupported_contacts=contact_coplanar_planes-active_coplanar_planes
+    unsupported_contacts = {
+        key for key, contacts in contact_polygons_by_plane.items()
+        if any(not coplanar_contact_is_covered(
+            contact, area_polygons_by_plane.get(key, ())
+        ) for contact in contacts)
+    }
     if unsupported_contacts:
         raise InvalidModelError("coplanar point/edge contact is unsupported")
     # Build a complete planar line arrangement on each active coplanar plane:
