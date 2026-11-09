@@ -142,3 +142,12 @@ def test_global_edge_registry_subdivides_long_edge_for_cross_facet_adjacency():
             )
             projection = sum((direction[i] * offset[i] for i in range(3)), F(0))
             assert cross != (F(0), F(0), F(0)) or not (0 < projection < length_squared)
+
+
+
+def test_global_arrangement_preflights_aggregate_rational_bits():
+    mesh = ((p(0, 0), p(2, 0), p(0, 2)),)
+    with pytest.raises(InvalidModelError, match="aggregate rational bit budget"):
+        arrange_triangle_mesh_globally(
+            mesh, (), max_aggregate_rational_bits=8
+        )
