@@ -132,8 +132,8 @@ def arrange_triangle_mesh_globally(
     expected_by_source={}
     actual_by_source={}
     for source_index,source in enumerate(source_items):
-        remaining=max_fragments-len(raw_fragments)
-        if remaining<1: raise InvalidModelError("global arrangement exceeded max_fragments")
+        remaining=min(max_fragments-len(raw_fragments),ledger.remaining("fragments"))
+        if remaining<1: raise InvalidModelError("global arrangement exceeded the invocation fragment budget")
         local=arrange_triangles_by_planes((source,),plane_items,max_fragments=remaining,
                                           max_coordinate_bits=max_coordinate_bits)
         normal=_area_vector(source)
@@ -149,6 +149,8 @@ def arrange_triangle_mesh_globally(
 
     global_points=sorted({point for fragment in raw_fragments for point in fragment.vertices})
     point_ids={point:index for index,point in enumerate(global_points)}
+    if 3*len(raw_fragments)>ledger.remaining("edges"):
+        raise InvalidModelError("global arrangement exceeded the invocation edge budget")
     raw_edges=set()
     for fragment in raw_fragments:
         ids=tuple(point_ids[p] for p in fragment.vertices)
@@ -188,6 +190,7 @@ def arrange_triangle_mesh_globally(
             ordered=[start_id]+[candidate_id for _,candidate_id in sorted(interior)]+[end_id]
             boundary_ids.extend(ordered[:-1])
         if len(boundary_ids)==3:
+            ledger.charge("fragments", 1)
             conforming.append(fragment)
             continue
         # Ear-clip the convex boundary polygon. This inserts no synthetic
@@ -222,6 +225,7 @@ def arrange_triangle_mesh_globally(
             if not ears:
                 raise InvalidModelError("global conforming polygon could not be triangulated exactly")
             _,index,previous,current,following=min(ears,key=lambda item:item[0])
+            ledger.charge("fragments", 1)
             conforming.append(RationalTriangleFragment(
                 fragment.source_triangle_index,fragment.side_signature,
                 (previous,current,following)))
@@ -231,12 +235,12 @@ def arrange_triangle_mesh_globally(
         final_triangle=(polygon[0],polygon[1],polygon[2])
         if _dot(_area_vector(final_triangle),source_normal)<=0:
             raise InvalidModelError("global conforming triangulation changed source winding")
+        ledger.charge("fragments", 1)
         conforming.append(RationalTriangleFragment(
             fragment.source_triangle_index,fragment.side_signature,final_triangle))
         if len(conforming)>max_fragments:
             raise InvalidModelError("global conforming triangulation exceeded max_fragments")
 
-    ledger.charge("fragments", len(conforming))
     final_by_source={index:[] for index in range(len(source_items))}
     for fragment in conforming: final_by_source[fragment.source_triangle_index].append(fragment.vertices)
     coverage=[]
@@ -249,12 +253,15 @@ def arrange_triangle_mesh_globally(
             for triangle in (source,*source_fragments)
             for point in triangle for value in point
         )
-        remaining_bits=max_aggregate_rational_bits-coverage_bits_used
+        remaining_bits=min(max_aggregate_rational_bits-coverage_bits_used,
+                           ledger.remaining("aggregate_rational_bits"))
         if partition_bits>remaining_bits:
             raise InvalidModelError("global coverage aggregate rational bit budget exceeded")
-        remaining_checks=max_coverage_checks-checks_used
+        remaining_checks=min(max_coverage_checks-checks_used,
+                             ledger.remaining("coverage_checks"))
         if remaining_checks<1:
             raise InvalidModelError("global coverage pair-check budget exhausted")
+        ledger.charge("aggregate_rational_bits", partition_bits)
         oracle=certify_triangle_partition(
             source,source_fragments,
             max_pairwise_checks=remaining_checks,
@@ -263,7 +270,6 @@ def arrange_triangle_mesh_globally(
         checks_used+=oracle.pairwise_checks
         coverage_bits_used+=partition_bits
         ledger.charge("coverage_checks", oracle.pairwise_checks)
-        ledger.charge("aggregate_rational_bits", partition_bits)
         if not oracle.certified:
             raise InvalidModelError(f"conforming exact coverage oracle rejected source triangle {source_index}")
         coverage.append(SourceCoverageReport(source_index,expected_by_source[source_index],
@@ -273,6 +279,8 @@ def arrange_triangle_mesh_globally(
     final_points=sorted({point for fragment in conforming for point in fragment.vertices})
     final_ids={point:index for index,point in enumerate(final_points)}
     vertices=tuple(GlobalArrangementVertex(index,point) for index,point in enumerate(final_points))
+    if 3*len(conforming)>ledger.remaining("edges"):
+        raise InvalidModelError("global arrangement exceeded the invocation edge budget")
     faces=[]
     edge_faces={}
     for face_id,fragment in enumerate(conforming):
