@@ -193,3 +193,34 @@ def test_rational_boolean_deserialization_rejects_rehashed_invalid_cavity_parent
     ).hexdigest()
     with pytest.raises(InvalidModelError, match="cavity parentage does not match exact containment"):
         RationalBooleanSolid.from_dict(snapshot)
+
+
+@pytest.mark.parametrize(
+    ("operation", "expected_volume"),
+    (
+        (BRepBooleanOperation.UNION, F(15)),
+        (BRepBooleanOperation.INTERSECTION, F(1)),
+        (BRepBooleanOperation.DIFFERENCE, F(7)),
+        (BRepBooleanOperation.SYMMETRIC_DIFFERENCE, F(14)),
+    ),
+)
+def test_cad_generator_exact_rational_boolean_operation_matrix(
+    tmp_path, operation, expected_volume,
+):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
+    )
+    meshes = (
+        _box("a", 2.0),
+        _box("b", 2.0, (1.0, 1.0, 1.0)),
+    )
+
+    artifact = service.execute_rational_faceted_boolean(
+        meshes, operation, result_id=f"generator.{operation.value.lower()}",
+    )
+
+    assert artifact.exact_net_volume == expected_volume
+    snapshot = artifact.to_dict()
+    assert RationalBooleanSolid.from_dict(snapshot) == artifact
+    assert RationalBooleanSolid.from_dict(snapshot).to_dict() == snapshot
