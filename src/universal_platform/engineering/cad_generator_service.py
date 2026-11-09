@@ -343,6 +343,7 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id: str = "boolean.result",
+        resource_limits: Mapping[str, int] | None = None,
     ) -> RationalBooleanSolid:
         """Generate a serialized exact-rational multi-shell Boolean solid.
 
