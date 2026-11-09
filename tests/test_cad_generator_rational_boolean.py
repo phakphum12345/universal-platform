@@ -11,13 +11,13 @@ from universal_platform.engineering import (
     BooleanBoundarySelection,
     assemble_rational_boolean_solid,
     BoxSolid,
-    Vec3,
     TriangleMesh,
     tessellate_box,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
 )
 from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.geometry import Vec3
 
 
 def _box(solid_id, size, offset=(0.0, 0.0, 0.0)):
