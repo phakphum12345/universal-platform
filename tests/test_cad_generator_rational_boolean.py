@@ -62,7 +62,7 @@ def test_rational_boolean_assembly_preserves_non_binary_coordinates_and_round_tr
         result_id="rational.tetra"
     )
     assert isinstance(artifact, RationalBooleanSolid)
-    assert artifact.exact_net_volume == F(1, 18)
+    assert artifact.exact_net_volume == F(1, 162)
     snapshot = artifact.to_dict()
     assert snapshot["profile"] == "RATIONAL_BOOLEAN_SOLID_V1"
     assert any(["1", "3"] in point for point in
