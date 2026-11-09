@@ -101,6 +101,11 @@ class ExactMeshMaterialClassifier:
             self.triangles=()
             self.reason="ray-triangle resource budget exceeded"
             return
+        topology=validate_triangle_mesh(mesh)
+        if not (topology.valid and topology.watertight and topology.consistently_oriented):
+            self.triangles=()
+            self.reason="mesh is not a valid oriented watertight shell"
+            return
         triangles=[]
         aggregate_bits=0
         for face in mesh.triangles:
@@ -119,10 +124,7 @@ class ExactMeshMaterialClassifier:
                 exact.append(point)
             triangles.append(tuple(exact))
         self.triangles=tuple(triangles)
-        topology=validate_triangle_mesh(mesh)
-        if not (topology.valid and topology.watertight and topology.consistently_oriented):
-            self.reason="mesh is not a valid oriented watertight shell"
-        elif analyze_mesh_intersections(mesh).status!="NO_INTERSECTIONS_FOUND":
+        if analyze_mesh_intersections(mesh).status!="NO_INTERSECTIONS_FOUND":
             self.reason="mesh self-intersection status is not NO_INTERSECTIONS_FOUND"
 
     def classify_rational(self,point:Point3)->MaterialClassificationResult:
