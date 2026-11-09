@@ -217,7 +217,7 @@ def test_cad_generator_exact_rational_boolean_operation_matrix(
     )
 
     artifact = service.execute_rational_faceted_boolean(
-        meshes, operation, result_id=f"generator.{operation.value.lower()}",
+        meshes, operation, result_id=f"generator.{operation.value.lower().replace(chr(95), chr(45))}",
     )
 
     assert artifact.exact_net_volume == expected_volume
