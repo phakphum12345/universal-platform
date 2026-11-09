@@ -82,24 +82,48 @@ def _ray_crossings(origin:Point3,direction:Point3,
 
 class ExactMeshMaterialClassifier:
     """Prepared classifier; validates a mesh once and reuses exact triangles."""
-    def __init__(self,mesh:TriangleMesh,*,max_ray_checks:int=1_000_000)->None:
+    def __init__(self,mesh:TriangleMesh,*,max_ray_checks:int=1_000_000,
+                 max_aggregate_rational_bits:int=64_000_000)->None:
         if not isinstance(mesh,TriangleMesh):
             raise InvalidModelError("classifier requires a TriangleMesh")
         if isinstance(max_ray_checks,bool) or not isinstance(max_ray_checks,int) or max_ray_checks<1:
             raise InvalidModelError("max_ray_checks must be a positive integer")
+        if (isinstance(max_aggregate_rational_bits,bool)
+                or not isinstance(max_aggregate_rational_bits,int)
+                or not 1<=max_aggregate_rational_bits<=64_000_000):
+            raise InvalidModelError("max_aggregate_rational_bits must be within the supported hard limit")
         self.mesh=mesh
         self.max_ray_checks=max_ray_checks
-        self.triangles=tuple(tuple((_q(mesh.vertices[i].x),_q(mesh.vertices[i].y),_q(mesh.vertices[i].z))
-                                   for i in face) for face in mesh.triangles)
         self.reason=None
+        # Do not allocate exact triangle tuples until the ray-work preflight
+        # has established that this mesh is eligible for classification.
         if len(mesh.triangles)*len(_DIRECTIONS)>max_ray_checks:
+            self.triangles=()
             self.reason="ray-triangle resource budget exceeded"
-        else:
-            topology=validate_triangle_mesh(mesh)
-            if not (topology.valid and topology.watertight and topology.consistently_oriented):
-                self.reason="mesh is not a valid oriented watertight shell"
-            elif analyze_mesh_intersections(mesh).status!="NO_INTERSECTIONS_FOUND":
-                self.reason="mesh self-intersection status is not NO_INTERSECTIONS_FOUND"
+            return
+        triangles=[]
+        aggregate_bits=0
+        for face in mesh.triangles:
+            exact=[]
+            for index in face:
+                vertex=mesh.vertices[index]
+                point=(_q(vertex.x),_q(vertex.y),_q(vertex.z))
+                aggregate_bits+=sum(
+                    abs(value.numerator).bit_length()+value.denominator.bit_length()
+                    for value in point
+                )
+                if aggregate_bits>max_aggregate_rational_bits:
+                    self.triangles=()
+                    self.reason="aggregate rational bit budget exceeded"
+                    return
+                exact.append(point)
+            triangles.append(tuple(exact))
+        self.triangles=tuple(triangles)
+        topology=validate_triangle_mesh(mesh)
+        if not (topology.valid and topology.watertight and topology.consistently_oriented):
+            self.reason="mesh is not a valid oriented watertight shell"
+        elif analyze_mesh_intersections(mesh).status!="NO_INTERSECTIONS_FOUND":
+            self.reason="mesh self-intersection status is not NO_INTERSECTIONS_FOUND"
 
     def classify_rational(self,point:Point3)->MaterialClassificationResult:
         if (not isinstance(point,tuple) or len(point)!=3
