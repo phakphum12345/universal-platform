@@ -138,13 +138,13 @@ The branch already contains distinct implementations and tests for:
 - `boolean_shell_assembly.py`: shell/component assembly, cavities, exact net volume and topology validation.
 - `cad_generator_service.py`: `execute_faceted_boolean` orchestration, with E2E tests for intersecting boxes and coplanar overlap.
 
-These are existing bounded paths, not yet proof of complete Boolean Kernel support. The remaining integration audit must establish that the exact rational result is preserved through shell assembly and serialized output; current CAD Generator notes explicitly identify binary64 B-rep conversion as a limitation.
+These are existing bounded paths, not yet proof of complete Boolean Kernel support. PR #225 now adds the separate exact-rational multi-shell result path through shell assembly and deterministic serialization. The legacy binary64 B-rep result path remains separate and rejects non-lossless rational coordinates; it is not the exact-output contract.
 
 ### Still open
 - Complete aggregate rational budget accounting across global arrangement, classification, selection, and shell assembly (the new oracle budget is one layer, not proof of end-to-end aggregate accounting).
 - Adversarial coverage matrix for shared vertices, multi-fragment point/edge contacts, disconnected overlays, and malformed/resource-exhaustion paths.
 - Verify all four operations across disjoint, nested, coplanar, intersecting, and degeneracy fixtures.
-- Add/verify a lossless rational shell-assembly output path and CAD Generator E2E round-trip; do not round rational coordinates into binary64 and call that exact.
+- Extend service-level E2E and operation coverage across the rational multi-shell path; keep exact rational serialization distinct from the legacy binary64 B-rep adapter.
 
 
 ### Cross-stage resource accounting extension
@@ -156,7 +156,7 @@ The rational bit budget and early-work preflight now extend beyond the standalon
 - Boundary selection preflights total mesh input rational bits, shares the coverage pair-check counter across source faces, explicitly rejects exhausted remaining pair budget, and charges source/fragment rational bits against one operation-level aggregate budget.
 - Regression tests cover classifier allocation preflight, classifier and selection aggregate-budget rejection, and global-arrangement aggregate-budget rejection.
 
-These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Shell assembly still needs its own aggregate budget and exact-rational output contract. The Boolean pipeline therefore remains PARTIAL until those integration gates and current-head CI are complete.
+These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Rational shell assembly now enforces its own aggregate rational-bit, inter-shell pair and containment-ray budgets and preserves exact rational output. The remaining resource gap is cross-stage accounting: a single invocation-wide ledger must prevent the sum of arrangement, classification, selection and assembly work from independently consuming each stage's full ceiling. The Boolean pipeline therefore remains PARTIAL until that integration gate and the broader operation/degeneracy matrix are complete.
 
 
 ## Rational multi-shell output — implementation candidate
@@ -183,7 +183,4 @@ Regression coverage targets non-binary rational round-trip, disconnected outer
 components, cavity role/parentage/net volume, touching-shell rejection,
 invalid cavity containment, and service-level Boolean serialization.
 
-**Status: IMPLEMENTED IN PR CANDIDATE / CI PENDING.** This does not certify
-branching, arbitrary tangencies, nested material islands, all degeneracies, or
-unrestricted exact Boolean geometry. Do not mark the stage PASS until all
-required checks succeed on the exact latest head SHA.
+**Status: MERGED — PR #225**, merge SHA `520c8b24f74b7e66ced7872ef067e6dddf9b4f63`. Exact PR head `ceb32c9022d52eb7a54c8f183b7d4a72c1b80bf8` passed `python-tests`, `workflow-sanity`, and `chromium-e2e`. The bounded multi-shell output path is implemented and its PR-head checks are PASS. This does not certify branching, arbitrary tangencies, nested material islands, all degeneracies, or unrestricted exact Boolean geometry; post-merge CI and full kernel acceptance remain separate evidence gates.
