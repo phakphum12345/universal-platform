@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 from .brep_boolean import BRepBooleanOperation
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .material_classification import ExactMeshMaterialClassifier, MaterialClassification, RAY_DIRECTION_COUNT
 from .mesh import TriangleMesh
 from .triangle_coverage_oracle import certify_triangle_partition
@@ -84,8 +85,12 @@ def select_boolean_boundary_fragments(
     max_classification_checks:int=250_000,max_ray_checks_per_mesh:int=1_000_000,
     max_total_ray_checks:int=50_000_000,
     max_aggregate_rational_bits:int=64_000_000,
+    resource_ledger:BooleanResourceLedger|None=None,
 )->BooleanBoundarySelection:
     """Select boundaries by exact Boolean membership on both sides of each face."""
+    ledger=resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger,BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     if not isinstance(meshes,tuple) or not 2<=len(meshes)<=16:
         raise InvalidModelError("Boolean boundary selection requires 2..16 immutable input meshes")
     if not isinstance(fragments_by_solid,tuple) or len(fragments_by_solid)!=len(meshes):
@@ -118,6 +123,9 @@ def select_boolean_boundary_fragments(
     )
     if required_ray_triangle_checks > max_total_ray_checks:
         raise InvalidModelError("Boolean classification exceeded max_total_ray_checks")
+    ledger.charge("fragments", total_fragments)
+    ledger.charge("classification_checks", required_classifications)
+    ledger.charge("ray_triangle_checks", required_ray_triangle_checks)
     aggregate_bits_used=0
     for mesh in meshes:
         for vertex in mesh.vertices:
@@ -125,6 +133,7 @@ def select_boolean_boundary_fragments(
                 aggregate_bits_used += abs(coordinate.numerator).bit_length()+coordinate.denominator.bit_length()
                 if aggregate_bits_used>max_aggregate_rational_bits:
                     raise InvalidModelError("Boolean aggregate rational bit budget exceeded")
+    ledger.charge("aggregate_rational_bits", aggregate_bits_used)
     classifiers=tuple(ExactMeshMaterialClassifier(
         mesh,max_ray_checks=max_ray_checks_per_mesh,
         max_aggregate_rational_bits=max_aggregate_rational_bits,
@@ -175,6 +184,8 @@ def select_boolean_boundary_fragments(
             )
             coverage_used+=oracle.pairwise_checks
             aggregate_bits_used+=partition_bits
+            ledger.charge("coverage_checks", oracle.pairwise_checks)
+            ledger.charge("aggregate_rational_bits", partition_bits)
             if not oracle.certified:raise InvalidModelError(f"fragment coverage failed for solid {solid_index}, face {source_index}")
     selected=[];discarded=0
     for solid_index,fragments in enumerate(fragments_by_solid):
