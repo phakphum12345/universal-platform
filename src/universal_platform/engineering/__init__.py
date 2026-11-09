@@ -30,6 +30,7 @@ from .brep import (
 from .brep_multishell import (
     BRepMultiShellSolid, BRepMultiShellValidationResult, validate_brep_multishell_solid,
 )
+from .boolean_resource_budget import BooleanResourceLedger
 from .brep_boolean import (
     BRepBooleanOperation, BRepBooleanResult, BRepMultiShellBooleanResult,
     boolean_axis_aligned_brep_solids, boolean_axis_aligned_multishell_solids,
