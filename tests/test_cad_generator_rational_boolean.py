@@ -98,6 +98,7 @@ def test_rational_boolean_assembly_preserves_cavity_role_and_exact_net_volume():
     assert component.cavity_shells[0].role == "CAVITY"
     assert component.cavity_shells[0].parent_outer_shell_id == component.outer_shell.shell_id
     assert artifact.exact_net_volume == F(27, 6) - F(1, 384)
+    assert artifact.to_dict()["resource_counters"]["containment_ray_checks"] > 0
 
 
 def test_rational_boolean_assembly_rejects_intersecting_or_touching_shells():
