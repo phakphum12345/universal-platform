@@ -152,3 +152,36 @@ def classify_point_against_mesh(point:Vec3,mesh:TriangleMesh,*,
         raise InvalidModelError("classification requires a Vec3 point")
     classifier=ExactMeshMaterialClassifier(mesh,max_ray_checks=max_ray_checks)
     return classifier.classify_rational((_q(point.x),_q(point.y),_q(point.z)))
+
+
+def classify_rational_point_against_triangles(
+    point: Point3,
+    triangles: tuple[tuple[Point3, Point3, Point3], ...],
+) -> MaterialClassificationResult:
+    """Classify a rational point against an already exact rational shell."""
+    if (not isinstance(point, tuple) or len(point) != 3
+            or any(not isinstance(value, Fraction) for value in point)):
+        raise InvalidModelError("classification point must be an exact rational 3D tuple")
+    if not isinstance(triangles, tuple) or not triangles:
+        return MaterialClassificationResult(
+            MaterialClassification.UNKNOWN, 0, 0, (), "empty exact shell"
+        )
+    if any(_point_on_triangle(point, triangle) for triangle in triangles):
+        return MaterialClassificationResult(MaterialClassification.BOUNDARY, 0, 0, ())
+    counts = []
+    for direction in _DIRECTIONS:
+        count, ambiguous = _ray_crossings(point, direction, triangles)
+        if not ambiguous:
+            counts.append(count)
+    if len(counts) < 2 or len({count % 2 for count in counts}) != 1:
+        return MaterialClassificationResult(
+            MaterialClassification.UNKNOWN, len(_DIRECTIONS), len(counts),
+            tuple(counts), "insufficient or inconsistent exact ray witnesses"
+        )
+    classification = (
+        MaterialClassification.INSIDE if counts[0] % 2
+        else MaterialClassification.OUTSIDE
+    )
+    return MaterialClassificationResult(
+        classification, len(_DIRECTIONS), len(counts), tuple(counts)
+    )

@@ -13,7 +13,7 @@ from .faceted_boolean_arrangement import FacetedBooleanArrangement, arrange_face
 from .brep_boolean import BRepBooleanOperation
 from .boolean_boundary_selection import BooleanBoundarySelection, select_boolean_boundary_fragments
 from .boolean_shell_assembly import BooleanShellAssemblyResult, assemble_boolean_shells, assemble_rational_boolean_solid
-from .rational_faceted_solid import RationalFacetedSolid
+from .rational_boolean_solid import RationalBooleanSolid
 from .mesh import TriangleMesh
 from .triangle_fragment_arrangement import RationalTriangleFragment
 from .feature_artifact_store import SQLiteFeatureArtifactCache
@@ -336,13 +336,12 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id: str = "boolean.result",
-    ) -> RationalFacetedSolid:
-        """Generate a serialized exact-rational Boolean solid.
+    ) -> RationalBooleanSolid:
+        """Generate a serialized exact-rational multi-shell Boolean solid.
 
-        Unlike execute_faceted_boolean, this path never converts selected
-        rational intersection coordinates to binary64. The v1 artifact is
-        single-shell only; cavities and multiple disconnected components fail
-        closed rather than being dropped or approximated.
+        This path preserves rational coordinates and OUTER/CAVITY component
+        semantics. Unsupported contacts, ambiguous containment and exhausted
+        resource budgets fail closed; no binary64 conversion is performed.
         """
         arrangement = arrange_faceted_boolean_meshes(meshes)
         selection = select_boolean_boundary_fragments(
