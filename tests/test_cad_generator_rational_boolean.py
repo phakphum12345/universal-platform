@@ -201,7 +201,6 @@ def test_rational_boolean_deserialization_rejects_rehashed_invalid_cavity_parent
         (BRepBooleanOperation.UNION, F(15)),
         (BRepBooleanOperation.INTERSECTION, F(1)),
         (BRepBooleanOperation.DIFFERENCE, F(7)),
-        (BRepBooleanOperation.SYMMETRIC_DIFFERENCE, F(14)),
     ),
 )
 def test_cad_generator_exact_rational_boolean_operation_matrix(
@@ -217,10 +216,49 @@ def test_cad_generator_exact_rational_boolean_operation_matrix(
     )
 
     artifact = service.execute_rational_faceted_boolean(
-        meshes, operation, result_id=f"generator.{operation.value.lower().replace(chr(95), chr(45))}",
+        meshes, operation, result_id=f"generator.{operation.value.lower()}",
     )
 
     assert artifact.exact_net_volume == expected_volume
+    snapshot = artifact.to_dict()
+    assert RationalBooleanSolid.from_dict(snapshot) == artifact
+    assert RationalBooleanSolid.from_dict(snapshot).to_dict() == snapshot
+
+
+def test_cad_generator_rejects_intersecting_xor_non_manifold_edge_contact(tmp_path):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
+    )
+    meshes = (
+        _box("a", 2.0),
+        _box("b", 2.0, (1.0, 1.0, 1.0)),
+    )
+
+    with pytest.raises(InvalidModelError, match="exactly two uses per edge"):
+        service.execute_rational_faceted_boolean(
+            meshes, BRepBooleanOperation.SYMMETRIC_DIFFERENCE,
+            result_id="generator.symmetric-difference",
+        )
+
+
+def test_cad_generator_serializes_disjoint_exact_rational_xor(tmp_path):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
+    )
+    meshes = (
+        _box("a", 2.0),
+        _box("b", 2.0, (3.0, 0.0, 0.0)),
+    )
+
+    artifact = service.execute_rational_faceted_boolean(
+        meshes, BRepBooleanOperation.SYMMETRIC_DIFFERENCE,
+        result_id="generator.symmetric-difference-disjoint",
+    )
+
+    assert artifact.exact_net_volume == F(16)
+    assert artifact.shell_count == 2
     snapshot = artifact.to_dict()
     assert RationalBooleanSolid.from_dict(snapshot) == artifact
     assert RationalBooleanSolid.from_dict(snapshot).to_dict() == snapshot
