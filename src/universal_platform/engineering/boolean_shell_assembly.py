@@ -9,6 +9,7 @@ from .brep import BRepSolid, brep_from_triangle_mesh, validate_brep_solid
 from .brep_multishell import BRepMultiShellSolid, validate_brep_multishell_solid
 from .boolean_boundary_selection import BooleanBoundarySelection
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .geometry import Vec3
 from .material_classification import ExactMeshMaterialClassifier, MaterialClassification
 from .mesh import TriangleMesh, validate_triangle_mesh
@@ -123,6 +124,7 @@ def assemble_boolean_shells(
     max_faces:int=100_000,
     max_vertices:int=100_000,
     max_coordinate_bits:int=4096,
+    resource_ledger:BooleanResourceLedger|None=None,
 )->BooleanShellAssemblyResult:
     """Assemble selected oriented facets into validated outer/cavity components.
 
@@ -132,6 +134,9 @@ def assemble_boolean_shells(
     consistently oriented, self-intersection-free and independently B-rep
     validated. Nested material islands and ambiguous cavity ownership fail closed.
     """
+    ledger=resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger,BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     if not isinstance(selection,BooleanBoundarySelection):
         raise InvalidModelError("assemble_boolean_shells requires a BooleanBoundarySelection")
     if not isinstance(input_meshes,tuple) or not input_meshes:
@@ -146,6 +151,7 @@ def assemble_boolean_shells(
         return BooleanShellAssemblyResult((),Fraction(0),0,0,0)
     if len(selected)>max_faces:
         raise InvalidModelError("shell assembly exceeded max_faces")
+    ledger.charge("faces",len(selected))
     for item in selected:
         if item.source_solid_index>=len(input_meshes):
             raise InvalidModelError("selected fragment references an unknown input solid")
@@ -153,10 +159,14 @@ def assemble_boolean_shells(
     all_points={point for face in faces for point in face}
     if len(all_points)>max_vertices:
         raise InvalidModelError("shell assembly exceeded max_vertices")
+    ledger.charge("vertices",len(all_points))
     for point in all_points:
         for value in point:
             if abs(value.numerator).bit_length()>max_coordinate_bits or value.denominator.bit_length()>max_coordinate_bits:
                 raise InvalidModelError("shell coordinate exceeded max_coordinate_bits")
+    aggregate_bits=sum(abs(value.numerator).bit_length()+value.denominator.bit_length()
+                       for point in all_points for value in point)
+    ledger.charge("aggregate_rational_bits",aggregate_bits)
     uses=_edge_uses(faces)
     groups=_components(faces,uses)
     shells=[]
@@ -235,6 +245,9 @@ def assemble_rational_boolean_solid(
         MaterialClassification, classify_rational_point_against_triangles,
     )
 
+    ledger = resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger, BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     if not isinstance(selection, BooleanBoundarySelection):
         raise InvalidModelError("selection must be a BooleanBoundarySelection")
     if not isinstance(input_meshes, tuple) or not input_meshes:
@@ -282,6 +295,7 @@ def assemble_rational_boolean_solid(
             if aggregate_bits > max_aggregate_rational_bits:
                 raise InvalidModelError("aggregate rational shell bit budget exceeded")
 
+    ledger.charge("aggregate_rational_bits", aggregate_bits)
     uses = _edge_uses(faces)
     groups = _components(faces, uses)
     shell_records = []

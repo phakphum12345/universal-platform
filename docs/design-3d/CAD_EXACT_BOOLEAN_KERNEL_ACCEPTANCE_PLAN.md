@@ -138,13 +138,13 @@ The branch already contains distinct implementations and tests for:
 - `boolean_shell_assembly.py`: shell/component assembly, cavities, exact net volume and topology validation.
 - `cad_generator_service.py`: `execute_faceted_boolean` orchestration, with E2E tests for intersecting boxes and coplanar overlap.
 
-These are existing bounded paths, not yet proof of complete Boolean Kernel support. The remaining integration audit must establish that the exact rational result is preserved through shell assembly and serialized output; current CAD Generator notes explicitly identify binary64 B-rep conversion as a limitation.
+These are existing bounded paths, not yet proof of complete Boolean Kernel support. PR #225 now adds the separate exact-rational multi-shell result path through shell assembly and deterministic serialization. The legacy binary64 B-rep result path remains separate and rejects non-lossless rational coordinates; it is not the exact-output contract.
 
 ### Still open
 - Complete aggregate rational budget accounting across global arrangement, classification, selection, and shell assembly (the new oracle budget is one layer, not proof of end-to-end aggregate accounting).
 - Adversarial coverage matrix for shared vertices, multi-fragment point/edge contacts, disconnected overlays, and malformed/resource-exhaustion paths.
 - Verify all four operations across disjoint, nested, coplanar, intersecting, and degeneracy fixtures.
-- Add/verify a lossless rational shell-assembly output path and CAD Generator E2E round-trip; do not round rational coordinates into binary64 and call that exact.
+- Extend service-level E2E and operation coverage across the rational multi-shell path; keep exact rational serialization distinct from the legacy binary64 B-rep adapter.
 
 
 ### Cross-stage resource accounting extension

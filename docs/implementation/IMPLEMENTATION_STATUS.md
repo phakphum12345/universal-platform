@@ -1464,3 +1464,16 @@ PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093
 - Exact PR-head workflow-sanity PASS and Python tests PASS. Post-merge workflow-sanity and Python tests PASS on exact merge SHA `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`.
 
 **Current bounded Boolean status:** PRs #200–#215 implement global arrangement, coverage certification, classification, boundary selection, shell assembly, CADGeneratorService execution, coplanar positive-area overlay and isolated-contact rejection for the tested cases. General arbitrary-faceted B-rep Boolean remains PARTIAL / INCOMPLETE.
+
+
+## Repository checkpoint — post-PR #226 (2026-11-09)
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Verified branch HEAD: `6a0894334bbc594a14f30a6edbb45238282c4b92` (PR #226 merge).
+- Open PR inventory at this checkpoint: 0.
+- PR #226 exact head `29dafc03d09303c2f55d10113b6d6b9a72c913a1`; the recorded PR workflow had `python-tests` and `workflow-sanity` PASS. A doc-only not-applicable step was SKIPPED, not PASS; browser E2E was not triggered for this Python/docs-only change. Post-merge workflow evidence must be checked independently before claiming it PASS.
+- PR #226 strengthens exact coplanar contact geometry validation and adversarial tests. It does not complete the general Boolean kernel.
+- Current Boolean pipeline remains PARTIAL. The exact rational multi-shell output path is implemented in PR #225; independent coverage and material/selection/shell stages exist. A single invocation-wide resource ledger across arrangement, classification, boundary selection and shell assembly remains outstanding.
+- Next engineering slice: audit every stage's resource dimensions and counter semantics, then implement shared cross-stage accounting with deterministic fail-closed exhaustion and no partial result. Preserve current per-stage hard ceilings as upper bounds.
+- Hardware scope baseline: see [Hardware Intelligence & Diagnostics Roadmap](../hardware/HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP.md). Areas HW-01–HW-10 are core roadmap; HW-11–HW-16 are long-term. This scope decision does not change the current implementation maturity: schematic metadata/rendering and static ERC exist; driver metadata contracts exist; live device drivers, sensor reads, PCB DRC, and circuit simulation are not established.
+- This file contains historical audit entries above; the dated checkpoint here supersedes earlier stale “latest audit” headers. Do not interpret historical counts/SHA values as current.

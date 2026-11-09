@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 from typing import Iterable
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .triangle_coverage_oracle import certify_triangle_partition
 from .triangle_fragment_arrangement import RationalPlane, RationalPoint3, RationalTriangle3, RationalTriangleFragment, arrange_triangles_by_planes
 
@@ -81,6 +82,7 @@ def arrange_triangle_mesh_globally(
     max_fragments:int=16384,max_coordinate_bits:int=4096,max_edges:int=65536,
     max_topology_checks:int=1_000_000,max_coverage_checks:int=1_000_000,
     max_aggregate_rational_bits:int=64_000_000,
+    resource_ledger:BooleanResourceLedger|None=None,
 )->GlobalTriangleArrangement:
     """Arrange source triangles and retriangulate every global edge T-junction.
 
@@ -97,6 +99,9 @@ def arrange_triangle_mesh_globally(
             raise InvalidModelError(f"{name} must be a positive integer")
     if max_aggregate_rational_bits>64_000_000:
         raise InvalidModelError("max_aggregate_rational_bits exceeds its supported hard ceiling")
+    ledger=resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger,BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     source_items,plane_items=tuple(triangles),tuple(planes)
     if not source_items: raise InvalidModelError("at least one source triangle is required")
     if len(source_items)>max_fragments: raise InvalidModelError("source triangle count exceeded max_fragments")
@@ -122,12 +127,13 @@ def arrange_triangle_mesh_globally(
         if aggregate_input_bits>max_aggregate_rational_bits:
             raise InvalidModelError("global arrangement aggregate rational bit budget exceeded")
 
+    ledger.charge("aggregate_rational_bits", aggregate_input_bits)
     raw_fragments=[]
     expected_by_source={}
     actual_by_source={}
     for source_index,source in enumerate(source_items):
-        remaining=max_fragments-len(raw_fragments)
-        if remaining<1: raise InvalidModelError("global arrangement exceeded max_fragments")
+        remaining=min(max_fragments-len(raw_fragments),ledger.remaining("fragments"))
+        if remaining<1: raise InvalidModelError("global arrangement exceeded the invocation fragment budget")
         local=arrange_triangles_by_planes((source,),plane_items,max_fragments=remaining,
                                           max_coordinate_bits=max_coordinate_bits)
         normal=_area_vector(source)
@@ -137,16 +143,20 @@ def arrange_triangle_mesh_globally(
             raise InvalidModelError(f"global coverage area mismatch for source triangle {source_index}")
         expected_by_source[source_index]=expected
         actual_by_source[source_index]=actual
+        ledger.charge("fragments", len(local))
         raw_fragments.extend(RationalTriangleFragment(source_index,f.side_signature,f.vertices) for f in local)
         if len(raw_fragments)>max_fragments: raise InvalidModelError("global arrangement exceeded max_fragments")
 
     global_points=sorted({point for fragment in raw_fragments for point in fragment.vertices})
     point_ids={point:index for index,point in enumerate(global_points)}
+    if 3*len(raw_fragments)>ledger.remaining("edges"):
+        raise InvalidModelError("global arrangement exceeded the invocation edge budget")
     raw_edges=set()
     for fragment in raw_fragments:
         ids=tuple(point_ids[p] for p in fragment.vertices)
         for first,second in ((ids[0],ids[1]),(ids[1],ids[2]),(ids[2],ids[0])):
             raw_edges.add((first,second) if first<second else (second,first))
+    ledger.charge("edges", len(raw_edges))
     # The T-junction pass visits every registered global vertex for each
     # of the three edges of every raw fragment. Unique edge count is smaller
     # than (or equal to) this work for shared-edge meshes, so charging only
@@ -154,6 +164,7 @@ def arrange_triangle_mesh_globally(
     topology_checks = len(global_points) * 3 * len(raw_fragments)
     if topology_checks > max_topology_checks:
         raise InvalidModelError("global topology scan exceeded max_topology_checks")
+    ledger.charge("topology_checks", topology_checks)
 
     t_junctions=set()
     conforming=[]
@@ -179,6 +190,7 @@ def arrange_triangle_mesh_globally(
             ordered=[start_id]+[candidate_id for _,candidate_id in sorted(interior)]+[end_id]
             boundary_ids.extend(ordered[:-1])
         if len(boundary_ids)==3:
+            ledger.charge("fragments", 1)
             conforming.append(fragment)
             continue
         # Ear-clip the convex boundary polygon. This inserts no synthetic
@@ -213,6 +225,7 @@ def arrange_triangle_mesh_globally(
             if not ears:
                 raise InvalidModelError("global conforming polygon could not be triangulated exactly")
             _,index,previous,current,following=min(ears,key=lambda item:item[0])
+            ledger.charge("fragments", 1)
             conforming.append(RationalTriangleFragment(
                 fragment.source_triangle_index,fragment.side_signature,
                 (previous,current,following)))
@@ -222,6 +235,7 @@ def arrange_triangle_mesh_globally(
         final_triangle=(polygon[0],polygon[1],polygon[2])
         if _dot(_area_vector(final_triangle),source_normal)<=0:
             raise InvalidModelError("global conforming triangulation changed source winding")
+        ledger.charge("fragments", 1)
         conforming.append(RationalTriangleFragment(
             fragment.source_triangle_index,fragment.side_signature,final_triangle))
         if len(conforming)>max_fragments:
@@ -239,12 +253,20 @@ def arrange_triangle_mesh_globally(
             for triangle in (source,*source_fragments)
             for point in triangle for value in point
         )
-        remaining_bits=max_aggregate_rational_bits-coverage_bits_used
+        remaining_bits=min(max_aggregate_rational_bits-coverage_bits_used,
+                           ledger.remaining("aggregate_rational_bits"))
         if partition_bits>remaining_bits:
             raise InvalidModelError("global coverage aggregate rational bit budget exceeded")
-        remaining_checks=max_coverage_checks-checks_used
-        if remaining_checks<1:
+        stage_remaining_checks=max_coverage_checks-checks_used
+        if stage_remaining_checks<1:
             raise InvalidModelError("global coverage pair-check budget exhausted")
+        invocation_remaining_checks=ledger.remaining("coverage_checks")
+        if invocation_remaining_checks<1:
+            raise InvalidModelError(
+                "Boolean invocation resource budget exceeded for coverage_checks"
+            )
+        remaining_checks=min(stage_remaining_checks,invocation_remaining_checks)
+        ledger.charge("aggregate_rational_bits", partition_bits)
         oracle=certify_triangle_partition(
             source,source_fragments,
             max_pairwise_checks=remaining_checks,
@@ -252,6 +274,7 @@ def arrange_triangle_mesh_globally(
         )
         checks_used+=oracle.pairwise_checks
         coverage_bits_used+=partition_bits
+        ledger.charge("coverage_checks", oracle.pairwise_checks)
         if not oracle.certified:
             raise InvalidModelError(f"conforming exact coverage oracle rejected source triangle {source_index}")
         coverage.append(SourceCoverageReport(source_index,expected_by_source[source_index],
@@ -261,6 +284,8 @@ def arrange_triangle_mesh_globally(
     final_points=sorted({point for fragment in conforming for point in fragment.vertices})
     final_ids={point:index for index,point in enumerate(final_points)}
     vertices=tuple(GlobalArrangementVertex(index,point) for index,point in enumerate(final_points))
+    if 3*len(conforming)>ledger.remaining("edges"):
+        raise InvalidModelError("global arrangement exceeded the invocation edge budget")
     faces=[]
     edge_faces={}
     for face_id,fragment in enumerate(conforming):
@@ -272,6 +297,8 @@ def arrange_triangle_mesh_globally(
             if len(edge_faces)>max_edges: raise InvalidModelError("global arrangement exceeded max_edges")
     if len(vertices)*len(edge_faces)>max_topology_checks:
         raise InvalidModelError("global topology scan exceeded max_topology_checks")
+    ledger.charge("edges", len(edge_faces))
+    ledger.charge("topology_checks", len(vertices)*len(edge_faces))
     # Fail closed if centroid insertion introduced any new T-junction that
     # was not present in the original global point set.
     for first_id,second_id in edge_faces:
