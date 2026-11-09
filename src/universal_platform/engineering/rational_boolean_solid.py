@@ -25,8 +25,8 @@ def _pair(value: Fraction) -> list[str]:
 def _parse_pair(value: object, label: str) -> Fraction:
     if not isinstance(value, (list, tuple)) or len(value) != 2:
         raise InvalidModelError(f"{label} must be a rational numerator/denominator pair")
-    if any(not isinstance(part, str) or not re.fullmatch(r"(?:0|-?[1-9][0-9]*)", part)
-           for part in value):
+    if any(not isinstance(part, str) or len(part) > 5000
+           or not re.fullmatch(r"(?:0|-?[1-9][0-9]*)", part) for part in value):
         raise InvalidModelError(f"{label} must use canonical decimal integer strings")
     numerator, denominator = int(value[0]), int(value[1])
     if denominator <= 0:
@@ -101,6 +101,8 @@ class RationalBooleanSolid:
     length_unit: str
     components: tuple[RationalBooleanComponent, ...]
     source_provenance: tuple[tuple[str, str], ...] = ()
+    inter_shell_pair_checks: int = 0
+    aggregate_rational_bits: int = 0
 
     PROFILE = "RATIONAL_BOOLEAN_SOLID_V1"
 
@@ -121,6 +123,12 @@ class RationalBooleanSolid:
             for shell in shells:
                 if shell.solid.frame_id != self.frame_id or shell.solid.length_unit != self.length_unit:
                     raise InvalidModelError("all rational shells must share the result frame and unit")
+        if (isinstance(self.inter_shell_pair_checks, bool) or not isinstance(self.inter_shell_pair_checks, int)
+                or not 0 <= self.inter_shell_pair_checks <= 5_000_000):
+            raise InvalidModelError("inter_shell_pair_checks is outside the supported hard limit")
+        if (isinstance(self.aggregate_rational_bits, bool) or not isinstance(self.aggregate_rational_bits, int)
+                or not 0 <= self.aggregate_rational_bits <= 64_000_000):
+            raise InvalidModelError("aggregate_rational_bits is outside the supported hard limit")
         if not isinstance(self.source_provenance, tuple):
             raise InvalidModelError("source_provenance must be an immutable tuple")
         for source_id, digest in self.source_provenance:
@@ -172,6 +180,8 @@ class RationalBooleanSolid:
             "resource_counters": {
                 "component_count": len(self.components),
                 "shell_count": self.shell_count,
+                "inter_shell_pair_checks": self.inter_shell_pair_checks,
+                "aggregate_rational_bits": self.aggregate_rational_bits,
                 "vertex_count": sum(
                     len(shell.solid.vertices)
                     for component in self.components
@@ -239,8 +249,15 @@ class RationalBooleanSolid:
         if not isinstance(provenance_raw, list):
             raise InvalidModelError("source_provenance must be an array")
         provenance = tuple((item["source_id"], item["source_sha256"]) for item in provenance_raw)
+        counters = value.get("resource_counters")
+        if not isinstance(counters, dict) or set(counters) != {
+            "component_count", "shell_count", "inter_shell_pair_checks",
+            "aggregate_rational_bits", "vertex_count", "triangle_count",
+        }:
+            raise InvalidModelError("invalid rational Boolean resource counters")
         result = cls(value["result_id"], value["frame_id"], value["length_unit"],
-                     tuple(components), provenance)
+                     tuple(components), provenance,
+                     counters["inter_shell_pair_checks"], counters["aggregate_rational_bits"])
         if result.exact_net_volume != _parse_pair(value["exact_net_volume"], "result volume"):
             raise InvalidModelError("result exact net volume mismatch")
         if result._payload() != payload:
