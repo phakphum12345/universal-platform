@@ -444,7 +444,7 @@ def test_feature_history_branch_fork_and_merge_work_in_browser(workbench):
           const status = document.querySelector("#status-message")?.textContent || "";
           return state.includes(expected) || status.length > 0;
         }""",
-        expected_merge_message,
+        arg=expected_merge_message,
         timeout=10_000,
     )
     actual_merge_message = page.locator("#branch-state").inner_text()
