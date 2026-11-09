@@ -169,6 +169,18 @@ def test_rational_boolean_deserialization_rejects_rehashed_invalid_cavity_parent
     for vertex in cavity_solid["vertices"]:
         shifted_x = F(int(vertex[0][0]), int(vertex[0][1])) + 5
         vertex[0] = [str(shifted_x.numerator), str(shifted_x.denominator)]
+    # Keep the serialized aggregate-bit counter consistent with the deliberately
+    # translated (but otherwise valid) child shell so validation reaches containment.
+    all_shells = []
+    for component_record in snapshot["components"]:
+        all_shells.append(component_record["outer_shell"]["solid"])
+        all_shells.extend(item["solid"] for item in component_record["cavity_shells"])
+    snapshot["resource_counters"]["aggregate_rational_bits"] = sum(
+        abs(int(numerator)).bit_length() + int(denominator).bit_length()
+        for shell_record in all_shells
+        for vertex in shell_record["vertices"]
+        for numerator, denominator in vertex
+    )
     child_payload = {
         key: value for key, value in cavity_solid.items() if key != "result_sha256"
     }
