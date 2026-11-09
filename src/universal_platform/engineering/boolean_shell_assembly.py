@@ -235,6 +235,7 @@ def assemble_rational_boolean_solid(
     max_inter_shell_pair_checks: int = 5_000_000,
     max_containment_ray_checks: int = 5_000_000,
     max_aggregate_rational_bits: int = 64_000_000,
+    resource_ledger: BooleanResourceLedger | None = None,
 ):
     """Assemble exact rational outer/cavity shells without binary64 conversion."""
     from .rational_faceted_solid import RationalFacetedSolid, _axes_overlap
