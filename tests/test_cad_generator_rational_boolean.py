@@ -165,10 +165,19 @@ def test_rational_boolean_deserialization_rejects_rehashed_invalid_cavity_parent
         (mesh,), result_id="rational.cavity-tamper"
     )
     snapshot = artifact.to_dict()
-    snapshot["components"][0]["cavity_shells"][0]["parent_outer_shell_id"] = "outer.9999"
+    cavity_solid = snapshot["components"][0]["cavity_shells"][0]["solid"]
+    for vertex in cavity_solid["vertices"]:
+        shifted_x = F(int(vertex[0][0]), int(vertex[0][1])) + 5
+        vertex[0] = [str(shifted_x.numerator), str(shifted_x.denominator)]
+    child_payload = {
+        key: value for key, value in cavity_solid.items() if key != "result_sha256"
+    }
+    cavity_solid["result_sha256"] = sha256(
+        json.dumps(child_payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
     payload = {key: value for key, value in snapshot.items() if key != "result_sha256"}
     snapshot["result_sha256"] = sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
-    with pytest.raises(InvalidModelError, match="parentage does not match exact containment"):
+    with pytest.raises(InvalidModelError, match="cavity parentage does not match exact containment"):
         RationalBooleanSolid.from_dict(snapshot)
