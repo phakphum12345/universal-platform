@@ -145,3 +145,15 @@ These are existing bounded paths, not yet proof of complete Boolean Kernel suppo
 - Adversarial coverage matrix for shared vertices, multi-fragment point/edge contacts, disconnected overlays, and malformed/resource-exhaustion paths.
 - Verify all four operations across disjoint, nested, coplanar, intersecting, and degeneracy fixtures.
 - Add/verify a lossless rational shell-assembly output path and CAD Generator E2E round-trip; do not round rational coordinates into binary64 and call that exact.
+
+
+### Cross-stage resource accounting extension
+
+The rational bit budget and early-work preflight now extend beyond the standalone oracle:
+
+- Global arrangement validates aggregate exact-coordinate bits across source triangles and cutter planes before fragment generation, and separately charges each source-face coverage partition against a shared aggregate coverage budget.
+- Material classifier checks ray-triangle work before allocating exact triangle tuples, validates mesh topology before rational conversion, and enforces an aggregate rational-coordinate budget.
+- Boundary selection preflights total mesh input rational bits, shares the coverage pair-check counter across source faces, explicitly rejects exhausted remaining pair budget, and charges source/fragment rational bits against one operation-level aggregate budget.
+- Regression tests cover classifier allocation preflight, classifier and selection aggregate-budget rejection, and global-arrangement aggregate-budget rejection.
+
+These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Shell assembly still needs its own aggregate budget and exact-rational output contract. The Boolean pipeline therefore remains PARTIAL until those integration gates and current-head CI are complete.
