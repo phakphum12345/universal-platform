@@ -257,10 +257,15 @@ def arrange_triangle_mesh_globally(
                            ledger.remaining("aggregate_rational_bits"))
         if partition_bits>remaining_bits:
             raise InvalidModelError("global coverage aggregate rational bit budget exceeded")
-        remaining_checks=min(max_coverage_checks-checks_used,
-                             ledger.remaining("coverage_checks"))
-        if remaining_checks<1:
+        stage_remaining_checks=max_coverage_checks-checks_used
+        if stage_remaining_checks<1:
             raise InvalidModelError("global coverage pair-check budget exhausted")
+        invocation_remaining_checks=ledger.remaining("coverage_checks")
+        if invocation_remaining_checks<1:
+            raise InvalidModelError(
+                "Boolean invocation resource budget exceeded for coverage_checks"
+            )
+        remaining_checks=min(stage_remaining_checks,invocation_remaining_checks)
         ledger.charge("aggregate_rational_bits", partition_bits)
         oracle=certify_triangle_partition(
             source,source_fragments,
