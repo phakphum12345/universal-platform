@@ -91,7 +91,10 @@ def _parse_integer_string(value: object, label: str, max_bits: int) -> int:
         result = int(digits_text[:first_width])
         for offset in range(first_width, len(digits_text), 9):
             result = result * 1_000_000_000 + int(digits_text[offset:offset + 9])
-        return -result if negative else result
+        parsed = -result if negative else result
+        if abs(parsed).bit_length() > max_bits:
+            raise InvalidModelError(f"{label} exceeded max_coordinate_bits")
+        return parsed
     except (ValueError, OverflowError) as exc:
         raise InvalidModelError(f"{label} is not a supported decimal integer") from exc
 
