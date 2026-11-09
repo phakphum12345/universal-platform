@@ -54,8 +54,8 @@ This is an initial analytical slice, not a general physics engine. Fluid mechani
 
 - [x] Model assumptions and validity ranges are explicit for the initial central solver request contract.
 - [x] A central solver registry dispatches by declared domain and method with license/dependency gates.
-- [ ] Add validated reference cases for every supported physics domain and solver family.
-- [ ] Units and dimensions are checked.
+- [x] The three currently supported built-in analytical solvers (axial stress, ideal DC Ohm's law/power, and linear thermal expansion) are checked against the independent closed-form reference catalogue; this does not validate unsupported physics domains or numerical/simulation solver families.
+- [x] Units and dimensions are checked for the supported reference calculations.
 - [ ] Conservation laws and boundary conditions are recorded.
 - [ ] Reference cases and convergence checks are defined where relevant.
 - [ ] Uncertainty and omitted effects are reported.
