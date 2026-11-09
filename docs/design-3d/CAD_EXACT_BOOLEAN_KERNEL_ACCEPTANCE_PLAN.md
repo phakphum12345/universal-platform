@@ -156,7 +156,7 @@ The rational bit budget and early-work preflight now extend beyond the standalon
 - Boundary selection preflights total mesh input rational bits, shares the coverage pair-check counter across source faces, explicitly rejects exhausted remaining pair budget, and charges source/fragment rational bits against one operation-level aggregate budget.
 - Regression tests cover classifier allocation preflight, classifier and selection aggregate-budget rejection, and global-arrangement aggregate-budget rejection.
 
-These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Shell assembly still needs its own aggregate budget and exact-rational output contract. The Boolean pipeline therefore remains PARTIAL until those integration gates and current-head CI are complete.
+These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Rational shell assembly now enforces its own aggregate rational-bit, inter-shell pair and containment-ray budgets and preserves exact rational output. The remaining resource gap is cross-stage accounting: a single invocation-wide ledger must prevent the sum of arrangement, classification, selection and assembly work from independently consuming each stage's full ceiling. The Boolean pipeline therefore remains PARTIAL until that integration gate and the broader operation/degeneracy matrix are complete.
 
 
 ## Rational multi-shell output — implementation candidate
@@ -183,7 +183,21 @@ Regression coverage targets non-binary rational round-trip, disconnected outer
 components, cavity role/parentage/net volume, touching-shell rejection,
 invalid cavity containment, and service-level Boolean serialization.
 
-**Status: IMPLEMENTED IN PR CANDIDATE / CI PENDING.** This does not certify
-branching, arbitrary tangencies, nested material islands, all degeneracies, or
-unrestricted exact Boolean geometry. Do not mark the stage PASS until all
-required checks succeed on the exact latest head SHA.
+**Status: MERGED — PR #225**, merge SHA `520c8b24f74b7e66ced7872ef067e6dddf9b4f63`. Exact PR head `ceb32c9022d52eb7a54c8f183b7d4a72c1b80bf8` passed `python-tests`, `workflow-sanity`, and `chromium-e2e`. The bounded multi-shell output path is implemented and its PR-head checks are PASS. This does not certify branching, arbitrary tangencies, nested material islands, all degeneracies, or unrestricted exact Boolean geometry; post-merge CI and full kernel acceptance remain separate evidence gates.
+
+
+## Cross-stage invocation-wide resource ledger — implementation candidate
+
+The next increment introduces `BooleanResourceLedger` and passes one ledger through the automatic faceted Boolean invocation:
+
+1. `arrange_faceted_boolean_meshes` charges source triangles, unique planes, coplanar pair/contact checks and delegates the same ledger to global arrangement.
+2. `arrange_triangle_mesh_globally` charges raw/final fragment materialization, rational-bit payload, edge counts, topology scans and independent coverage-oracle pair checks.
+3. `select_boolean_boundary_fragments` charges fragment processing, classification witnesses, worst-case ray/triangle checks, rational-bit payload and its independent source-face coverage checks.
+4. `assemble_boolean_shells` and `assemble_rational_boolean_solid` charge output faces/vertices, rational-bit payload, inter-shell pair checks and containment ray checks.
+5. `CADGeneratorService` creates one ledger per pre-arranged, faceted or exact-rational invocation. The bounded binary64 result serializes a deterministic resource-usage snapshot; exact-rational output retains its existing result contract while enforcement uses the shared ledger.
+
+The ledger has per-dimension invocation ceilings and rejects invalid/boolean limits, unknown dimensions, negative/non-integer charges, and cumulative exhaustion before committing the failed charge. Existing stage-local hard ceilings remain in force. Charging repeated geometry at a later stage is intentional: the ledger measures cumulative stage work/materialization, not only unique input size.
+
+Regression tests target deterministic snapshots, non-mutating failed charges, boolean/unknown budget rejection, exhaustion specifically between arrangement and selection, and face-budget exhaustion before rational shell output.
+
+**Status: IMPLEMENTATION CANDIDATE — CI PENDING.** This is not PASS until exact PR-head checks and post-merge checks pass. Review remaining counter semantics against the full operation matrix; resource accounting does not expand geometric topology support or complete the Boolean Kernel.
