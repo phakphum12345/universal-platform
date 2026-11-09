@@ -222,16 +222,18 @@ def assemble_rational_boolean_solid(
     max_faces: int = 100_000,
     max_vertices: int = 100_000,
     max_coordinate_bits: int = 4096,
+    max_inter_shell_pair_checks: int = 5_000_000,
+    max_containment_ray_checks: int = 5_000_000,
+    max_aggregate_rational_bits: int = 64_000_000,
 ):
-    """Build an exact-rational artifact without passing through binary64 B-rep.
-
-    This first generator path deliberately accepts exactly one connected,
-    outward-oriented shell. Multiple components and cavity shells remain
-    explicit fail-closed cases until the rational multi-shell contract lands.
-    RationalFacetedSolid independently revalidates closure, orientation,
-    self-intersection, exact volume, provenance and resource budgets.
-    """
-    from .rational_faceted_solid import RationalFacetedSolid
+    """Assemble exact rational outer/cavity shells without binary64 conversion."""
+    from .rational_faceted_solid import RationalFacetedSolid, _axes_overlap
+    from .rational_boolean_solid import (
+        RationalBooleanComponent, RationalBooleanShell, RationalBooleanSolid,
+    )
+    from .material_classification import (
+        MaterialClassification, classify_rational_point_against_triangles,
+    )
 
     if not isinstance(selection, BooleanBoundarySelection):
         raise InvalidModelError("selection must be a BooleanBoundarySelection")
@@ -241,57 +243,191 @@ def assemble_rational_boolean_solid(
         ch not in "abcdefghijklmnopqrstuvwxyz0123456789.-/" for ch in result_id
     ):
         raise InvalidModelError("result_id must be a lowercase stable identifier")
-    for name, value in (("max_faces", max_faces), ("max_vertices", max_vertices),
-                        ("max_coordinate_bits", max_coordinate_bits)):
+    for name, value in (
+        ("max_faces", max_faces), ("max_vertices", max_vertices),
+        ("max_coordinate_bits", max_coordinate_bits),
+        ("max_inter_shell_pair_checks", max_inter_shell_pair_checks),
+        ("max_containment_ray_checks", max_containment_ray_checks),
+        ("max_aggregate_rational_bits", max_aggregate_rational_bits),
+    ):
         if isinstance(value, bool) or not isinstance(value, int) or value < 1:
             raise InvalidModelError(f"{name} must be a positive integer")
+    if max_faces > 200_000 or max_vertices > 100_000 or max_coordinate_bits > 16_384:
+        raise InvalidModelError("rational shell resource limit exceeds its supported hard ceiling")
+    if (max_inter_shell_pair_checks > 5_000_000 or max_containment_ray_checks > 5_000_000
+            or max_aggregate_rational_bits > 64_000_000):
+        raise InvalidModelError("rational shell aggregate resource limit exceeds its hard ceiling")
+
     fragments = selection.selected_fragments
     if not fragments:
         raise InvalidModelError("empty Boolean results do not produce a solid artifact")
     if len(fragments) > max_faces:
         raise InvalidModelError("rational shell assembly exceeded max_faces")
-    for fragment in fragments:
-        if fragment.source_solid_index >= len(input_meshes):
-            raise InvalidModelError("selected fragment references an unknown input solid")
-    faces = tuple(fragment.vertices for fragment in fragments)
+    if any(item.source_solid_index >= len(input_meshes) for item in fragments):
+        raise InvalidModelError("selected fragment references an unknown input solid")
+
+    faces = tuple(item.vertices for item in fragments)
     points = {point for face in faces for point in face}
     if len(points) > max_vertices:
         raise InvalidModelError("rational shell assembly exceeded max_vertices")
+    aggregate_bits = 0
     for point in points:
         if len(point) != 3 or any(not isinstance(value, Fraction) for value in point):
             raise InvalidModelError("selected shell coordinates must be exact Fraction values")
-        if any(abs(value.numerator).bit_length() > max_coordinate_bits
-               or value.denominator.bit_length() > max_coordinate_bits for value in point):
-            raise InvalidModelError("shell coordinate exceeded max_coordinate_bits")
+        for value in point:
+            if (abs(value.numerator).bit_length() > max_coordinate_bits
+                    or value.denominator.bit_length() > max_coordinate_bits):
+                raise InvalidModelError("shell coordinate exceeded max_coordinate_bits")
+            aggregate_bits += abs(value.numerator).bit_length() + value.denominator.bit_length()
+            if aggregate_bits > max_aggregate_rational_bits:
+                raise InvalidModelError("aggregate rational shell bit budget exceeded")
 
     uses = _edge_uses(faces)
     groups = _components(faces, uses)
-    if len(groups) != 1:
-        raise InvalidModelError(
-            "rational single-shell generator requires exactly one connected shell; "
-            "multi-component and cavity output is not yet supported"
+    shell_records = []
+    for group_index, face_indices in enumerate(groups):
+        shell_faces = tuple(faces[index] for index in face_indices)
+        signed_volume = _signed_volume(shell_faces)
+        if signed_volume == 0:
+            raise InvalidModelError("rational Boolean shell has zero exact signed volume")
+        role = "CAVITY" if signed_volume < 0 else "OUTER"
+        normalized = _reverse_faces(shell_faces) if signed_volume < 0 else shell_faces
+        vertices = tuple(sorted({point for face in normalized for point in face}))
+        vertex_index = {point: index for index, point in enumerate(vertices)}
+        triangles = tuple(sorted(
+            tuple(vertex_index[point] for point in face) for face in normalized
+        ))
+        provenance = tuple(sorted({
+            (input_meshes[fragments[index].source_solid_index].solid_id,
+             input_meshes[fragments[index].source_solid_index].source_geometry_sha256)
+            for index in face_indices
+        }))
+        solid = RationalFacetedSolid(
+            f"{result_id}.shell.{group_index:04d}",
+            input_meshes[0].frame_id,
+            input_meshes[0].length_unit,
+            vertices,
+            triangles,
+            provenance,
+            max_coordinate_bits=max_coordinate_bits,
         )
-    volume = _signed_volume(faces)
-    if volume == 0:
-        raise InvalidModelError("rational Boolean shell has zero exact signed volume")
-    normalized = _reverse_faces(faces) if volume < 0 else faces
-    canonical_vertices = tuple(sorted({point for face in normalized for point in face}))
-    vertex_index = {point: index for index, point in enumerate(canonical_vertices)}
-    triangles = tuple(sorted(
-        tuple(vertex_index[point] for point in face) for face in normalized
-    ))
+        shell_triangles = tuple(
+            tuple(solid.vertices[item] for item in face) for face in solid.triangles
+        )
+        shell_records.append({
+            "group_index": group_index,
+            "role": role,
+            "solid": solid,
+            "triangles": shell_triangles,
+            "volume": abs(signed_volume),
+        })
+
+    # Charge all inter-shell triangle pairs before performing any pairwise work.
+    pair_checks = sum(
+        len(first["triangles"]) * len(second["triangles"])
+        for first_index, first in enumerate(shell_records)
+        for second in shell_records[first_index + 1:]
+    )
+    if pair_checks > max_inter_shell_pair_checks:
+        raise InvalidModelError("inter-shell exact intersection pair budget exceeded")
+    for first_index, first in enumerate(shell_records):
+        for second in shell_records[first_index + 1:]:
+            for first_triangle in first["triangles"]:
+                for second_triangle in second["triangles"]:
+                    if _axes_overlap(first_triangle, second_triangle, touching_is_overlap=True):
+                        raise InvalidModelError(
+                            "rational Boolean shells intersect or touch; unsupported shell contact"
+                        )
+
+    outers = [item for item in shell_records if item["role"] == "OUTER"]
+    cavities = [item for item in shell_records if item["role"] == "CAVITY"]
+    if not outers:
+        raise InvalidModelError("rational Boolean result contains cavities but no outer shell")
+
+    # Bound all exact point-in-shell work before running any ray predicate.
+    containment_ray_checks = 0
+    for outer_index, outer in enumerate(outers):
+        for other_index, other in enumerate(outers):
+            if outer_index != other_index:
+                containment_ray_checks += len(other["triangles"]) * 7
+    for cavity in cavities:
+        for outer in outers:
+            containment_ray_checks += len(outer["triangles"]) * 7
+    for cavity_index, cavity in enumerate(cavities):
+        for other in cavities[cavity_index + 1:]:
+            containment_ray_checks += (
+                len(other["triangles"]) + len(cavity["triangles"])
+            ) * 7
+    if containment_ray_checks > max_containment_ray_checks:
+        raise InvalidModelError("exact shell containment ray budget exceeded")
+
+    # Positive material components must be disjoint, not nested.
+    outer_triangles = [item["triangles"] for item in outers]
+    for index, outer in enumerate(outers):
+        representative = outer["solid"].vertices[0]
+        for other_index, other in enumerate(outers):
+            if index == other_index:
+                continue
+            witness = classify_rational_point_against_triangles(
+                representative, outer_triangles[other_index]
+            )
+            if witness.classification is not MaterialClassification.OUTSIDE:
+                raise InvalidModelError("nested or ambiguous positive rational shells are unsupported")
+
+    cavity_owners: dict[int, list[dict[str, object]]] = {
+        index: [] for index in range(len(outers))
+    }
+    for cavity in cavities:
+        representative = cavity["solid"].vertices[0]
+        owners = []
+        for outer_index, outer in enumerate(outers):
+            witness = classify_rational_point_against_triangles(
+                representative, outer_triangles[outer_index]
+            )
+            if witness.classification is MaterialClassification.INSIDE:
+                owners.append(outer_index)
+            elif witness.classification is not MaterialClassification.OUTSIDE:
+                raise InvalidModelError("cavity containment is boundary or UNKNOWN")
+        if len(owners) != 1:
+            raise InvalidModelError("each rational cavity must be strictly inside exactly one outer shell")
+        cavity_owners[owners[0]].append(cavity)
+
+    # Nested cavities are not a valid single-level material subtraction model.
+    for index, cavity in enumerate(cavities):
+        representative = cavity["solid"].vertices[0]
+        for other in cavities[index + 1:]:
+            first_state = classify_rational_point_against_triangles(
+                representative, other["triangles"]
+            ).classification
+            second_state = classify_rational_point_against_triangles(
+                other["solid"].vertices[0], cavity["triangles"]
+            ).classification
+            if first_state is not MaterialClassification.OUTSIDE or second_state is not MaterialClassification.OUTSIDE:
+                raise InvalidModelError("nested or ambiguous rational cavity shells are unsupported")
+
+    components = []
+    for outer_index, outer in enumerate(outers):
+        outer_shell = RationalBooleanShell(
+            f"outer.{outer['group_index']:04d}", "OUTER", outer["solid"], None
+        )
+        cavity_shells = tuple(
+            RationalBooleanShell(
+                f"cavity.{item['group_index']:04d}", "CAVITY", item["solid"],
+                outer_shell.shell_id,
+            )
+            for item in cavity_owners[outer_index]
+        )
+        components.append(RationalBooleanComponent(
+            f"component.{outer_index:04d}", outer_shell, cavity_shells
+        ))
+
     provenance = tuple(sorted({
-        (mesh.solid_id, mesh.source_geometry_sha256)
-        for mesh in input_meshes
-        if any(item.source_solid_index < len(input_meshes)
-               and input_meshes[item.source_solid_index] is mesh for item in fragments)
+        (input_meshes[item.source_solid_index].solid_id,
+         input_meshes[item.source_solid_index].source_geometry_sha256)
+        for item in fragments
     }))
-    return RationalFacetedSolid(
-        result_id,
-        input_meshes[0].frame_id,
-        input_meshes[0].length_unit,
-        canonical_vertices,
-        triangles,
-        provenance,
-        max_coordinate_bits=max_coordinate_bits,
+    return RationalBooleanSolid(
+        result_id, input_meshes[0].frame_id, input_meshes[0].length_unit,
+        tuple(components), provenance, pair_checks, aggregate_bits,
+        containment_ray_checks,
     )
