@@ -81,6 +81,7 @@ class CADGeneratorBooleanRun:
         return {
             "schema_version": "1.0",
             "operation": self.selection.operation.value,
+            "resource_usage": dict(self.resource_usage),
             "arrangement": None if self.arrangement is None else {
                 "source_triangle_count": self.arrangement.source_triangle_count,
                 "unique_plane_count": self.arrangement.unique_plane_count,
