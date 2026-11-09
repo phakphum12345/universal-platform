@@ -408,5 +408,5 @@ def assemble_rational_boolean_solid(
     }))
     return RationalBooleanSolid(
         result_id, input_meshes[0].frame_id, input_meshes[0].length_unit,
-        tuple(components), provenance,
+        tuple(components), provenance, pair_checks, aggregate_bits,
     )
