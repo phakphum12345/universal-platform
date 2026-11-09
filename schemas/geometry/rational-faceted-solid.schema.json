@@ -29,15 +29,18 @@
     },
     "solid_id": {
       "type": "string",
-      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$",
+      "maxLength": 128
     },
     "frame_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 128
     },
     "length_unit": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 64
     },
     "vertices": {
       "type": "array",
@@ -119,14 +122,16 @@
         "properties": {
           "source_id": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$",
+            "maxLength": 256
           },
           "source_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
           }
         }
-      }
+      },
+      "maxItems": 4096
     },
     "algorithm_version": {
       "const": "exact-rational-faceted-solid-v1"

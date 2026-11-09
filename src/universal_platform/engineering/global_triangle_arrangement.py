@@ -80,6 +80,7 @@ def arrange_triangle_mesh_globally(
     triangles:Iterable[RationalTriangle3],planes:Iterable[RationalPlane],*,
     max_fragments:int=16384,max_coordinate_bits:int=4096,max_edges:int=65536,
     max_topology_checks:int=1_000_000,max_coverage_checks:int=1_000_000,
+    max_aggregate_rational_bits:int=64_000_000,
 )->GlobalTriangleArrangement:
     """Arrange source triangles and retriangulate every global edge T-junction.
 
@@ -90,9 +91,12 @@ def arrange_triangle_mesh_globally(
     """
     for name,value in (("max_fragments",max_fragments),("max_coordinate_bits",max_coordinate_bits),
                        ("max_edges",max_edges),("max_topology_checks",max_topology_checks),
-                       ("max_coverage_checks",max_coverage_checks)):
+                       ("max_coverage_checks",max_coverage_checks),
+                       ("max_aggregate_rational_bits",max_aggregate_rational_bits)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
+    if max_aggregate_rational_bits>64_000_000:
+        raise InvalidModelError("max_aggregate_rational_bits exceeds its supported hard ceiling")
     source_items,plane_items=tuple(triangles),tuple(planes)
     if not source_items: raise InvalidModelError("at least one source triangle is required")
     if len(source_items)>max_fragments: raise InvalidModelError("source triangle count exceeded max_fragments")
@@ -100,9 +104,23 @@ def arrange_triangle_mesh_globally(
         raise InvalidModelError("planes must contain only RationalPlane values")
     if len({p.plane_index for p in plane_items})!=len(plane_items):
         raise InvalidModelError("plane indices must be unique")
+    aggregate_input_bits=0
     for tri in source_items:
         _validate_source(tri); _check_bits(tri,max_coordinate_bits)
-    for plane in plane_items: _check_bits(plane.vertices,max_coordinate_bits)
+        aggregate_input_bits += sum(
+            abs(value.numerator).bit_length()+value.denominator.bit_length()
+            for point in tri for value in point
+        )
+        if aggregate_input_bits>max_aggregate_rational_bits:
+            raise InvalidModelError("global arrangement aggregate rational bit budget exceeded")
+    for plane in plane_items:
+        _check_bits(plane.vertices,max_coordinate_bits)
+        aggregate_input_bits += sum(
+            abs(value.numerator).bit_length()+value.denominator.bit_length()
+            for point in plane.vertices for value in point
+        )
+        if aggregate_input_bits>max_aggregate_rational_bits:
+            raise InvalidModelError("global arrangement aggregate rational bit budget exceeded")
 
     raw_fragments=[]
     expected_by_source={}
@@ -213,10 +231,27 @@ def arrange_triangle_mesh_globally(
     for fragment in conforming: final_by_source[fragment.source_triangle_index].append(fragment.vertices)
     coverage=[]
     checks_used=0
+    coverage_bits_used=0
     for source_index,source in enumerate(source_items):
-        oracle=certify_triangle_partition(source,tuple(final_by_source[source_index]),
-                    max_pairwise_checks=max_coverage_checks-checks_used)
+        source_fragments=tuple(final_by_source[source_index])
+        partition_bits=sum(
+            abs(value.numerator).bit_length()+value.denominator.bit_length()
+            for triangle in (source,*source_fragments)
+            for point in triangle for value in point
+        )
+        remaining_bits=max_aggregate_rational_bits-coverage_bits_used
+        if partition_bits>remaining_bits:
+            raise InvalidModelError("global coverage aggregate rational bit budget exceeded")
+        remaining_checks=max_coverage_checks-checks_used
+        if remaining_checks<1:
+            raise InvalidModelError("global coverage pair-check budget exhausted")
+        oracle=certify_triangle_partition(
+            source,source_fragments,
+            max_pairwise_checks=remaining_checks,
+            max_aggregate_rational_bits=remaining_bits,
+        )
         checks_used+=oracle.pairwise_checks
+        coverage_bits_used+=partition_bits
         if not oracle.certified:
             raise InvalidModelError(f"conforming exact coverage oracle rejected source triangle {source_index}")
         coverage.append(SourceCoverageReport(source_index,expected_by_source[source_index],

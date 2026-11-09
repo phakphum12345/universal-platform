@@ -128,6 +128,8 @@ def certify_triangle_partition(
     *,
     max_pairwise_checks: int = 1_000_000,
     max_coordinate_bits: int = 4096,
+    max_fragments: int = 100_000,
+    max_aggregate_rational_bits: int = 64_000_000,
 ) -> ExactCoverageResult:
     """Certify an exact, coplanar, non-overlapping partition of one source triangle."""
     if (isinstance(max_pairwise_checks, bool) or not isinstance(max_pairwise_checks, int)
@@ -136,21 +138,49 @@ def certify_triangle_partition(
     if (isinstance(max_coordinate_bits, bool) or not isinstance(max_coordinate_bits, int)
             or max_coordinate_bits < 1):
         raise InvalidModelError("max_coordinate_bits must be a positive integer")
-    source = _validate_triangle(source, "coverage source")
+    for label, value, ceiling in (
+        ("max_fragments", max_fragments, 100_000),
+        ("max_aggregate_rational_bits", max_aggregate_rational_bits, 64_000_000),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise InvalidModelError(f"{label} must be a positive integer")
+        if value > ceiling:
+            raise InvalidModelError(f"{label} exceeds its supported hard ceiling")
     if not isinstance(fragments, (tuple, list)):
         raise InvalidModelError("coverage fragments must be a tuple or list")
-    validated = tuple(_validate_triangle(fragment, "coverage fragment")
-                      for fragment in fragments)
-    for triangle in (source, *validated):
-        for point in triangle:
-            for value in point:
-                if (abs(value.numerator).bit_length() > max_coordinate_bits
-                        or value.denominator.bit_length() > max_coordinate_bits):
-                    raise InvalidModelError("coverage coordinate exceeded max_coordinate_bits")
-    count = len(validated)
+    # Check count and the complete pairwise work estimate before validating or
+    # materializing individual fragment geometry.
+    count = len(fragments)
+    if count > max_fragments:
+        raise InvalidModelError("coverage oracle exceeded max_fragments")
     checks = count + count * (count - 1) // 2
     if checks > max_pairwise_checks:
         raise InvalidModelError("coverage oracle exceeded max_pairwise_checks")
+    source = _validate_triangle(source, "coverage source")
+    aggregate_bits = 0
+    validated_items = []
+    for index, raw_fragment in enumerate(fragments):
+        triangle = _validate_triangle(raw_fragment, f"coverage fragment {index}")
+        for point in triangle:
+            for value in point:
+                numerator_bits = abs(value.numerator).bit_length()
+                denominator_bits = value.denominator.bit_length()
+                if numerator_bits > max_coordinate_bits or denominator_bits > max_coordinate_bits:
+                    raise InvalidModelError("coverage coordinate exceeded max_coordinate_bits")
+                aggregate_bits += numerator_bits + denominator_bits
+                if aggregate_bits > max_aggregate_rational_bits:
+                    raise InvalidModelError("coverage aggregate rational bit budget exceeded")
+        validated_items.append(triangle)
+    for point in source:
+        for value in point:
+            numerator_bits = abs(value.numerator).bit_length()
+            denominator_bits = value.denominator.bit_length()
+            if numerator_bits > max_coordinate_bits or denominator_bits > max_coordinate_bits:
+                raise InvalidModelError("coverage coordinate exceeded max_coordinate_bits")
+            aggregate_bits += numerator_bits + denominator_bits
+            if aggregate_bits > max_aggregate_rational_bits:
+                raise InvalidModelError("coverage aggregate rational bit budget exceeded")
+    validated = tuple(validated_items)
 
     source_normal = _normal(source)
     source_origin = source[0]
