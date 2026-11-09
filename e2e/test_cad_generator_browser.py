@@ -442,7 +442,9 @@ def test_feature_history_branch_fork_and_merge_work_in_browser(workbench):
         """expected => {
           const state = document.querySelector("#branch-state")?.textContent || "";
           const status = document.querySelector("#status-message")?.textContent || "";
-          return state.includes(expected) || status.length > 0;
+          return state.includes(expected) ||
+            state.startsWith("Merge blocked by ") ||
+            (status.length > 0 && status !== "Branch list refreshed.");
         }""",
         arg=expected_merge_message,
         timeout=10_000,
