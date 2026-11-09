@@ -1,6 +1,6 @@
 # Exact Rational Faceted Output Contract
 
-**Status:** DESIGN REQUIRED — no implementation is claimed by this document.  
+**Status:** PARTIAL — PR #221 adds the bounded single-outer-shell exact-rational artifact profile. Boolean shell-assembly integration, cavity semantics and universal degeneracy certification remain incomplete.  
 **Target profile:** `RATIONAL_FACETED_SOLID_V1`.  
 **Compatibility:** additive profile; existing binary64 `TriangleMesh`, `BRepSolid` and `BRepMultiShellSolid` formats remain unchanged.
 
@@ -93,3 +93,37 @@ The profile is not PASS until:
 - exact-head and post-merge required CI checks pass.
 
 Until those criteria are met, the existing binary64 rejection is the correct behavior and general arbitrary-faceted Boolean remains **PARTIAL / INCOMPLETE**.
+
+
+## 9. Bounded implementation evidence — PR #221
+
+The additive `RATIONAL_FACETED_SOLID_V1` profile is implemented by
+`engineering.rational_faceted_solid.RationalFacetedSolid` with a strict JSON
+Schema and public engineering-package export.
+
+Implemented in this slice:
+
+- Exact coordinates are immutable `Fraction` triples; serialization uses
+  reduced decimal-string numerator/positive-denominator pairs.
+- Vertices must be lexicographically canonical and unique by exact equality.
+- Triangle indices, degeneracy, two-face edge incidence, opposite directed
+  edge use, edge connectivity and outward positive exact signed volume are
+  validated independently of binary64 B-rep conversion.
+- A bounded exact-rational SAT pair scan rejects detected non-adjacent
+  intersections and unsupported contacts; coplanar adjacent faces are checked
+  for same-side overlap.
+- Exact volume and deterministic SHA-256 content digest are recomputed during
+  deserialization. Resource counters are checked against geometry.
+- Legacy binary64 schemas and exporters are unchanged.
+
+The v1 implementation deliberately accepts exactly one connected OUTER shell.
+Cavities, nested positive material islands, branching, some vertex-contact
+configurations, and arbitrary degeneracy semantics are not certified. The
+pairwise SAT scan is a bounded conservative check, not a universal proof for
+all possible faceted shell configurations. The artifact is not yet consumed
+by `assemble_boolean_shells` or `CADGeneratorService`; those integrations
+remain required before rational Boolean results can be emitted end-to-end.
+
+PR #221 acceptance requires exact-head CI and post-merge CI. A passing
+tetrahedral rational round-trip fixture establishes only the implemented
+single-shell profile, not unrestricted arbitrary-faceted Boolean support.
