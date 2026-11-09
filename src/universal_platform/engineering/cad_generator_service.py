@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .faceted_boolean_arrangement import FacetedBooleanArrangement, arrange_faceted_boolean_meshes
 from .brep_boolean import BRepBooleanOperation
 from .boolean_boundary_selection import BooleanBoundarySelection, select_boolean_boundary_fragments
@@ -74,11 +75,13 @@ class CADGeneratorBooleanRun:
     selection: BooleanBoundarySelection
     assembly: BooleanShellAssemblyResult
     arrangement: FacetedBooleanArrangement | None = None
+    resource_usage: tuple[tuple[str, int], ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
             "schema_version": "1.0",
             "operation": self.selection.operation.value,
+            "resource_usage": dict(self.resource_usage),
             "arrangement": None if self.arrangement is None else {
                 "source_triangle_count": self.arrangement.source_triangle_count,
                 "unique_plane_count": self.arrangement.unique_plane_count,
@@ -292,19 +295,21 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id_prefix: str = "boolean.result",
+        resource_limits: Mapping[str, int] | None = None,
     ) -> CADGeneratorBooleanRun:
         """Execute classification, boundary selection and shell validation offline.
 
         This deliberately accepts pre-arranged source-face fragments. It does
         not discover cross-solid intersections or split crossing faces.
         """
+        ledger = BooleanResourceLedger(resource_limits)
         selection = select_boolean_boundary_fragments(
-            meshes, fragments_by_solid, operation,
+            meshes, fragments_by_solid, operation, resource_ledger=ledger,
         )
         assembly = assemble_boolean_shells(
-            selection, meshes, result_id_prefix=result_id_prefix,
+            selection, meshes, result_id_prefix=result_id_prefix, resource_ledger=ledger,
         )
-        return CADGeneratorBooleanRun(selection, assembly)
+        return CADGeneratorBooleanRun(selection, assembly, None, ledger.usage)
 
     def execute_faceted_boolean(
         self,
@@ -312,6 +317,7 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id_prefix: str = "boolean.result",
+        resource_limits: Mapping[str, int] | None = None,
     ) -> CADGeneratorBooleanRun:
         """Discover a bounded global plane arrangement, select and assemble output.
 
@@ -321,14 +327,15 @@ class CADGeneratorService:
         non-lossless rational coordinates at B-rep assembly; it never rounds
         or tolerance-welds geometry.
         """
-        arrangement = arrange_faceted_boolean_meshes(meshes)
+        ledger = BooleanResourceLedger(resource_limits)
+        arrangement = arrange_faceted_boolean_meshes(meshes, resource_ledger=ledger)
         selection = select_boolean_boundary_fragments(
-            meshes, arrangement.fragments_by_solid, operation,
+            meshes, arrangement.fragments_by_solid, operation, resource_ledger=ledger,
         )
         assembly = assemble_boolean_shells(
-            selection, meshes, result_id_prefix=result_id_prefix,
+            selection, meshes, result_id_prefix=result_id_prefix, resource_ledger=ledger,
         )
-        return CADGeneratorBooleanRun(selection, assembly, arrangement)
+        return CADGeneratorBooleanRun(selection, assembly, arrangement, ledger.usage)
 
     def execute_rational_faceted_boolean(
         self,
@@ -336,6 +343,7 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id: str = "boolean.result",
+        resource_limits: Mapping[str, int] | None = None,
     ) -> RationalBooleanSolid:
         """Generate a serialized exact-rational multi-shell Boolean solid.
 
@@ -343,12 +351,13 @@ class CADGeneratorService:
         semantics. Unsupported contacts, ambiguous containment and exhausted
         resource budgets fail closed; no binary64 conversion is performed.
         """
-        arrangement = arrange_faceted_boolean_meshes(meshes)
+        ledger = BooleanResourceLedger(resource_limits)
+        arrangement = arrange_faceted_boolean_meshes(meshes, resource_ledger=ledger)
         selection = select_boolean_boundary_fragments(
-            meshes, arrangement.fragments_by_solid, operation,
+            meshes, arrangement.fragments_by_solid, operation, resource_ledger=ledger,
         )
         return assemble_rational_boolean_solid(
-            selection, meshes, result_id=result_id,
+            selection, meshes, result_id=result_id, resource_ledger=ledger,
         )
 
     def regenerate(

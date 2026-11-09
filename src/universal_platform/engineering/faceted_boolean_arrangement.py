@@ -6,6 +6,7 @@ from math import gcd, lcm
 from typing import Sequence
 
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .mesh import TriangleMesh, validate_triangle_mesh
 from .mesh_intersection import analyze_mesh_intersections
 from .triangle_coverage_oracle import (coplanar_contact_is_covered, coplanar_triangle_intersection_geometry, coplanar_triangle_intersection_kind)
@@ -68,6 +69,7 @@ def arrange_faceted_boolean_meshes(
     max_coverage_checks:int=10_000_000,
     max_coplanar_checks:int=1_000_000,
     max_coplanar_coverage_checks:int=1_000_000,
+    resource_ledger:BooleanResourceLedger|None=None,
 )->FacetedBooleanArrangement:
     """Create a conservative all-source-plane arrangement for 2..16 meshes.
 
@@ -86,6 +88,9 @@ def arrange_faceted_boolean_meshes(
                        ("max_coplanar_coverage_checks",max_coplanar_coverage_checks)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
+    ledger=resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger,BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     if any(not isinstance(mesh,TriangleMesh) for mesh in meshes):
         raise InvalidModelError("all Boolean inputs must be TriangleMesh values")
     # Reject oversized inputs before topology validation and self-intersection
@@ -93,6 +98,7 @@ def arrange_faceted_boolean_meshes(
     source_triangle_total = sum(len(mesh.triangles) for mesh in meshes)
     if source_triangle_total > max_source_triangles:
         raise InvalidModelError("faceted arrangement exceeded max_source_triangles")
+    ledger.charge("source_triangles", source_triangle_total)
     if len({(mesh.frame_id,mesh.length_unit) for mesh in meshes})!=1:
         raise InvalidModelError("Boolean inputs must share frame and length unit")
 
@@ -120,6 +126,7 @@ def arrange_faceted_boolean_meshes(
                 plane_by_key[key]=RationalPlane(len(plane_by_key),triangle)
                 if len(plane_by_key)>max_unique_planes:
                     raise InvalidModelError("faceted arrangement exceeded max_unique_planes")
+                ledger.charge("unique_planes", 1)
 
     coplanar_checks=0
     active_coplanar_planes=set()
@@ -139,6 +146,7 @@ def arrange_faceted_boolean_meshes(
                         coplanar_checks+=1
                         if coplanar_checks>max_coplanar_checks:
                             raise InvalidModelError("coplanar pair scan exceeded max_coplanar_checks")
+                        ledger.charge("coplanar_checks", 1)
                         relation=coplanar_triangle_intersection_kind(first,second)
                         if relation=="AREA_OVERLAP":
                             geometry=coplanar_triangle_intersection_geometry(first,second)
@@ -167,6 +175,7 @@ def arrange_faceted_boolean_meshes(
                 raise InvalidModelError(
                     "coplanar contact coverage exceeded max_coplanar_coverage_checks"
                 )
+            ledger.charge("coplanar_coverage_checks", max(1, len(overlap_polygons)))
             if not coplanar_contact_is_covered(contact, overlap_polygons):
                 unsupported_contacts = True
     if unsupported_contacts:
@@ -212,12 +221,14 @@ def arrange_faceted_boolean_meshes(
                         raise InvalidModelError(
                             "coplanar cutters exceeded max_unique_planes"
                         )
+                    ledger.charge("unique_planes", 1)
 
     arrangement=arrange_triangle_mesh_globally(
         tuple(source_triangles),tuple(plane_by_key.values()),
         max_fragments=max_fragments,max_coordinate_bits=max_coordinate_bits,
         max_edges=max_edges,max_topology_checks=max_topology_checks,
         max_coverage_checks=max_coverage_checks,
+        resource_ledger=ledger,
     )
     grouped=[[] for _ in meshes]
     for fragment in arrangement.fragments:
