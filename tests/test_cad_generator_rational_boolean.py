@@ -1,5 +1,6 @@
 from fractions import Fraction as F
 from hashlib import sha256
+import json
 
 import pytest
 
@@ -152,3 +153,22 @@ def test_rational_boolean_shell_containment_budget_is_preflighted():
             (mesh,), result_id="rational.cavity-budget",
             max_containment_ray_checks=1,
         )
+
+
+
+def test_rational_boolean_deserialization_rejects_rehashed_invalid_cavity_parent():
+    mesh = _box("source", 1.0)
+    outer = _tetra(scale=F(3))
+    cavity = _tetra(origin=(F(1, 4), F(1, 4), F(1, 4)), scale=F(1, 4))
+    artifact = assemble_rational_boolean_solid(
+        _selection(_tetra_faces(outer) + _tetra_faces(cavity, 4, reverse=True)),
+        (mesh,), result_id="rational.cavity-tamper"
+    )
+    snapshot = artifact.to_dict()
+    snapshot["components"][0]["cavity_shells"][0]["parent_outer_shell_id"] = "outer.9999"
+    payload = {key: value for key, value in snapshot.items() if key != "result_sha256"}
+    snapshot["result_sha256"] = sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    with pytest.raises(InvalidModelError, match="parentage does not match exact containment"):
+        RationalBooleanSolid.from_dict(snapshot)
