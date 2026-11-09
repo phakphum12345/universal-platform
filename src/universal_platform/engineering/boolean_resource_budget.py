@@ -59,6 +59,11 @@ class BooleanResourceLedger:
             )
         self._used[name] = total
 
+    def remaining(self, name: str) -> int:
+        if name not in self._limits:
+            raise InvalidModelError(f"unknown Boolean resource dimension: {name}")
+        return self._limits[name] - self._used[name]
+
     @property
     def usage(self) -> tuple[tuple[str, int], ...]:
         """Deterministic immutable snapshot of all charged dimensions."""
