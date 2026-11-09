@@ -202,7 +202,7 @@ __all__ = [
     "SourceRef", "EvidenceGateResult", "evaluate_evidence_gate", "RiskTier", "SafetyGate", "SafetyDecision",
     "RigidTransform", "FrameGraph", "FramedPoint3", "FramedVector3", "BoxSolid", "CylinderSolid", "ExtrudedProfileSolid", "FramedBounds3", "PrimitiveGeometryModel", "Vec2", "TriangleMesh", "MeshValidationResult", "tessellate_box", "tessellate_cylinder", "tessellate_extruded_profile", "validate_triangle_mesh", "ProfileBooleanOperation", "ProfileBooleanResult", "ProfileLoop", "boolean_profiles", "JointPlacement",
     "BRepVertex", "BRepEdge", "BRepEdgeUse", "BRepLoop", "BRepFace", "BRepShell",
-    "BRepBooleanOperation", "BRepBooleanResult", "boolean_axis_aligned_brep_solids",
+    "BooleanResourceLedger", "BRepBooleanOperation", "BRepBooleanResult", "boolean_axis_aligned_brep_solids",
     "BRepValidationResult", "BRepSolid", "validate_brep_solid",
     "brep_from_triangle_mesh", "triangle_mesh_from_brep",
     "solve_tree_forward_kinematics", "PlanarIKResult",
