@@ -369,7 +369,7 @@ def assemble_rational_boolean_solid(
             if index == other_index:
                 continue
             witness = classify_rational_point_against_triangles(
-                representative, other_triangles[other_index]
+                representative, outer_triangles[other_index]
             )
             if witness.classification is not MaterialClassification.OUTSIDE:
                 raise InvalidModelError("nested or ambiguous positive rational shells are unsupported")
