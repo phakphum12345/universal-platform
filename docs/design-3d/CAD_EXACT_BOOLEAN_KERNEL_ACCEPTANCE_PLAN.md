@@ -157,3 +157,33 @@ The rational bit budget and early-work preflight now extend beyond the standalon
 - Regression tests cover classifier allocation preflight, classifier and selection aggregate-budget rejection, and global-arrangement aggregate-budget rejection.
 
 These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Shell assembly still needs its own aggregate budget and exact-rational output contract. The Boolean pipeline therefore remains PARTIAL until those integration gates and current-head CI are complete.
+
+
+## Rational multi-shell output — implementation candidate
+
+A separate `RATIONAL_BOOLEAN_SOLID_V1` result contract now composes individually
+validated `RATIONAL_FACETED_SOLID_V1` shells into material components. Each
+component has one OUTER shell and zero or more CAVITY shells, with explicit
+parent-shell identity and exact net volume. Disconnected outer components are
+preserved rather than rejected or silently discarded.
+
+The rational generator path now:
+- keeps every coordinate as an exact `Fraction` through shell assembly;
+- normalizes each shell's own orientation while retaining its OUTER/CAVITY role;
+- validates each shell with the existing exact rational faceted-solid validator;
+- preflights inter-shell triangle-pair work and aggregate rational coordinate bits;
+- rejects inter-shell intersection/contact, ambiguous containment, nested positive
+  shells, and nested cavities rather than approximating them;
+- uses exact rational ray witnesses for cavity-to-outer containment;
+- serializes child shells, component parentage, exact net volume, counters and a
+  deterministic SHA-256 result digest; and
+- exposes a CADGeneratorService method returning the multi-shell artifact.
+
+Regression coverage targets non-binary rational round-trip, disconnected outer
+components, cavity role/parentage/net volume, touching-shell rejection,
+invalid cavity containment, and service-level Boolean serialization.
+
+**Status: IMPLEMENTED IN PR CANDIDATE / CI PENDING.** This does not certify
+branching, arbitrary tangencies, nested material islands, all degeneracies, or
+unrestricted exact Boolean geometry. Do not mark the stage PASS until all
+required checks succeed on the exact latest head SHA.
