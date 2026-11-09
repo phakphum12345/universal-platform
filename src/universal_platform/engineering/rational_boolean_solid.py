@@ -274,6 +274,113 @@ class RationalBooleanSolid:
                      counters["containment_ray_checks"])
         if result.exact_net_volume != _parse_pair(value["exact_net_volume"], "result volume"):
             raise InvalidModelError("result exact net volume mismatch")
+        _validate_shell_relationships(result)
         if result._payload() != payload:
             raise InvalidModelError("rational Boolean result counters or canonical payload mismatch")
         return result
+
+
+
+def _validate_shell_relationships(result: RationalBooleanSolid) -> None:
+    """Recheck inter-shell geometry, ownership, and counters on deserialization."""
+    from .material_classification import (
+        MaterialClassification, classify_rational_point_against_triangles,
+    )
+    from .rational_faceted_solid import _axes_overlap
+
+    records = []
+    for component in result.components:
+        records.append(component.outer_shell)
+        records.extend(component.cavity_shells)
+    shell_ids = [item.shell_id for item in records]
+    if len(set(shell_ids)) != len(shell_ids):
+        raise InvalidModelError("rational shell identifiers must be globally unique")
+
+    triangles = {
+        shell.shell_id: tuple(
+            tuple(shell.solid.vertices[index] for index in face)
+            for face in shell.solid.triangles
+        )
+        for shell in records
+    }
+    pair_checks = sum(
+        len(triangles[first.shell_id]) * len(triangles[second.shell_id])
+        for index, first in enumerate(records)
+        for second in records[index + 1:]
+    )
+    if pair_checks > 5_000_000 or pair_checks != result.inter_shell_pair_checks:
+        raise InvalidModelError("inter-shell pair counter mismatch or hard limit exceeded")
+    for index, first in enumerate(records):
+        for second in records[index + 1:]:
+            for first_triangle in triangles[first.shell_id]:
+                for second_triangle in triangles[second.shell_id]:
+                    if _axes_overlap(first_triangle, second_triangle, touching_is_overlap=True):
+                        raise InvalidModelError("serialized rational shells intersect or touch")
+
+    aggregate_bits = sum(
+        abs(value.numerator).bit_length() + value.denominator.bit_length()
+        for shell in records for point in shell.solid.vertices for value in point
+    )
+    if aggregate_bits > 64_000_000 or aggregate_bits != result.aggregate_rational_bits:
+        raise InvalidModelError("aggregate rational bit counter mismatch or hard limit exceeded")
+
+    outers = [item for item in records if item.role == "OUTER"]
+    cavities = [item for item in records if item.role == "CAVITY"]
+    ray_checks = sum(
+        len(triangles[other.shell_id]) * 7
+        for index, outer in enumerate(outers)
+        for other_index, other in enumerate(outers)
+        if index != other_index
+    )
+    ray_checks += sum(
+        len(triangles[outer.shell_id]) * 7
+        for cavity in cavities for outer in outers
+    )
+    ray_checks += sum(
+        (len(triangles[first.shell_id]) + len(triangles[second.shell_id])) * 7
+        for index, first in enumerate(cavities) for second in cavities[index + 1:]
+    )
+    if ray_checks > 5_000_000 or ray_checks != result.containment_ray_checks:
+        raise InvalidModelError("containment ray counter mismatch or hard limit exceeded")
+
+    outer_triangles = {item.shell_id: triangles[item.shell_id] for item in outers}
+    for index, outer in enumerate(outers):
+        for other_index, other in enumerate(outers):
+            if index == other_index:
+                continue
+            state = classify_rational_point_against_triangles(
+                outer.solid.vertices[0], outer_triangles[other.shell_id]
+            ).classification
+            if state is not MaterialClassification.OUTSIDE:
+                raise InvalidModelError("nested or ambiguous outer shells are unsupported")
+
+    for cavity in cavities:
+        owners = []
+        for outer in outers:
+            state = classify_rational_point_against_triangles(
+                cavity.solid.vertices[0], outer_triangles[outer.shell_id]
+            ).classification
+            if state is MaterialClassification.INSIDE:
+                owners.append(outer)
+            elif state is not MaterialClassification.OUTSIDE:
+                raise InvalidModelError("cavity containment is boundary or UNKNOWN")
+        if len(owners) != 1 or cavity.parent_outer_shell_id != owners[0].shell_id:
+            raise InvalidModelError("cavity parentage does not match exact containment")
+
+    for index, cavity in enumerate(cavities):
+        for other in cavities[index + 1:]:
+            first_state = classify_rational_point_against_triangles(
+                cavity.solid.vertices[0], triangles[other.shell_id]
+            ).classification
+            second_state = classify_rational_point_against_triangles(
+                other.solid.vertices[0], triangles[cavity.shell_id]
+            ).classification
+            if (first_state is not MaterialClassification.OUTSIDE
+                    or second_state is not MaterialClassification.OUTSIDE):
+                raise InvalidModelError("nested or ambiguous cavities are unsupported")
+
+    provenance = tuple(sorted({
+        item for shell in records for item in shell.solid.source_provenance
+    }))
+    if provenance != result.source_provenance:
+        raise InvalidModelError("top-level source provenance does not match shell provenance")
