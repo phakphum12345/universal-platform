@@ -9,6 +9,7 @@ from .brep import BRepSolid, brep_from_triangle_mesh, validate_brep_solid
 from .brep_multishell import BRepMultiShellSolid, validate_brep_multishell_solid
 from .boolean_boundary_selection import BooleanBoundarySelection
 from .errors import InvalidModelError
+from .boolean_resource_budget import BooleanResourceLedger
 from .geometry import Vec3
 from .material_classification import ExactMeshMaterialClassifier, MaterialClassification
 from .mesh import TriangleMesh, validate_triangle_mesh
@@ -235,6 +236,9 @@ def assemble_rational_boolean_solid(
         MaterialClassification, classify_rational_point_against_triangles,
     )
 
+    ledger = resource_ledger or BooleanResourceLedger()
+    if not isinstance(ledger, BooleanResourceLedger):
+        raise InvalidModelError("resource_ledger must be a BooleanResourceLedger")
     if not isinstance(selection, BooleanBoundarySelection):
         raise InvalidModelError("selection must be a BooleanBoundarySelection")
     if not isinstance(input_meshes, tuple) or not input_meshes:
@@ -263,6 +267,7 @@ def assemble_rational_boolean_solid(
         raise InvalidModelError("empty Boolean results do not produce a solid artifact")
     if len(fragments) > max_faces:
         raise InvalidModelError("rational shell assembly exceeded max_faces")
+    ledger.charge("faces", len(fragments))
     if any(item.source_solid_index >= len(input_meshes) for item in fragments):
         raise InvalidModelError("selected fragment references an unknown input solid")
 
@@ -270,6 +275,7 @@ def assemble_rational_boolean_solid(
     points = {point for face in faces for point in face}
     if len(points) > max_vertices:
         raise InvalidModelError("rational shell assembly exceeded max_vertices")
+    ledger.charge("vertices", len(points))
     aggregate_bits = 0
     for point in points:
         if len(point) != 3 or any(not isinstance(value, Fraction) for value in point):
@@ -282,6 +288,7 @@ def assemble_rational_boolean_solid(
             if aggregate_bits > max_aggregate_rational_bits:
                 raise InvalidModelError("aggregate rational shell bit budget exceeded")
 
+    ledger.charge("aggregate_rational_bits", aggregate_bits)
     uses = _edge_uses(faces)
     groups = _components(faces, uses)
     shell_records = []
@@ -330,6 +337,7 @@ def assemble_rational_boolean_solid(
     )
     if pair_checks > max_inter_shell_pair_checks:
         raise InvalidModelError("inter-shell exact intersection pair budget exceeded")
+    ledger.charge("inter_shell_pair_checks", pair_checks)
     for first_index, first in enumerate(shell_records):
         for second in shell_records[first_index + 1:]:
             for first_triangle in first["triangles"]:
@@ -360,6 +368,7 @@ def assemble_rational_boolean_solid(
             ) * 7
     if containment_ray_checks > max_containment_ray_checks:
         raise InvalidModelError("exact shell containment ray budget exceeded")
+    ledger.charge("containment_ray_checks", containment_ray_checks)
 
     # Positive material components must be disjoint, not nested.
     outer_triangles = [item["triangles"] for item in outers]
