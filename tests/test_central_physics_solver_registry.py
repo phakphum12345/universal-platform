@@ -213,4 +213,4 @@ def test_builtin_physics_solvers_match_independent_reference_catalogue():
     assert thermal_result.outputs[0].quantity.in_unit(thermal_inputs["unit"]) == pytest.approx(
         thermal["expected"], abs=thermal["tolerance"]
     )
-    assert thermal_result.evidence.metadata["assumptions"] == list(thermal_problem.assumptions)
+    assert thermal_result.evidence.metadata["assumptions"] == thermal_problem.assumptions
