@@ -137,3 +137,80 @@ def test_duplicate_solver_registration_is_rejected():
     registry.register(AxialStressSolver())
     with pytest.raises(ValueError, match="already registered"):
         registry.register(AxialStressSolver())
+
+
+
+def test_builtin_physics_solvers_match_independent_reference_catalogue():
+    import json
+    from pathlib import Path
+
+    catalogue_path = Path(__file__).parent / "reference_cases" / "engineering_reference_cases.json"
+    catalogue = json.loads(catalogue_path.read_text(encoding="utf-8"))
+    cases = {case["id"]: case for case in catalogue["cases"]}
+    registry = make_registry()
+
+    stress = cases["MECH-AXIAL-STRESS-001"]
+    stress_inputs = stress["inputs"]
+    stress_problem = PhysicsProblem(
+        stress["id"], PhysicsDomain.STRUCTURAL, PhysicsMethod.ANALYTICAL,
+        (
+            PhysicsInput("force", Quantity.of(
+                stress_inputs["force"]["value"], stress_inputs["force"]["unit"]
+            )),
+            PhysicsInput("area",
+                         Quantity.of(stress_inputs["width"]["value"], stress_inputs["width"]["unit"])
+                         * Quantity.of(stress_inputs["height"]["value"], stress_inputs["height"]["unit"])),
+        ),
+        validity_range="uniform axial load and constant cross-section",
+        assumptions=("uniform axial stress",),
+    )
+    stress_result = solve(registry, stress_problem, "builtin.axial-stress")
+    assert stress_result.outputs[0].quantity.in_unit(stress_inputs["unit"]) == pytest.approx(
+        stress["expected"], abs=stress["tolerance"]
+    )
+    assert stress_result.evidence.metadata["validity_range"] == stress_problem.validity_range
+
+    electrical = cases["ELEC-OHMS-LAW-001"]
+    electrical_inputs = electrical["inputs"]
+    electrical_problem = PhysicsProblem(
+        electrical["id"], PhysicsDomain.ELECTRICAL, PhysicsMethod.ANALYTICAL,
+        (
+            PhysicsInput("voltage", Quantity.of(
+                electrical_inputs["voltage"]["value"], electrical_inputs["voltage"]["unit"]
+            )),
+            PhysicsInput("resistance", Quantity.of(
+                electrical_inputs["resistance"]["value"], electrical_inputs["resistance"]["unit"]
+            )),
+        ),
+        validity_range="ideal lumped DC circuit with positive resistance",
+        assumptions=("steady-state DC", "ideal lumped components"),
+    )
+    electrical_result = solve(registry, electrical_problem, "builtin.ohms-law")
+    electrical_outputs = {item.name: item.quantity for item in electrical_result.outputs}
+    assert electrical_outputs["current"].in_unit(electrical_inputs["unit"]) == pytest.approx(
+        electrical["expected"], abs=electrical["tolerance"]
+    )
+    power_case = cases["ELEC-POWER-001"]
+    assert electrical_outputs["power"].in_unit(power_case["inputs"]["unit"]) == pytest.approx(
+        power_case["expected"], abs=power_case["tolerance"]
+    )
+
+    thermal = cases["THERMAL-LINEAR-EXPANSION-001"]
+    thermal_inputs = thermal["inputs"]
+    thermal_problem = PhysicsProblem(
+        thermal["id"], PhysicsDomain.THERMAL, PhysicsMethod.ANALYTICAL,
+        (
+            PhysicsInput("length", Quantity.of(
+                thermal_inputs["length"]["value"], thermal_inputs["length"]["unit"]
+            )),
+            PhysicsInput("coefficient_per_kelvin", thermal_inputs["coefficient_per_kelvin"]),
+            PhysicsInput("temperature_change_kelvin", thermal_inputs["temperature_change_kelvin"]),
+        ),
+        validity_range="constant linear expansion coefficient and uniform temperature change",
+        assumptions=("free expansion", "constant coefficient over the temperature interval"),
+    )
+    thermal_result = solve(registry, thermal_problem, "builtin.linear-thermal-expansion")
+    assert thermal_result.outputs[0].quantity.in_unit(thermal_inputs["unit"]) == pytest.approx(
+        thermal["expected"], abs=thermal["tolerance"]
+    )
+    assert thermal_result.evidence.metadata["assumptions"] == list(thermal_problem.assumptions)
