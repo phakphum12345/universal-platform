@@ -7,6 +7,7 @@ from universal_platform.engineering.triangle_coverage_oracle import (
     certify_triangle_partition,
     coplanar_contact_is_covered,
     coplanar_triangle_intersection_geometry,
+    coplanar_triangle_intersection_kind,
 )
 
 F = Fraction
@@ -110,3 +111,56 @@ def test_coplanar_intersection_geometry_preserves_contact_segment():
         polygon,
         (((F(0), F(0)), (F(2), F(0)), (F(2), F(2)), (F(0), F(2))),),
     )
+
+
+
+def test_oracle_preflights_fragment_count_and_pair_work_before_geometry_validation():
+    malformed = object()
+    with pytest.raises(InvalidModelError, match="max_pairwise_checks"):
+        certify_triangle_partition(
+            SOURCE, (malformed, malformed, malformed), max_pairwise_checks=2
+        )
+    with pytest.raises(InvalidModelError, match="max_fragments"):
+        certify_triangle_partition(SOURCE, (malformed, malformed), max_fragments=1)
+
+
+def test_oracle_enforces_aggregate_rational_bit_budget():
+    with pytest.raises(InvalidModelError, match="aggregate rational bit budget"):
+        certify_triangle_partition(
+            SOURCE, (LEFT_LOWER,), max_aggregate_rational_bits=8
+        )
+
+
+def test_coplanar_triangle_intersection_classifies_point_and_edge_contacts():
+    first = (p(0, 0), p(1, 0), p(0, 1))
+    point_touch = (p(1, 0), p(2, 0), p(2, 1))
+    edge_touch = (p(0, 0), p(1, 0), p(1, -1))
+    assert coplanar_triangle_intersection_kind(first, point_touch) == "CONTACT"
+    assert coplanar_triangle_intersection_kind(first, edge_touch) == "CONTACT"
+
+
+def test_coplanar_triangle_intersection_detects_extremely_narrow_exact_overlap():
+    epsilon = F(1, 1 << 80)
+    first = (p(0, 0), p(1, 0), p(0, 1))
+    sliver = (
+        (F(1) - epsilon, F(0), F(0)),
+        (F(1), F(0), F(0)),
+        (F(1) - epsilon, epsilon, F(0)),
+    )
+    assert coplanar_triangle_intersection_kind(first, sliver) == "AREA_OVERLAP"
+    geometry = coplanar_triangle_intersection_geometry(first, sliver)
+    assert geometry is not None
+    assert len(geometry[1]) >= 3
+
+
+def test_contact_closure_accepts_adjacent_overlay_intervals_but_rejects_gap():
+    left = ((F(0), F(0)), (F(1), F(0)), (F(1), F(1)), (F(0), F(1)))
+    right = ((F(1), F(0)), (F(2), F(0)), (F(2), F(1)), (F(1), F(1)))
+    segment = ((F(0), F(1, 2)), (F(2), F(1, 2)))
+    assert coplanar_contact_is_covered(segment, (left, right))
+
+    gap_left = ((F(0), F(0)), (F(9, 10), F(0)),
+                (F(9, 10), F(1)), (F(0), F(1)))
+    gap_right = ((F(11, 10), F(0)), (F(2), F(0)),
+                 (F(2), F(1)), (F(11, 10), F(1)))
+    assert not coplanar_contact_is_covered(segment, (gap_left, gap_right))
