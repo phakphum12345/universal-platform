@@ -325,6 +325,19 @@ def coplanar_contact_is_covered(
         return any(_point_in_convex_polygon(first, polygon)
                    for polygon in overlap_polygons)
 
+    # A triangle-pair contact is necessarily a point or a segment. Do not
+    # silently project malformed/non-convex contact input onto its farthest
+    # pair: every supplied point must lie on the closed segment.
+    dx, dy = second[0] - first[0], second[1] - first[1]
+    length_squared = dx * dx + dy * dy
+    for point in unique:
+        offset_x, offset_y = point[0] - first[0], point[1] - first[1]
+        if dx * offset_y - dy * offset_x != 0:
+            return False
+        projection = offset_x * dx + offset_y * dy
+        if projection < 0 or projection > length_squared:
+            return False
+
     intervals = []
     for polygon in overlap_polygons:
         interval = _segment_interval_in_convex_polygon(first, second, polygon)
