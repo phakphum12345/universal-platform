@@ -223,6 +223,7 @@ def assemble_rational_boolean_solid(
     max_vertices: int = 100_000,
     max_coordinate_bits: int = 4096,
     max_inter_shell_pair_checks: int = 5_000_000,
+    max_containment_ray_checks: int = 5_000_000,
     max_aggregate_rational_bits: int = 64_000_000,
 ):
     """Assemble exact rational outer/cavity shells without binary64 conversion."""
@@ -246,13 +247,15 @@ def assemble_rational_boolean_solid(
         ("max_faces", max_faces), ("max_vertices", max_vertices),
         ("max_coordinate_bits", max_coordinate_bits),
         ("max_inter_shell_pair_checks", max_inter_shell_pair_checks),
+        ("max_containment_ray_checks", max_containment_ray_checks),
         ("max_aggregate_rational_bits", max_aggregate_rational_bits),
     ):
         if isinstance(value, bool) or not isinstance(value, int) or value < 1:
             raise InvalidModelError(f"{name} must be a positive integer")
     if max_faces > 200_000 or max_vertices > 100_000 or max_coordinate_bits > 16_384:
         raise InvalidModelError("rational shell resource limit exceeds its supported hard ceiling")
-    if max_inter_shell_pair_checks > 5_000_000 or max_aggregate_rational_bits > 64_000_000:
+    if (max_inter_shell_pair_checks > 5_000_000 or max_containment_ray_checks > 5_000_000
+            or max_aggregate_rational_bits > 64_000_000):
         raise InvalidModelError("rational shell aggregate resource limit exceeds its hard ceiling")
 
     fragments = selection.selected_fragments
@@ -341,6 +344,23 @@ def assemble_rational_boolean_solid(
     if not outers:
         raise InvalidModelError("rational Boolean result contains cavities but no outer shell")
 
+    # Bound all exact point-in-shell work before running any ray predicate.
+    containment_ray_checks = 0
+    for outer_index, outer in enumerate(outers):
+        for other_index, other in enumerate(outers):
+            if outer_index != other_index:
+                containment_ray_checks += len(other["triangles"]) * 7
+    for cavity in cavities:
+        for outer in outers:
+            containment_ray_checks += len(outer["triangles"]) * 7
+    for cavity_index, cavity in enumerate(cavities):
+        for other in cavities[cavity_index + 1:]:
+            containment_ray_checks += (
+                len(other["triangles"]) + len(cavity["triangles"])
+            ) * 7
+    if containment_ray_checks > max_containment_ray_checks:
+        raise InvalidModelError("exact shell containment ray budget exceeded")
+
     # Positive material components must be disjoint, not nested.
     outer_triangles = [item["triangles"] for item in outers]
     for index, outer in enumerate(outers):
@@ -409,4 +429,5 @@ def assemble_rational_boolean_solid(
     return RationalBooleanSolid(
         result_id, input_meshes[0].frame_id, input_meshes[0].length_unit,
         tuple(components), provenance, pair_checks, aggregate_bits,
+        containment_ray_checks,
     )
