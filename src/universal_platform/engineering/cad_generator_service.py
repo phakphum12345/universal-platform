@@ -294,19 +294,21 @@ class CADGeneratorService:
         operation: BRepBooleanOperation,
         *,
         result_id_prefix: str = "boolean.result",
+        resource_limits: Mapping[str, int] | None = None,
     ) -> CADGeneratorBooleanRun:
         """Execute classification, boundary selection and shell validation offline.
 
         This deliberately accepts pre-arranged source-face fragments. It does
         not discover cross-solid intersections or split crossing faces.
         """
+        ledger = BooleanResourceLedger(resource_limits)
         selection = select_boolean_boundary_fragments(
-            meshes, fragments_by_solid, operation,
+            meshes, fragments_by_solid, operation, resource_ledger=ledger,
         )
         assembly = assemble_boolean_shells(
-            selection, meshes, result_id_prefix=result_id_prefix,
+            selection, meshes, result_id_prefix=result_id_prefix, resource_ledger=ledger,
         )
-        return CADGeneratorBooleanRun(selection, assembly)
+        return CADGeneratorBooleanRun(selection, assembly, None, ledger.usage)
 
     def execute_faceted_boolean(
         self,
@@ -330,7 +332,7 @@ class CADGeneratorService:
             meshes, arrangement.fragments_by_solid, operation, resource_ledger=ledger,
         )
         assembly = assemble_boolean_shells(
-            selection, meshes, result_id_prefix=result_id_prefix,
+            selection, meshes, result_id_prefix=result_id_prefix, resource_ledger=ledger,
         )
         return CADGeneratorBooleanRun(selection, assembly, arrangement, ledger.usage)
 
