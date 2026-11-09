@@ -1,5 +1,6 @@
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.material_classification import (
+    ExactMeshMaterialClassifier,
     MaterialClassification,
     classify_point_against_mesh,
 )
@@ -36,3 +37,24 @@ def test_classifier_returns_unknown_for_open_mesh():
     )
     result = classify_point_against_mesh(Vec3(1.0, 1.0, 1.0), open_mesh)
     assert result.classification is MaterialClassification.UNKNOWN
+
+
+
+def test_classifier_preflights_ray_work_before_exact_triangle_materialization(monkeypatch):
+    import universal_platform.engineering.material_classification as module
+
+    def unexpected_conversion(value):
+        raise AssertionError("ray-work preflight must happen before rational conversion")
+
+    monkeypatch.setattr(module, "_q", unexpected_conversion)
+    classifier = ExactMeshMaterialClassifier(box_mesh(), max_ray_checks=1)
+    assert classifier.reason == "ray-triangle resource budget exceeded"
+    result = classifier.classify_rational((__import__("fractions").Fraction(1),) * 3)
+    assert result.classification is MaterialClassification.UNKNOWN
+
+
+def test_classifier_fails_closed_when_aggregate_rational_budget_is_exceeded():
+    classifier = ExactMeshMaterialClassifier(
+        box_mesh(), max_aggregate_rational_bits=1
+    )
+    assert classifier.reason == "aggregate rational bit budget exceeded"
