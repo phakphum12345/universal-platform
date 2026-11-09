@@ -235,6 +235,7 @@ def assemble_rational_boolean_solid(
     max_inter_shell_pair_checks: int = 5_000_000,
     max_containment_ray_checks: int = 5_000_000,
     max_aggregate_rational_bits: int = 64_000_000,
+    resource_ledger: BooleanResourceLedger | None = None,
 ):
     """Assemble exact rational outer/cavity shells without binary64 conversion."""
     from .rational_faceted_solid import RationalFacetedSolid, _axes_overlap
@@ -276,6 +277,7 @@ def assemble_rational_boolean_solid(
         raise InvalidModelError("empty Boolean results do not produce a solid artifact")
     if len(fragments) > max_faces:
         raise InvalidModelError("rational shell assembly exceeded max_faces")
+    ledger.charge("faces", len(fragments))
     if any(item.source_solid_index >= len(input_meshes) for item in fragments):
         raise InvalidModelError("selected fragment references an unknown input solid")
 
@@ -283,6 +285,7 @@ def assemble_rational_boolean_solid(
     points = {point for face in faces for point in face}
     if len(points) > max_vertices:
         raise InvalidModelError("rational shell assembly exceeded max_vertices")
+    ledger.charge("vertices", len(points))
     aggregate_bits = 0
     for point in points:
         if len(point) != 3 or any(not isinstance(value, Fraction) for value in point):
@@ -344,6 +347,7 @@ def assemble_rational_boolean_solid(
     )
     if pair_checks > max_inter_shell_pair_checks:
         raise InvalidModelError("inter-shell exact intersection pair budget exceeded")
+    ledger.charge("inter_shell_pair_checks", pair_checks)
     for first_index, first in enumerate(shell_records):
         for second in shell_records[first_index + 1:]:
             for first_triangle in first["triangles"]:
@@ -374,6 +378,7 @@ def assemble_rational_boolean_solid(
             ) * 7
     if containment_ray_checks > max_containment_ray_checks:
         raise InvalidModelError("exact shell containment ray budget exceeded")
+    ledger.charge("containment_ray_checks", containment_ray_checks)
 
     # Positive material components must be disjoint, not nested.
     outer_triangles = [item["triangles"] for item in outers]
