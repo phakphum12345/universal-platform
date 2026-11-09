@@ -76,3 +76,13 @@ def test_selection_fails_closed_at_aggregate_ray_triangle_budget():
             meshes, fragments, BRepBooleanOperation.UNION,
             max_total_ray_checks=1,
         )
+
+
+
+def test_selection_fails_closed_at_aggregate_rational_budget():
+    meshes, fragments = _inputs()
+    with pytest.raises(InvalidModelError, match="aggregate rational bit budget"):
+        select_boolean_boundary_fragments(
+            meshes, fragments, BRepBooleanOperation.UNION,
+            max_aggregate_rational_bits=1,
+        )
