@@ -175,10 +175,15 @@ def select_boolean_boundary_fragments(
                                ledger.remaining("aggregate_rational_bits"))
             if partition_bits>remaining_bits:
                 raise InvalidModelError("Boolean aggregate rational bit budget exceeded")
-            remaining_checks=min(max_coverage_checks-coverage_used,
-                                 ledger.remaining("coverage_checks"))
-            if remaining_checks<1:
+            stage_remaining_checks=max_coverage_checks-coverage_used
+            if stage_remaining_checks<1:
                 raise InvalidModelError("Boolean coverage pair-check budget exhausted")
+            invocation_remaining_checks=ledger.remaining("coverage_checks")
+            if invocation_remaining_checks<1:
+                raise InvalidModelError(
+                    "Boolean invocation resource budget exceeded for coverage_checks"
+                )
+            remaining_checks=min(stage_remaining_checks,invocation_remaining_checks)
             ledger.charge("aggregate_rational_bits", partition_bits)
             oracle=certify_triangle_partition(
                 source_triangle,source_fragments,
