@@ -238,3 +238,5 @@ __all__ = [
 ]
 
 from .rational_boolean_solid import RationalBooleanShell, RationalBooleanComponent, RationalBooleanSolid
+
+__all__.extend(["RationalBooleanShell", "RationalBooleanComponent", "RationalBooleanSolid"])
