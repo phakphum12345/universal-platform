@@ -434,7 +434,30 @@ def test_feature_history_branch_fork_and_merge_work_in_browser(workbench):
         "history.browser-e2e.experiment"
     )
     page.get_by_role("button", name="Merge selected branch").click()
-    page.get_by_text("Merged history.browser-e2e.experiment into history.browser-e2e as immutable revision 2.").wait_for()
+    expected_merge_message = (
+        "Merged history.browser-e2e.experiment into history.browser-e2e "
+        "as immutable revision 2."
+    )
+    page.wait_for_function(
+        """expected => {
+          const state = document.querySelector("#branch-state")?.textContent || "";
+          const status = document.querySelector("#status-message")?.textContent || "";
+          return state.includes(expected) ||
+            state.startsWith("Merge blocked by ") ||
+            (status.length > 0 && status !== "Branch list refreshed.");
+        }""",
+        arg=expected_merge_message,
+        timeout=10_000,
+    )
+    actual_merge_message = page.locator("#branch-state").inner_text()
+    assert expected_merge_message in actual_merge_message, (
+        "Browser merge did not complete. "
+        f"branch_state={actual_merge_message!r}; "
+        f"status={page.locator('#status-message').inner_text()!r}; "
+        f"conflicts={page.locator('#branch-conflicts').inner_text()!r}; "
+        f"result={page.locator('#result').inner_text()!r}; "
+        f"page_errors={page_errors!r}"
+    )
 
     root = service.history_store.load("history.browser-e2e")
     branch = service.history_store.load("history.browser-e2e.experiment")

@@ -212,3 +212,86 @@ def assemble_boolean_shells(
     if total<=0:
         raise InvalidModelError("assembled Boolean result must have positive exact net volume")
     return BooleanShellAssemblyResult(tuple(components),total,len(selected),len(groups),len(cavities))
+
+
+def assemble_rational_boolean_solid(
+    selection: BooleanBoundarySelection,
+    input_meshes: tuple[TriangleMesh, ...],
+    *,
+    result_id: str = "boolean.result",
+    max_faces: int = 100_000,
+    max_vertices: int = 100_000,
+    max_coordinate_bits: int = 4096,
+):
+    """Build an exact-rational artifact without passing through binary64 B-rep.
+
+    This first generator path deliberately accepts exactly one connected,
+    outward-oriented shell. Multiple components and cavity shells remain
+    explicit fail-closed cases until the rational multi-shell contract lands.
+    RationalFacetedSolid independently revalidates closure, orientation,
+    self-intersection, exact volume, provenance and resource budgets.
+    """
+    from .rational_faceted_solid import RationalFacetedSolid
+
+    if not isinstance(selection, BooleanBoundarySelection):
+        raise InvalidModelError("selection must be a BooleanBoundarySelection")
+    if not isinstance(input_meshes, tuple) or not input_meshes:
+        raise InvalidModelError("input_meshes must be a non-empty immutable tuple")
+    if not isinstance(result_id, str) or not result_id or any(
+        ch not in "abcdefghijklmnopqrstuvwxyz0123456789.-/" for ch in result_id
+    ):
+        raise InvalidModelError("result_id must be a lowercase stable identifier")
+    for name, value in (("max_faces", max_faces), ("max_vertices", max_vertices),
+                        ("max_coordinate_bits", max_coordinate_bits)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise InvalidModelError(f"{name} must be a positive integer")
+    fragments = selection.selected_fragments
+    if not fragments:
+        raise InvalidModelError("empty Boolean results do not produce a solid artifact")
+    if len(fragments) > max_faces:
+        raise InvalidModelError("rational shell assembly exceeded max_faces")
+    for fragment in fragments:
+        if fragment.source_solid_index >= len(input_meshes):
+            raise InvalidModelError("selected fragment references an unknown input solid")
+    faces = tuple(fragment.vertices for fragment in fragments)
+    points = {point for face in faces for point in face}
+    if len(points) > max_vertices:
+        raise InvalidModelError("rational shell assembly exceeded max_vertices")
+    for point in points:
+        if len(point) != 3 or any(not isinstance(value, Fraction) for value in point):
+            raise InvalidModelError("selected shell coordinates must be exact Fraction values")
+        if any(abs(value.numerator).bit_length() > max_coordinate_bits
+               or value.denominator.bit_length() > max_coordinate_bits for value in point):
+            raise InvalidModelError("shell coordinate exceeded max_coordinate_bits")
+
+    uses = _edge_uses(faces)
+    groups = _components(faces, uses)
+    if len(groups) != 1:
+        raise InvalidModelError(
+            "rational single-shell generator requires exactly one connected shell; "
+            "multi-component and cavity output is not yet supported"
+        )
+    volume = _signed_volume(faces)
+    if volume == 0:
+        raise InvalidModelError("rational Boolean shell has zero exact signed volume")
+    normalized = _reverse_faces(faces) if volume < 0 else faces
+    canonical_vertices = tuple(sorted({point for face in normalized for point in face}))
+    vertex_index = {point: index for index, point in enumerate(canonical_vertices)}
+    triangles = tuple(sorted(
+        tuple(vertex_index[point] for point in face) for face in normalized
+    ))
+    provenance = tuple(sorted({
+        (mesh.solid_id, mesh.source_geometry_sha256)
+        for mesh in input_meshes
+        if any(item.source_solid_index < len(input_meshes)
+               and input_meshes[item.source_solid_index] is mesh for item in fragments)
+    }))
+    return RationalFacetedSolid(
+        result_id,
+        input_meshes[0].frame_id,
+        input_meshes[0].length_unit,
+        canonical_vertices,
+        triangles,
+        provenance,
+        max_coordinate_bits=max_coordinate_bits,
+    )
