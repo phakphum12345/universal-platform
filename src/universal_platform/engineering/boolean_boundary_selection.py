@@ -83,6 +83,7 @@ def select_boolean_boundary_fragments(
     operation:BRepBooleanOperation,*,max_coverage_checks:int=1_000_000,
     max_classification_checks:int=250_000,max_ray_checks_per_mesh:int=1_000_000,
     max_total_ray_checks:int=50_000_000,
+    max_aggregate_rational_bits:int=64_000_000,
 )->BooleanBoundarySelection:
     """Select boundaries by exact Boolean membership on both sides of each face."""
     if not isinstance(meshes,tuple) or not 2<=len(meshes)<=16:
@@ -94,9 +95,12 @@ def select_boolean_boundary_fragments(
     for name,value in (("max_coverage_checks",max_coverage_checks),
                        ("max_classification_checks",max_classification_checks),
                        ("max_ray_checks_per_mesh",max_ray_checks_per_mesh),
-                       ("max_total_ray_checks",max_total_ray_checks)):
+                       ("max_total_ray_checks",max_total_ray_checks),
+                       ("max_aggregate_rational_bits",max_aggregate_rational_bits)):
         if isinstance(value,bool) or not isinstance(value,int) or value<1:
             raise InvalidModelError(f"{name} must be a positive integer")
+    if max_aggregate_rational_bits>64_000_000:
+        raise InvalidModelError("max_aggregate_rational_bits exceeds its supported hard ceiling")
     if any(not isinstance(mesh,TriangleMesh) for mesh in meshes):
         raise InvalidModelError("Boolean inputs must be TriangleMesh values")
     if len({(mesh.frame_id,mesh.length_unit) for mesh in meshes})!=1:
@@ -114,8 +118,17 @@ def select_boolean_boundary_fragments(
     )
     if required_ray_triangle_checks > max_total_ray_checks:
         raise InvalidModelError("Boolean classification exceeded max_total_ray_checks")
-    classifiers=tuple(ExactMeshMaterialClassifier(mesh,max_ray_checks=max_ray_checks_per_mesh)
-                      for mesh in meshes)
+    aggregate_bits_used=0
+    for mesh in meshes:
+        for vertex in mesh.vertices:
+            for coordinate in (_q(vertex.x),_q(vertex.y),_q(vertex.z)):
+                aggregate_bits_used += abs(coordinate.numerator).bit_length()+coordinate.denominator.bit_length()
+                if aggregate_bits_used>max_aggregate_rational_bits:
+                    raise InvalidModelError("Boolean aggregate rational bit budget exceeded")
+    classifiers=tuple(ExactMeshMaterialClassifier(
+        mesh,max_ray_checks=max_ray_checks_per_mesh,
+        max_aggregate_rational_bits=max_aggregate_rational_bits,
+    ) for mesh in meshes)
     for classifier in classifiers:
         if classifier.reason:raise InvalidModelError("Boolean material classifier unavailable: "+classifier.reason)
     all_planes=[]
@@ -142,9 +155,26 @@ def select_boolean_boundary_fragments(
         if set(by_source)!=set(range(len(mesh.triangles))):
             raise InvalidModelError("fragments must cover every source mesh triangle")
         for source_index in range(len(mesh.triangles)):
-            oracle=certify_triangle_partition(_mesh_triangle(mesh,source_index),tuple(by_source[source_index]),
-                max_pairwise_checks=max_coverage_checks-coverage_used)
+            source_triangle=_mesh_triangle(mesh,source_index)
+            source_fragments=tuple(by_source[source_index])
+            partition_bits=sum(
+                abs(value.numerator).bit_length()+value.denominator.bit_length()
+                for triangle in (source_triangle,*source_fragments)
+                for point in triangle for value in point
+            )
+            remaining_bits=max_aggregate_rational_bits-aggregate_bits_used
+            if partition_bits>remaining_bits:
+                raise InvalidModelError("Boolean aggregate rational bit budget exceeded")
+            remaining_checks=max_coverage_checks-coverage_used
+            if remaining_checks<1:
+                raise InvalidModelError("Boolean coverage pair-check budget exhausted")
+            oracle=certify_triangle_partition(
+                source_triangle,source_fragments,
+                max_pairwise_checks=remaining_checks,
+                max_aggregate_rational_bits=remaining_bits,
+            )
             coverage_used+=oracle.pairwise_checks
+            aggregate_bits_used+=partition_bits
             if not oracle.certified:raise InvalidModelError(f"fragment coverage failed for solid {solid_index}, face {source_index}")
     selected=[];discarded=0
     for solid_index,fragments in enumerate(fragments_by_solid):
