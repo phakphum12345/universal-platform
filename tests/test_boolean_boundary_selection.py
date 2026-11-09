@@ -86,3 +86,13 @@ def test_selection_fails_closed_at_aggregate_rational_budget():
             meshes, fragments, BRepBooleanOperation.UNION,
             max_aggregate_rational_bits=1,
         )
+
+
+def test_symmetric_difference_selects_outer_and_reversed_nested_inner_boundary():
+    meshes, fragments = _inputs()
+    result = select_boolean_boundary_fragments(
+        meshes, fragments, BRepBooleanOperation.SYMMETRIC_DIFFERENCE,
+    )
+    assert len(result.selected_fragments) == 24
+    assert sum(item.reversed_for_result for item in result.selected_fragments) == 12
+    assert {item.source_solid_index for item in result.selected_fragments} == {0, 1}
