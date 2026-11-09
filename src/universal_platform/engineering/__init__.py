@@ -55,6 +55,7 @@ from .boolean_boundary_selection import (
 from .boolean_shell_assembly import (
     AssembledBooleanComponent, BooleanShellAssemblyResult, assemble_boolean_shells, assemble_rational_boolean_solid,
 )
+from .rational_faceted_solid import RationalFacetedSolid, RationalPoint3
 from .planar_region import PlanarRegion, PRECISION_POLICY as PLANAR_REGION_PRECISION_POLICY
 from .planar_boolean import PlanarRegionBooleanOperation, PlanarRegionBooleanResult, boolean_planar_regions
 from .planar_region_set_boolean import PlanarRegionSetBooleanResult, boolean_planar_region_set
