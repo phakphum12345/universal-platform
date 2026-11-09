@@ -41,12 +41,13 @@
     "resource_counters": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["component_count", "shell_count", "inter_shell_pair_checks", "aggregate_rational_bits", "vertex_count", "triangle_count"],
+      "required": ["component_count", "shell_count", "inter_shell_pair_checks", "aggregate_rational_bits", "containment_ray_checks", "vertex_count", "triangle_count"],
       "properties": {
         "component_count": {"type": "integer", "minimum": 1},
         "shell_count": {"type": "integer", "minimum": 1},
         "inter_shell_pair_checks": {"type": "integer", "minimum": 0, "maximum": 5000000},
         "aggregate_rational_bits": {"type": "integer", "minimum": 0, "maximum": 64000000},
+        "containment_ray_checks": {"type": "integer", "minimum": 0, "maximum": 5000000},
         "vertex_count": {"type": "integer", "minimum": 4},
         "triangle_count": {"type": "integer", "minimum": 4}
       }
