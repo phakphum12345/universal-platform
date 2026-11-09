@@ -171,12 +171,15 @@ def select_boolean_boundary_fragments(
                 for triangle in (source_triangle,*source_fragments)
                 for point in triangle for value in point
             )
-            remaining_bits=max_aggregate_rational_bits-aggregate_bits_used
+            remaining_bits=min(max_aggregate_rational_bits-aggregate_bits_used,
+                               ledger.remaining("aggregate_rational_bits"))
             if partition_bits>remaining_bits:
                 raise InvalidModelError("Boolean aggregate rational bit budget exceeded")
-            remaining_checks=max_coverage_checks-coverage_used
+            remaining_checks=min(max_coverage_checks-coverage_used,
+                                 ledger.remaining("coverage_checks"))
             if remaining_checks<1:
                 raise InvalidModelError("Boolean coverage pair-check budget exhausted")
+            ledger.charge("aggregate_rational_bits", partition_bits)
             oracle=certify_triangle_partition(
                 source_triangle,source_fragments,
                 max_pairwise_checks=remaining_checks,
@@ -185,7 +188,6 @@ def select_boolean_boundary_fragments(
             coverage_used+=oracle.pairwise_checks
             aggregate_bits_used+=partition_bits
             ledger.charge("coverage_checks", oracle.pairwise_checks)
-            ledger.charge("aggregate_rational_bits", partition_bits)
             if not oracle.certified:raise InvalidModelError(f"fragment coverage failed for solid {solid_index}, face {source_index}")
     selected=[];discarded=0
     for solid_index,fragments in enumerate(fragments_by_solid):
