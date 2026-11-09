@@ -139,3 +139,16 @@ def test_cad_generator_exposes_serializable_exact_rational_boolean_path(tmp_path
     assert snapshot["profile"] == "RATIONAL_BOOLEAN_SOLID_V1"
     assert RationalBooleanSolid.from_dict(snapshot) == artifact
     assert artifact.exact_net_volume == F(15)
+
+
+
+def test_rational_boolean_shell_containment_budget_is_preflighted():
+    mesh = _box("source", 1.0)
+    outer = _tetra(scale=F(3))
+    cavity = _tetra(origin=(F(1, 4), F(1, 4), F(1, 4)), scale=F(1, 4))
+    with pytest.raises(InvalidModelError, match="containment ray budget"):
+        assemble_rational_boolean_solid(
+            _selection(_tetra_faces(outer) + _tetra_faces(cavity, 4, reverse=True)),
+            (mesh,), result_id="rational.cavity-budget",
+            max_containment_ray_checks=1,
+        )
