@@ -117,3 +117,31 @@ The current constants are implementation policy, not a claim that every maximum-
 Regression coverage added for oversized positive/negative numerator and denominator strings, the per-integer bit boundary, invalid resource limits rejected before parsing, aggregate-budget exhaustion, metadata/provenance ceilings, and invalid geometry counts rejected before parsing. These tests have been committed but are **not yet reported PASS** until the workflow on the exact latest branch head completes successfully.
 
 **Status: IMPLEMENTED / CI UNKNOWN** for this resource-hardening slice. No local test run is claimed. This does not certify the Boolean Kernel or the independent oracle's outstanding adversarial matrix.
+
+
+## Follow-on audit — coverage adversarial matrix and existing downstream stages
+
+### Coverage oracle hardening
+The first adversarial extension is now implemented:
+
+- Preflight fragment count and the full containment-plus-pairwise work estimate before validating/materializing fragment geometry.
+- Add an aggregate rational bit budget to the oracle call, charged across source and fragment coordinates.
+- Add exact point-touch and edge-touch relation cases, an 80-bit-denominator narrow-sliver overlap, contiguous overlay-contact coverage, a gap in overlay-contact coverage, and resource-preflight ordering tests.
+- Correct the prior CI failure in `_parse_integer_string`: decimal digit preflight is intentionally conservative, but the exact `bit_length()` must also be enforced after bounded chunk conversion. The 8-bit boundary test now distinguishes 255 from 256.
+
+PR #222 run 2389 exposed the missing post-conversion bit check (991 passed, 1 failed). The fix is in commit `8b4bc1f7be9b037a271524a4af9e1eb20639622c`. A subsequent exact-head run is required before this parser slice can be marked PASS.
+
+### Existing stages found — do not rebuild
+The branch already contains distinct implementations and tests for:
+- `material_classification.py`: exact INSIDE / OUTSIDE / BOUNDARY / UNKNOWN classification with fail-closed ray witnesses.
+- `boolean_boundary_selection.py`: two-sided material witnesses and operation-specific selection/orientation for UNION, INTERSECTION, DIFFERENCE and XOR.
+- `boolean_shell_assembly.py`: shell/component assembly, cavities, exact net volume and topology validation.
+- `cad_generator_service.py`: `execute_faceted_boolean` orchestration, with E2E tests for intersecting boxes and coplanar overlap.
+
+These are existing bounded paths, not yet proof of complete Boolean Kernel support. The remaining integration audit must establish that the exact rational result is preserved through shell assembly and serialized output; current CAD Generator notes explicitly identify binary64 B-rep conversion as a limitation.
+
+### Still open
+- Complete aggregate rational budget accounting across global arrangement, classification, selection, and shell assembly (the new oracle budget is one layer, not proof of end-to-end aggregate accounting).
+- Adversarial coverage matrix for shared vertices, multi-fragment point/edge contacts, disconnected overlays, and malformed/resource-exhaustion paths.
+- Verify all four operations across disjoint, nested, coplanar, intersecting, and degeneracy fixtures.
+- Add/verify a lossless rational shell-assembly output path and CAD Generator E2E round-trip; do not round rational coordinates into binary64 and call that exact.
