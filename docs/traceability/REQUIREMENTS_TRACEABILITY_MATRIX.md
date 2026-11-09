@@ -257,3 +257,24 @@ Latest integration SHA: da5b34182396c485760aa1940ab2623d52d89cbc; main remains 9
 - Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and unchanged.
 
 **Current CAD verdict:** PASS for the bounded named cases and implemented fail-closed gates; PARTIAL / INCOMPLETE for arbitrary faceted Boolean. The rational-output profile is a required follow-on.
+
+
+## Hardware Intelligence capability traceability — scope baseline 2026-11-09
+
+The approved capability decomposition is recorded in [Hardware Intelligence & Diagnostics Roadmap](../hardware/HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP.md). These rows are requirement scope, not implementation claims.
+
+| ID | Requirement | Primary document | Current state |
+|---|---|---|---|
+| HW-01 | Datasheet-backed component intelligence and provenance | DEVICE_INTELLIGENCE; HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP | PLANNED; existing schematic metadata is not a populated component database. |
+| HW-02 | Electrical measurement and analysis with units/uncertainty | UNIVERSAL_CALCULATION_ENGINE; PHYSICS_AND_FIRST_PRINCIPLES; hardware roadmap | PARTIAL; reuse only audited calculation primitives; live measurements are not established. |
+| HW-03 | Evidence-based hardware fault diagnosis | HARDWARE_DESIGN_VERIFICATION; hardware roadmap | PLANNED; static ERC v1.0 is not a general fault diagnosis engine. |
+| HW-04 | Permissioned driver runtime and device discovery | DRIVER_INTERFACE_CONTRACT; DRIVER_ARCHITECTURE_INTELLIGENCE; hardware roadmap | PARTIAL; metadata contracts exist, live hardware drivers are not established. |
+| HW-05 | Timestamped read-only hardware telemetry and monitoring | hardware roadmap | PLANNED; no live sensor acquisition is claimed. |
+| HW-06 | PCB design and independent design-rule verification | HARDWARE_DESIGN_VERIFICATION; hardware roadmap | PLANNED/PARTIAL; schematic model and static ERC exist, full PCB DRC is not established. |
+| HW-07 | Reproducible circuit simulation | hardware roadmap; PHYSICS_AND_FIRST_PRINCIPLES | PLANNED; do not equate calculations with circuit simulation. |
+| HW-08 | Thermal and reliability analysis | PHYSICS_AND_FIRST_PRINCIPLES; hardware roadmap | PARTIAL; narrow thermal calculation foundations do not establish full reliability analysis. |
+| HW-09 | Hardware test, calibration and maintenance evidence | hardware roadmap | PLANNED. |
+| HW-10 | Traceable hardware/software/driver/Physics integration | HARDWARE_TO_SOFTWARE_MAPPING; hardware roadmap | PLANNED/PARTIAL; contracts exist, complete end-to-end integration is not established. |
+| HW-11–HW-16 | FPGA, firmware intelligence, hardware security, battery/BMS, manufacturing/BOM, industrial/network hardware | hardware roadmap | LONG-TERM PLANNED; entry conditions apply. |
+
+Evidence semantics: missing acquisition, missing datasheet values, unsupported device models or incomplete checks remain UNKNOWN/SKIPPED; they are never PASS.

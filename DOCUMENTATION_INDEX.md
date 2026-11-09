@@ -93,6 +93,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## Hardware, schematic and drivers
 
 - [Device Intelligence](docs/hardware/DEVICE_INTELLIGENCE.md) — IC, board, sensor and module analysis.
+- [Hardware Intelligence & Diagnostics Roadmap](docs/hardware/HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP.md) — approved 16-capability scope: 1–10 core roadmap, 11–16 long-term; safety boundaries and acceptance evidence.
 - [Schematic Intelligence](docs/hardware/SCHEMATIC_INTELLIGENCE.md) — proposed schematic interpretation capability.
 - [Hardware Schematic Netlist Contract](docs/hardware/HARDWARE_SCHEMATIC_NETLIST_CONTRACT.md) — implemented connectivity graph model.
 - [Hardware Design Verification](docs/hardware/HARDWARE_DESIGN_VERIFICATION.md) — proposed hardware verification rules and outputs.
