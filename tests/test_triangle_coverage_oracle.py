@@ -164,3 +164,29 @@ def test_contact_closure_accepts_adjacent_overlay_intervals_but_rejects_gap():
     gap_right = ((F(11, 10), F(0)), (F(2), F(0)),
                  (F(2), F(1)), (F(11, 10), F(1)))
     assert not coplanar_contact_is_covered(segment, (gap_left, gap_right))
+
+
+
+def test_coplanar_contact_requires_the_complete_input_to_be_a_point_or_segment():
+    overlap = ((F(0), F(0)), (F(2), F(0)), (F(2), F(2)), (F(0), F(2)))
+    # The farthest pair is fully covered, but the third point is not on that
+    # segment. It is not a valid point/segment contact and must fail closed.
+    malformed = ((F(0), F(0)), (F(2), F(0)), (F(1), F(1)))
+    assert not coplanar_contact_is_covered(malformed, (overlap,))
+
+
+def test_coplanar_contact_accepts_multi_fragment_edge_closure_and_shared_vertex():
+    left = ((F(0), F(0)), (F(1), F(0)), (F(1), F(1)), (F(0), F(1)))
+    middle = ((F(1), F(0)), (F(2), F(0)), (F(2), F(1)), (F(1), F(1)))
+    right = ((F(2), F(0)), (F(3), F(0)), (F(3), F(1)), (F(2), F(1)))
+    edge = ((F(0), F(1, 2)), (F(1), F(1, 2)),
+            (F(2), F(1, 2)), (F(3), F(1, 2)))
+    assert coplanar_contact_is_covered(edge, (right, left, middle))
+    assert coplanar_contact_is_covered(((F(1), F(1)),), (left, middle))
+
+
+def test_coplanar_contact_rejects_disconnected_overlay_with_uncovered_interval():
+    left = ((F(0), F(0)), (F(1), F(0)), (F(1), F(1)), (F(0), F(1)))
+    right = ((F(2), F(0)), (F(3), F(0)), (F(3), F(1)), (F(2), F(1)))
+    edge = ((F(0), F(1, 2)), (F(3), F(1, 2)))
+    assert not coplanar_contact_is_covered(edge, (left, right))
