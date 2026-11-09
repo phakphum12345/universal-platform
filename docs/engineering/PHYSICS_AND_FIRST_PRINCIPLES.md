@@ -1,6 +1,6 @@
 # Physics and First-Principles Modeling
 
-**Architecture:** PARTIAL — central adapter registry and three bounded analytical solvers  
+**Architecture:** PARTIAL — central adapter registry, three bounded analytical solvers, and a separate bounded linear-algebra utility  
 **Scope:** reusable physics methods across engineering modules
 
 ## 1. Purpose
@@ -46,9 +46,11 @@ A correct equation with incorrect inputs or boundary conditions can produce misl
 
 ## 7. Initial implementation boundary
 
-A central `PhysicsSolverRegistry` now provides typed domain/method declarations, versioned solver descriptors, explicit license allow-lists, dependency checks, deterministic discovery and evidence-producing dispatch. The first built-in adapters cover axial stress, ideal lumped DC Ohm's law/power, and linear thermal expansion. Problems require a declared validity range and can carry assumptions, boundary conditions and source references; results include limitations and provenance evidence.
+A central `PhysicsSolverRegistry` provides typed domain/method declarations, versioned solver descriptors, explicit license allow-lists, dependency checks, deterministic discovery and evidence-producing dispatch. The first built-in adapters cover axial stress, ideal lumped DC Ohm's law/power, and linear thermal expansion. Problems require a declared validity range and can carry assumptions, boundary conditions and source references; results include limitations and provenance evidence.
 
-This is an initial analytical slice, not a general physics engine. Fluid mechanics, electromagnetics, thermodynamics, nonlinear material behavior, general kinematics/dynamics, FEA/CFD, optimization, uncertainty propagation and independent solver cross-checks are not implemented by this registry. Third-party solver code is not sandboxed by this in-process registry. A PASS records successful execution of the bounded calculation, not design certification or physical validation.
+A separate deterministic Gaussian-elimination utility and `solve_static_linear_system` helper solve user-supplied small dense linear systems and report an algebraic residual. This is linear algebra only: it does not construct a physical model, infer geometry/material behavior, validate physical boundary conditions, or constitute FEA/CFD. Its evidence must not be interpreted as a physical simulation result.
+
+This is an initial foundation, not a general physics engine. Fluid mechanics, electromagnetics, thermodynamics, nonlinear material behavior, general kinematics/dynamics, FEA/CFD, optimization, uncertainty propagation and independent solver cross-checks are not implemented by this registry. Third-party solver code is not sandboxed by this in-process registry. A PASS records successful execution of a bounded calculation, not design certification or physical validation.
 
 ## 8. Acceptance criteria
 
@@ -56,6 +58,8 @@ This is an initial analytical slice, not a general physics engine. Fluid mechani
 - [x] A central solver registry dispatches by declared domain and method with license/dependency gates.
 - [x] The three currently supported built-in analytical solvers (axial stress, ideal DC Ohm's law/power, and linear thermal expansion) are checked against the independent closed-form reference catalogue; this does not validate unsupported physics domains or numerical/simulation solver families.
 - [x] Units and dimensions are checked for the supported reference calculations.
-- [ ] Conservation laws and boundary conditions are recorded.
-- [ ] Reference cases and convergence checks are defined where relevant.
-- [ ] Uncertainty and omitted effects are reported.
+- [x] Assumptions and caller-declared boundary conditions are retained in immutable solver evidence metadata.
+- [ ] Conservation laws are explicitly represented and independently validated for each applicable model.
+- [x] The bounded linear-algebra utility has an independent exact two-by-two reference, pivoting coverage, singular-system rejection and residual evidence; this is not physical-model validation.
+- [ ] Physical reference cases and convergence checks are defined where relevant.
+- [ ] Uncertainty and omitted effects are quantified and reported.
