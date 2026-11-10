@@ -1,5 +1,7 @@
 # Implementation Status — UEIC Foundation
 
+> **Historical traceability baseline (post-PR #113):** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a historical integration reference; the associated historical test count was **732 passed** and is not a current test count. The historical audit records bounded runtime controls only: the Process Supervisor is not an OS sandbox, and in-memory resource/quota state is not durable or distributed. Current runtime/security maturity remains PARTIAL / INCOMPLETE.
+>
 > **Current verified integration baseline:** `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` on `docs/phase-0-complete-requirements` (PR #233 merged 2026-11-10). The default `main` branch remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
 >
 > **Latest verified slices:** PR #228 invocation-wide CAD Boolean resource accounting; PR #230 supported exact XOR topology/fail-closed branching tests; PR #232 independent analytical Physics reference cases; PR #233 bounded linear-algebra reference, pivoting/singular rejection, residual evidence, and Physics assumptions/boundary-condition evidence. PR-head required checks passed for each slice as recorded in the work-package register. PR #233 post-merge checks on `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` were queued at this snapshot and are not counted as post-merge PASS.
