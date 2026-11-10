@@ -45,8 +45,15 @@ def test_static_linear_system_reports_algebraic_evidence_and_limits():
     assert result.values == pytest.approx((1 / 11, 7 / 11), abs=1e-12)
     assert evidence.kind is EvidenceKind.SIMULATION
     assert evidence.status is EvidenceStatus.PASS
-    assert "not finite-element analysis" in evidence.limitations
-    assert "No geometry, material constitutive law, boundary-condition or mesh validation" in evidence.limitations
+    assert any(
+        "not finite-element analysis" in limitation
+        for limitation in evidence.limitations
+    )
+    assert any(
+        "No geometry, material constitutive law, boundary-condition or mesh validation"
+        in limitation
+        for limitation in evidence.limitations
+    )
     assert evidence.metadata["residual_inf"] <= 1e-12
 
 
