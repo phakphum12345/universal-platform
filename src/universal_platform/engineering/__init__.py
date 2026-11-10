@@ -241,3 +241,6 @@ __all__ = [
 from .rational_boolean_solid import RationalBooleanShell, RationalBooleanComponent, RationalBooleanSolid
 
 __all__.extend(["RationalBooleanShell", "RationalBooleanComponent", "RationalBooleanSolid"])
+
+from .module_runtime import ModuleGrant, ModuleRuntime, ModuleHandler
+__all__.extend(["ModuleGrant", "ModuleRuntime", "ModuleHandler"])
