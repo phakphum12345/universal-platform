@@ -111,3 +111,80 @@ def test_runtime_does_not_accept_non_contract_requests():
     _, runtime = setup_runtime()
     with pytest.raises(InvalidModelError, match="ModuleRequest"):
         runtime.invoke({"module_id": "org.example.calc"})
+
+
+from universal_platform.runtime.resources.allocator import ResourceAllocator
+from universal_platform.runtime.resources.models import ResourceMetric
+
+
+def make_runtime_with_allocator(capacity=2):
+    registry, _ = setup_runtime()
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", capacity, "cores"),))
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_handler(
+        "org.example.calc", "calculate.sum",
+        lambda inputs: {"total": sum(inputs["values"])},
+    )
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    return runtime, allocator
+
+
+def test_runtime_reserves_host_quota_for_invocation_and_releases_after_success():
+    runtime, allocator = make_runtime_with_allocator()
+    result = runtime.invoke(request(resource_limits={"cpu.cores": 1}))
+    assert result.status == "COMPLETED"
+    assert result.warnings
+    assert "not an OS resource limit" in result.warnings[0]
+    assert allocator.active_leases() == ()
+    assert allocator.available()[0].value == 2
+
+
+def test_runtime_rejects_overcommit_before_handler_and_does_not_leak_lease():
+    registry, _ = setup_runtime()
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 0.5, "cores"),))
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    called = []
+    runtime.register_handler(
+        "org.example.calc", "calculate.sum",
+        lambda inputs: called.append(True) or {"total": 5},
+    )
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request(resource_limits={"cpu.cores": 1}))
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.resource_reservation_failed"
+    assert called == []
+    assert allocator.active_leases() == ()
+
+
+def test_runtime_rejects_resource_request_without_host_allocator():
+    _, runtime = setup_runtime()
+    runtime.register_handler("org.example.calc", "calculate.sum", lambda _: {"ok": True})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request(resource_limits={"cpu.cores": 1}))
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.resource_reservation_failed"
+
+
+def test_runtime_releases_resource_lease_when_handler_fails():
+    registry, _ = setup_runtime()
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 1, "cores"),))
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+
+    def fail(_):
+        raise RuntimeError("private failure detail")
+
+    runtime.register_handler("org.example.calc", "calculate.sum", fail)
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request(resource_limits={"cpu.cores": 1}))
+    assert result.status == "ERROR"
+    assert result.error_code == "module.handler_failed"
+    assert allocator.active_leases() == ()
+    assert allocator.available()[0].value == 1
+
+
+def test_runtime_rejects_unknown_host_resource_metric():
+    runtime, allocator = make_runtime_with_allocator()
+    result = runtime.invoke(request(resource_limits={"gpu.units": 1}))
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.resource_reservation_failed"
+    assert allocator.active_leases() == ()
