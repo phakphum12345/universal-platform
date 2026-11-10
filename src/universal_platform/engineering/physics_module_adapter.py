@@ -16,9 +16,7 @@ from .errors import InvalidModelError
 from .module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
 from .module_runtime import ModuleRuntime
 from .physics import (
-    PhysicsDomain,
     PhysicsInput,
-    PhysicsMethod,
     PhysicsProblem,
     PhysicsSolverRegistry,
     register_builtin_physics_solvers,
@@ -42,12 +40,19 @@ _SCALAR_INPUTS = {
         "coefficient_per_kelvin", "temperature_change_kelvin",
     },
 }
+_ALLOWED_INPUT_FIELDS = frozenset({
+    "solver_id", "problem_id", "validity_range", "values",
+    "assumptions", "boundary_conditions",
+})
 
 
 def _finite_number(value: Any, label: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise InvalidModelError(f"{label} must be a finite number")
-    number = float(value)
+    try:
+        number = float(value)
+    except (OverflowError, ValueError):
+        raise InvalidModelError(f"{label} must be a finite number") from None
     if not isfinite(number):
         raise InvalidModelError(f"{label} must be a finite number")
     return number
@@ -67,6 +72,11 @@ def _text_tuple(value: Any, label: str) -> tuple[str, ...]:
 
 
 def _build_problem(inputs: Mapping[str, Any], solvers: PhysicsSolverRegistry) -> tuple[str, PhysicsProblem]:
+    if not isinstance(inputs, Mapping):
+        raise InvalidModelError("physics inputs must be an object")
+    if not set(inputs).issubset(_ALLOWED_INPUT_FIELDS):
+        raise InvalidModelError("physics inputs contain unsupported fields")
+
     solver_id = inputs.get("solver_id")
     if not isinstance(solver_id, str) or solver_id not in _QUANTITY_INPUTS:
         raise InvalidModelError("solver_id is not supported by the built-in physics bridge")
