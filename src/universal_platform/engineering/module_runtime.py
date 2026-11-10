@@ -99,7 +99,7 @@ class ModuleRuntime:
             if capacity is None:
                 raise ValueError(f"resource metric is not host-configured: {name}")
             requested.append(ResourceMetric(name, amount, capacity.unit))
-        return allocator.allocate(request.request_id, tuple(requested))
+        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
