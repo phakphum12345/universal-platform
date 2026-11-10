@@ -190,3 +190,29 @@ def test_coplanar_contact_rejects_disconnected_overlay_with_uncovered_interval()
     right = ((F(2), F(0)), (F(3), F(0)), (F(3), F(1)), (F(2), F(1)))
     edge = ((F(0), F(1, 2)), (F(3), F(1, 2)))
     assert not coplanar_contact_is_covered(edge, (left, right))
+
+
+
+def test_oracle_certifies_partition_with_shared_interior_vertex_and_zero_area_contacts():
+    center = p(F(1, 2), F(1, 2))
+    fragments = (
+        (SOURCE[0], SOURCE[1], center),
+        (SOURCE[1], SOURCE[2], center),
+        (SOURCE[2], SOURCE[0], center),
+    )
+    result = certify_triangle_partition(SOURCE, fragments)
+    assert result.certified
+    assert result.source_area == F(2)
+    assert result.fragment_area_sum == F(2)
+    assert result.overlapping_fragment_pairs == ()
+    assert result.duplicate_fragment_pairs == ()
+
+
+def test_oracle_rejects_disconnected_fragment_regions_even_without_overlap_or_outside_points():
+    first = (p(0, 0), p(F(1, 2), 0), p(0, F(1, 2)))
+    second = (p(1, 0), p(F(3, 2), 0), p(1, F(1, 2)))
+    result = certify_triangle_partition(SOURCE, (first, second))
+    assert not result.certified
+    assert result.outside_fragment_indices == ()
+    assert result.overlapping_fragment_pairs == ()
+    assert result.fragment_area_sum < result.source_area
