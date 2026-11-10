@@ -1,21 +1,10 @@
 # Implementation Status — UEIC Foundation
 
-> **Latest audit:** [Repository Audit post-PR #219](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR219.md). Pinned integration SHA: `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PRs #217–#219 are merged; exact-head required checks PASS. Post-merge CI for PR #217 has workflow-sanity PASS and Python tests IN_PROGRESS at the audit snapshot. Bounded faceted Boolean remains PARTIAL; exact rational B-rep output and repository-wide acceptance remain INCOMPLETE.
-
-> **Latest audit:** [Repository Audit post-PR #219](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR219.md). Pinned integration SHA: `7a0d2a21d05709ccfead7f95e57349310c878a58`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #218 and #219 have exact-head and post-merge required checks PASS. PR #217 remains open with exact-head Python CI pending at the audit snapshot. Bounded faceted Boolean remains PARTIAL; exact rational B-rep output and repository-wide acceptance remain INCOMPLETE.
-
-> **Latest audit supersedes the historical baseline below:** see [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md). Current integration SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. The latest bounded CAD Boolean work includes PRs #200–#207, but arbitrary faceted Boolean and the overall repository remain INCOMPLETE. Post-merge CI on exact merge SHA passed workflow-sanity, python-tests and Chromium E2E.
-
-
-**Integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `20e03675ec1000bd2bbcfaf251df4790305f2c0c` (PR #191 merged).  
-**Default main:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged); integration is **560 commits ahead / 0 behind** at this audit.  
-**Historical integration baseline:** post-PR #113 SHA `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` (retained for compatibility with historical runtime-limit traceability; superseded by later implementation commits).  
-**Latest post-merge integration CI:** exact SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c`, workflow #42462960964 — workflow-sanity PASS; python-tests PASS (**914 passed in 29.65s**). Exact PR-head workflow #42459969975 passed both required jobs (**894 passed in 14.43s**). Chromium E2E SKIPPED/not triggered because no UI surface changed.  
-**Current tree at exact integration SHA `20e03675ec1000bd2bbcfaf251df4790305f2c0c`:** 384 entries, 140 Markdown, 172 Python, 26 JSON files, 89 Python test files; recursive tree response truncated=false.  
-**Open PRs after PR #191:** 0 at this audit. **Working-tree state:** UNKNOWN — GitHub API inspection only. **Branch protection:** UNKNOWN — not established by this audit.  
-**Spatial-joint reference coverage:** PR #54 now validates all eight declared joint kinds with a versioned fixture, generated six-component residuals, finite-difference Jacobian references, spatial local-mobility/rank references, ground-link reversal and nontrivial joint-frame placements. Exact PR head `3da8c733895baab939548e0ba2e81670ca0c6359`, run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s; merge `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s. PR #56 now implements explicit 2D PLANAR plane-frame mobility; exact-head and post-merge CI both pass.  
-**Scope:** Dependency-light offline engineering core, normalized stable-ID mechanism schema v1.2, explicit placements and generalized-coordinate parameterization, generated joint pose-consistency residuals and finite-difference Jacobians, geometry-aware loop-closure evaluation for supplied configurations, bounded generalized-coordinate fitting for fixed body poses, generated spatial local mobility analysis, rigid transforms/frame graph, narrow planar adapters, general loop topology, caller-driven mobility/kinematics and cross-discipline reference validation. No general spatial dynamics solver or physical control is claimed.
+> **Current verified integration baseline:** `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` on `docs/phase-0-complete-requirements` (PR #233 merged 2026-11-10). The default `main` branch remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+>
+> **Latest verified slices:** PR #228 invocation-wide CAD Boolean resource accounting; PR #230 supported exact XOR topology/fail-closed branching tests; PR #232 independent analytical Physics reference cases; PR #233 bounded linear-algebra reference, pivoting/singular rejection, residual evidence, and Physics assumptions/boundary-condition evidence. PR-head required checks passed for each slice as recorded in the work-package register. PR #233 post-merge checks on `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` were queued at this snapshot and are not counted as post-merge PASS.
+>
+> **Overall status:** INCOMPLETE. CAD Boolean remains PARTIAL; Physics remains PARTIAL; Module Runtime, hardware/driver integration, API/orchestration, security and repository-wide acceptance remain incomplete. Historical audit entries below are retained as historical evidence, not current branch-state claims.
 
 ## Current CAD/B-rep status — post-PR #117 and #118
 
