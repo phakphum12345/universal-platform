@@ -1,26 +1,37 @@
 # Work Package Status Register
 
-**Baseline integration branch:** docs/phase-0-complete-requirements  
-**Last verified integration baseline:** `9144b17d956c13a407da7c28c1614f3ae36917ff`  
-**Audit date:** 2026-11-08  
-**Status:** INCOMPLETE — initial evidence-based register; update per implementation slice.
+**Baseline integration branch:** `docs/phase-0-complete-requirements`  
+**Last verified integration baseline:** `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` (PR #233 squash merge)  
+**Audit date:** 2026-11-10  
+**Status:** INCOMPLETE — evidence-based register; update after each verified implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
 |---|---|---|---|
 | 01 | Core architecture | PARTIAL | Existing contracts and engineering core; audit module runtime boundaries and missing platform orchestration |
-| 02 | CAD geometry | PARTIAL | PR #191 adds axis-aligned box multi-shell Boolean only. PR #195 adds exact transverse triangle-pair segment extraction, but not triangle splitting or Boolean assembly. Polygonal B-rep, hole triangulation, multi-shell composition and mesh intersection analysis exist in bounded scopes; PRs #195/#197/#199 add exact pair events, single-plane splitting and per-source-triangle multi-plane arrangement; global mesh adjacency, classification, Boolean assembly, recompute propagation and interchange remain open |
-| 03 | CAD generator | PARTIAL | FeatureHistory editing, suppression, Undo/Redo, presentation reorder and branch/fork/merge are PASS for bounded end-to-end workflows (PRs #152–#180); recompute propagation and generalized CAD/B-rep capabilities remain open |
-| 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader solver/dynamics and validation remain open |
-| 05 | Physics | PARTIAL | Physics modules and central solver registry exist; broader validated solver methods and coupled multiphysics remain open |
-| 06 | Hardware/electronics | PARTIAL | Hardware, schematic and electrical rule checking modules exist; broader design/simulation workflows remain open |
+| 02 | CAD geometry | PARTIAL | Bounded exact faceted Boolean pipeline and invocation-wide resource accounting exist; arbitrary branching/tangencies, nested material islands and broader independent adversarial coverage remain open |
+| 03 | CAD generator | PARTIAL | FeatureHistory workflows and bounded extrusion/Boolean services exist; general parametric feature generation, recompute propagation and broader interchange remain open |
+| 04 | Mechanics | PARTIAL | Mechanism schema, loop closure, mobility and caller-driven kinematics exist in bounded scopes; broader spatial solver/dynamics remain open |
+| 05 | Physics | PARTIAL | Central registry, three bounded analytical solvers, reference catalogue, boundary-condition/assumption evidence and bounded linear algebra tests exist; conservation validation, uncertainty, convergence and FEA/CFD remain open |
+| 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
-| 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inspect and reuse existing generation capability; do not duplicate |
-| 09 | Module runtime | PARTIAL | Metadata registry and runtime resource/adapter supervision exist; OS-enforced isolation and full permissioned execution remain open |
+| 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
+| 09 | Module runtime | PARTIAL | Metadata registry, runtime resource/adapter supervision and process supervisor exist; runtime module loading, enforced permission boundary and OS sandboxing remain open |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
-| 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for the CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
+| 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
+
+## Latest verified implementation slices — 2026-11-10
+
+| PR | Scope | Exact PR head / merge | Evidence | Status |
+|---|---|---|---|---|
+| #228 | Invocation-wide Boolean resource accounting | merge `86338231badc850a642e9aa347a3cbedb1e27e01` | PR-head and post-merge `python-tests`, `workflow-sanity`, Chromium E2E PASS | PASS for bounded resource ledger |
+| #230 | Supported exact XOR topology; fail closed for branching/intersecting non-manifold case | merge `2c9a04670fa459f2e42d9a20a9e22db0c8be7dc5` | PR-head and post-merge Python/workflow-sanity PASS | PASS for supported test matrix; kernel remains PARTIAL |
+| #232 | Independent reference cases for built-in analytical Physics solvers | merge `2636c181f7ca31523d0b0749feacce933bcd973d` | PR-head and post-merge Python/workflow-sanity PASS | PASS for three bounded analytical solver families |
+| #233 | Linear algebra exact reference, pivoting, singular rejection, residual and Physics evidence metadata | head `58d94aa0150d0bc8ccc752bd1b3aeef05f8354cd`; merge `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` | Exact-head run `42745104718`: Python and workflow-sanity PASS; 0 review threads; mergeability true. Post-merge run `42790385802` was QUEUED at audit time. | PASS for bounded test/documentation slice; post-merge CI UNKNOWN/PENDING |
+
+**Guardrails:** PR #231 is excluded from the main roadmap work-package count as requested. PR #229 was closed without merge after unsupported topology failed validation. A skipped or missing check is never PASS. The integration branch is not `main`; do not promote or merge to `main` without separate approval.
 
 ## Active slice
 
