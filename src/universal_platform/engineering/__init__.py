@@ -244,3 +244,6 @@ __all__.extend(["RationalBooleanShell", "RationalBooleanComponent", "RationalBoo
 
 from .module_runtime import ModuleGrant, ModuleRuntime, ModuleHandler
 __all__.extend(["ModuleGrant", "ModuleRuntime", "ModuleHandler"])
+
+from .physics_module_adapter import PhysicsModuleBridge, create_builtin_physics_module_bridge
+__all__.extend(["PhysicsModuleBridge", "create_builtin_physics_module_bridge"])

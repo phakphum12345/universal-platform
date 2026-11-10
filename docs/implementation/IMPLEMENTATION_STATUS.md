@@ -1468,3 +1468,11 @@ PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093
 - Next engineering slice: audit every stage's resource dimensions and counter semantics, then implement shared cross-stage accounting with deterministic fail-closed exhaustion and no partial result. Preserve current per-stage hard ceilings as upper bounds.
 - Hardware scope baseline: see [Hardware Intelligence & Diagnostics Roadmap](../hardware/HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP.md). Areas HW-01–HW-10 are core roadmap; HW-11–HW-16 are long-term. This scope decision does not change the current implementation maturity: schematic metadata/rendering and static ERC exist; driver metadata contracts exist; live device drivers, sensor reads, PCB DRC, and circuit simulation are not established.
 - This file contains historical audit entries above; the dated checkpoint here supersedes earlier stale “latest audit” headers. Do not interpret historical counts/SHA values as current.
+
+
+## Module Runtime and Physics bridge — PR #236 candidate (2026-11-10)
+
+- PR #235 adds initial policy-gated in-process handler dispatch. Post-merge workflow run `42811038227` on merge SHA `95253414616c992c606c0e73d69c48c30df4cd36`: `workflow-sanity` PASS; `python-tests` PASS. A skipped documentation-only marker is not counted as a pass.
+- PR #236 candidate adds an explicit adapter from `ModuleRequest` to the existing `PhysicsSolverRegistry` for axial stress, ideal DC Ohm's law/power, and linear thermal expansion. It preserves Quantity snapshots and EvidenceRecord output, requires a host-side permission grant, applies an explicit license allow-list, and accepts only the bounded built-in solver inputs.
+- Candidate files: `src/universal_platform/engineering/physics_module_adapter.py`, `tests/test_physics_module_adapter.py`, and `docs/architecture/PHYSICS_MODULE_RUNTIME_BRIDGE.md`.
+- Status: IN_PROGRESS until exact-head CI and post-merge checks pass. This is trusted in-process execution, not OS sandboxing or arbitrary plugin loading.
