@@ -8,7 +8,6 @@ from universal_platform.engineering.physics_module_adapter import (
     SOLVE_PERMISSION,
     create_builtin_physics_module_bridge,
 )
-from universal_platform.engineering.errors import InvalidModelError
 
 
 def request(values, **extra):
@@ -69,8 +68,8 @@ def test_physics_bridge_supports_axial_stress_and_preserves_evidence():
     assert result.status == "COMPLETED"
     assert result.outputs["outputs"]["stress"]["si_value"] == pytest.approx(100000)
     metadata = result.outputs["evidence"]["metadata"]
-    assert metadata["assumptions"] == ["uniform axial stress"]
-    assert metadata["boundary_conditions"] == ["uniaxial force"]
+    assert metadata["assumptions"] == ("uniform axial stress",)
+    assert metadata["boundary_conditions"] == ("uniaxial force",)
 
 
 def test_physics_bridge_supports_linear_thermal_expansion():
