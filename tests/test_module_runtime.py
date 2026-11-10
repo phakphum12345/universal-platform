@@ -188,3 +188,31 @@ def test_runtime_rejects_unknown_host_resource_metric():
     assert result.status == "REJECTED"
     assert result.error_code == "module.resource_reservation_failed"
     assert allocator.active_leases() == ()
+
+
+from datetime import datetime, timedelta, timezone
+
+
+def test_runtime_lease_remains_reserved_until_long_handler_returns():
+    registry, _ = setup_runtime()
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 1, "cores"),))
+    observed = []
+
+    def long_running_handler(_):
+        future = datetime.now(timezone.utc) + timedelta(days=30)
+        active = allocator.active_leases(now=future)
+        observed.extend(active)
+        assert len(active) == 1
+        assert active[0].expires_at is None
+        assert allocator.available(now=future)[0].value == 0
+        return {"ok": True}
+
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_handler("org.example.calc", "calculate.sum", long_running_handler)
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request(resource_limits={"cpu.cores": 1}))
+
+    assert result.status == "COMPLETED"
+    assert len(observed) == 1
+    assert allocator.active_leases() == ()
+    assert allocator.available()[0].value == 1
