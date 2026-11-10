@@ -1,4 +1,4 @@
-"""Thread-safe quota allocator with expiring, explicit resource leases."""
+"""Thread-safe quota allocator with expiring or explicitly released resource leases."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -17,16 +17,18 @@ class ResourceLease:
     owner_id: str
     allocations: tuple[ResourceMetric, ...]
     acquired_at: datetime
-    expires_at: datetime
+    expires_at: datetime | None
 
     def __post_init__(self) -> None:
         if not self.lease_id.strip() or not self.owner_id.strip():
             raise ValueError("lease_id and owner_id must be non-empty")
-        for value in (self.acquired_at, self.expires_at):
-            if value.tzinfo is None or value.utcoffset() is None:
+        if self.acquired_at.tzinfo is None or self.acquired_at.utcoffset() is None:
+            raise ValueError("lease timestamps must be timezone-aware")
+        if self.expires_at is not None:
+            if self.expires_at.tzinfo is None or self.expires_at.utcoffset() is None:
                 raise ValueError("lease timestamps must be timezone-aware")
-        if self.expires_at <= self.acquired_at:
-            raise ValueError("lease expiry must follow acquisition")
+            if self.expires_at <= self.acquired_at:
+                raise ValueError("lease expiry must follow acquisition")
         names = [item.name for item in self.allocations]
         if len(names) != len(set(names)):
             raise ValueError("lease allocation metric names must be unique")
@@ -56,13 +58,18 @@ class ResourceAllocator:
         owner_id: str,
         requested: Iterable[ResourceMetric],
         *,
-        ttl_seconds: float = 60.0,
+        ttl_seconds: float | None = 60.0,
         now: datetime | None = None,
     ) -> ResourceLease:
         if not owner_id.strip():
             raise ValueError("owner_id must be non-empty")
-        if isinstance(ttl_seconds, bool) or not isinstance(ttl_seconds, (int, float)) or not isfinite(ttl_seconds) or ttl_seconds <= 0:
-            raise ValueError("ttl_seconds must be finite and positive")
+        if ttl_seconds is not None and (
+            isinstance(ttl_seconds, bool)
+            or not isinstance(ttl_seconds, (int, float))
+            or not isfinite(ttl_seconds)
+            or ttl_seconds <= 0
+        ):
+            raise ValueError("ttl_seconds must be finite and positive, or None")
         captured = now or datetime.now(timezone.utc)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
@@ -90,7 +97,10 @@ class ResourceAllocator:
                 owner_id=owner_id,
                 allocations=amounts,
                 acquired_at=captured,
-                expires_at=captured + timedelta(seconds=float(ttl_seconds)),
+                expires_at=(
+                    captured + timedelta(seconds=float(ttl_seconds))
+                    if ttl_seconds is not None else None
+                ),
             )
             self._leases[lease.lease_id] = lease
             return lease
@@ -123,6 +133,9 @@ class ResourceAllocator:
             )
 
     def _expire(self, now: datetime) -> None:
-        expired = [key for key, lease in self._leases.items() if lease.expires_at <= now]
+        expired = [
+            key for key, lease in self._leases.items()
+            if lease.expires_at is not None and lease.expires_at <= now
+        ]
         for key in expired:
             del self._leases[key]
