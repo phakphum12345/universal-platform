@@ -135,3 +135,25 @@ def test_physics_bridge_is_a_real_module_runtime_integration():
     operation = manifest.operations[0]
     assert operation.required_permissions == (SOLVE_PERMISSION,)
     assert operation.output_schema_version == "1.0"
+
+
+def test_physics_bridge_rejects_unknown_top_level_fields():
+    bridge = create_builtin_physics_module_bridge()
+    bridge.grant()
+    result = bridge.invoke(request({
+        "voltage": {"value": 12, "unit": "V"},
+        "resistance": {"value": 6, "unit": "ohm"},
+    }, unexpected_authority=True))
+    assert result.status == "ERROR"
+    assert result.error_code == "module.handler_failed"
+
+
+def test_physics_bridge_rejects_numeric_overflow_without_leaking_exception():
+    bridge = create_builtin_physics_module_bridge()
+    bridge.grant()
+    result = bridge.invoke(request({
+        "voltage": {"value": 10 ** 10000, "unit": "V"},
+        "resistance": {"value": 6, "unit": "ohm"},
+    }))
+    assert result.status == "ERROR"
+    assert result.error_code == "module.handler_failed"
