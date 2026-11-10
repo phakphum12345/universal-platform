@@ -328,3 +328,14 @@
 PR #207 exact head `e34799b131d8bcc4e9f893529659c80f40b7bb90`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS. PR #207 merge SHA: `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`. Post-merge SHA `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`: workflow-sanity PASS, python-tests PASS and Chromium E2E PASS.
 
 See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) and [Arbitrary Faceted B-rep Boolean Contract](../design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md).
+
+
+## Runtime / Physics integration — PR #236 candidate (in progress)
+
+- Base integration SHA: `95253414616c992c606c0e73d69c48c30df4cd36` (PR #235 merge).
+- Scope: bridge the existing three built-in analytical physics solvers through the host-controlled ModuleRuntime without duplicating solver equations.
+- Candidate source: `src/universal_platform/engineering/physics_module_adapter.py`.
+- Candidate tests: `tests/test_physics_module_adapter.py`.
+- Contract: `docs/architecture/PHYSICS_MODULE_RUNTIME_BRIDGE.md`.
+- Policy: explicit host grant `engineering.physics.solve`, canonical input units, Apache-2.0 allow-list by default, no external dependencies, retained solver evidence/limitations.
+- Status: IN_PROGRESS — exact-head CI and review evidence pending. This does not establish OS isolation or general plugin loading.
