@@ -60,7 +60,7 @@ def test_request_cannot_self_grant_permissions():
 
 def test_missing_grant_and_revoked_grant_fail_closed():
     _, runtime = setup_runtime()
-    runtime.register_handler("org.example.calc", "calculate.sum", lambda _: {"ok": True})
+    runtime.register_handler("org.example.calc", "calculate.sum", lambda _: {"total": 1})
     assert runtime.invoke(request()).error_code == "module.permission_denied"
     runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
     assert runtime.invoke(request()).status == "COMPLETED"
@@ -212,7 +212,7 @@ def test_runtime_lease_remains_reserved_until_long_handler_returns():
         assert len(active) == 1
         assert active[0].expires_at is None
         assert allocator.available(now=future)[0].value == 0
-        return {"ok": True}
+        return {"total": 1}
 
     runtime = ModuleRuntime(registry, resource_allocator=allocator)
     runtime.register_handler("org.example.calc", "calculate.sum", long_running_handler)

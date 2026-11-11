@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from math import isfinite
 from threading import RLock
 from typing import Any
 
@@ -258,34 +259,35 @@ class ModuleRuntime:
             if lease is not None else ()
         )
         try:
-            outputs = handler(request.inputs)
-        except Exception:
-            # Do not expose exception text, traceback, or secrets to the caller.
-            return ModuleResponse(
-                request_id=request.request_id, status="ERROR",
-                error_code="module.handler_failed", warnings=warnings,
-            )
-        try:
-            validation_error = _validate_module_output(outputs, operation)
-        except Exception:
-            # Invalid host schema definitions or validator defects must fail closed.
-            validation_error = "output schema validation failed"
-        if validation_error is not None:
-            # Do not expose handler output, schema internals, or exception details.
-            return ModuleResponse(
-                request_id=request.request_id, status="ERROR",
-                error_code="module.output_validation_failed", warnings=warnings,
-            )
-        try:
-            return ModuleResponse(
-                request_id=request.request_id, status="COMPLETED",
-                outputs=outputs, warnings=warnings,
-            )
-        except InvalidModelError:
-            return ModuleResponse(
-                request_id=request.request_id, status="ERROR",
-                error_code="module.output_validation_failed", warnings=warnings,
-            )
+            try:
+                outputs = handler(request.inputs)
+            except Exception:
+                # Do not expose exception text, traceback, or secrets to the caller.
+                return ModuleResponse(
+                    request_id=request.request_id, status="ERROR",
+                    error_code="module.handler_failed", warnings=warnings,
+                )
+            try:
+                validation_error = _validate_module_output(outputs, operation)
+            except Exception:
+                # Invalid host schema definitions or validator defects must fail closed.
+                validation_error = "output schema validation failed"
+            if validation_error is not None:
+                # Do not expose handler output, schema internals, or exception details.
+                return ModuleResponse(
+                    request_id=request.request_id, status="ERROR",
+                    error_code="module.output_validation_failed", warnings=warnings,
+                )
+            try:
+                return ModuleResponse(
+                    request_id=request.request_id, status="COMPLETED",
+                    outputs=outputs, warnings=warnings,
+                )
+            except InvalidModelError:
+                return ModuleResponse(
+                    request_id=request.request_id, status="ERROR",
+                    error_code="module.output_validation_failed", warnings=warnings,
+                )
         finally:
             if lease is not None:
                 self._resource_allocator.release(lease.lease_id)
