@@ -24,3 +24,10 @@ The process supervisor remains a separate trusted-worker facility and is not a s
 ## Acceptance evidence
 
 Focused tests cover allowed invocation, request self-grant rejection, missing/revoked grants, manifest grant ceiling, missing handlers, unknown operations, schema mismatch, sanitized handler failures and duplicate registration. Completion status is operational only; it does not imply engineering evidence PASS.
+
+
+## Host quota reservation integration
+
+ModuleRuntime may be constructed with a host-configured ResourceAllocator. When a validated ModuleRequest.resource_limits mapping is non-empty, the runtime maps each metric name to the unit declared by the allocator capacity and atomically reserves that amount before invoking the handler. Unknown metrics, missing allocators and exhausted capacity fail closed before handler execution. The lease is released in a finally path after both successful and failed handler execution.
+
+This is a reservation/lease lifecycle, not enforcement of actual CPU time, resident memory, I/O, network use or execution deadlines. The request supplies an amount to reserve, but cannot define capacity or units. Capacity and units are controlled by host configuration. Runtime invocation leases use explicit release rather than TTL expiry, so an active handler retains its reservation until the finally path releases it. General allocator callers may continue using finite TTL leases. The allocator and leases are in-memory and process-local; they are not durable or coordinated across processes. A process crash discards the in-memory pool and does not provide cross-process accounting.

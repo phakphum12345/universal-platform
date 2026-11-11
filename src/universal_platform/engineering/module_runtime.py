@@ -2,7 +2,8 @@
 
 This is an application-level permission boundary, not an OS sandbox. Handler
 callables are supplied by trusted application code; this module never imports
-or downloads code based on a request.
+or downloads code based on a request. Optional resource leases reserve host-
+configured quota for one invocation and are always released afterward.
 """
 from __future__ import annotations
 
@@ -14,6 +15,8 @@ from typing import Any
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
+from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
+from ..runtime.resources.models import ResourceMetric
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 
@@ -35,16 +38,25 @@ class ModuleGrant:
 
 
 class ModuleRuntime:
-    """Dispatch registered handlers only after host-side permission checks.
+    """Dispatch registered handlers after host-side permission and quota checks.
 
     Request.permissions is descriptive and is never treated as an authority
-    grant. The trusted grant supplied by the host is the sole authority source.
+    grant. Resource limits are reservation requests against a host-configured
+    in-memory quota pool; they do not limit actual CPU, memory, I/O or runtime.
     """
 
-    def __init__(self, registry: ModuleRegistry) -> None:
+    def __init__(
+        self,
+        registry: ModuleRegistry,
+        *,
+        resource_allocator: ResourceAllocator | None = None,
+    ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise InvalidModelError("registry must be a ModuleRegistry")
+        if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocator):
+            raise InvalidModelError("resource_allocator must be a ResourceAllocator")
         self._registry = registry
+        self._resource_allocator = resource_allocator
         self._handlers: dict[tuple[str, str], ModuleHandler] = {}
         self._grants: dict[str, frozenset[str]] = {}
         self._lock = RLock()
@@ -73,6 +85,21 @@ class ModuleRuntime:
             if key in self._handlers:
                 raise InvalidModelError("handler already registered")
             self._handlers[key] = handler
+
+    def _reserve_resources(self, request: ModuleRequest) -> ResourceLease | None:
+        if not request.resource_limits:
+            return None
+        allocator = self._resource_allocator
+        if allocator is None:
+            raise RuntimeError("resource allocator is not configured")
+        capacities = {item.name: item for item in allocator.capacity()}
+        requested: list[ResourceMetric] = []
+        for name, amount in sorted(request.resource_limits.items()):
+            capacity = capacities.get(name)
+            if capacity is None:
+                raise ValueError(f"resource metric is not host-configured: {name}")
+            requested.append(ResourceMetric(name, amount, capacity.unit))
+        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
@@ -109,14 +136,29 @@ class ModuleRuntime:
             )
 
         try:
+            lease = self._reserve_resources(request)
+        except (ValueError, RuntimeError, OverflowError):
+            return ModuleResponse(
+                request_id=request.request_id, status="REJECTED",
+                error_code="module.resource_reservation_failed",
+            )
+
+        warnings = (
+            ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
+            if lease is not None else ()
+        )
+        try:
             outputs = handler(request.inputs)
             return ModuleResponse(
                 request_id=request.request_id, status="COMPLETED",
-                outputs=outputs,
+                outputs=outputs, warnings=warnings,
             )
         except Exception:
             # Do not expose exception text, traceback, or secrets to the caller.
             return ModuleResponse(
                 request_id=request.request_id, status="ERROR",
-                error_code="module.handler_failed",
+                error_code="module.handler_failed", warnings=warnings,
             )
+        finally:
+            if lease is not None:
+                self._resource_allocator.release(lease.lease_id)

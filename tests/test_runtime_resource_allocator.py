@@ -92,3 +92,19 @@ def test_allocator_rejects_empty_or_duplicate_capacity_and_requests():
             "worker",
             (ResourceMetric("cpu.cores", 1, "cores"), ResourceMetric("cpu.cores", 1, "cores")),
         )
+
+
+def test_allocator_supports_explicit_release_only_lease():
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 1, "cores"),))
+    now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+    lease = allocator.allocate(
+        "runtime-invocation",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        ttl_seconds=None,
+        now=now,
+    )
+    assert lease.expires_at is None
+    assert allocator.active_leases(now=now + timedelta(days=30)) == (lease,)
+    assert allocator.available(now=now + timedelta(days=30))[0].value == 0
+    assert allocator.release(lease.lease_id)
+    assert allocator.active_leases(now=now + timedelta(days=30)) == ()
