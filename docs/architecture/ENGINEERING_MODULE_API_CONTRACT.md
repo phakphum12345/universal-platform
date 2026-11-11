@@ -123,3 +123,10 @@ This interface is not a graphical sketch editor, CAD viewport or visual modellin
 The local FeatureHistory workbench now offers a bounded SVG canvas for straight-edge polygons. The authenticated polygon template endpoint builds a fixed-coordinate ParametricSketch v1.2 and a Sketch → Extrusion → Mesh history. The user reviews the returned JSON, saves an immutable source revision and explicitly requests regeneration. Geometry and watertight mesh validation are returned as artifacts and evidence; the drawing canvas alone does not certify the shape.
 
 The editor is deliberately limited to 3–64 vertices within X 0–26 mm and Y 0–15 mm. It does not implement arcs, holes, dimensional/automatic constraints, drag solving or a 3D viewport. See [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
+
+
+## ModuleRuntime output contract enforcement (WP-09A)
+
+A runtime-enabled ModuleOperation must declare an immutable output schema. The schema root carries `x-schema-version`, which must equal the operation's `output_schema_version`. The runtime rejects missing or mismatched schema metadata before dispatch and validates the returned object against the supported JSON Schema subset before emitting `COMPLETED`. Structural failures produce a sanitized `ERROR` response. JSON compatibility/finiteness checks remain independently enforced by ModuleResponse.
+
+The current validator is deliberately not a complete JSON Schema implementation. Unsupported keywords fail closed. Implemented schema rules include object/array/string/boolean/integer/number/null types, required fields, properties, additionalProperties, array items, enum/const and basic size/numeric bounds. Full standards conformance and input structural validation remain separate work.

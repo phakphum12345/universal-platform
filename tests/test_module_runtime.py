@@ -13,6 +13,13 @@ def setup_runtime(required=("engineering.calculate",)):
         operations=(ModuleOperation(
             "calculate.sum", input_schema_version="1.0",
             required_permissions=required,
+            output_schema={
+                "type": "object",
+                "x-schema-version": "1.0",
+                "required": ["total"],
+                "properties": {"total": {"type": "number"}},
+                "additionalProperties": False,
+            },
         ),),
         permissions=("engineering.calculate", "engineering.read"),
         license_id="Apache-2.0",
@@ -216,3 +223,83 @@ def test_runtime_lease_remains_reserved_until_long_handler_returns():
     assert len(observed) == 1
     assert allocator.active_leases() == ()
     assert allocator.available()[0].value == 1
+
+
+
+def test_output_schema_rejects_missing_required_field_and_never_completes():
+    _, runtime = setup_runtime()
+    runtime.register_handler("org.example.calc", "calculate.sum", lambda _: {})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+@pytest.mark.parametrize("outputs", [
+    {"total": "5"},
+    {"total": 5, "unexpected": True},
+    {"total": {"value": 5}},
+])
+def test_output_schema_rejects_wrong_type_and_unknown_fields(outputs):
+    _, runtime = setup_runtime()
+    runtime.register_handler("org.example.calc", "calculate.sum", lambda _: outputs)
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+def test_output_schema_version_must_match_operation_declaration():
+    with pytest.raises(InvalidModelError, match="x-schema-version"):
+        ModuleOperation(
+            "calculate.sum", output_schema_version="2.0",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "properties": {}, "additionalProperties": False,
+            },
+        )
+
+
+def test_output_schema_is_required_before_handler_dispatch():
+    registry_without_schema = ModuleRegistry()
+    registry_without_schema.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation("calculate.sum"),),
+        permissions=("engineering.calculate",),
+        license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry_without_schema)
+    called = []
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: called.append(True) or {"total": 5})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.output_schema_unavailable"
+    assert called == []
+
+
+def test_output_schema_validates_nested_objects_and_array_item_types():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "required": ["items"],
+                "properties": {
+                    "items": {"type": "array", "items": {"type": "integer"}},
+                },
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"items": [1, "2"]})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"

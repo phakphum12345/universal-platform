@@ -20,6 +20,99 @@ from ..runtime.resources.models import ResourceMetric
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 
+_SCHEMA_ANNOTATIONS = frozenset({
+    "$schema", "$id", "title", "description", "default", "examples",
+    "x-schema-version",
+})
+_SCHEMA_KEYWORDS = frozenset({
+    "type", "required", "properties", "additionalProperties", "items",
+    "minItems", "maxItems", "minProperties", "maxProperties",
+    "minLength", "maxLength", "minimum", "maximum", "enum", "const",
+})
+
+
+def _output_schema_error(value: Any, schema: Mapping[str, Any], path: str = "outputs",
+                         depth: int = 0, budget: list[int] | None = None) -> str | None:
+    """Validate the deliberately supported, fail-closed JSON Schema subset."""
+    if budget is None:
+        budget = [10000]
+    budget[0] -= 1
+    if budget[0] < 0 or depth > 64:
+        return f"{path} exceeds output validation limits"
+    unsupported = set(schema) - _SCHEMA_KEYWORDS - _SCHEMA_ANNOTATIONS
+    if unsupported:
+        return f"{path} schema uses unsupported keywords"
+    expected = schema.get("type")
+    valid = {
+        "object": lambda item: isinstance(item, Mapping),
+        "array": lambda item: isinstance(item, (list, tuple)),
+        "string": lambda item: isinstance(item, str),
+        "boolean": lambda item: isinstance(item, bool),
+        "integer": lambda item: isinstance(item, int) and not isinstance(item, bool),
+        "number": lambda item: isinstance(item, (int, float)) and not isinstance(item, bool),
+        "null": lambda item: item is None,
+    }
+    if expected not in valid:
+        return f"{path} schema has an unsupported or missing type"
+    if not valid[expected](value):
+        return f"{path} must be {expected}"
+    if "const" in schema and value != schema["const"]:
+        return f"{path} does not match const"
+    if "enum" in schema and value not in schema["enum"]:
+        return f"{path} is not an allowed value"
+    if expected == "object":
+        required = schema.get("required", ())
+        properties = schema.get("properties", {})
+        if not isinstance(properties, Mapping) or not isinstance(required, tuple):
+            return f"{path} schema has invalid object rules"
+        if any(key not in value for key in required):
+            return f"{path} is missing required properties"
+        if len(value) < schema.get("minProperties", 0) or len(value) > schema.get("maxProperties", float("inf")):
+            return f"{path} property count is outside bounds"
+        additional = schema.get("additionalProperties", True)
+        for key, item in value.items():
+            child_schema = properties.get(key)
+            if child_schema is None:
+                if additional is False:
+                    return f"{path}.{key} is not allowed"
+                if isinstance(additional, Mapping):
+                    child_schema = additional
+            if isinstance(child_schema, Mapping):
+                error = _output_schema_error(item, child_schema, f"{path}.{key}", depth + 1, budget)
+                if error:
+                    return error
+    elif expected == "array":
+        if len(value) < schema.get("minItems", 0) or len(value) > schema.get("maxItems", float("inf")):
+            return f"{path} item count is outside bounds"
+        item_schema = schema.get("items")
+        if item_schema is not None:
+            if not isinstance(item_schema, Mapping):
+                return f"{path} schema has invalid items rule"
+            for index, item in enumerate(value):
+                error = _output_schema_error(item, item_schema, f"{path}[{index}]", depth + 1, budget)
+                if error:
+                    return error
+    elif expected == "string":
+        if len(value) < schema.get("minLength", 0) or len(value) > schema.get("maxLength", float("inf")):
+            return f"{path} length is outside bounds"
+    elif expected in {"integer", "number"}:
+        if isinstance(value, float) and not isfinite(value):
+            return f"{path} must be finite"
+        if "minimum" in schema and value < schema["minimum"]:
+            return f"{path} is below minimum"
+        if "maximum" in schema and value > schema["maximum"]:
+            return f"{path} is above maximum"
+    return None
+
+
+def _validate_module_output(outputs: Any, operation: Any) -> str | None:
+    schema = operation.output_schema
+    if schema is None:
+        return "operation has no registered output schema"
+    if schema.get("x-schema-version") != operation.output_schema_version:
+        return "output schema version does not match operation declaration"
+    return _output_schema_error(outputs, schema)
+
 
 @dataclass(frozen=True, slots=True)
 class ModuleGrant:
@@ -117,6 +210,16 @@ class ModuleRuntime:
                 request_id=request.request_id, status="REJECTED",
                 error_code="module.input_schema_mismatch",
             )
+        if operation.output_schema is None:
+            return ModuleResponse(
+                request_id=request.request_id, status="REJECTED",
+                error_code="module.output_schema_unavailable",
+            )
+        if operation.output_schema.get("x-schema-version") != operation.output_schema_version:
+            return ModuleResponse(
+                request_id=request.request_id, status="REJECTED",
+                error_code="module.output_schema_mismatch",
+            )
 
         key = (request.module_id, request.operation)
         with self._lock:
@@ -149,15 +252,28 @@ class ModuleRuntime:
         )
         try:
             outputs = handler(request.inputs)
-            return ModuleResponse(
-                request_id=request.request_id, status="COMPLETED",
-                outputs=outputs, warnings=warnings,
-            )
         except Exception:
             # Do not expose exception text, traceback, or secrets to the caller.
             return ModuleResponse(
                 request_id=request.request_id, status="ERROR",
                 error_code="module.handler_failed", warnings=warnings,
+            )
+        validation_error = _validate_module_output(outputs, operation)
+        if validation_error is not None:
+            # Do not expose handler output, schema internals, or exception details.
+            return ModuleResponse(
+                request_id=request.request_id, status="ERROR",
+                error_code="module.output_validation_failed", warnings=warnings,
+            )
+        try:
+            return ModuleResponse(
+                request_id=request.request_id, status="COMPLETED",
+                outputs=outputs, warnings=warnings,
+            )
+        except InvalidModelError:
+            return ModuleResponse(
+                request_id=request.request_id, status="ERROR",
+                error_code="module.output_validation_failed", warnings=warnings,
             )
         finally:
             if lease is not None:
