@@ -258,7 +258,11 @@ class ModuleRuntime:
                 request_id=request.request_id, status="ERROR",
                 error_code="module.handler_failed", warnings=warnings,
             )
-        validation_error = _validate_module_output(outputs, operation)
+        try:
+            validation_error = _validate_module_output(outputs, operation)
+        except Exception:
+            # Invalid host schema definitions or validator defects must fail closed.
+            validation_error = "output schema validation failed"
         if validation_error is not None:
             # Do not expose handler output, schema internals, or exception details.
             return ModuleResponse(

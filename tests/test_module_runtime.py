@@ -303,3 +303,53 @@ def test_output_schema_validates_nested_objects_and_array_item_types():
     result = runtime.invoke(request())
     assert result.status == "ERROR"
     assert result.error_code == "module.output_validation_failed"
+
+
+
+def test_output_schema_rejects_non_finite_numbers():
+    _, runtime = setup_runtime()
+    runtime.register_handler(
+        "org.example.calc", "calculate.sum",
+        lambda _: {"total": float("nan")},
+    )
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+def test_output_schema_fails_closed_on_unsupported_keywords():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "required": ["label"],
+                "properties": {"label": {"type": "string", "pattern": "^ok$"}},
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"label": "ok"})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+def test_output_schema_is_detached_and_immutable():
+    source = {
+        "type": "object", "x-schema-version": "1.0",
+        "properties": {"total": {"type": "number"}},
+        "additionalProperties": False,
+    }
+    operation = ModuleOperation("calculate.sum", output_schema=source)
+    source["properties"]["total"]["type"] = "string"
+    assert operation.output_schema["properties"]["total"]["type"] == "number"
+    with pytest.raises(TypeError):
+        operation.output_schema["properties"]["total"]["type"] = "string"
