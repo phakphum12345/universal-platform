@@ -163,6 +163,45 @@ def create_builtin_physics_module_bridge(
             input_schema_version="1.0",
             output_schema_version="1.0",
             required_permissions=(SOLVE_PERMISSION,),
+            output_schema={
+                "type": "object",
+                "x-schema-version": "1.0",
+                "required": ["problem_id", "solver_id", "solver_version", "domain", "method", "outputs", "evidence"],
+                "additionalProperties": False,
+                "properties": {
+                    "problem_id": {"type": "string", "minLength": 1},
+                    "solver_id": {"type": "string", "minLength": 1},
+                    "solver_version": {"type": "string", "minLength": 1},
+                    "domain": {"type": "string", "minLength": 1},
+                    "method": {"type": "string", "minLength": 1},
+                    "outputs": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "additionalProperties": {
+                            "type": "object",
+                            "required": ["schema_version", "si_value", "dimension", "source_unit"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "schema_version": {"type": "string", "const": "1.0"},
+                                "si_value": {"type": "number"},
+                                "dimension": {
+                                    "type": "array", "minItems": 5, "maxItems": 5,
+                                    "items": {"type": "integer"},
+                                },
+                                "source_unit": {"type": "string", "minLength": 1},
+                            },
+                        },
+                    },
+                    "evidence": {
+                        "type": "object",
+                        "required": ["status", "limitations"],
+                        "properties": {
+                            "status": {"type": "string", "enum": ["PASS", "FAIL", "SKIPPED", "UNKNOWN"]},
+                            "limitations": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
+                },
+            },
             execution_kind="CALCULATION",
         ),),
         permissions=(SOLVE_PERMISSION,),

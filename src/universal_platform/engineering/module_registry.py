@@ -5,7 +5,10 @@ permissions to module code.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from math import isfinite
+from types import MappingProxyType
 import re
 from typing import Any
 
@@ -15,6 +18,26 @@ _IDENTIFIER = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
 _SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$")
 _SCHEMA_VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 _EXECUTION_KINDS = frozenset({"ANALYSIS", "CALCULATION", "SIMULATION", "EXTERNAL_READ"})
+
+
+def _freeze_schema(value: Any, path: str = "output_schema") -> Any:
+    """Detach and freeze a JSON-compatible schema definition."""
+    if value is None or isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        if not isfinite(value):
+            raise InvalidModelError(f"{path} contains a non-finite number")
+        return value
+    if isinstance(value, Mapping):
+        frozen: dict[str, Any] = {}
+        for key, item in value.items():
+            if not isinstance(key, str) or not key:
+                raise InvalidModelError(f"{path} keys must be non-empty strings")
+            frozen[key] = _freeze_schema(item, f"{path}.{key}")
+        return MappingProxyType(frozen)
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_schema(item, f"{path}[{index}]") for index, item in enumerate(value))
+    raise InvalidModelError(f"{path} contains a non-JSON value")
 _MATURITY = frozenset({
     "CONCEPT", "EXPERIMENTAL", "VALIDATED", "PRODUCTION_CANDIDATE",
     "STABLE", "DEPRECATED",
@@ -45,6 +68,7 @@ class ModuleOperation:
     output_schema_version: str = "1.0"
     required_permissions: tuple[str, ...] = ()
     execution_kind: str = "CALCULATION"
+    output_schema: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         _require_identifier(self.operation_id, "operation_id")
@@ -57,15 +81,35 @@ class ModuleOperation:
             raise InvalidModelError(
                 "execution_kind must be ANALYSIS, CALCULATION, SIMULATION, or EXTERNAL_READ"
             )
+        if self.output_schema is not None:
+            if not isinstance(self.output_schema, Mapping):
+                raise InvalidModelError("output_schema must be a JSON Schema object")
+            frozen_schema = _freeze_schema(self.output_schema)
+            if frozen_schema.get("type") != "object":
+                raise InvalidModelError("module output schema root must have type object")
+            if frozen_schema.get("x-schema-version") != self.output_schema_version:
+                raise InvalidModelError(
+                    "output_schema x-schema-version must match output_schema_version"
+                )
+            object.__setattr__(self, "output_schema", frozen_schema)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "operation_id": self.operation_id,
             "input_schema_version": self.input_schema_version,
             "output_schema_version": self.output_schema_version,
             "required_permissions": sorted(self.required_permissions),
             "execution_kind": self.execution_kind,
         }
+        if self.output_schema is not None:
+            def thaw(value: Any) -> Any:
+                if isinstance(value, Mapping):
+                    return {key: thaw(value[key]) for key in sorted(value)}
+                if isinstance(value, tuple):
+                    return [thaw(item) for item in value]
+                return value
+            result["output_schema"] = thaw(self.output_schema)
+        return result
 
 
 @dataclass(frozen=True, slots=True)
