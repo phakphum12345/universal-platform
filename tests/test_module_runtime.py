@@ -353,3 +353,27 @@ def test_output_schema_is_detached_and_immutable():
     assert operation.output_schema["properties"]["total"]["type"] == "number"
     with pytest.raises(TypeError):
         operation.output_schema["properties"]["total"]["type"] = "string"
+
+
+
+def test_output_schema_fails_closed_on_malformed_nested_schema_rules():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "properties": {"total": "number"},
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"total": 5})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"

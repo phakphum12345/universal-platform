@@ -52,14 +52,17 @@ def _output_schema_error(value: Any, schema: Mapping[str, Any], path: str = "out
         "number": lambda item: isinstance(item, (int, float)) and not isinstance(item, bool),
         "null": lambda item: item is None,
     }
-    if expected not in valid:
+    if not isinstance(expected, str) or expected not in valid:
         return f"{path} schema has an unsupported or missing type"
     if not valid[expected](value):
         return f"{path} must be {expected}"
     if "const" in schema and value != schema["const"]:
         return f"{path} does not match const"
-    if "enum" in schema and value not in schema["enum"]:
-        return f"{path} is not an allowed value"
+    if "enum" in schema:
+        if not isinstance(schema["enum"], tuple):
+            return f"{path} schema has an invalid enum rule"
+        if value not in schema["enum"]:
+            return f"{path} is not an allowed value"
     if expected == "object":
         required = schema.get("required", ())
         properties = schema.get("properties", {})
@@ -70,6 +73,10 @@ def _output_schema_error(value: Any, schema: Mapping[str, Any], path: str = "out
         if len(value) < schema.get("minProperties", 0) or len(value) > schema.get("maxProperties", float("inf")):
             return f"{path} property count is outside bounds"
         additional = schema.get("additionalProperties", True)
+        if not isinstance(additional, (bool, Mapping)):
+            return f"{path} schema has an invalid additionalProperties rule"
+        if any(not isinstance(child, Mapping) for child in properties.values()):
+            return f"{path} schema has an invalid property schema"
         for key, item in value.items():
             child_schema = properties.get(key)
             if child_schema is None:
