@@ -115,7 +115,7 @@ class PythonProcessSupervisor:
         creation: dict[str, object] = {}
         if os.name == "nt":
             creation["creationflags"] = (
-                subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_SUSPENDED
+                subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004  # CREATE_SUSPENDED
             )
         else:
             creation["start_new_session"] = True
@@ -214,25 +214,37 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
-            # Do not leave a worker or descendant running if reader startup or
-            # cleanup fails. Keep the Job Object alive until the tree is empty.
-            if job is not None:
-                if process.poll() is None or job.active_processes:
-                    self._terminate_process(process, spec.terminate_grace_seconds, job)
-                if not job.wait_empty(max(2.0, spec.terminate_grace_seconds + 1.0)):
-                    job.close()  # kill-on-close is the final cleanup backstop
-                    raise RuntimeError("Windows worker process tree did not become empty")
-                job.close()
-            elif process.poll() is None:
-                self._terminate_process(process, spec.terminate_grace_seconds)
-            # Registry cleanup is unconditional, including reader/pipe errors.
-            with self._lock:
-                self._processes.pop(spec.worker_id, None)
-                self._jobs.pop(spec.worker_id, None)
-                self._cancelled.discard(spec.worker_id)
-            for pipe in (process.stdout, process.stderr):
-                if pipe is not None:
-                    pipe.close()
+            # Keep registry cleanup unconditional even if the OS refuses to
+            # confirm termination. Closing the Job Object remains kill-on-close.
+            cleanup_error: Exception | None = None
+            try:
+                if job is not None:
+                    try:
+                        if process.poll() is None or job.active_processes:
+                            self._terminate_process(process, spec.terminate_grace_seconds, job)
+                        if not job.wait_empty(max(2.0, spec.terminate_grace_seconds + 1.0)):
+                            cleanup_error = RuntimeError(
+                                "Windows worker process tree did not become empty"
+                            )
+                    except Exception as error:
+                        cleanup_error = error
+                    finally:
+                        try:
+                            job.close()
+                        except Exception as error:
+                            cleanup_error = cleanup_error or error
+                elif process.poll() is None:
+                    self._terminate_process(process, spec.terminate_grace_seconds)
+            finally:
+                with self._lock:
+                    self._processes.pop(spec.worker_id, None)
+                    self._jobs.pop(spec.worker_id, None)
+                    self._cancelled.discard(spec.worker_id)
+                for pipe in (process.stdout, process.stderr):
+                    if pipe is not None:
+                        pipe.close()
+            if cleanup_error is not None:
+                raise cleanup_error
 
     def cancel(self, worker_id: str, *, grace_seconds: float = 1.0) -> bool:
         if isinstance(grace_seconds, bool) or not isinstance(grace_seconds, (int, float)) or not math.isfinite(grace_seconds) or grace_seconds < 0:
