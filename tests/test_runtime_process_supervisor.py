@@ -141,9 +141,13 @@ def test_supervisor_rejects_duplicate_worker_id_without_spawning_second_process(
 @pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
 def test_windows_supervisor_terminates_descendants_after_parent_exits(supervisor, tmp_path):
     marker = tmp_path / "descendant-survived.txt"
-    child = (
+    grandchild = (
         "import time; from pathlib import Path; "
         f"time.sleep(0.6); Path({str(marker)!r}).write_text('survived')"
+    )
+    child = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {grandchild!r}])"
     )
     parent = (
         "import subprocess,sys; "
@@ -181,4 +185,47 @@ def test_windows_assignment_failure_never_resumes_worker(supervisor, tmp_path, m
         ))
     time.sleep(0.2)
     assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_timeout_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    result = supervisor.run(WorkerSpec(
+        "windows-timeout-tree", sys.executable, ("-c", parent),
+        timeout_seconds=0.2, terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_cancellation_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "windows-cancel-tree", sys.executable, ("-c", parent),
+        timeout_seconds=10, terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "windows-cancel-tree" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "windows-cancel-tree" in supervisor.active_worker_ids
+    assert supervisor.cancel("windows-cancel-tree", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
     assert supervisor.active_worker_ids == ()
