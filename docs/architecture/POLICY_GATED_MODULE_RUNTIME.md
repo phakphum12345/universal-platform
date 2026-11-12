@@ -40,3 +40,12 @@ Each executable ModuleOperation must carry an immutable output JSON Schema subse
 The in-process validator intentionally supports a documented subset of JSON Schema: object, array, string, boolean, integer, number and null types; required/properties/additionalProperties; items; enum/const; and basic length, item-count, property-count and numeric bounds. Unsupported validation keywords fail closed rather than being silently ignored. This is not a claim of full Draft 2020-12 conformance.
 
 Output validation is distinct from JSON-compatibility validation in ModuleResponse. The latter remains a final serialization-safety check. Neither validation establishes engineering evidence PASS or isolates handler code.
+
+
+## Grant/revoke concurrency lifecycle — WP-09B
+
+Grant admission and revoke initiation are serialized by one runtime condition lock. An invocation is admitted only when its required permissions are currently granted and the module is not in the revoking state; the in-flight count is incremented in that same critical section. This is the invocation admission linearization point.
+
+Revocation removes the grant before waiting for admitted invocations to drain. Consequently, new invocations are rejected immediately after revoke begins, while already-admitted invocations are allowed to finish. The drain covers the complete invocation lifecycle, including host quota reservation, handler execution, output validation and lease release. Repeated revoke calls are idempotent; a concurrent caller waits for the active revoke and then observes that the grant is already absent. A new grant is rejected while draining and may be installed after revoke completes.
+
+The revoke operation is synchronous and can wait indefinitely if an in-process handler never returns. Call it from a control-plane thread, not from the module's own handler. It does not forcibly cancel or terminate handlers. Timeout, cancellation and untrusted-handler process isolation remain separate follow-up work under WP-09C; this lifecycle is not OS-level enforcement.
