@@ -136,3 +136,49 @@ def test_supervisor_rejects_duplicate_worker_id_without_spawning_second_process(
     assert len(results) == 1
     assert results[0].exit_code == 0
     assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_supervisor_terminates_descendants_after_parent_exits(supervisor, tmp_path):
+    marker = tmp_path / "descendant-survived.txt"
+    child = (
+        "import time; from pathlib import Path; "
+        f"time.sleep(0.6); Path({str(marker)!r}).write_text('survived')"
+    )
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "print('parent-exit')"
+    )
+    started = time.monotonic()
+    result = supervisor.run(WorkerSpec(
+        "windows-descendant", sys.executable, ("-c", parent),
+        timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "parent-exit"
+    assert time.monotonic() - started < 3
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_assignment_failure_never_resumes_worker(supervisor, tmp_path, monkeypatch):
+    from universal_platform.runtime import windows_job
+
+    marker = tmp_path / "worker-ran.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
+
+    def reject_assignment(self, process):
+        raise RuntimeError("injected Job Object assignment failure")
+
+    monkeypatch.setattr(windows_job.WindowsJob, "assign_suspended", reject_assignment)
+    with pytest.raises(RuntimeError, match="assignment failure"):
+        supervisor.run(WorkerSpec(
+            "assignment-failure", sys.executable, ("-c", code),
+            timeout_seconds=3,
+        ))
+    time.sleep(0.2)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
