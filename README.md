@@ -4,6 +4,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status
 - Stage: Active incremental implementation on the integration branch; repository is not complete.
+- Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s**; this is a superseded historical baseline, not current CI evidence. The associated integration baseline before PR #116 was `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
 - Latest verified integration baseline: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merged 2026-11-12).
 - Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
 - Latest post-merge workflow on the exact integration HEAD: [run #43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709); `python-tests` PASS and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED and is not counted as PASS.
