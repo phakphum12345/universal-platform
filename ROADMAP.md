@@ -691,3 +691,49 @@ Integration baseline: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd` (PR #126 merged
 - Keeps the existing 2–16 input and 32,768-cell ceilings.
 - Arbitrary faceted/rotated/curved inputs, nested material islands and general 3D Boolean remain OPEN.
 - Exact-head CI and post-merge evidence are required before marking PASS.
+
+
+# Latest integration checkpoint — 2026-11-12
+
+## Current integration reconciliation — 2026-11-12 (post-PR #240)
+
+This section supersedes earlier "latest" headers in this file. Historical checkpoints remain historical and are not current branch-state claims.
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Exact integration HEAD: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Exact `main` HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged and not targeted.
+- Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
+- Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
+- PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
+- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
+- Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
+- No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
+
+| PR | Exact head SHA | Exact merge SHA | Post-merge run |
+|---|---|---|---|
+| #235 | `d5674ba2a1b3f172357aad69f208883d1586755e` | `95253414616c992c606c0e73d69c48c30df4cd36` | [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) |
+| #236 | `92c0827ef39d575bd5c8ff940c6395de6d75b900` | `4853f297e988603e30069859e6b1486283fcf00f` | [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) |
+| #237 | `c22b37f1db0b1adfce4a71d18cd715bea358cae0` | `2801c8b990af564a6655203f8cfc9a52db70dce3` | [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) |
+| #238 | `2e2e833237f681381876e0fffb73a00a78dd69e1` | `564130639fc02aa8ce856b0d8ea33c0f0b1a7237` | [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) |
+| #239 | `98d4f86772cc69765335320d34b56e0391d31e7e` | `53167ffeb6efb829640363a33dffe08edd788e90` | [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) |
+| #240 | `17923b36201bbc1129eceabbfd98e24386c8fd8c` | `c3d9800ebb46caff38bf18c13142e218ee2c6c63` | [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) |
+
+### Runtime maturity boundary
+
+- ModuleRuntime now performs host-grant-gated invocation of explicitly registered trusted Python handlers; request-supplied permissions do not grant authority.
+- The runtime enforces a deliberately bounded output-schema subset and releases in-memory resource leases in a `finally` path.
+- The Physics bridge exposes three bounded analytical solvers: axial stress, ideal DC Ohm's law/power, and linear thermal expansion.
+- Resource reservation is host-configured, in-memory, process-local admission control. It does not enforce actual CPU, RAM, I/O, network or wall-clock consumption.
+- The process supervisor is a separate allow-listed trusted-worker facility. POSIX process-group cleanup is covered by tests; Windows currently terminates only the direct child.
+- ModuleRuntime does not route invocations through the process supervisor. Worker protocol integration, host-owned deadlines, cancellation/worker races, lease release after worker termination, durable recovery and OS-enforced isolation remain open.
+- None of these facilities is a sandbox. Do not execute untrusted plugin code.
+
+### Next dependency-ready work
+
+1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
+3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
+4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
+5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
+6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
