@@ -6,8 +6,8 @@ with this adapter; use an OS/container sandbox with an explicit policy.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import os
 import math
+import os
 from pathlib import Path
 import signal
 import subprocess
@@ -27,13 +27,13 @@ class WorkerSpec:
     terminate_grace_seconds: float = 1.0
 
     def __post_init__(self) -> None:
-        if not self.worker_id.strip():
+        if not isinstance(self.worker_id, str) or not self.worker_id.strip():
             raise ValueError("worker_id must be non-empty")
-        if not self.executable.strip():
+        if not isinstance(self.executable, str) or not self.executable.strip():
             raise ValueError("executable must be non-empty")
         if any(not isinstance(item, str) or "\x00" in item for item in self.arguments):
             raise ValueError("arguments must be NUL-free strings")
-        if not self.working_directory.strip():
+        if not isinstance(self.working_directory, str) or not self.working_directory.strip():
             raise ValueError("working_directory must be non-empty")
         if isinstance(self.timeout_seconds, bool) or not isinstance(self.timeout_seconds, (int, float)) or not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be finite and positive")
@@ -60,9 +60,10 @@ class PythonProcessSupervisor:
     """Runs trusted, explicitly allow-listed executables without a shell.
 
     Working directories are confined beneath a configured root. Retained
-    output is bounded per stream. On POSIX, workers run in a new session and
-    termination targets the process group. Windows currently terminates the
-    direct child only; stronger job-object containment is a future adapter.
+    output is bounded per stream. POSIX workers run in a new session, and
+    cleanup targets the whole process group even if its leader has exited.
+    Windows currently terminates only the direct child; Job Object containment
+    is required before descendant cleanup can be claimed on that platform.
     """
 
     def __init__(
@@ -83,7 +84,7 @@ class PythonProcessSupervisor:
             if not executable.is_file():
                 raise ValueError("allowed executable must be an existing file")
             allowed.add(os.path.normcase(str(executable)))
-        if max_output_bytes < 1:
+        if isinstance(max_output_bytes, bool) or not isinstance(max_output_bytes, int) or max_output_bytes < 1:
             raise ValueError("max_output_bytes must be positive")
         self._root = root
         self._allowed = frozenset(allowed)
@@ -113,21 +114,23 @@ class PythonProcessSupervisor:
         else:
             creation["start_new_session"] = True
         started = time.monotonic()
-        process = subprocess.Popen(
-            command,
-            cwd=str(cwd),
-            env=dict(spec.environment),
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            close_fds=True,
-            **creation,
-        )
+
+        # Serialize ID reservation and process creation. A duplicate request
+        # must not spawn a second process before discovering the collision.
         with self._lock:
             if spec.worker_id in self._processes:
-                self._terminate_process(process, spec.terminate_grace_seconds)
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
+            process = subprocess.Popen(
+                command,
+                cwd=str(cwd),
+                env=dict(spec.environment),
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                close_fds=True,
+                **creation,
+            )
             self._processes[spec.worker_id] = process
             self._cancelled.discard(spec.worker_id)
 
@@ -149,66 +152,94 @@ class PythonProcessSupervisor:
             threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True),
             threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True),
         ]
-        for reader in readers:
-            reader.start()
-
         timed_out = False
+        cancelled = False
         try:
-            process.wait(timeout=spec.timeout_seconds)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            self._terminate_process(process, spec.terminate_grace_seconds)
-        for reader in readers:
-            reader.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
-        with self._lock:
-            cancelled = spec.worker_id in self._cancelled
-            self._processes.pop(spec.worker_id, None)
-            self._cancelled.discard(spec.worker_id)
-        return WorkerResult(
-            worker_id=spec.worker_id,
-            exit_code=process.poll(),
-            timed_out=timed_out,
-            cancelled=cancelled,
-            duration_seconds=max(0.0, time.monotonic() - started),
-            stdout=bytes(output["stdout"]).decode("utf-8", errors="replace"),
-            stderr=bytes(output["stderr"]).decode("utf-8", errors="replace"),
-            output_truncated=truncated.is_set(),
-        )
+            for reader in readers:
+                reader.start()
+            try:
+                process.wait(timeout=spec.timeout_seconds)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                self._terminate_process(process, spec.terminate_grace_seconds)
+
+            # A child may exit while a descendant keeps an inherited pipe
+            # open. On POSIX, terminate the process group (not merely the
+            # already-exited leader) before waiting indefinitely on readers.
+            for reader in readers:
+                reader.join(timeout=max(0.1, spec.terminate_grace_seconds + 0.1))
+            if any(reader.is_alive() for reader in readers):
+                self._terminate_process(process, spec.terminate_grace_seconds)
+                for reader in readers:
+                    reader.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+
+            with self._lock:
+                cancelled = spec.worker_id in self._cancelled
+            return WorkerResult(
+                worker_id=spec.worker_id,
+                exit_code=process.poll(),
+                timed_out=timed_out,
+                cancelled=cancelled,
+                duration_seconds=max(0.0, time.monotonic() - started),
+                stdout=bytes(output["stdout"]).decode("utf-8", errors="replace"),
+                stderr=bytes(output["stderr"]).decode("utf-8", errors="replace"),
+                output_truncated=truncated.is_set(),
+            )
+        finally:
+            # Do not leave a worker running if reader startup or cleanup fails.
+            if process.poll() is None:
+                self._terminate_process(process, spec.terminate_grace_seconds)
+            # Registry cleanup is unconditional, including reader/pipe errors.
+            with self._lock:
+                self._processes.pop(spec.worker_id, None)
+                self._cancelled.discard(spec.worker_id)
+            for pipe in (process.stdout, process.stderr):
+                if pipe is not None:
+                    pipe.close()
 
     def cancel(self, worker_id: str, *, grace_seconds: float = 1.0) -> bool:
-        if grace_seconds < 0:
-            raise ValueError("grace_seconds must be non-negative")
+        if isinstance(grace_seconds, bool) or not isinstance(grace_seconds, (int, float)) or not math.isfinite(grace_seconds) or grace_seconds < 0:
+            raise ValueError("grace_seconds must be finite and non-negative")
         with self._lock:
             process = self._processes.get(worker_id)
-            if process is None or process.poll() is not None:
+            if process is None:
                 return False
             self._cancelled.add(worker_id)
+        # The leader may already have exited while descendants still own its
+        # pipes. Treat a registered worker as cancellable until run() cleans it.
         self._terminate_process(process, grace_seconds)
         return True
 
     @staticmethod
     def _terminate_process(process: subprocess.Popen[bytes], grace_seconds: float) -> None:
-        if process.poll() is not None:
+        if os.name == "nt":
+            if process.poll() is None:
+                try:
+                    process.terminate()
+                except ProcessLookupError:
+                    pass
+                try:
+                    process.wait(timeout=grace_seconds)
+                except subprocess.TimeoutExpired:
+                    if process.poll() is None:
+                        process.kill()
+                    process.wait()
             return
+
+        # Signal the group even when the group leader has already exited:
+        # descendants can still be alive and hold stdout/stderr descriptors.
         try:
-            if os.name == "nt":
-                process.terminate()
-            else:
-                os.killpg(process.pid, signal.SIGTERM)
+            os.killpg(process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
+        if process.poll() is None:
+            try:
+                process.wait(timeout=grace_seconds)
+            except subprocess.TimeoutExpired:
+                pass
         try:
-            process.wait(timeout=grace_seconds)
-        except subprocess.TimeoutExpired:
-            pass
-        # A parent can exit on SIGTERM while descendants remain in its POSIX
-        # process group. Always kill the remaining group after the grace period.
-        try:
-            if os.name == "nt":
-                if process.poll() is None:
-                    process.kill()
-            else:
-                os.killpg(process.pid, signal.SIGKILL)
+            os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-        process.wait()
+        if process.poll() is None:
+            process.wait()

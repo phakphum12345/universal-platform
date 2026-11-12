@@ -19,7 +19,7 @@ Grants can be revoked. Handler registration does not import modules, download co
 
 This is application-level authorization for trusted in-process handlers. It does **not** provide OS process isolation, filesystem/network restrictions, resource quotas, code signing, durable grant storage, human approval, or safe execution of untrusted plugins. A handler runs with the host process's privileges. Do not register untrusted callables.
 
-The process supervisor remains a separate trusted-worker facility and is not a sandbox. A future isolated worker adapter must enforce OS/container policy independently and should not weaken this in-process permission check.
+The process supervisor is a separate trusted-worker facility and is not a sandbox. A future isolated worker adapter must enforce OS/container policy independently and should not weaken this in-process permission check.
 
 ## Acceptance evidence
 
@@ -49,3 +49,14 @@ Grant admission and revoke initiation are serialized by one runtime condition lo
 Revocation removes the grant before waiting for admitted invocations to drain. Consequently, new invocations are rejected immediately after revoke begins, while already-admitted invocations are allowed to finish. The drain covers the complete invocation lifecycle, including host quota reservation, handler execution, output validation and lease release. Repeated revoke calls are idempotent; a concurrent caller waits for the active revoke and then observes that the grant is already absent. A new grant is rejected while draining and may be installed after revoke completes.
 
 The revoke operation is synchronous and can wait indefinitely if an in-process handler never returns. Call it from a control-plane thread, not from the module's own handler. It does not forcibly cancel or terminate handlers. Timeout, cancellation and untrusted-handler process isolation remain separate follow-up work under WP-09C; this lifecycle is not OS-level enforcement.
+
+
+## Trusted process-supervisor lifecycle hardening — WP-09C (partial)
+
+The allow-listed process supervisor is still separate from ModuleRuntime and remains restricted to trusted executables. The current lifecycle hardening serializes worker-ID reservation with process creation, rejects duplicate IDs before spawning a second process, tracks cancellation until run cleanup, and makes registry removal unconditional. On POSIX, workers start in a new session and termination signals the process group even if its leader has exited; this closes the inherited-pipe case where a descendant outlives the parent and keeps stdout/stderr open.
+
+The supervisor bounds retained output per stream and does not invoke a shell. Tests cover timeout, external cancellation, duplicate worker IDs, and POSIX descendants that retain inherited pipes after the parent exits.
+
+**Known platform limitation:** Windows currently terminates only the direct child. CREATE_NEW_PROCESS_GROUP is not a process-tree containment boundary. Windows descendant cleanup requires Job Object assignment and lifecycle handling; until implemented and tested on Windows, descendant termination and reader-thread cleanup on Windows are UNKNOWN and must not be claimed as PASS.
+
+**Integration limitation:** ModuleRuntime still invokes trusted Python callables in-process. It does not automatically route module operations through the process supervisor, and it cannot forcibly stop a blocked Python thread. ResourceAllocator leases are released when the in-process invocation exits, not when a timed-out worker process is forcibly stopped. End-to-end worker protocol, request/worker identity mapping, host-owned deadlines, cancellation races, lease release after worker termination, and OS-enforced isolation remain open acceptance work. This supervisor is not a sandbox and must not run untrusted plugin code.
