@@ -54,3 +54,17 @@ jobs:
       - name: Mark code tests as not applicable on documentation-only branch
         if: steps.project.outputs.present != 'true'
         run: echo "SKIPPED — pyproject.toml is not present on this documentation-only branch."
+
+  windows-process-supervisor:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run process supervisor tests on Windows
+        run: python -m pytest -q tests/test_runtime_process_supervisor.py
