@@ -97,6 +97,12 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad" + chr(0) + "value"})
     with pytest.raises(ValueError, match="string values"):
         WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
+    with pytest.raises(ValueError, match="immutable tuple"):
+        WorkerSpec("mutable-args", sys.executable, arguments=["-c", "pass"])
+    with pytest.raises(ValueError, match="environment must be a mapping"):
+        WorkerSpec("bad-env-container", sys.executable, environment=[])
+    with pytest.raises(ValueError, match="NUL-free"):
+        WorkerSpec("bad-path", sys.executable + chr(0), arguments=())
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
