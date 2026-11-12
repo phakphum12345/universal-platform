@@ -331,3 +331,7 @@ See [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_
 ## Current audit — 2026-11-12
 
 - [Repository Audit post-PR #240](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md) — exact integration/main SHAs, PR #235–#241 state, exact merge/head CI evidence, current runtime maturity, documentation reconciliation and next dependency-ready work.
+
+## Modern Control Center UI
+
+- [WP-15 — Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md) — information architecture, shared design system, functions/tools/modules, settings governance, diagnostics, accessibility, delivery sequence and acceptance gates. PLANNED; no implementation is claimed.
