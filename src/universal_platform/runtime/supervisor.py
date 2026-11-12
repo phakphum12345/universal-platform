@@ -29,14 +29,18 @@ class WorkerSpec:
     terminate_grace_seconds: float = 1.0
 
     def __post_init__(self) -> None:
-        if not isinstance(self.worker_id, str) or not self.worker_id.strip():
-            raise ValueError("worker_id must be non-empty")
-        if not isinstance(self.executable, str) or not self.executable.strip():
-            raise ValueError("executable must be non-empty")
+        if not isinstance(self.worker_id, str) or not self.worker_id.strip() or "\x00" in self.worker_id:
+            raise ValueError("worker_id must be a non-empty NUL-free string")
+        if not isinstance(self.executable, str) or not self.executable.strip() or "\x00" in self.executable:
+            raise ValueError("executable must be a non-empty NUL-free string")
+        if not isinstance(self.arguments, tuple):
+            raise ValueError("arguments must be an immutable tuple")
         if any(not isinstance(item, str) or "\x00" in item for item in self.arguments):
             raise ValueError("arguments must be NUL-free strings")
-        if not isinstance(self.working_directory, str) or not self.working_directory.strip():
-            raise ValueError("working_directory must be non-empty")
+        if not isinstance(self.working_directory, str) or not self.working_directory.strip() or "\x00" in self.working_directory:
+            raise ValueError("working_directory must be a non-empty NUL-free string")
+        if not isinstance(self.environment, Mapping):
+            raise ValueError("environment must be a mapping of string names to values")
         if isinstance(self.timeout_seconds, bool) or not isinstance(self.timeout_seconds, (int, float)) or not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be finite and positive")
         if isinstance(self.terminate_grace_seconds, bool) or not isinstance(self.terminate_grace_seconds, (int, float)) or not math.isfinite(self.terminate_grace_seconds) or self.terminate_grace_seconds < 0:
