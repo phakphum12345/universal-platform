@@ -15,6 +15,8 @@ import threading
 import time
 from typing import Mapping, Sequence
 
+from .windows_job import WindowsJob
+
 
 @dataclass(frozen=True, slots=True)
 class WorkerSpec:
@@ -62,8 +64,9 @@ class PythonProcessSupervisor:
     Working directories are confined beneath a configured root. Retained
     output is bounded per stream. POSIX workers run in a new session, and
     cleanup targets the whole process group even if its leader has exited.
-    Windows currently terminates only the direct child; Job Object containment
-    is required before descendant cleanup can be claimed on that platform.
+    Windows workers are created suspended, assigned to a private kill-on-close
+    Job Object, and resumed only after assignment succeeds. This manages the
+    worker process tree; it is not an OS security sandbox.
     """
 
     def __init__(
@@ -91,6 +94,7 @@ class PythonProcessSupervisor:
         self._max_output_bytes = max_output_bytes
         self._lock = threading.RLock()
         self._processes: dict[str, subprocess.Popen[bytes]] = {}
+        self._jobs: dict[str, WindowsJob] = {}
         self._cancelled: set[str] = set()
 
     @property
@@ -110,28 +114,48 @@ class PythonProcessSupervisor:
         command = [str(executable), *spec.arguments]
         creation: dict[str, object] = {}
         if os.name == "nt":
-            creation["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+            creation["creationflags"] = (
+                subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_SUSPENDED
+            )
         else:
             creation["start_new_session"] = True
         started = time.monotonic()
 
-        # Serialize ID reservation and process creation. A duplicate request
-        # must not spawn a second process before discovering the collision.
+        # Serialize ID reservation and process creation. On Windows the
+        # primary thread remains suspended until Job Object assignment succeeds.
         with self._lock:
             if spec.worker_id in self._processes:
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
-            process = subprocess.Popen(
-                command,
-                cwd=str(cwd),
-                env=dict(spec.environment),
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,
-                close_fds=True,
-                **creation,
-            )
+            job = WindowsJob() if os.name == "nt" else None
+            process: subprocess.Popen[bytes] | None = None
+            try:
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(cwd),
+                    env=dict(spec.environment),
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=False,
+                    close_fds=True,
+                    **creation,
+                )
+                if job is not None:
+                    job.assign_suspended(process)
+            except Exception:
+                if process is not None and process.poll() is None:
+                    try:
+                        if job is not None:
+                            job.terminate()
+                        process.kill()
+                    finally:
+                        process.wait()
+                if job is not None:
+                    job.close()
+                raise
             self._processes[spec.worker_id] = process
+            if job is not None:
+                self._jobs[spec.worker_id] = job
             self._cancelled.discard(spec.worker_id)
 
         output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
@@ -161,7 +185,11 @@ class PythonProcessSupervisor:
                 process.wait(timeout=spec.timeout_seconds)
             except subprocess.TimeoutExpired:
                 timed_out = True
-                self._terminate_process(process, spec.terminate_grace_seconds)
+                self._terminate_process(process, spec.terminate_grace_seconds, job)
+            elif job is not None and not job.wait_empty(spec.terminate_grace_seconds):
+                # A successful root process is not complete while descendants
+                # remain in its private Job Object. Stop the remaining tree.
+                self._terminate_process(process, spec.terminate_grace_seconds, job)
 
             # A child may exit while a descendant keeps an inherited pipe
             # open. On POSIX, terminate the process group (not merely the
@@ -169,7 +197,7 @@ class PythonProcessSupervisor:
             for reader in readers:
                 reader.join(timeout=max(0.1, spec.terminate_grace_seconds + 0.1))
             if any(reader.is_alive() for reader in readers):
-                self._terminate_process(process, spec.terminate_grace_seconds)
+                self._terminate_process(process, spec.terminate_grace_seconds, job)
                 for reader in readers:
                     reader.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
 
@@ -186,12 +214,21 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
-            # Do not leave a worker running if reader startup or cleanup fails.
-            if process.poll() is None:
+            # Do not leave a worker or descendant running if reader startup or
+            # cleanup fails. Keep the Job Object alive until the tree is empty.
+            if job is not None:
+                if process.poll() is None or job.active_processes:
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
+                if not job.wait_empty(max(2.0, spec.terminate_grace_seconds + 1.0)):
+                    job.close()  # kill-on-close is the final cleanup backstop
+                    raise RuntimeError("Windows worker process tree did not become empty")
+                job.close()
+            elif process.poll() is None:
                 self._terminate_process(process, spec.terminate_grace_seconds)
             # Registry cleanup is unconditional, including reader/pipe errors.
             with self._lock:
                 self._processes.pop(spec.worker_id, None)
+                self._jobs.pop(spec.worker_id, None)
                 self._cancelled.discard(spec.worker_id)
             for pipe in (process.stdout, process.stderr):
                 if pipe is not None:
@@ -204,26 +241,31 @@ class PythonProcessSupervisor:
             process = self._processes.get(worker_id)
             if process is None:
                 return False
+            job = self._jobs.get(worker_id)
             self._cancelled.add(worker_id)
-        # The leader may already have exited while descendants still own its
-        # pipes. Treat a registered worker as cancellable until run() cleans it.
-        self._terminate_process(process, grace_seconds)
+        # The leader may already have exited while descendants remain in its
+        # Job Object. Cancellation targets the whole registered worker tree.
+        self._terminate_process(process, grace_seconds, job)
         return True
 
     @staticmethod
-    def _terminate_process(process: subprocess.Popen[bytes], grace_seconds: float) -> None:
+    def _terminate_process(
+        process: subprocess.Popen[bytes],
+        grace_seconds: float,
+        job: WindowsJob | None = None,
+    ) -> None:
         if os.name == "nt":
+            if job is None:
+                raise RuntimeError("Windows worker is missing its Job Object")
+            job.terminate()
             if process.poll() is None:
-                try:
-                    process.terminate()
-                except ProcessLookupError:
-                    pass
                 try:
                     process.wait(timeout=grace_seconds)
                 except subprocess.TimeoutExpired:
-                    if process.poll() is None:
-                        process.kill()
+                    process.kill()
                     process.wait()
+            if not job.wait_empty(max(2.0, grace_seconds + 1.0)):
+                raise RuntimeError("Windows Job Object still contains active processes")
             return
 
         # Signal the group even when the group leader has already exited:
