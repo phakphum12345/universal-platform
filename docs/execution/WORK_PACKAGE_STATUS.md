@@ -339,3 +339,15 @@ See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR
 - Contract: `docs/architecture/PHYSICS_MODULE_RUNTIME_BRIDGE.md`.
 - Policy: explicit host grant `engineering.physics.solve`, canonical input units, Apache-2.0 allow-list by default, no external dependencies, retained solver evidence/limitations.
 - Status: IN_PROGRESS — exact-head CI and review evidence pending. This does not establish OS isolation or general plugin loading.
+
+
+## WP-09 Windows Job Object containment — design gate (2026-11-13)
+
+- Latest verified integration baseline for this work: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Existing supervisor behavior was re-read at this baseline: POSIX process-group cleanup exists; Windows uses `CREATE_NEW_PROCESS_GROUP` and terminates only the direct child.
+- PR #241 adds a Windows CI job only. Its exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` has CI PASS, but it has 0 formal review submissions; no Windows Job Object implementation is present.
+- Added `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` on branch `docs/wp-09-windows-job-object-contract`.
+- Contract requires race-free suspended process creation, Job Object assignment before the primary thread resumes, kill-on-close, fail-closed assignment errors, explicit handle ownership, descendant/pipe cleanup tests and no false sandbox/resource-enforcement claims.
+- This is a documentation/design gate only. Windows Job Object implementation, worker protocol, ModuleRuntime integration and lease retention until confirmed worker termination remain OPEN.
+- Validation of this documentation slice: PR #242 exact-head run `43278690197` completed successfully: `python-tests` PASS and `workflow-sanity` PASS; its documentation-only marker step was SKIPPED and is not counted as PASS. This run is not evidence for this new branch.
+- Status: DESIGN CONTRACT ADDED; implementation and this branch's CI are UNKNOWN/PENDING until a PR is opened and its exact-head workflows complete.
