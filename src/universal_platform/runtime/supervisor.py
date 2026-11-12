@@ -186,7 +186,7 @@ class PythonProcessSupervisor:
             except subprocess.TimeoutExpired:
                 timed_out = True
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
-            elif job is not None and not job.wait_empty(spec.terminate_grace_seconds):
+            if not timed_out and job is not None and not job.wait_empty(spec.terminate_grace_seconds):
                 # A successful root process is not complete while descendants
                 # remain in its private Job Object. Stop the remaining tree.
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
