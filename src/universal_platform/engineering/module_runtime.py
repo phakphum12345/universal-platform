@@ -117,7 +117,8 @@ def _validate_module_output(outputs: Any, operation: Any) -> str | None:
     schema = operation.output_schema
     if schema is None:
         return "operation has no registered output schema"
-    if schema.get("x-schema-version") != operation.output_schema_version:        return "output schema version does not match operation declaration"
+    if schema.get("x-schema-version") != operation.output_schema_version:
+        return "output schema version does not match operation declaration"
     return _output_schema_error(outputs, schema)
 
 
@@ -187,6 +188,7 @@ class ModuleRuntime:
             if self._grants.pop(module_id, None) is None:
                 return False
             self._revoking.add(module_id)
+            self._condition.notify_all()
             try:
                 while self._active_invocations.get(module_id, 0):
                     self._condition.wait()

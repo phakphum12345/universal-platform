@@ -119,6 +119,7 @@ def test_runtime_does_not_accept_non_contract_requests():
     with pytest.raises(InvalidModelError, match="ModuleRequest"):
         runtime.invoke({"module_id": "org.example.calc"})
 
+
 from universal_platform.runtime.resources.allocator import ResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
 
@@ -257,6 +258,125 @@ def test_output_schema_version_must_match_operation_declaration():
                 "properties": {}, "additionalProperties": False,
             },
         )
+
+
+def test_output_schema_is_required_before_handler_dispatch():
+    registry_without_schema = ModuleRegistry()
+    registry_without_schema.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation("calculate.sum"),),
+        permissions=("engineering.calculate",),
+        license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry_without_schema)
+    called = []
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: called.append(True) or {"total": 5})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.output_schema_unavailable"
+    assert called == []
+
+
+def test_output_schema_validates_nested_objects_and_array_item_types():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "required": ["items"],
+                "properties": {
+                    "items": {"type": "array", "items": {"type": "integer"}},
+                },
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"items": [1, "2"]})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+
+def test_output_schema_rejects_non_finite_numbers():
+    _, runtime = setup_runtime()
+    runtime.register_handler(
+        "org.example.calc", "calculate.sum",
+        lambda _: {"total": float("nan")},
+    )
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+def test_output_schema_fails_closed_on_unsupported_keywords():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "required": ["label"],
+                "properties": {"label": {"type": "string", "pattern": "^ok$"}},
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"label": "ok"})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+
+
+def test_output_schema_is_detached_and_immutable():
+    source = {
+        "type": "object", "x-schema-version": "1.0",
+        "properties": {"total": {"type": "number"}},
+        "additionalProperties": False,
+    }
+    operation = ModuleOperation("calculate.sum", output_schema=source)
+    source["properties"]["total"]["type"] = "string"
+    assert operation.output_schema["properties"]["total"]["type"] == "number"
+    with pytest.raises(TypeError):
+        operation.output_schema["properties"]["total"]["type"] = "string"
+
+
+
+def test_output_schema_fails_closed_on_malformed_nested_schema_rules():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.calc", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.sum",
+            output_schema={
+                "type": "object", "x-schema-version": "1.0",
+                "properties": {"total": "number"},
+                "additionalProperties": False,
+            },
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    runtime.register_handler("org.example.calc", "calculate.sum",
+                             lambda _: {"total": 5})
+    runtime.grant("org.example.calc", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
 
 
 from threading import Event, Thread
