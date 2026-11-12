@@ -147,7 +147,11 @@ class PythonProcessSupervisor:
                     try:
                         if job is not None:
                             job.terminate()
-                        process.kill()
+                        try:
+                            process.kill()
+                        except OSError:
+                            if process.poll() is None:
+                                raise
                     finally:
                         process.wait()
                 if job is not None:
