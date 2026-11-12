@@ -22,6 +22,8 @@
 | 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
 
+| 15 | Modern Unified Control Center UI | PLANNED | UI inventory and route/API map first; then shared responsive design system, overview/workspace, modules/tools/functions catalogue, schema-backed settings, diagnostics/audit, workbench integration, accessibility and browser E2E. No implementation or acceptance claimed yet; see [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
+
 ## Latest verified implementation slices — 2026-11-10
 
 | PR | Scope | Exact PR head / merge | Evidence | Status |
