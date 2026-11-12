@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
-from threading import RLock
+from threading import Condition, RLock
 from typing import Any
 
 from .contracts import ModuleRequest, ModuleResponse
@@ -160,7 +160,10 @@ class ModuleRuntime:
         self._resource_allocator = resource_allocator
         self._handlers: dict[tuple[str, str], ModuleHandler] = {}
         self._grants: dict[str, frozenset[str]] = {}
+        self._active_invocations: dict[str, int] = {}
+        self._revoking: set[str] = set()
         self._lock = RLock()
+        self._condition = Condition(self._lock)
 
     def grant(self, module_id: str, permissions: frozenset[str]) -> None:
         manifest = self._registry.get(module_id)
@@ -169,13 +172,39 @@ class ModuleRuntime:
         declared = set(manifest.permissions)
         if not permissions.issubset(declared):
             raise InvalidModelError("grant contains permissions not declared by module")
-        with self._lock:
+        with self._condition:
+            if module_id in self._revoking:
+                raise InvalidModelError("module grant is being revoked")
             self._grants[module_id] = permissions
 
     def revoke(self, module_id: str) -> bool:
+        """Block new invocations, then wait for admitted work to drain."""
         self._registry.get(module_id)
-        with self._lock:
-            return self._grants.pop(module_id, None) is not None
+        with self._condition:
+            if module_id in self._revoking:
+                while module_id in self._revoking:
+                    self._condition.wait()
+                return False
+            if self._grants.pop(module_id, None) is None:
+                return False
+            self._revoking.add(module_id)
+            self._condition.notify_all()
+            try:
+                while self._active_invocations.get(module_id, 0):
+                    self._condition.wait()
+            finally:
+                self._revoking.discard(module_id)
+                self._condition.notify_all()
+            return True
+
+    def _finish_invocation(self, module_id: str) -> None:
+        with self._condition:
+            active = self._active_invocations.get(module_id, 0)
+            if active <= 1:
+                self._active_invocations.pop(module_id, None)
+            else:
+                self._active_invocations[module_id] = active - 1
+            self._condition.notify_all()
 
     def register_handler(self, module_id: str, operation_id: str, handler: ModuleHandler) -> None:
         operation = self._registry.resolve_operation(module_id, operation_id)
@@ -230,64 +259,69 @@ class ModuleRuntime:
             )
 
         key = (request.module_id, request.operation)
-        with self._lock:
+        required = frozenset(operation.required_permissions)
+        # Admission and active-count increment share revoke's condition lock.
+        with self._condition:
             granted = self._grants.get(request.module_id, frozenset())
             handler = self._handlers.get(key)
-
-        required = frozenset(operation.required_permissions)
-        if not required.issubset(granted):
-            return ModuleResponse(
-                request_id=request.request_id, status="REJECTED",
-                error_code="module.permission_denied",
-            )
-        if handler is None:
-            return ModuleResponse(
-                request_id=request.request_id, status="REJECTED",
-                error_code="module.handler_unavailable",
-            )
-
-        try:
-            lease = self._reserve_resources(request)
-        except (ValueError, RuntimeError, OverflowError):
-            return ModuleResponse(
-                request_id=request.request_id, status="REJECTED",
-                error_code="module.resource_reservation_failed",
+            if request.module_id in self._revoking or not required.issubset(granted):
+                return ModuleResponse(
+                    request_id=request.request_id, status="REJECTED",
+                    error_code="module.permission_denied",
+                )
+            if handler is None:
+                return ModuleResponse(
+                    request_id=request.request_id, status="REJECTED",
+                    error_code="module.handler_unavailable",
+                )
+            self._active_invocations[request.module_id] = (
+                self._active_invocations.get(request.module_id, 0) + 1
             )
 
-        warnings = (
-            ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
-            if lease is not None else ()
-        )
+        lease: ResourceLease | None = None
         try:
             try:
-                outputs = handler(request.inputs)
-            except Exception:
-                # Do not expose exception text, traceback, or secrets to the caller.
+                lease = self._reserve_resources(request)
+            except (ValueError, RuntimeError, OverflowError):
                 return ModuleResponse(
-                    request_id=request.request_id, status="ERROR",
-                    error_code="module.handler_failed", warnings=warnings,
+                    request_id=request.request_id, status="REJECTED",
+                    error_code="module.resource_reservation_failed",
                 )
+
+            warnings = (
+                ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
+                if lease is not None else ()
+            )
             try:
-                validation_error = _validate_module_output(outputs, operation)
-            except Exception:
-                # Invalid host schema definitions or validator defects must fail closed.
-                validation_error = "output schema validation failed"
-            if validation_error is not None:
-                # Do not expose handler output, schema internals, or exception details.
-                return ModuleResponse(
-                    request_id=request.request_id, status="ERROR",
-                    error_code="module.output_validation_failed", warnings=warnings,
-                )
-            try:
-                return ModuleResponse(
-                    request_id=request.request_id, status="COMPLETED",
-                    outputs=outputs, warnings=warnings,
-                )
-            except InvalidModelError:
-                return ModuleResponse(
-                    request_id=request.request_id, status="ERROR",
-                    error_code="module.output_validation_failed", warnings=warnings,
-                )
+                try:
+                    outputs = handler(request.inputs)
+                except Exception:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="ERROR",
+                        error_code="module.handler_failed", warnings=warnings,
+                    )
+                try:
+                    validation_error = _validate_module_output(outputs, operation)
+                except Exception:
+                    validation_error = "output schema validation failed"
+                if validation_error is not None:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="ERROR",
+                        error_code="module.output_validation_failed", warnings=warnings,
+                    )
+                try:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="COMPLETED",
+                        outputs=outputs, warnings=warnings,
+                    )
+                except InvalidModelError:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="ERROR",
+                        error_code="module.output_validation_failed", warnings=warnings,
+                    )
+            finally:
+                if lease is not None:
+                    self._resource_allocator.release(lease.lease_id)
         finally:
-            if lease is not None:
-                self._resource_allocator.release(lease.lease_id)
+            # Drain includes reservation failures, handler completion and lease release.
+            self._finish_invocation(request.module_id)
