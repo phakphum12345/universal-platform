@@ -97,3 +97,42 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad" + chr(0) + "value"})
     with pytest.raises(ValueError, match="string values"):
         WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
+def test_supervisor_cleans_descendants_that_keep_pipes_open_after_parent_exits(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "print('parent-exit')"
+    )
+    started = time.monotonic()
+    result = supervisor.run(WorkerSpec(
+        "orphan-pipe-holder", sys.executable, ("-c", parent),
+        timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "parent-exit"
+    assert time.monotonic() - started < 3
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_rejects_duplicate_worker_id_without_spawning_second_process(supervisor):
+    results = []
+    first = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "same-id", sys.executable, ("-c", "import time; time.sleep(0.3)"),
+        timeout_seconds=3,
+    ))))
+    first.start()
+    deadline = time.monotonic() + 3
+    while "same-id" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "same-id" in supervisor.active_worker_ids
+    with pytest.raises(RuntimeError, match="already running"):
+        supervisor.run(WorkerSpec("same-id", sys.executable, ("-c", "print('duplicate')")))
+    first.join(timeout=3)
+    assert not first.is_alive()
+    assert len(results) == 1
+    assert results[0].exit_code == 0
+    assert supervisor.active_worker_ids == ()
