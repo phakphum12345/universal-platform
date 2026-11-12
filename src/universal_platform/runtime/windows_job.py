@@ -9,6 +9,7 @@ import ctypes
 from ctypes import wintypes
 import os
 import subprocess
+import threading
 import time
 
 
@@ -164,6 +165,7 @@ class WindowsJob:
         if not self._handle:
             _raise_last_error("CreateJobObjectW failed")
         self._closed = False
+        self._lock = threading.RLock()
         limits = _ExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = 0x00002000  # KILL_ON_JOB_CLOSE
         if not self._kernel32.SetInformationJobObject(
@@ -174,38 +176,42 @@ class WindowsJob:
             raise OSError(error, f"SetInformationJobObject failed: {ctypes.FormatError(error).strip()}")
 
     def assign_suspended(self, process: subprocess.Popen[bytes]) -> None:
-        if self._closed or not self._handle:
-            raise RuntimeError("Job Object is closed")
-        if process.poll() is not None:
-            raise RuntimeError("cannot assign an exited worker")
-        if not self._kernel32.AssignProcessToJobObject(self._handle, process._handle):
-            _raise_last_error("AssignProcessToJobObject failed; worker remains suspended")
-        try:
-            _resume_only_suspended_primary_thread(self._kernel32, process.pid)
-        except Exception:
-            self.terminate()
-            raise
+        with self._lock:
+            if self._closed or not self._handle:
+                raise RuntimeError("Job Object is closed")
+            if process.poll() is not None:
+                raise RuntimeError("cannot assign an exited worker")
+            process_handle = wintypes.HANDLE(int(process._handle))
+            if not self._kernel32.AssignProcessToJobObject(self._handle, process_handle):
+                _raise_last_error("AssignProcessToJobObject failed; worker remains suspended")
+            try:
+                _resume_only_suspended_primary_thread(self._kernel32, process.pid)
+            except Exception:
+                self.terminate()
+                raise
 
     def terminate(self, exit_code: int = 1) -> None:
-        if self._closed or not self._handle:
-            return
-        if not self._kernel32.TerminateJobObject(self._handle, exit_code):
-            error = ctypes.get_last_error()
-            # An already-empty job may reject termination; verify emptiness.
-            if self.active_processes != 0:
-                raise OSError(error, f"TerminateJobObject failed: {ctypes.FormatError(error).strip()}")
+        with self._lock:
+            if self._closed or not self._handle:
+                return
+            if not self._kernel32.TerminateJobObject(self._handle, exit_code):
+                error = ctypes.get_last_error()
+                # An already-empty job may reject termination; verify emptiness.
+                if self.active_processes != 0:
+                    raise OSError(error, f"TerminateJobObject failed: {ctypes.FormatError(error).strip()}")
 
     @property
     def active_processes(self) -> int:
-        if self._closed or not self._handle:
-            return 0
-        info = _BasicAccountingInformation()
-        returned = wintypes.DWORD()
-        if not self._kernel32.QueryInformationJobObject(
-            self._handle, 1, ctypes.byref(info), ctypes.sizeof(info), ctypes.byref(returned)
-        ):
-            _raise_last_error("QueryInformationJobObject failed")
-        return int(info.ActiveProcesses)
+        with self._lock:
+            if self._closed or not self._handle:
+                return 0
+            info = _BasicAccountingInformation()
+            returned = wintypes.DWORD()
+            if not self._kernel32.QueryInformationJobObject(
+                self._handle, 1, ctypes.byref(info), ctypes.sizeof(info), ctypes.byref(returned)
+            ):
+                _raise_last_error("QueryInformationJobObject failed")
+            return int(info.ActiveProcesses)
 
     def wait_empty(self, timeout_seconds: float) -> bool:
         deadline = time.monotonic() + max(0.0, timeout_seconds)
@@ -217,12 +223,13 @@ class WindowsJob:
             time.sleep(0.01)
 
     def close(self) -> None:
-        if self._closed:
-            return
-        self._closed = True
-        handle, self._handle = self._handle, None
-        if handle and not self._kernel32.CloseHandle(handle):
-            _raise_last_error("CloseHandle(Job Object) failed")
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            handle, self._handle = self._handle, None
+            if handle and not self._kernel32.CloseHandle(handle):
+                _raise_last_error("CloseHandle(Job Object) failed")
 
     def __enter__(self) -> "WindowsJob":
         return self
