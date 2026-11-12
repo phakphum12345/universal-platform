@@ -226,10 +226,11 @@ class WindowsJob:
         with self._lock:
             if self._closed:
                 return
-            self._closed = True
-            handle, self._handle = self._handle, None
+            handle = self._handle
             if handle and not self._kernel32.CloseHandle(handle):
                 _raise_last_error("CloseHandle(Job Object) failed")
+            self._handle = None
+            self._closed = True
 
     def __enter__(self) -> "WindowsJob":
         return self
