@@ -186,6 +186,9 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
+            # Do not leave a worker running if reader startup or cleanup fails.
+            if process.poll() is None:
+                self._terminate_process(process, spec.terminate_grace_seconds)
             # Registry cleanup is unconditional, including reader/pipe errors.
             with self._lock:
                 self._processes.pop(spec.worker_id, None)
