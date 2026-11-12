@@ -737,3 +737,8 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
 5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+
+## WP-15 — Modern Unified Control Center UI (PLANNED)
+
+Deliver a coherent responsive Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, activity/audit and settings. Start with a source-backed inventory of existing UI/routes/APIs; reuse existing capabilities rather than duplicating them. Build a shared accessible design system and application shell, truthful capability catalogue, schema-backed secure settings, evidence-based status/diagnostics and end-to-end browser acceptance. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). This is a planned work package; no UI implementation or acceptance is claimed yet.
