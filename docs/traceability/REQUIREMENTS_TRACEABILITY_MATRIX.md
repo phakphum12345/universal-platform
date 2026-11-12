@@ -22,6 +22,8 @@
 | R-016 | FeatureHistory suppression preserves source nodes and immutable revision history | FEATURE_HISTORY_SUPPRESSION_CONTRACT; FEATURE_HISTORY_REGENERATION_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS end-to-end by PRs #163/#165/#166; exact merge SHA `34148fc359076567eaa4b931304f61f536a41779`, 854 Python tests and 5 Chromium E2E tests PASS on PR head and post-merge |
 | R-017 | FeatureHistory Undo/Redo restores prior content without rewriting or deleting immutable revisions | FEATURE_HISTORY_UNDO_REDO_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS — end-to-end bounded workflow merged by PRs #168–#171. PR #171 merge SHA `21bee045ea4d06aa07c7130f9123afaa64372638`: workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests) on exact PR head and post-merge SHA. |
 
+| UI-001 | Unified modern Control Center for overview, workspace, modules, tools, functions, workbenches, jobs, diagnostics, audit and settings | [WP-15 Modern Unified Control Center UI](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) | PLANNED — requirements/design only. Existing UI inventory, API/action mapping, accessibility, responsive behavior, secure settings and E2E acceptance are open. |
+
 ## Engineering and 3D sub-requirements
 
 See [Engineering Requirements Traceability](ENGINEERING_REQUIREMENTS_TRACEABILITY.md) for UEIC-001..UEIC-006, CAD-001..CAD-007, API-001, DATA-001 and SAFE-001 with acceptance evidence. CAD-003A and CAD-003B track the initial planar 2R inverse-kinematics and 4R loop-closure slices separately; neither closes general CAD-003.
