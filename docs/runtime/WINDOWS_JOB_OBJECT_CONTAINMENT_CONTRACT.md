@@ -1,6 +1,6 @@
 # Windows Job Object Process-Tree Containment Contract
 
-**Status:** DESIGN / ACCEPTANCE CONTRACT — not implemented by this document.  
+**Status:** IMPLEMENTATION ADDED ON FEATURE BRANCH — exact-head CI and review pending.  
 **Work package:** WP-09, Windows process supervision.  
 **Baseline:** integration commit `c3d9800ebb46caff38bf18c13142e218ee2c6c63`.  
 **Scope:** containment and deterministic cleanup for explicitly trusted worker processes on Windows.
@@ -22,7 +22,7 @@ The implementation MUST guarantee that no worker instruction executes before the
 5. Resume the primary thread only after successful assignment.
 6. Retain the Job Object handle for the entire worker lifetime. Closing it is a final cleanup backstop, not a substitute for waiting for termination.
 
-The implementation must document how it obtains and resumes the primary thread handle without relying on an unverified process/thread enumeration race. Prefer a single audited process-creation adapter that owns the process and primary-thread handles end to end.
+Current implementation uses a suspended Popen process and a Toolhelp thread snapshot. Because the primary thread has not executed, it cannot have created another thread; the adapter requires exactly one thread owned by the suspended process, opens that thread, and resumes it only when the prior suspend count is exactly one. Any deviation fails closed. The implementation currently relies on CPython's private `Popen._handle`; a dedicated `CreateProcessW` adapter that owns both handles remains a hardening follow-up.
 
 ## 3. Job Object policy
 
@@ -47,14 +47,15 @@ The implementation must document how it obtains and resumes the primary thread h
 Run on `windows-latest` and test at minimum:
 
 1. Normal worker success: output and exit code are preserved; all handles and active-worker registrations are cleared.
-2. Descendant containment: a worker starts a child which starts a grandchild; timeout/cancel terminates the complete tree.
-3. Parent-exits-first: root exits while a descendant keeps inherited stdout/stderr open; supervisor returns within a bounded deadline and descendants are gone.
+2. Descendant containment: a worker starts a child which starts a grandchild; normal root exit cleans the remaining tree.
+3. Parent-exits-first: root exits while a grandchild remains alive; supervisor returns within a bounded deadline and descendants are gone.
 4. Assignment failure: a fault-injected assignment failure never resumes the worker and closes/terminates all resources.
 5. Timeout: root and descendants are terminated; result reports timeout.
-6. Cancellation: cancellation races with normal exit and with timeout without double-close, leaked worker registration, or false success.
-7. Job handle closure: cleanup remains safe when process creation, assignment, resume, pipe setup, or reader startup fails.
-8. Duplicate worker ID and concurrent invocations remain correctly serialized.
-9. Existing POSIX descendant cleanup and full Python suite continue to pass.
+6. Cancellation: cancellation targets the whole tree and does not leak the worker registry.
+7. Cancellation races with normal exit and timeout without double-close, leaked worker registration, or false success.
+8. Job handle closure and reader-startup failure cleanup.
+9. Duplicate worker ID and concurrent invocations remain correctly serialized.
+10. Existing POSIX descendant cleanup and full Python suite continue to pass.
 
 Tests must assert process/job termination using OS-observable evidence, not only a returned exit code or an empty in-memory registry.
 
