@@ -3,7 +3,7 @@
 **Repository:** `phakphum12345/universal-platform`  
 **Audit baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63`  
 **Implementation branch:** `feat/wp-09-windows-job-object`  
-**Evidence status:** implementation and tests authored; exact-head Windows and full-suite CI pending.  
+**Evidence status:** WP-09C merged at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; WP-09D framing primitive and tests authored on `feat/wp-09d-versioned-worker-ipc`; exact-head CI pending.  
 **Scope:** Windows process-tree lifecycle, current in-process ModuleRuntime, and in-memory resource lease behavior.
 
 ## 1. Worker specification and result
@@ -87,7 +87,7 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 - POSIX descendant-pipe cleanup remains POSIX-only.
 - **Exact-head CI is pending.** Tests skipped on non-Windows are not counted as Windows PASS; the Windows runner must execute them.
 
-## 7. Remaining WP-09 implementation work
+## 7. WP-09D versioned worker IPC framing (in progress)\n\n- Added `runtime/worker_protocol.py` with a versioned 1.0 envelope and 4-byte network-order length prefix.\n- Message types are restricted to REQUEST, RESPONSE and CANCEL; request IDs are bounded to 128 characters.\n- Frames are bounded to 1 MiB by default, with caller-configurable positive limits.\n- Decoder rejects truncated frames, unsupported versions/types, duplicate JSON keys, unknown envelope fields, invalid UTF-8/JSON, non-finite numbers and oversized lengths before body allocation.\n- `read_frame` distinguishes clean EOF from truncated input; `write_frame` handles partial writes and flushes.\n- Added `tests/test_runtime_worker_protocol.py` for round-trip, framing, size limits, malformed input, duplicate keys, NaN/Infinity and EOF behavior.\n- Boundary: this is a transport primitive only. It is not yet connected to `ModuleRuntime` or `PythonProcessSupervisor`; no worker is launched and no permission is delegated by the frame.\n\n## 8. Remaining WP-09 implementation work
 
 1. Verify this Windows Job Object slice on the exact PR head and repair every CI failure.
 2. Add fault-injection coverage for Job Object creation/configuration, thread enumeration/open/resume, query/terminate/close, reader startup and cleanup failures.
@@ -98,6 +98,6 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 7. Add crash recovery and supervisor shutdown semantics.
 8. Perform security review before claiming any untrusted-code isolation. Job Objects alone are not a sandbox.
 
-## 8. Explicit non-claims
+## 9. Explicit non-claims
 
 No general sandbox, privilege separation, token restriction, filesystem/network isolation, CPU/memory/I/O enforcement, dynamic module loading, durable leases, or production-safe untrusted plugin execution is claimed by this slice.
