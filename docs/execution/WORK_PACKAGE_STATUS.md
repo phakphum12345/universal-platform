@@ -15,7 +15,7 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | Metadata registry, runtime resource/adapter supervision and process supervisor exist; runtime module loading, enforced permission boundary and OS sandboxing remain open |
+| 09 | Module runtime | PARTIAL | Windows Job Object process-tree implementation and acceptance tests authored on PR branch; exact-head Windows CI pending. Worker IPC, ModuleRuntime integration, worker-owned lease lifecycle, fault-injection coverage and OS sandboxing remain open |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
@@ -339,3 +339,28 @@ See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR
 - Contract: `docs/architecture/PHYSICS_MODULE_RUNTIME_BRIDGE.md`.
 - Policy: explicit host grant `engineering.physics.solve`, canonical input units, Apache-2.0 allow-list by default, no external dependencies, retained solver evidence/limitations.
 - Status: IN_PROGRESS — exact-head CI and review evidence pending. This does not establish OS isolation or general plugin loading.
+
+
+## WP-09 Windows Job Object containment — design gate (2026-11-13)
+
+- Latest verified integration baseline for this work: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Existing supervisor behavior was re-read at this baseline: POSIX process-group cleanup exists; Windows uses `CREATE_NEW_PROCESS_GROUP` and terminates only the direct child.
+- PR #241 adds a Windows CI job only. Its exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` has CI PASS, but it has 0 formal review submissions; no Windows Job Object implementation is present.
+- Added `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` on branch `docs/wp-09-windows-job-object-contract`.
+- Contract requires race-free suspended process creation, Job Object assignment before the primary thread resumes, kill-on-close, fail-closed assignment errors, explicit handle ownership, descendant/pipe cleanup tests and no false sandbox/resource-enforcement claims.
+- This is a documentation/design gate only. Windows Job Object implementation, worker protocol, ModuleRuntime integration and lease retention until confirmed worker termination remain OPEN.
+- Validation of this documentation slice: PR #242 exact-head run `43278690197` completed successfully: `python-tests` PASS and `workflow-sanity` PASS; its documentation-only marker step was SKIPPED and is not counted as PASS. This run is not evidence for this new branch.
+- Status: DESIGN CONTRACT ADDED; implementation and this branch's CI are UNKNOWN/PENDING until a PR is opened and its exact-head workflows complete.
+
+
+## WP-09C — Windows Job Object process-tree containment (implementation branch)
+
+- Branch: `feat/wp-09-windows-job-object`, based on the WP-09 contract branch head `1ff4a0515d560466171b4cca7218e1693352d589`.
+- Added `src/universal_platform/runtime/windows_job.py`: private kill-on-close Job Object; suspended-process assignment; primary-thread invariant check; process-tree termination; OS active-process query; bounded wait and handle cleanup.
+- Updated `src/universal_platform/runtime/supervisor.py`: Windows process creation uses CREATE_SUSPENDED, assignment precedes resume, timeout/cancel target the job, normal root exit waits for descendants, and cleanup raises if OS job emptiness cannot be confirmed.
+- Added Windows tests for root-exits-first grandchild cleanup, assignment failure without worker execution, timeout of descendants and cancellation of descendants; strengthened WorkerSpec container validation.
+- Added `windows-process-supervisor` CI job on `windows-latest` / Python 3.12.
+- Added `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md` with a function-by-function audit of WorkerSpec, WindowsJob, PythonProcessSupervisor, ModuleRuntime and ResourceAllocator.
+- Exact implementation head at audit preparation: pending final PR creation; no CI evidence yet. All Windows-only tests are skipped on non-Windows and are not counted as PASS.
+- Current maturity: IMPLEMENTATION AUTHORED / CI UNKNOWN. WP-09 remains PARTIAL.
+- Explicit remaining work: fault injection for API/handle/reader failures; remove or formally support private `Popen._handle`; versioned worker IPC; ModuleRuntime process dispatch; lease held until process tree empty; crash recovery; security review. No sandbox or OS resource enforcement is claimed.
