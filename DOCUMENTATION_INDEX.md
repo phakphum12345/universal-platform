@@ -34,6 +34,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## Architecture and system contracts
 
 - [Platform Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md) — conceptual layers and boundaries.
+- [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates (design only).
+- [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — function-by-function behavior, tests, failure paths, lease boundaries and remaining runtime integration work.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md) — engineering entities, revisions, units and provenance.
 - [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md) — module metadata, request/response and authority boundary.
 - [Frame-bound Coordinate Contract](docs/architecture/FRAMED_COORDINATE_CONTRACT.md) — framed points and displacement vectors.
