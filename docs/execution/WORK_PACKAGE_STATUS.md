@@ -1,8 +1,8 @@
 # Work Package Status Register
 
 **Baseline integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` (PR #233 squash merge)  
-**Audit date:** 2026-11-10  
+**Last verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge)  
+**Audit date:** 2026-11-12  
 **Status:** INCOMPLETE — evidence-based register; update after each verified implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
@@ -15,12 +15,13 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | Windows Job Object process-tree implementation and acceptance tests authored on PR branch; exact-head Windows CI pending. Worker IPC, ModuleRuntime integration, worker-owned lease lifecycle, fault-injection coverage and OS sandboxing remain open |
+| 09 | Module runtime | PARTIAL | PR #235–#240 implement trusted in-process dispatch, bounded Physics bridge, host-configured in-memory reservations, output-schema subset, grant/revoke drain and POSIX supervisor cleanup. ModuleRuntime-to-supervisor integration, Windows Job Objects, lease release tied to worker termination, durable recovery and OS sandbox remain open |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
 | 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
+| 15 | Modern Unified Control Center UI | PLANNED | UI inventory and route/API map first; then shared responsive design system, overview/workspace, modules/tools/functions catalogue, schema-backed settings, diagnostics/audit, workbench integration, accessibility and browser E2E. No implementation or acceptance claimed yet; see [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
 
 ## Latest verified implementation slices — 2026-11-10
 
@@ -341,26 +342,45 @@ See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR
 - Status: IN_PROGRESS — exact-head CI and review evidence pending. This does not establish OS isolation or general plugin loading.
 
 
-## WP-09 Windows Job Object containment — design gate (2026-11-13)
+## Current integration reconciliation — 2026-11-12 (post-PR #240)
 
-- Latest verified integration baseline for this work: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
-- Existing supervisor behavior was re-read at this baseline: POSIX process-group cleanup exists; Windows uses `CREATE_NEW_PROCESS_GROUP` and terminates only the direct child.
-- PR #241 adds a Windows CI job only. Its exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` has CI PASS, but it has 0 formal review submissions; no Windows Job Object implementation is present.
-- Added `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` on branch `docs/wp-09-windows-job-object-contract`.
-- Contract requires race-free suspended process creation, Job Object assignment before the primary thread resumes, kill-on-close, fail-closed assignment errors, explicit handle ownership, descendant/pipe cleanup tests and no false sandbox/resource-enforcement claims.
-- This is a documentation/design gate only. Windows Job Object implementation, worker protocol, ModuleRuntime integration and lease retention until confirmed worker termination remain OPEN.
-- Validation of this documentation slice: PR #242 exact-head run `43278690197` completed successfully: `python-tests` PASS and `workflow-sanity` PASS; its documentation-only marker step was SKIPPED and is not counted as PASS. This run is not evidence for this new branch.
-- Status: DESIGN CONTRACT ADDED; implementation and this branch's CI are UNKNOWN/PENDING until a PR is opened and its exact-head workflows complete.
+This section supersedes earlier "latest" headers in this file. Historical checkpoints remain historical and are not current branch-state claims.
 
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Exact integration HEAD: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Exact `main` HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged and not targeted.
+- Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
+- Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
+- PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
+- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
+- Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
+- No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
 
-## WP-09C — Windows Job Object process-tree containment (implementation branch)
+| PR | Exact head SHA | Exact merge SHA | Post-merge run |
+|---|---|---|---|
+| #235 | `d5674ba2a1b3f172357aad69f208883d1586755e` | `95253414616c992c606c0e73d69c48c30df4cd36` | [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) |
+| #236 | `92c0827ef39d575bd5c8ff940c6395de6d75b900` | `4853f297e988603e30069859e6b1486283fcf00f` | [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) |
+| #237 | `c22b37f1db0b1adfce4a71d18cd715bea358cae0` | `2801c8b990af564a6655203f8cfc9a52db70dce3` | [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) |
+| #238 | `2e2e833237f681381876e0fffb73a00a78dd69e1` | `564130639fc02aa8ce856b0d8ea33c0f0b1a7237` | [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) |
+| #239 | `98d4f86772cc69765335320d34b56e0391d31e7e` | `53167ffeb6efb829640363a33dffe08edd788e90` | [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) |
+| #240 | `17923b36201bbc1129eceabbfd98e24386c8fd8c` | `c3d9800ebb46caff38bf18c13142e218ee2c6c63` | [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) |
 
-- Branch: `feat/wp-09-windows-job-object`, based on the WP-09 contract branch head `1ff4a0515d560466171b4cca7218e1693352d589`.
-- Added `src/universal_platform/runtime/windows_job.py`: private kill-on-close Job Object; suspended-process assignment; primary-thread invariant check; process-tree termination; OS active-process query; bounded wait and handle cleanup.
-- Updated `src/universal_platform/runtime/supervisor.py`: Windows process creation uses CREATE_SUSPENDED, assignment precedes resume, timeout/cancel target the job, normal root exit waits for descendants, and cleanup raises if OS job emptiness cannot be confirmed.
-- Added Windows tests for root-exits-first grandchild cleanup, assignment failure without worker execution, timeout of descendants and cancellation of descendants; strengthened WorkerSpec container validation.
-- Added `windows-process-supervisor` CI job on `windows-latest` / Python 3.12.
-- Added `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md` with a function-by-function audit of WorkerSpec, WindowsJob, PythonProcessSupervisor, ModuleRuntime and ResourceAllocator.
-- Exact implementation head at audit preparation: pending final PR creation; no CI evidence yet. All Windows-only tests are skipped on non-Windows and are not counted as PASS.
-- Current maturity: IMPLEMENTATION AUTHORED / CI UNKNOWN. WP-09 remains PARTIAL.
-- Explicit remaining work: fault injection for API/handle/reader failures; remove or formally support private `Popen._handle`; versioned worker IPC; ModuleRuntime process dispatch; lease held until process tree empty; crash recovery; security review. No sandbox or OS resource enforcement is claimed.
+### Runtime maturity boundary
+
+- ModuleRuntime now performs host-grant-gated invocation of explicitly registered trusted Python handlers; request-supplied permissions do not grant authority.
+- The runtime enforces a deliberately bounded output-schema subset and releases in-memory resource leases in a `finally` path.
+- The Physics bridge exposes three bounded analytical solvers: axial stress, ideal DC Ohm's law/power, and linear thermal expansion.
+- Resource reservation is host-configured, in-memory, process-local admission control. It does not enforce actual CPU, RAM, I/O, network or wall-clock consumption.
+- The process supervisor is a separate allow-listed trusted-worker facility. POSIX process-group cleanup is covered by tests; Windows currently terminates only the direct child.
+- ModuleRuntime does not route invocations through the process supervisor. Worker protocol integration, host-owned deadlines, cancellation/worker races, lease release after worker termination, durable recovery and OS-enforced isolation remain open.
+- None of these facilities is a sandbox. Do not execute untrusted plugin code.
+
+### Next dependency-ready work
+
+1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
+3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
+4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
+5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
+6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.

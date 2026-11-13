@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-**Status:** Documentation baseline plus initial engineering-core evidence, updated 2026-11-06. Documentation coverage is not implementation evidence.
+**Status:** Requirements traceability updated 2026-11-12 at integration baseline `c3d9800ebb46caff38bf18c13142e218ee2c6c63`. Documentation coverage is not implementation evidence.
 
 | ID | Requirement | Primary document | Current state |
 |---|---|---|---|
@@ -21,6 +21,8 @@
 | R-015 | Reuse existing Driver Generation; no duplicate | DRIVER_ARCHITECTURE_INTELLIGENCE; DRIVER_REFACTORING_ENGINE | EFI/OpenCore candidate partially inspected; generic source UNKNOWN |
 | R-016 | FeatureHistory suppression preserves source nodes and immutable revision history | FEATURE_HISTORY_SUPPRESSION_CONTRACT; FEATURE_HISTORY_REGENERATION_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS end-to-end by PRs #163/#165/#166; exact merge SHA `34148fc359076567eaa4b931304f61f536a41779`, 854 Python tests and 5 Chromium E2E tests PASS on PR head and post-merge |
 | R-017 | FeatureHistory Undo/Redo restores prior content without rewriting or deleting immutable revisions | FEATURE_HISTORY_UNDO_REDO_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS — end-to-end bounded workflow merged by PRs #168–#171. PR #171 merge SHA `21bee045ea4d06aa07c7130f9123afaa64372638`: workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests) on exact PR head and post-merge SHA. |
+
+| UI-001 | Unified modern Control Center for overview, workspace, modules, tools, functions, workbenches, jobs, diagnostics, audit and settings | [WP-15 Modern Unified Control Center UI](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) | PLANNED — requirements/design only. Existing UI inventory, API/action mapping, accessibility, responsive behavior, secure settings and E2E acceptance are open. |
 
 ## Engineering and 3D sub-requirements
 
@@ -278,3 +280,20 @@ The approved capability decomposition is recorded in [Hardware Intelligence & Di
 | HW-11–HW-16 | FPGA, firmware intelligence, hardware security, battery/BMS, manufacturing/BOM, industrial/network hardware | hardware roadmap | LONG-TERM PLANNED; entry conditions apply. |
 
 Evidence semantics: missing acquisition, missing datasheet values, unsupported device models or incomplete checks remain UNKNOWN/SKIPPED; they are never PASS.
+
+
+## WP-09 runtime requirements — reconciliation 2026-11-12
+
+| Requirement ID | Requirement | Evidence | Status / boundary |
+|---|---|---|---|
+| RT-09-01 | Host-authorized invocation of explicitly registered module handlers | PR #235; `module_runtime.py`; `tests/test_module_runtime.py`; post-merge run [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) | PASS for trusted in-process dispatch and host-side grant checks; not OS isolation or untrusted code execution. |
+| RT-09-02 | Bridge built-in Physics solvers through ModuleRuntime | PR #236; `physics_module_adapter.py`; `tests/test_physics_module_adapter.py`; post-merge run [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) | PASS for axial stress, ideal DC Ohm's law/power and linear thermal expansion only. |
+| RT-09-03 | Reserve host-configured quota for a module invocation | PR #237; `module_runtime.py`; `tests/test_runtime_resource_allocator.py`; post-merge run [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) | PASS for in-memory process-local admission/reservation; actual CPU/RAM/I/O/network/deadline enforcement is not implemented. |
+| RT-09-04 | Validate module outputs against a versioned schema | PR #238; `module_runtime.py`; post-merge run [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) | PASS for the documented bounded JSON Schema subset; not full Draft 2020-12 conformance. |
+| RT-09-05 | Drain admitted invocations during grant revocation | PR #239; `module_runtime.py`; concurrency tests; post-merge run [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) | PASS for synchronous in-process drain; a stuck handler can block revoke indefinitely. |
+| RT-09-06 | Clean up trusted worker lifecycle and POSIX descendants | PR #240; `src/universal_platform/runtime/supervisor.py`; `tests/test_runtime_process_supervisor.py`; post-merge run [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) | PASS for bounded POSIX process-group cleanup and worker registry cleanup; Windows descendant containment remains FAIL/NOT IMPLEMENTED. |
+| RT-09-07 | Windows process-tree containment with Job Objects | Future implementation; PR #241 adds Windows CI coverage only | FAIL / NOT IMPLEMENTED; Windows test job PASS does not prove descendant cleanup. |
+| RT-09-08 | Route ModuleRuntime work through supervised workers and bind leases to worker termination | No end-to-end adapter or worker protocol found in current source | FAIL / NOT IMPLEMENTED. |
+| RT-09-09 | OS-enforced isolation, durable lease/recovery and resource enforcement | No acceptance evidence found in the inspected source/docs | UNKNOWN / NOT IMPLEMENTED; require dedicated security and platform acceptance. |
+
+PR #241 exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` is OPEN and unmerged. Exact-head PR workflow [43168390970](https://github.com/phakphum12345/universal-platform/actions/runs/43168390970) passed all three jobs; formal review submissions and review threads were empty, while the Codex review automation could not complete because its usage limit was reached. Review outcome is UNKNOWN. Overall WP-09 remains PARTIAL and repository-wide acceptance remains INCOMPLETE.
