@@ -1,6 +1,6 @@
 # Windows Job Object Process-Tree Containment Contract
 
-**Status:** IMPLEMENTATION ADDED ON FEATURE BRANCH — exact-head CI and review pending.  
+**Status:** WP-09C merged to integration at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; post-merge CI is running. WP-09D IPC framing is in progress.  
 **Work package:** WP-09, Windows process supervision.  
 **Baseline:** integration commit `c3d9800ebb46caff38bf18c13142e218ee2c6c63`.  
 **Scope:** containment and deterministic cleanup for explicitly trusted worker processes on Windows.
@@ -67,6 +67,6 @@ Tests must assert process/job termination using OS-observable evidence, not only
 - Review submissions and inline threads must be inspected at the exact PR head. No automated-review quota failure may be represented as an approval.
 - Do not merge to `main` or deploy without explicit human approval.
 
-## 7. Non-goals
+## 7. Worker IPC envelope requirements\n\nThe first transport slice uses a 4-byte unsigned network-order length prefix followed by one UTF-8 JSON envelope. The envelope is exactly `{ protocol_version, message_type, request_id, payload }`. Version `1.0` supports only `REQUEST`, `RESPONSE`, and `CANCEL`; request IDs are non-empty and bounded. Frame size is bounded (default 1 MiB). Decoders must reject partial headers/bodies, unknown versions/types/fields, duplicate object keys, invalid UTF-8/JSON, non-finite numbers, and oversized lengths before reading the body. Clean EOF is distinct from a truncated frame. Host authorization and schema validation remain outside the transport layer and must be applied before handler dispatch.\n\nThis framing implementation is not yet integrated into ModuleRuntime or the process supervisor; do not treat it as an end-to-end worker IPC channel until process dispatch, correlation, timeout/cancel, crash handling and lease lifecycle tests exist.\n\n## 8. Non-goals
 
 This contract does not implement a general security sandbox, module loading, worker IPC, durable resource leases, OS resource quotas, network isolation, or production execution of untrusted plugins. Those remain separate WP-09 gates.
