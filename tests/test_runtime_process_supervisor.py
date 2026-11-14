@@ -97,6 +97,12 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad" + chr(0) + "value"})
     with pytest.raises(ValueError, match="string values"):
         WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
+    with pytest.raises(ValueError, match="immutable tuple"):
+        WorkerSpec("mutable-args", sys.executable, arguments=["-c", "pass"])
+    with pytest.raises(ValueError, match="environment must be a mapping"):
+        WorkerSpec("bad-env-container", sys.executable, environment=[])
+    with pytest.raises(ValueError, match="NUL-free"):
+        WorkerSpec("bad-path", sys.executable + chr(0), arguments=())
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
@@ -135,4 +141,97 @@ def test_supervisor_rejects_duplicate_worker_id_without_spawning_second_process(
     assert not first.is_alive()
     assert len(results) == 1
     assert results[0].exit_code == 0
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_supervisor_terminates_descendants_after_parent_exits(supervisor, tmp_path):
+    marker = tmp_path / "descendant-survived.txt"
+    grandchild = (
+        "import time; from pathlib import Path; "
+        f"time.sleep(0.6); Path({str(marker)!r}).write_text('survived')"
+    )
+    child = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {grandchild!r}])"
+    )
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "print('parent-exit')"
+    )
+    started = time.monotonic()
+    result = supervisor.run(WorkerSpec(
+        "windows-descendant", sys.executable, ("-c", parent),
+        timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "parent-exit"
+    assert time.monotonic() - started < 3
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_assignment_failure_never_resumes_worker(supervisor, tmp_path, monkeypatch):
+    from universal_platform.runtime import windows_job
+
+    marker = tmp_path / "worker-ran.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
+
+    def reject_assignment(self, process):
+        raise RuntimeError("injected Job Object assignment failure")
+
+    monkeypatch.setattr(windows_job.WindowsJob, "assign_suspended", reject_assignment)
+    with pytest.raises(RuntimeError, match="assignment failure"):
+        supervisor.run(WorkerSpec(
+            "assignment-failure", sys.executable, ("-c", code),
+            timeout_seconds=3,
+        ))
+    time.sleep(0.2)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_timeout_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    result = supervisor.run(WorkerSpec(
+        "windows-timeout-tree", sys.executable, ("-c", parent),
+        timeout_seconds=0.2, terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_cancellation_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "windows-cancel-tree", sys.executable, ("-c", parent),
+        timeout_seconds=10, terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "windows-cancel-tree" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "windows-cancel-tree" in supervisor.active_worker_ids
+    assert supervisor.cancel("windows-cancel-tree", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
     assert supervisor.active_worker_ids == ()

@@ -15,7 +15,7 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | Metadata registry, runtime resource/adapter supervision and process supervisor exist; runtime module loading, enforced permission boundary and OS sandboxing remain open |
+| 09 | Module runtime | PARTIAL | Windows Job Object process-tree implementation and acceptance tests authored on PR branch; exact-head Windows CI pending. Worker IPC, ModuleRuntime integration, worker-owned lease lifecycle, fault-injection coverage and OS sandboxing remain open |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
