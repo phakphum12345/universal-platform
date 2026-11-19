@@ -167,13 +167,13 @@ Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the reba
 - ModuleRuntime checks host-granted permissions before admission. Request.permissions remains descriptive and cannot grant authority.
 - Worker process configuration remains in the host-supplied WorkerSpec. The worker receives only the operation identity, schema version, validated inputs, assumptions, source references and quota request; it does not receive host permission grants or executable configuration.
 - Input schema validation occurs before process creation. The returned outputs are validated against the host-declared output schema after response correlation.
-- ModuleRuntime tracks request_id to WorkerIPCClient; WorkerIPCClient maps that request ID to a unique host-generated worker ID and supports cancellation during the request-registration/startup race. Invalid cancellation IDs are rejected without reaching the supervisor.
+- ModuleRuntime reserves a `WorkerInvocationHandle` before worker startup and stores request_id → (WorkerIPCClient, immutable handle). Cancellation uses that exact handle/worker ID, not a fresh lookup by request_id; stale cancellation cannot target a later invocation even if the same request_id is reused. WorkerIPCClient cancellation retries only against the captured worker ID through process startup and converts supervisor exceptions to `False`. Invalid/NUL-containing IDs are rejected before supervisor calls.
 - Resource leases are retained through worker execution. Normal completion, timeout and cancellation release only after supervisor cleanup is confirmed. An unconfirmed termination quarantines the lease; ordinary release and TTL expiry cannot reclaim it. If quarantine metadata recording itself fails, ModuleRuntime still withholds release and reports the active lease for manual inspection. Explicit force release is required after a recorded quarantine.
-- Tests cover success, input/schema rejection, permission denial, output validation, timeout, cancellation, unconfirmed termination and lease quarantine.
+- Tests cover success, input/schema rejection, permission denial, output validation, timeout, cancellation startup race, duplicate active request rejection, stale-handle isolation after request_id reuse, supervisor cancellation exceptions, unconfirmed termination and lease quarantine.
 
 ### Current gaps and safety limits
 
-- Exact-head CI for this WP-09F candidate is pending; no tests are claimed PASS until the exact branch head is verified.
+- Latest WP-09F exact-head CI is pending on the live PR head; no tests are claimed PASS until all required jobs complete.
 - ResourceAllocator remains an in-memory quota ledger. It does not enforce OS CPU, memory, I/O, network or wall-clock limits.
 - Quarantine is process-local and not durable across host restart. Durable lease recovery and reconciliation remain open.
 - This is not a security sandbox. No arbitrary/untrusted plugin execution, privilege separation, filesystem/network isolation or production-safe plugin runtime is claimed.
