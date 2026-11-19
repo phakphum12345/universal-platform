@@ -101,3 +101,14 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 ## 8. Explicit non-claims
 
 No general sandbox, privilege separation, token restriction, filesystem/network isolation, CPU/memory/I/O enforcement, dynamic module loading, durable leases, or production-safe untrusted plugin execution is claimed by this slice.
+
+## 9. Current integration reconciliation — 2026-11-19
+
+- Development Branch baseline at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
+- PR #244 merged Windows Job Object containment at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head workflow #43283027429 passed its recorded required jobs. A post-merge workflow on the exact merge SHA was not found; post-merge CI is UNKNOWN.
+- PR #245 adds versioned, bounded worker IPC framing on an open feature branch. Latest edited head: `6ee70eff28745043924c1ea21dc1e1eb20d0d867`; workflow #44556587432 was in progress at this snapshot. The earlier successful run #44552657995 is for a pre-edit head.
+- PR #245 framing remains transport-only. It does not start a worker, authorize requests, dispatch ModuleRuntime handlers, correlate CANCEL messages to active operations, or retain resource leases through process-tree termination.
+- PR #243 remains open and appears to overlap contract documentation incorporated into PR #244; reconcile unique changes before merge.
+- Next work: finish PR #245 verification/review, implement ModuleRuntime dispatch through the supervisor, add host-owned deadlines/cancellation and lease coupling, then add durable recovery and separate OS-isolation acceptance.
+- No sandbox, privilege separation, network/filesystem isolation or OS resource quota guarantee is claimed. Overall WP-09 remains PARTIAL.
+
