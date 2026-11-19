@@ -103,3 +103,8 @@ def test_jsonl_hash_chain_journal_rejects_symlink(tmp_path):
     journal = JsonlHashChainJournal(tmp_path)
     with pytest.raises(ValueError, match="symbolic link"):
         journal.append({"event_type": "LEASE_ACQUIRED"})
+
+
+def test_jsonl_hash_chain_journal_reserves_lock_file_suffix(tmp_path):
+    with pytest.raises(ValueError, match="reserved for lock files"):
+        JsonlHashChainJournal(tmp_path, filename="events.jsonl.lock")
