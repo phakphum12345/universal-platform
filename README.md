@@ -2,20 +2,19 @@
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status
-- Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s**; this is a superseded historical baseline, not current CI evidence. The associated integration baseline before PR #116 was `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
-- Latest verified integration baseline: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merged 2026-11-12).
-- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
-- Latest post-merge workflow on the exact integration HEAD: [run #43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709); `python-tests` PASS and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED and is not counted as PASS.
-- PRs #235–#240 are merged to the integration branch; exact merge SHAs and post-merge runs are recorded in [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and the [2026-11-12 audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
-- PR #241 remains OPEN and unmerged. Its exact-head PR workflow [#43168390970](https://github.com/phakphum12345/universal-platform/actions/runs/43168390970) passed the Windows supervisor test job, Python tests and workflow sanity; this does not implement Windows Job Objects or prove descendant cleanup.
-- Recursive tree at `c3d9800ebb46caff38bf18c13142e218ee2c6c63`: 392 blobs (156 Markdown, 202 Python, 28 JSON); recursive response not truncated.
-- Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
-- Principles: Local-first, cost-aware, evidence-driven, modular, secure.
-- Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
-- Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
+## Current status — 2026-11-19
+
+- Stage: Active incremental implementation on `docs/phase-0-complete-requirements`; the repository is **INCOMPLETE**.
+- Latest verified merged runtime increment: PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head run #43283027429 passed its recorded required jobs; post-merge CI on the exact merge SHA was not found in this audit and remains UNKNOWN.
+- Main HEAD observed: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+- PR #243 (Windows containment documentation) remains OPEN and appears potentially superseded by the contract and implementation incorporated into PR #244. Reconcile its unique changes before any merge.
+- PR #245 (versioned Worker IPC framing) remains OPEN. Latest audited head after documentation and partial-I/O test fixes: `6ee70eff28745043924c1ea21dc1e1eb20d0d867`; workflow #44556587432 was still running at this snapshot. Formal review submissions and unresolved review threads were empty; review outcome is UNKNOWN.
+- Earlier PR #245 head `ebc44eb92f1171f3c01ee079edadbb50d097250a` had workflow #44552657995 complete successfully; that result does not verify the later edits.
+- The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the repository-wide execution ledger. Use it with [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md).
+- Runtime maturity remains PARTIAL: ModuleRuntime is not yet wired through supervised workers; IPC integration, lease coupling, durable recovery and security isolation remain open.
+- CAD, Mechanics, Physics, Hardware/EDA, Unified Control Center and platform-wide acceptance remain PARTIAL or PLANNED as detailed in the matrix.
+- Local working-tree state and protected-branch configuration are UNKNOWN to this GitHub-only audit.
+- Principles: local-first, cost-aware, evidence-driven, modular and secure. No new paid service or public exposure without documented need and approval.
 
 ## Initial implementation (active development)
 
