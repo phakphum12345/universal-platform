@@ -633,6 +633,20 @@ def test_worker_handler_rejects_invalid_input_before_process_start(tmp_path):
     assert allocator.active_leases() == ()
 
 
+def test_module_input_schema_version_must_match_operation_declaration():
+    with pytest.raises(InvalidModelError, match="input_schema x-schema-version"):
+        ModuleOperation(
+            "calculate.double",
+            input_schema_version="2.0",
+            input_schema={
+                "type": "object",
+                "x-schema-version": "1.0",
+                "properties": {},
+                "additionalProperties": False,
+            },
+        )
+
+
 def test_worker_handler_requires_input_schema_at_registration(tmp_path):
     script = "pass"
     registry = ModuleRegistry()
