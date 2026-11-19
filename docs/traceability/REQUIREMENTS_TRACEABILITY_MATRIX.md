@@ -333,3 +333,15 @@ This section supersedes the 2026-11-19 runtime checkpoint above. Earlier rows re
 | RT-09-09 | Durable worker/job/lease recovery, cross-process accounting and OS enforcement | Existing RecoveryCoordinator and JsonlRecoveryEvidenceStore persist recovery outcomes, but do not persist/reconcile ResourceAllocator leases or restore active worker state after host restart. No accepted privilege/filesystem/network boundary or OS CPU/RAM/I/O enforcement exists. | NOT IMPLEMENTED / UNKNOWN / NOT ACCEPTED. Requires a separate durable-state design, orphan-worker reconciliation and threat-model-driven platform tests. |
 
 WP-09 remains PARTIAL. Repository-wide acceptance remains INCOMPLETE. `SKIPPED` platform tests are not counted as PASS.
+
+## WP-09 current authoritative reconciliation — 2026-11-20 after PR #254
+
+| Requirement | Evidence | Maturity / outcome |
+|---|---|---|
+| RT-09-08 / RT-09-13 | PR #254 merge f2ee9045c6316b2ff9026ea5196fedf1232f71a3; exact-head run #44606596004 and post-merge run #44607892946 both PASS (Python 1,142 passed / 4 skipped, Windows supervisor, workflow-sanity) | IMPLEMENTED / VERIFIED / INTEGRATED |
+| RT-09-14 | PR #254 fail-closed quarantine regression; active lease remains allocated if quarantine metadata persistence fails; exact-head and post-merge Python checks PASS | IMPLEMENTED / VERIFIED / INTEGRATED within the running host process |
+| RT-09-09 | Durable Worker Lease Recovery Contract; no durable live lease journal or startup reconciliation implementation | DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED |
+| RT-09-15 | OS process identity hand-off and orphan process-tree reconciliation | NOT IMPLEMENTED / UNKNOWN; PID reuse-safe platform adapters remain open |
+| RT-09-16 | Privilege/filesystem/network isolation and OS CPU/RAM/I/O enforcement | NOT IMPLEMENTED / NOT ACCEPTED; process-tree containment is not a sandbox |
+
+This section supersedes earlier WP-09 checkpoint rows above. SKIPPED platform tests remain SKIPPED and are not counted as PASS.
