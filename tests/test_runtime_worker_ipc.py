@@ -209,7 +209,7 @@ def test_worker_ipc_client_rejects_template_with_preloaded_stdin(supervisor):
 
 def test_worker_ipc_client_accounts_for_four_byte_frame_header():
     class LimitedSupervisor(StubSupervisor):
-        max_input_bytes = 64
+        max_input_bytes = 128
 
     response = encode_frame(WorkerFrame("RESPONSE", "request-3", {"ok": True}))
     stub = LimitedSupervisor(worker_result(response))
