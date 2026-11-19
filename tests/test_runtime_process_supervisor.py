@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import subprocess
 import sys
 import threading
 import time
@@ -54,6 +55,35 @@ def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
     assert result.exit_code == 0
     assert result.stdout.strip() == "worker-ok"
     assert not result.timed_out and not result.cancelled
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_cancellation_during_process_start_is_not_lost(supervisor, monkeypatch):
+    starting = threading.Event()
+    continue_start = threading.Event()
+    original_popen = subprocess.Popen
+
+    def delayed_popen(*args, **kwargs):
+        starting.set()
+        assert continue_start.wait(timeout=3)
+        return original_popen(*args, **kwargs)
+
+    monkeypatch.setattr("universal_platform.runtime.supervisor.subprocess.Popen", delayed_popen)
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "cancel-during-start", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        timeout_seconds=10,
+        terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    assert starting.wait(timeout=3)
+    assert supervisor.cancel("cancel-during-start", grace_seconds=0.1)
+    continue_start.set()
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
     assert supervisor.active_worker_ids == ()
 
 
