@@ -179,7 +179,7 @@ class ModuleRuntime:
 
     Request.permissions is descriptive and is never treated as an authority
     grant. Worker process configuration is host-owned. Resource limits are
-    reservation requests against a host-configured in-memory quota pool; they
+    reservation requests against a host-configured allocator; they
     do not limit actual CPU, memory, I/O or runtime. A lease is retained in
     quarantine if the supervisor cannot confirm worker process-tree exit.
     """
