@@ -91,7 +91,7 @@ class WorkerIPCClient:
             not isinstance(frame.request_id, str)
             or not frame.request_id.strip()
             or len(frame.request_id) > 128
-            or "\\x00" in frame.request_id
+            or "\x00" in frame.request_id
         ):
             raise WorkerIPCError("worker.request_invalid", "request_id is invalid")
 
