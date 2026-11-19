@@ -385,6 +385,11 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
 
+## Current Development Branch baseline — 2026-11-19
+
+- Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
+- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion is implied.
+
 ## WP-09C — Windows Job Object containment (merged; 2026-11-19 reconciliation)
 
 - PR #244 is merged to `docs/phase-0-complete-requirements` at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact PR head `8832ad015df3540add0fb015d3429930d20d1518`.
