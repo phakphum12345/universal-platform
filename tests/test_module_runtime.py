@@ -777,3 +777,34 @@ def test_worker_request_id_is_validated_for_ipc_contract(tmp_path):
     assert result.error_code == "module.worker_request_invalid"
     assert supervisor.active_worker_ids == ()
     assert allocator.active_leases() == ()
+
+
+def test_worker_handler_requires_explicit_host_permission(tmp_path):
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.double", input_schema=_INPUT_SCHEMA, output_schema=_OUTPUT_SCHEMA,
+        ),),
+        license_id="Apache-2.0",
+    ))
+    supervisor = PythonProcessSupervisor(
+        working_root=tmp_path, allowed_executables=(sys.executable,)
+    )
+    client = WorkerIPCClient(supervisor, WorkerSpec("template", sys.executable, ("-c", "pass")))
+    runtime = ModuleRuntime(registry)
+    with pytest.raises(InvalidModelError, match="at least one host permission"):
+        runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+
+
+def test_module_runtime_cancel_rejects_invalid_request_ids():
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.empty", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation("calculate.noop", output_schema=_OUTPUT_SCHEMA),),
+        license_id="Apache-2.0",
+    ))
+    runtime = ModuleRuntime(registry)
+    assert not runtime.cancel("")
+    assert not runtime.cancel("bad\\x00id")
+    assert not runtime.cancel("x" * 129)
