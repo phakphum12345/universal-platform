@@ -168,7 +168,7 @@ Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the reba
 - Worker process configuration remains in the host-supplied WorkerSpec. The worker receives only the operation identity, schema version, validated inputs, assumptions, source references and quota request; it does not receive host permission grants or executable configuration.
 - Input schema validation occurs before process creation. The returned outputs are validated against the host-declared output schema after response correlation.
 - ModuleRuntime tracks request_id to WorkerIPCClient; WorkerIPCClient maps that request ID to a unique host-generated worker ID and supports cancellation during the request-registration/startup race. Invalid cancellation IDs are rejected without reaching the supervisor.
-- Resource leases are retained through worker execution. Normal completion, timeout and cancellation release only after supervisor cleanup is confirmed. An unconfirmed termination quarantines the lease; ordinary release and TTL expiry cannot reclaim it. Explicit force release is required.
+- Resource leases are retained through worker execution. Normal completion, timeout and cancellation release only after supervisor cleanup is confirmed. An unconfirmed termination quarantines the lease; ordinary release and TTL expiry cannot reclaim it. If quarantine metadata recording itself fails, ModuleRuntime still withholds release and reports the active lease for manual inspection. Explicit force release is required after a recorded quarantine.
 - Tests cover success, input/schema rejection, permission denial, output validation, timeout, cancellation, unconfirmed termination and lease quarantine.
 
 ### Current gaps and safety limits
