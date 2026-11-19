@@ -129,6 +129,11 @@ def test_json_nesting_limit_accepts_boundary_and_ignores_delimiters_in_strings()
     assert decoded.payload["text"] == 'brackets [ ] braces { } and escaped quote " ]'
 
 
+def test_encode_rejects_non_string_json_object_keys():
+    with pytest.raises(WorkerProtocolError, match="keys must be strings"):
+        encode_frame(WorkerFrame("REQUEST", "r1", {"nested": {1: "integer", "1": "string"}}))
+
+
 def test_encode_rejects_json_nesting_beyond_decoder_limit():
     nested = 0
     for _ in range(63):
