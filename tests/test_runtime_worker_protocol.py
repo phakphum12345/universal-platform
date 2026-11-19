@@ -44,6 +44,7 @@ def test_rejects_incoming_oversized_length_before_body_read():
     b'{"protocol_version":"1.0","message_type":"UNKNOWN","request_id":"r","payload":{}}',
     b'{"protocol_version":"1.0","message_type":"REQUEST","request_id":"r","payload":{},"payload":{}}',
     b'{"protocol_version":"1.0","message_type":"REQUEST","request_id":"r","payload":{"n":NaN}}',
+    b'{"protocol_version":"1.0","message_type":"REQUEST","request_id":"r","payload":{"n":1e999}}',
     b'not-json',
 ])
 def test_rejects_malformed_or_unsupported_envelopes(body):
@@ -104,3 +105,21 @@ def test_write_frame_handles_partial_writes():
 def test_worker_frame_rejects_non_string_message_type():
     with pytest.raises(WorkerProtocolError, match="message type"):
         WorkerFrame(["REQUEST"], "req-1", {})
+
+
+def test_rejects_excessively_nested_json_as_protocol_error():
+    nested = b"[" * 1100 + b"0" + b"]" * 1100
+    body = (
+        b'{"protocol_version":"1.0","message_type":"REQUEST",'
+        b'"request_id":"r","payload":{"nested":' + nested + b"}}"
+    )
+    with pytest.raises(WorkerProtocolError):
+        read_frame(io.BytesIO(struct.pack("!I", len(body)) + body))
+
+
+def test_max_frame_bytes_must_fit_uint32_header():
+    frame = WorkerFrame("REQUEST", "r1", {})
+    with pytest.raises(ValueError, match="uint32"):
+        encode_frame(frame, max_frame_bytes=0x1_0000_0000)
+    with pytest.raises(ValueError, match="uint32"):
+        read_frame(io.BytesIO(b""), max_frame_bytes=0x1_0000_0000)
