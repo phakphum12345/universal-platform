@@ -39,7 +39,7 @@ class JsonlHashChainJournal:
             raise ValueError("journal root must be a directory")
         if not filename or Path(filename).name != filename or filename in {".", ".."}:
             raise ValueError("journal filename must be a simple file name")
-        if filename.endswith(".lock"):
+        if filename.casefold().endswith(".lock"):
             raise ValueError("journal filenames ending in .lock are reserved for lock files")
         if (
             isinstance(max_record_bytes, bool)
