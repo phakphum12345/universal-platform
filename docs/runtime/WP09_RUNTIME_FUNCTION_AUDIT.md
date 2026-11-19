@@ -106,7 +106,7 @@ No general sandbox, privilege separation, token restriction, filesystem/network 
 
 - Development Branch baseline at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
 - PR #244 merged Windows Job Object containment at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head workflow #43283027429 passed its recorded required jobs. A post-merge workflow on the exact merge SHA was not found; post-merge CI is UNKNOWN.
-- PR #245 adds versioned, bounded worker IPC framing on an open feature branch. Latest edited head: `6ee70eff28745043924c1ea21dc1e1eb20d0d867`; workflow #44556587432 was in progress at this snapshot. The earlier successful run #44552657995 is for a pre-edit head.
+- PR #245 adds versioned, bounded worker IPC framing on an open feature branch. Latest exact head: `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). Formal review outcome is UNKNOWN.
 - PR #245 framing remains transport-only. It does not start a worker, authorize requests, dispatch ModuleRuntime handlers, correlate CANCEL messages to active operations, or retain resource leases through process-tree termination.
 - PR #243 remains open and appears to overlap contract documentation incorporated into PR #244; reconcile unique changes before merge.
 - Next work: finish PR #245 verification/review, implement ModuleRuntime dispatch through the supervisor, add host-owned deadlines/cancellation and lease coupling, then add durable recovery and separate OS-isolation acceptance.
