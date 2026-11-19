@@ -17,7 +17,7 @@ from typing import Any
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
-from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError
+from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
 from ..runtime.resources.models import ResourceMetric
@@ -174,7 +174,7 @@ class ModuleRuntime:
         self._registry = registry
         self._resource_allocator = resource_allocator
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
-        self._worker_invocations: dict[str, WorkerIPCClient] = {}
+        self._worker_invocations: dict[str, tuple[WorkerIPCClient, WorkerInvocationHandle]] = {}
         self._grants: dict[str, frozenset[str]] = {}
         self._active_invocations: dict[str, int] = {}
         self._revoking: set[str] = set()
@@ -266,10 +266,16 @@ class ModuleRuntime:
         ):
             return False
         with self._lock:
-            client = self._worker_invocations.get(request_id)
-        if client is None:
+            invocation = self._worker_invocations.get(request_id)
+        if invocation is None:
             return False
-        return client.cancel(request_id)
+        client, handle = invocation
+        try:
+            return client.cancel(handle)
+        except Exception:
+            # Cancellation is a boolean control API; lease safety is enforced
+            # independently by the invocation's termination result.
+            return False
 
     def _reserve_resources(self, request: ModuleRequest) -> ResourceLease | None:
         if not request.resource_limits:
@@ -344,7 +350,14 @@ class ModuleRuntime:
                         request_id=request.request_id, status="REJECTED",
                         error_code="module.input_validation_failed",
                     )
-                self._worker_invocations[request.request_id] = handler
+                try:
+                    worker_handle = handler.reserve(request.request_id)
+                except WorkerIPCError:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="REJECTED",
+                        error_code="module.request_id_already_active",
+                    )
+                self._worker_invocations[request.request_id] = (handler, worker_handle)
             self._active_invocations[request.module_id] = (
                 self._active_invocations.get(request.module_id, 0) + 1
             )
@@ -380,7 +393,8 @@ class ModuleRuntime:
                             },
                         }
                         response_frame = handler.request(
-                            WorkerFrame("REQUEST", request.request_id, request_payload)
+                            WorkerFrame("REQUEST", request.request_id, request_payload),
+                            handle=worker_handle,
                         )
                         if set(response_frame.payload) != {"outputs"}:
                             raise WorkerIPCError(
@@ -468,6 +482,8 @@ class ModuleRuntime:
         finally:
             with self._lock:
                 if isinstance(handler, WorkerIPCClient):
-                    self._worker_invocations.pop(request.request_id, None)
+                    invocation = self._worker_invocations.pop(request.request_id, None)
+                    if invocation is not None:
+                        handler.release(invocation[1])
             # Drain includes reservation failures, handler completion and lease release/quarantine.
             self._finish_invocation(request.module_id)
