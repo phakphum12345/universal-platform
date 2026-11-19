@@ -410,5 +410,5 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 ## WP-09D-DOC — PR #243 reconciliation
 
 - PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; its exact-head workflow #44552533763 completed successfully.
-- Its Windows containment contract overlaps documentation incorporated into PR #244. Do not merge the stale branch wholesale; compare and preserve only unique, still-correct documentation after review.
+- Its unique contract refinements cover audited process/primary-thread handle ownership and revised descendant/pipe acceptance cases; PR #244 supplies the bounded implementation but does not make these design requirements redundant. Preserve the unique contract content and reconcile stale status/work-package edits; do not merge the branch wholesale.
 
