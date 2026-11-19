@@ -751,3 +751,12 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 ## WP-15 — Modern Unified Control Center UI (PLANNED)
 
 Deliver a coherent responsive Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, activity/audit and settings. Start with a source-backed inventory of existing UI/routes/APIs; reuse existing capabilities rather than duplicating them. Build a shared accessible design system and application shell, truthful capability catalogue, schema-backed secure settings, evidence-based status/diagnostics and end-to-end browser acceptance. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). This is a planned work package; no UI implementation or acceptance is claimed yet.
+
+ 
+## Runtime continuation checkpoint — 2026-11-20
+
+PR #254 has merged to the Development Branch at `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`. Exact-head run #44606596004 passed (Python 1,142 passed / 4 skipped, Windows supervisor PASS, workflow-sanity PASS). Exact merge-SHA post-merge run #44607892946 was still running when this checkpoint was written.
+
+WP-09F supervised ModuleRuntime dispatch is now IMPLEMENTED / VERIFIED / INTEGRATED. Cancellation is bound to immutable WorkerInvocationHandle identity; host grants and versioned input/output schemas are checked; resource leases remain held until process-tree termination is confirmed and are quarantined on uncertainty.
+
+The next runtime dependency is WP-09G durable worker lease/job recovery. Its design contract is in [Durable Worker Lease Recovery Contract](docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md). Implementation is not started/accepted: ResourceAllocator is still process-local, recovery JSONL is outcome evidence rather than a live lease ledger, and restart orphan reconciliation remains open. Continue WP-09G-A through WP-09G-E as separate reviewable slices. Do not claim sandboxing or OS resource enforcement.
