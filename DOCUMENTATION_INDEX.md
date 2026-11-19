@@ -342,3 +342,10 @@ See [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_
 
 - [WP-15 — Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md) — information architecture, shared design system, functions/tools/modules, settings governance, diagnostics, accessibility, delivery sequence and acceptance gates. PLANNED; no implementation is claimed.
 - [WP-15A — Existing UI Inventory and Route Map](docs/ui/WP15A_UI_INVENTORY.md) — source-backed inventory of the current CAD workbench, local API routes, security boundaries, tests and Control Center gaps. Draft inventory; review pending.
+
+ 
+## Latest integration checkpoint — 2026-11-20
+
+Development Branch merge SHA: `f2ee9045c6316b2ff9026ea5196fedf1232f71a3` (PR #254). PR #254 exact-head run #44606596004 passed: Python 1,142 passed / 4 skipped, Windows supervisor PASS, workflow-sanity PASS. Post-merge exact-SHA run #44607892946 was still in progress at this snapshot.
+
+WP-09F supervised ModuleRuntime dispatch is IMPLEMENTED / VERIFIED / INTEGRATED. WP-09G durable worker lease recovery is DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED; see [Durable Worker Lease Recovery Contract](docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md). The repository remains INCOMPLETE. `main` is not changed.
