@@ -102,7 +102,7 @@ The API was observed as loopback-bound, bearer-token protected and dynamically p
 ### Journey D — Find and use a tool or function
 
 1. User opens Tools or Functions and searches by name, domain or supported capability.
-2. Detail view presents purpose, input/output contract, dependencies, execution mode, resource bounds, required grants and limitations.
+2. Detail view presents purpose, input/output contract, dependencies, execution mode, required grants and limitations. Show resource bounds or reservation only when the host actually configures and enforces them; the current default built-in Physics bridge constructs ModuleRuntime without a ResourceAllocator and its normal requests carry no resource limits, so do not imply that this path reserves host quota.
 3. UI displays the registry's exact `ModuleManifest.maturity` value (`CONCEPT`, `EXPERIMENTAL`, `VALIDATED`, `PRODUCTION_CANDIDATE`, `STABLE` or `DEPRECATED`) and separately displays availability, execution lifecycle and evidence state. Do not map repository work-package states onto module maturity.
 4. User invokes only a verified operation with a validated input schema and sufficient host authorization.
 5. UI displays structured result, failure, cancellation or timeout only when the backend contract supports that outcome.
