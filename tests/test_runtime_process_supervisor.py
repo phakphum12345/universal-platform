@@ -53,6 +53,24 @@ def test_supervisor_rejects_stdin_payload_over_configured_limit(tmp_path):
         instance.run(WorkerSpec("oversized-input", sys.executable, stdin_data=b"four"))
 
 
+def test_supervisor_uses_actual_buffer_size_for_bytes_subclass(tmp_path):
+    class LyingBytes(bytes):
+        def __len__(self):
+            return 0
+
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_input_bytes=3,
+    )
+    payload = LyingBytes(b"four")
+    assert len(payload) == 0
+    assert memoryview(payload).nbytes == 4
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        instance.run(WorkerSpec("lying-input-size", sys.executable, stdin_data=payload))
+    assert instance.active_worker_ids == ()
+
+
 def test_supervisor_timeout_unblocks_writer_when_worker_does_not_read_stdin(supervisor):
     result = supervisor.run(WorkerSpec(
         "blocked-stdin-timeout", sys.executable,
