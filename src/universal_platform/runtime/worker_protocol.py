@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 import struct
 from typing import BinaryIO, Literal
 
@@ -42,6 +43,13 @@ def _reject_constant(value: str):
     raise WorkerProtocolError(f"non-finite JSON number is not allowed: {value}")
 
 
+def _parse_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise WorkerProtocolError("non-finite JSON number is not allowed")
+    return parsed
+
+
 def _unique_object(pairs):
     result = {}
     for key, value in pairs:
@@ -52,8 +60,9 @@ def _unique_object(pairs):
 
 
 def encode_frame(frame: WorkerFrame, *, max_frame_bytes: int = DEFAULT_MAX_FRAME_BYTES) -> bytes:
-    if isinstance(max_frame_bytes, bool) or not isinstance(max_frame_bytes, int) or max_frame_bytes < 1:
-        raise ValueError("max_frame_bytes must be a positive integer")
+    if (isinstance(max_frame_bytes, bool) or not isinstance(max_frame_bytes, int)
+            or max_frame_bytes < 1 or max_frame_bytes > 0xFFFFFFFF):
+        raise ValueError("max_frame_bytes must be a positive uint32 integer")
     document = {
         "protocol_version": frame.protocol_version,
         "message_type": frame.message_type,
@@ -65,7 +74,7 @@ def encode_frame(frame: WorkerFrame, *, max_frame_bytes: int = DEFAULT_MAX_FRAME
             document, ensure_ascii=False, allow_nan=False,
             separators=(",", ":"), sort_keys=True,
         ).encode("utf-8")
-    except (TypeError, ValueError, UnicodeEncodeError) as error:
+    except (TypeError, ValueError, UnicodeEncodeError, RecursionError) as error:
         raise WorkerProtocolError("frame payload is not finite UTF-8 JSON") from error
     if not body or len(body) > max_frame_bytes:
         raise WorkerProtocolError("frame exceeds configured size limit")
@@ -99,10 +108,11 @@ def read_frame(stream: BinaryIO, *, max_frame_bytes: int = DEFAULT_MAX_FRAME_BYT
             body.decode("utf-8"),
             object_pairs_hook=_unique_object,
             parse_constant=_reject_constant,
+            parse_float=_parse_finite_float,
         )
     except WorkerProtocolError:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as error:
         raise WorkerProtocolError("frame body is not valid UTF-8 JSON") from error
     if not isinstance(document, dict) or set(document) != {
         "protocol_version", "message_type", "request_id", "payload"
