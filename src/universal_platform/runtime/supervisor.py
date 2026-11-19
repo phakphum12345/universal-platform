@@ -145,45 +145,47 @@ class PythonProcessSupervisor:
             creation["start_new_session"] = True
         started = time.monotonic()
 
-        # Serialize ID reservation and process creation. On Windows the
-        # primary thread remains suspended until Job Object assignment succeeds.
+        # Reserve the ID under lock, but do not hold the registry lock while
+        # the OS creates the process. Cancellation can mark a starting worker.
         with self._lock:
             if spec.worker_id in self._processes or spec.worker_id in self._starting:
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
             self._starting.add(spec.worker_id)
-            job = WindowsJob() if os.name == "nt" else None
-            process: subprocess.Popen[bytes] | None = None
-            try:
-                process = subprocess.Popen(
-                    command,
-                    cwd=str(cwd),
-                    env=dict(spec.environment),
-                    stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=False,
-                    close_fds=True,
-                    **creation,
-                )
-                if job is not None:
-                    job.assign_suspended(process)
-            except Exception:
-                if process is not None and process.poll() is None:
+        job = WindowsJob() if os.name == "nt" else None
+        process: subprocess.Popen[bytes] | None = None
+        try:
+            process = subprocess.Popen(
+                command,
+                cwd=str(cwd),
+                env=dict(spec.environment),
+                stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                close_fds=True,
+                **creation,
+            )
+            if job is not None:
+                job.assign_suspended(process)
+        except Exception:
+            if process is not None and process.poll() is None:
+                try:
+                    if job is not None:
+                        job.terminate()
                     try:
-                        if job is not None:
-                            job.terminate()
-                        try:
-                            process.kill()
-                        except OSError:
-                            if process.poll() is None:
-                                raise
-                    finally:
-                        process.wait()
-                if job is not None:
-                    job.close()
+                        process.kill()
+                    except OSError:
+                        if process.poll() is None:
+                            raise
+                finally:
+                    process.wait()
+            if job is not None:
+                job.close()
+            with self._lock:
                 self._starting.discard(spec.worker_id)
                 self._cancelled.discard(spec.worker_id)
-                raise
+            raise
+        with self._lock:
             self._processes[spec.worker_id] = process
             self._starting.discard(spec.worker_id)
             if job is not None:
