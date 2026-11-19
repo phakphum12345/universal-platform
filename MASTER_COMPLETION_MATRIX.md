@@ -1,5 +1,34 @@
 # Universal Platform — Master Completion Matrix
 
+## Live repository reconciliation — 2026-11-20
+
+**This live snapshot supersedes the historical snapshot immediately below.** It does not erase historical evidence.
+
+- Development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e` (PR #257 merge).
+- Default `main`: `96e75010716226037893155b9fd4b13410fb0d6f`; GitHub reports `protected=false` and no repository rulesets. The prior "Protected branch" label is not verified and conflicts with live settings.
+- Development tree: 450 entries; main tree: 10 entries. The application source/tests are on the development branch, not main.
+- PR inventory #1–#258: 239 merged, 18 closed without merge, 1 open.
+- PR #258 is OPEN, clean/mergeable, base development @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`, head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`. Exact-head workflow-sanity, Python and Windows supervisor checks PASS; Python reported 1,160 passed / 4 skipped. No formal review submission or unresolved inline thread was returned. It is not merged and has no post-merge evidence.
+- PR #257 integrates the reusable JSONL journal at the current development HEAD. PR #258 implements/validates the durable allocator candidate only on its PR head; it does not yet provide OS identity hand-off, orphan-process reconciliation, operator force release, or ModuleRuntime integration.
+
+| Workstream | Live maturity | Remaining acceptance boundary |
+|---|---|---|
+| Core architecture / governance | PARTIAL | Resolve main branch protection mismatch; identity/authorization, threat model, secure config, audit, migration/rollback and platform orchestration |
+| CAD / Geometry / Generator | PARTIAL | General topology/degeneracies, curved geometry, recompute propagation, broader interoperability and independent adversarial references |
+| Mechanics / Kinematics | PARTIAL | General multi-loop/3D configuration solving, singularity/redundancy analysis, dynamics and contact |
+| Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
+| Hardware / EDA / Drivers | PARTIAL | Datasheet constraints, full PCB/library workflows, circuit simulation, BOM/footprint validation and safe device diagnostics |
+| Interchange | PARTIAL | Broader versioned profiles, fidelity/loss accounting and independent round-trip validation |
+| Runtime / Worker | PARTIAL | WP-09G-B not integrated; WP-09G-C/D/E process identity, restart reconciliation and audited recovery remain open; no general sandbox or OS resource enforcement |
+| Unified Control Center | PLANNED / DESIGN | WP-15B owner acceptance; WP-15C shared shell and subsequent real-backend work not started |
+| Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
+
+**Lifecycle:** WP-09G-A is IMPLEMENTED / VERIFIED / INTEGRATED via PR #257. WP-09G-B is IMPLEMENTED / VERIFIED on PR #258 head, but NOT INTEGRATED / NOT ACCEPTED. WP-09G-C/D/E are NOT IMPLEMENTED. The repository remains INCOMPLETE.
+
+See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md). Local working-tree state and a complete main-vs-development ahead/behind comparison remain UNKNOWN.
+
+---
+
 **Snapshot date:** 2026-11-19  
 **Repository:** `phakphum12345/universal-platform`  
 **Development branch:** `docs/phase-0-complete-requirements`  
