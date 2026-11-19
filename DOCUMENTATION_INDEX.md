@@ -185,6 +185,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Repository Audit post-PR #113](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md) — current exact integration/main SHAs, tree inventory, PR #99/#107/#110/#113 evidence and remaining CAD/EDA/physics/runtime gates.
 - [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md) — central solver registry boundary, built-in analytical solvers and unimplemented domain families.
 - [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — current registry, recovery, trusted process supervision, adapter routing, evidence integrity, resource health and security limits.
+- [Durable Worker Lease Recovery Contract](docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md) — proposed write-ahead lease journal, process identity hand-off, crash reconciliation, quarantine and audited operator recovery; design only.
 
 
 - [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) — v2.0 closed single-shell polygonal planar topology, inner loops, exact validation invariants and explicit limits.
