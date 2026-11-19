@@ -163,11 +163,11 @@ Branch feat/wp-09e-worker-ipc-client-rebased builds on those integrated dependen
 
 Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the rebased one-shot WorkerIPCClient.
 
-- ModuleOperation supports an optional versioned input_schema. Existing trusted in-process handlers remain compatible; worker-backed registration requires both input and output schemas.
+- ModuleOperation supports an optional versioned input_schema. Existing trusted in-process handlers remain compatible; worker-backed registration requires input and output schemas plus at least one explicitly declared host permission.
 - ModuleRuntime checks host-granted permissions before admission. Request.permissions remains descriptive and cannot grant authority.
 - Worker process configuration remains in the host-supplied WorkerSpec. The worker receives only the operation identity, schema version, validated inputs, assumptions, source references and quota request; it does not receive host permission grants or executable configuration.
 - Input schema validation occurs before process creation. The returned outputs are validated against the host-declared output schema after response correlation.
-- ModuleRuntime tracks request_id to WorkerIPCClient; WorkerIPCClient maps that request ID to a unique host-generated worker ID and supports cancellation during the request-registration/startup race.
+- ModuleRuntime tracks request_id to WorkerIPCClient; WorkerIPCClient maps that request ID to a unique host-generated worker ID and supports cancellation during the request-registration/startup race. Invalid cancellation IDs are rejected without reaching the supervisor.
 - Resource leases are retained through worker execution. Normal completion, timeout and cancellation release only after supervisor cleanup is confirmed. An unconfirmed termination quarantines the lease; ordinary release and TTL expiry cannot reclaim it. Explicit force release is required.
 - Tests cover success, input/schema rejection, permission denial, output validation, timeout, cancellation, unconfirmed termination and lease quarantine.
 
