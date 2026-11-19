@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from io import BytesIO
+import time
 
 from .supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
 from .worker_protocol import (
@@ -138,7 +139,13 @@ class WorkerIPCClient:
             or "\x00" in request_id
         ):
             raise ValueError("request_id must be a non-empty string of at most 128 characters")
-        return bool(self._supervisor.cancel(request_id, grace_seconds=grace_seconds))
+        deadline = time.monotonic() + max(0.1, grace_seconds + 1.0)
+        while True:
+            if self._supervisor.cancel(request_id, grace_seconds=grace_seconds):
+                return True
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(0.01)
 
 
 __all__ = ["WorkerIPCClient", "WorkerIPCError"]
