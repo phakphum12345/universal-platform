@@ -380,3 +380,14 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - This slice is transport-only. ModuleRuntime dispatch, process launch/IPC wiring, host-side schema/permission checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
 - Exact-head CI and review: PENDING. WP-09 remains PARTIAL.
 
+## WP-09E-B — one-shot supervised Worker IPC client (candidate)
+
+- Branch: `feat/wp-09e-worker-ipc-client`, stacked on PR #245's versioned framing branch.
+- Depends on PR #248's bounded stdin transport; the branch carries the same supervisor input changes so the client can be tested end-to-end before the dependency PRs are integrated.
+- Adds `WorkerIPCClient`: one host-configured allow-listed process per REQUEST, one bounded framed stdin request, exactly one RESPONSE frame on stdout.
+- Requires raw bounded stdout bytes from `WorkerResult`; preserves the existing decoded `stdout` field for compatibility.
+- Validates response frame structure, output truncation, exact one-frame output, RESPONSE message type and request_id correlation.
+- Host cancellation delegates to `PythonProcessSupervisor.cancel(request_id)`, which terminates the process tree; the client does not send an in-band CANCEL frame to a persistent worker.
+- Tests include a real one-shot Python worker round-trip and malformed/mismatched/trailing/truncated response, terminal state and cancellation delegation cases.
+- Exact-head CI and Windows runner evidence: pending.
+- Boundary: this client is transport only. ModuleRuntime dispatch, host-side input/output schema validation in the worker path, permission admission, deadline/cancellation race integration, lease retention and durable recovery remain separate gates.
