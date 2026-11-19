@@ -1,9 +1,15 @@
+import sys
+import threading
+import time
+
 import pytest
 
 from universal_platform.engineering.contracts import ModuleRequest
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
 from universal_platform.engineering.module_runtime import ModuleRuntime
+from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
+from universal_platform.runtime.worker_ipc import WorkerIPCClient
 
 
 def setup_runtime(required=("engineering.calculate",)):
@@ -525,3 +531,233 @@ def test_failed_invocation_still_unblocks_revoke():
     assert not revoker.is_alive()
     assert responses[0].error_code == "module.handler_failed"
     assert revoke_results == [True]
+
+
+_INPUT_SCHEMA = {
+    "type": "object",
+    "x-schema-version": "1.0",
+    "required": ["value"],
+    "properties": {"value": {"type": "integer", "minimum": 0}},
+    "additionalProperties": False,
+}
+_OUTPUT_SCHEMA = {
+    "type": "object",
+    "x-schema-version": "1.0",
+    "required": ["result"],
+    "properties": {"result": {"type": "integer", "minimum": 0}},
+    "additionalProperties": False,
+}
+
+
+def setup_worker_runtime(tmp_path, worker_script, *, supervisor=None, input_schema=_INPUT_SCHEMA):
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker",
+        version="1.0.0",
+        domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.double",
+            input_schema_version="1.0",
+            output_schema_version="1.0",
+            required_permissions=("engineering.calculate",),
+            input_schema=input_schema,
+            output_schema=_OUTPUT_SCHEMA,
+        ),),
+        permissions=("engineering.calculate",),
+        license_id="Apache-2.0",
+    ))
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 2, "cores"),))
+    if supervisor is None:
+        supervisor = PythonProcessSupervisor(
+            working_root=tmp_path,
+            allowed_executables=(sys.executable,),
+            max_output_bytes=4096,
+        )
+    client = WorkerIPCClient(
+        supervisor,
+        WorkerSpec(
+            "worker-template",
+            sys.executable,
+            ("-c", worker_script),
+            working_directory=".",
+            timeout_seconds=3,
+        ),
+    )
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+    return runtime, allocator, supervisor
+
+
+def worker_request(**changes):
+    values = {
+        "module_id": "org.example.worker",
+        "operation": "calculate.double",
+        "inputs": {"value": 3},
+        "permissions": ("engineering.calculate",),
+        "resource_limits": {"cpu.cores": 1},
+        "request_id": "worker-request-1",
+    }
+    values.update(changes)
+    return ModuleRequest(**values)
+
+
+def test_worker_handler_uses_host_grant_schema_and_supervised_process(tmp_path):
+    script = (
+        "import sys; "
+        "from universal_platform.runtime.worker_protocol import read_frame, write_frame, WorkerFrame; "
+        "request = read_frame(sys.stdin.buffer); "
+        "assert 'permissions' not in request.payload; "
+        "value = request.payload['inputs']['value']; "
+        "write_frame(sys.stdout.buffer, WorkerFrame('RESPONSE', request.request_id, "
+        "{'outputs': {'result': value * 2}}))"
+    )
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request())
+    assert result.status == "COMPLETED"
+    assert result.outputs["result"] == 6
+    assert any("not an OS resource limit" in warning for warning in result.warnings)
+    assert allocator.active_leases() == ()
+    assert allocator.available()[0].value == 2
+    assert supervisor.active_worker_ids == ()
+
+
+def test_worker_handler_rejects_invalid_input_before_process_start(tmp_path):
+    script = "raise SystemExit('must not execute')"
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request(inputs={"value": "3"}))
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.input_validation_failed"
+    assert supervisor.active_worker_ids == ()
+    assert allocator.active_leases() == ()
+
+
+def test_worker_handler_requires_input_schema_at_registration(tmp_path):
+    script = "pass"
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation("calculate.double", output_schema=_OUTPUT_SCHEMA),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    supervisor = PythonProcessSupervisor(
+        working_root=tmp_path, allowed_executables=(sys.executable,)
+    )
+    client = WorkerIPCClient(supervisor, WorkerSpec("template", sys.executable, ("-c", script)))
+    runtime = ModuleRuntime(registry)
+    with pytest.raises(InvalidModelError, match="input schema"):
+        runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+
+
+def test_worker_handler_cannot_self_grant_from_request_permissions(tmp_path):
+    script = "raise SystemExit('must not execute')"
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    result = runtime.invoke(worker_request())
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.permission_denied"
+    assert supervisor.active_worker_ids == ()
+    assert allocator.active_leases() == ()
+
+
+def test_worker_handler_output_is_validated_by_host_schema(tmp_path):
+    script = (
+        "import sys; "
+        "from universal_platform.runtime.worker_protocol import read_frame, write_frame, WorkerFrame; "
+        "request = read_frame(sys.stdin.buffer); "
+        "write_frame(sys.stdout.buffer, WorkerFrame('RESPONSE', request.request_id, "
+        "{'outputs': {'result': 'not-an-integer'}}))"
+    )
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.output_validation_failed"
+    assert allocator.active_leases() == ()
+    assert supervisor.active_worker_ids == ()
+
+
+def test_worker_timeout_releases_lease_after_supervisor_cleanup(tmp_path):
+    script = "import time; time.sleep(30)"
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker", version="1.0.0", domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.double", required_permissions=("engineering.calculate",),
+            input_schema=_INPUT_SCHEMA, output_schema=_OUTPUT_SCHEMA,
+        ),),
+        permissions=("engineering.calculate",), license_id="Apache-2.0",
+    ))
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 1, "cores"),))
+    supervisor = PythonProcessSupervisor(
+        working_root=tmp_path, allowed_executables=(sys.executable,), max_output_bytes=4096
+    )
+    client = WorkerIPCClient(
+        supervisor,
+        WorkerSpec("template", sys.executable, ("-c", script), timeout_seconds=0.1,
+                   terminate_grace_seconds=0.1),
+    )
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.worker_timeout"
+    assert allocator.active_leases() == ()
+    assert supervisor.active_worker_ids == ()
+
+
+def test_worker_cancel_is_host_controlled_and_releases_confirmed_lease(tmp_path):
+    script = "import time; time.sleep(30)"
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    results = []
+    thread = threading.Thread(target=lambda: results.append(runtime.invoke(worker_request())))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while not supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert supervisor.active_worker_ids
+    assert runtime.cancel("worker-request-1")
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].status == "CANCELLED"
+    assert allocator.active_leases() == ()
+    assert supervisor.active_worker_ids == ()
+
+
+def test_worker_termination_unconfirmed_quarantines_resource_lease(tmp_path):
+    class UnconfirmedSupervisor:
+        def run(self, spec):
+            raise WorkerTerminationError(spec.worker_id)
+
+        def cancel(self, request_id, *, grace_seconds=1.0):
+            return False
+
+    runtime, allocator, _ = setup_worker_runtime(
+        tmp_path, "pass", supervisor=UnconfirmedSupervisor()
+    )
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.worker_termination_unconfirmed"
+    quarantined = allocator.quarantined_leases()
+    assert len(quarantined) == 1
+    lease, reason = quarantined[0]
+    assert "termination was not confirmed" in reason
+    assert allocator.active_leases() == (lease,)
+    assert allocator.available()[0].value == 1
+    with pytest.raises(RuntimeError, match="force release"):
+        allocator.release(lease.lease_id)
+    assert allocator.release(lease.lease_id, force=True)
+
+
+def test_worker_request_id_is_validated_for_ipc_contract(tmp_path):
+    script = "raise SystemExit('must not execute')"
+    runtime, allocator, supervisor = setup_worker_runtime(tmp_path, script)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    result = runtime.invoke(worker_request(request_id="x" * 129))
+    assert result.status == "REJECTED"
+    assert result.error_code == "module.worker_request_invalid"
+    assert supervisor.active_worker_ids == ()
+    assert allocator.active_leases() == ()
