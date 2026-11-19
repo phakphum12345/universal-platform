@@ -18,6 +18,34 @@ def supervisor(tmp_path):
     )
 
 
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process-group behavior")
+def test_supervisor_terminates_descendants_that_close_all_pipes(tmp_path):
+    marker = tmp_path / "descendant-survived"
+    child_code = (
+        "import time; from pathlib import Path; time.sleep(0.6); "
+        f"Path({str(marker)!r}).write_text('survived', encoding='utf-8')"
+    )
+    parent_code = (
+        "import subprocess, sys; "
+        "subprocess.Popen([sys.executable, '-c', "
+        f"{child_code!r}], stdin=subprocess.DEVNULL, "
+        "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)"
+    )
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_output_bytes=64,
+    )
+    result = instance.run(WorkerSpec(
+        "detached-pipes-child", sys.executable, ("-c", parent_code),
+        working_directory=".", timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert instance.active_worker_ids == ()
+
+
 def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
     result = supervisor.run(WorkerSpec(
         "worker-a", sys.executable, ("-c", "print('worker-ok')"),
