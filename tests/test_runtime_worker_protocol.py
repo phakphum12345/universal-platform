@@ -117,6 +117,18 @@ def test_rejects_excessively_nested_json_as_protocol_error():
         read_frame(io.BytesIO(struct.pack("!I", len(body)) + body))
 
 
+def test_json_nesting_limit_accepts_boundary_and_ignores_delimiters_in_strings():
+    nested = b"[" * 62 + b"0" + b"]" * 62
+    body = (
+        b'{"protocol_version":"1.0","message_type":"REQUEST",'
+        b'"request_id":"r","payload":{"nested":' + nested
+        + b',"text":"brackets [ ] braces { } and escaped quote \\" ]"}}'
+    )
+    decoded = read_frame(io.BytesIO(struct.pack("!I", len(body)) + body))
+    assert decoded is not None
+    assert decoded.payload["text"] == 'brackets [ ] braces { } and escaped quote " ]'
+
+
 def test_max_frame_bytes_must_fit_uint32_header():
     frame = WorkerFrame("REQUEST", "r1", {})
     with pytest.raises(ValueError, match="uint32"):
