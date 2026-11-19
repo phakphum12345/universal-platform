@@ -406,7 +406,7 @@ class ModuleRuntime:
                             try:
                                 quarantine_recorded = self._resource_allocator.quarantine(
                                     lease.lease_id,
-                                    "worker process-tree termination could not be confirmed",
+                                    "worker process-tree termination was not confirmed",
                                 )
                             except Exception:
                                 quarantine_recorded = False
