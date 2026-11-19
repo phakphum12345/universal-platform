@@ -1,11 +1,11 @@
 # Documentation Index
 
+**Live repository reconciliation (2026-11-20):** Development HEAD `2eff621e4ff24e98250bc085b2c652cd366a5e2e` includes PR #257 WP-09G-A. PR #258 WP-09G-B is open and verified on exact head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719` (1,160 passed / 4 skipped; workflow-sanity and Windows supervisor PASS), but it has no formal review submission and is not merged. WP-09G-C/D/E and ModuleRuntime integration remain open. GitHub reports `main.protected=false` and no repository rulesets; the "protected branch" description is not verified. Repository-wide status remains INCOMPLETE. See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+
 **Repository:** `phakphum12345/universal-platform`  
 **Historical inventory baseline:** `9507b9fab758465763c60d02f8da83d7d8131d2d` (PR #50 head). The index was restored to the integration branch by PR #53 and extended with the spatial-joint reference contract in PR #54.  
 **Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
-
-**Current integration checkpoint (2026-11-20):** PR #254 WP-09F merged into Development Branch at `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`; exact-head run #44606596004 and exact merge-SHA run #44607892946 both passed Python (1,142 passed / 4 skipped), Windows supervisor and workflow-sanity. `main` remains unchanged. WP-09G durable lease recovery is design-only; see [Durable Worker Lease Recovery Contract](docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md). PR #251 WP-15B remains a DRAFT pending owner acceptance. Repository-wide status remains INCOMPLETE.
 
 **Historical integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #235–#240 post-merge Python/workflow-sanity checks pass on exact merge SHAs. PR #241 remains open/unmerged; Windows CI passes but Job Object containment is not implemented. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
 
@@ -21,6 +21,9 @@
 The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Latest integration snapshot for this index update: `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`; PR #218 exact-head and post-merge workflow-sanity, Python and Chromium E2E checks PASS. PR #219 exact-head and post-merge workflow-sanity/Python checks PASS. PR #217 exact-head workflow-sanity/Python checks PASS and is merged; post-merge Python CI is IN_PROGRESS at this snapshot. PRs #200–#219 add bounded exact global arrangement, independent coverage certification, material classification, Boolean selection, shell assembly, CAD Generator orchestration, coplanar-contact isolation and aggregate resource budgets. The current binary64 B-rep rejects non-lossless rational coordinates; see [Exact Rational Faceted Output Contract](docs/design-3d/EXACT_RATIONAL_FACETED_OUTPUT_CONTRACT.md). General arbitrary-faceted Boolean and the overall repository remain PARTIAL / INCOMPLETE. Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and is unchanged; ahead/behind count is not asserted in this snapshot. Current inventory at documentation audit head `ffd6b9bd57d86bbb91bc90c23a1573cd09908428`: 373 blobs, 150 Markdown, 191 Python, 26 JSON files and 100 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation and multi-shell outer/cavity composition are PASS for their bounded adapters; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
+
+- [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) — live baseline, PR inventory, CI evidence and acceptance gaps.
+- [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) — prioritized technical debt and required closure evidence.
 
 - [README](README.md) — entry point, current scope and documentation map.
 - [Vision](VISION.md) — product purpose and principles.
