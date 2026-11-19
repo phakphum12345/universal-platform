@@ -1,9 +1,10 @@
-"""Policy-gated in-process execution for explicitly registered trusted handlers.
+"""Policy-gated dispatch to trusted handlers or host-configured supervised workers.
 
-This is an application-level permission boundary, not an OS sandbox. Handler
-callables are supplied by trusted application code; this module never imports
-or downloads code based on a request. Optional resource leases reserve host-
-configured quota for one invocation and are always released afterward.
+This is an application-level permission boundary, not an OS sandbox. In-process
+handler callables and worker executable specifications are supplied by trusted
+host code; requests never load code or choose process configuration. Optional
+resource leases reserve host-configured quota and are released only after worker
+termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
@@ -16,10 +17,13 @@ from typing import Any
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
+from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError
+from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
 from ..runtime.resources.models import ResourceMetric
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
+RegisteredHandler = ModuleHandler | WorkerIPCClient
 
 _SCHEMA_ANNOTATIONS = frozenset({
     "$schema", "$id", "title", "description", "default", "examples",
@@ -113,6 +117,15 @@ def _output_schema_error(value: Any, schema: Mapping[str, Any], path: str = "out
     return None
 
 
+def _validate_module_input(inputs: Any, operation: Any) -> str | None:
+    schema = operation.input_schema
+    if schema is None:
+        return "operation has no registered input schema"
+    if schema.get("x-schema-version") != operation.input_schema_version:
+        return "input schema version does not match operation declaration"
+    return _output_schema_error(inputs, schema, path="inputs")
+
+
 def _validate_module_output(outputs: Any, operation: Any) -> str | None:
     schema = operation.output_schema
     if schema is None:
@@ -142,8 +155,10 @@ class ModuleRuntime:
     """Dispatch registered handlers after host-side permission and quota checks.
 
     Request.permissions is descriptive and is never treated as an authority
-    grant. Resource limits are reservation requests against a host-configured
-    in-memory quota pool; they do not limit actual CPU, memory, I/O or runtime.
+    grant. Worker process configuration is host-owned. Resource limits are
+    reservation requests against a host-configured in-memory quota pool; they
+    do not limit actual CPU, memory, I/O or runtime. A lease is retained in
+    quarantine if the supervisor cannot confirm worker process-tree exit.
     """
 
     def __init__(
@@ -158,7 +173,8 @@ class ModuleRuntime:
             raise InvalidModelError("resource_allocator must be a ResourceAllocator")
         self._registry = registry
         self._resource_allocator = resource_allocator
-        self._handlers: dict[tuple[str, str], ModuleHandler] = {}
+        self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
+        self._worker_invocations: dict[str, WorkerIPCClient] = {}
         self._grants: dict[str, frozenset[str]] = {}
         self._active_invocations: dict[str, int] = {}
         self._revoking: set[str] = set()
@@ -215,6 +231,34 @@ class ModuleRuntime:
             if key in self._handlers:
                 raise InvalidModelError("handler already registered")
             self._handlers[key] = handler
+
+    def register_worker_handler(
+        self,
+        module_id: str,
+        operation_id: str,
+        client: WorkerIPCClient,
+    ) -> None:
+        """Register a host-configured supervised worker for one declared operation."""
+        operation = self._registry.resolve_operation(module_id, operation_id)
+        if not isinstance(client, WorkerIPCClient):
+            raise InvalidModelError("client must be a WorkerIPCClient")
+        if operation.input_schema is None:
+            raise InvalidModelError("worker handler requires a declared input schema")
+        if operation.output_schema is None:
+            raise InvalidModelError("worker handler requires a declared output schema")
+        key = (module_id, operation.operation_id)
+        with self._lock:
+            if key in self._handlers:
+                raise InvalidModelError("handler already registered")
+            self._handlers[key] = client
+
+    def cancel(self, request_id: str) -> bool:
+        """Cancel an admitted supervised worker invocation by request_id."""
+        with self._lock:
+            client = self._worker_invocations.get(request_id)
+        if client is None:
+            return False
+        return client.cancel(request_id)
 
     def _reserve_resources(self, request: ModuleRequest) -> ResourceLease | None:
         if not request.resource_limits:
@@ -274,11 +318,28 @@ class ModuleRuntime:
                     request_id=request.request_id, status="REJECTED",
                     error_code="module.handler_unavailable",
                 )
+            if isinstance(handler, WorkerIPCClient):
+                if request.request_id in self._worker_invocations:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="REJECTED",
+                        error_code="module.request_id_already_active",
+                    )
+                try:
+                    input_validation_error = _validate_module_input(request.inputs, operation)
+                except Exception:
+                    input_validation_error = "input schema validation failed"
+                if input_validation_error is not None:
+                    return ModuleResponse(
+                        request_id=request.request_id, status="REJECTED",
+                        error_code="module.input_validation_failed",
+                    )
+                self._worker_invocations[request.request_id] = handler
             self._active_invocations[request.module_id] = (
                 self._active_invocations.get(request.module_id, 0) + 1
             )
 
         lease: ResourceLease | None = None
+        lease_quarantined = False
         try:
             try:
                 lease = self._reserve_resources(request)
@@ -293,13 +354,77 @@ class ModuleRuntime:
                 if lease is not None else ()
             )
             try:
-                try:
-                    outputs = handler(request.inputs)
-                except Exception:
-                    return ModuleResponse(
-                        request_id=request.request_id, status="ERROR",
-                        error_code="module.handler_failed", warnings=warnings,
-                    )
+                if isinstance(handler, WorkerIPCClient):
+                    try:
+                        request_payload = {
+                            "module_id": request.module_id,
+                            "operation": request.operation,
+                            "schema_version": request.schema_version,
+                            "inputs": request.to_dict()["inputs"],
+                            "assumptions": list(request.assumptions),
+                            "source_refs": list(request.source_refs),
+                            "resource_limits": {
+                                name: request.resource_limits[name]
+                                for name in sorted(request.resource_limits)
+                            },
+                        }
+                        response_frame = handler.request(
+                            WorkerFrame("REQUEST", request.request_id, request_payload)
+                        )
+                        if set(response_frame.payload) != {"outputs"}:
+                            raise WorkerIPCError(
+                                "worker.response_contract_invalid",
+                                "worker response payload must contain only outputs",
+                            )
+                        outputs = response_frame.payload["outputs"]
+                        if not isinstance(outputs, Mapping):
+                            raise WorkerIPCError(
+                                "worker.response_contract_invalid",
+                                "worker outputs must be a JSON object",
+                            )
+                    except WorkerProtocolError:
+                        return ModuleResponse(
+                            request_id=request.request_id, status="REJECTED",
+                            error_code="module.worker_request_invalid", warnings=warnings,
+                        )
+                    except WorkerIPCError as error:
+                        if not error.termination_confirmed and lease is not None:
+                            self._resource_allocator.quarantine(
+                                lease.lease_id,
+                                "worker process-tree termination could not be confirmed",
+                            )
+                            lease_quarantined = True
+                            warnings = warnings + (
+                                "Resource lease quarantined because worker termination was not confirmed; operator inspection is required.",
+                            )
+                        if error.code == "worker.cancelled":
+                            return ModuleResponse(
+                                request_id=request.request_id, status="CANCELLED",
+                                warnings=warnings,
+                            )
+                        mapped = (
+                            "module.worker_termination_unconfirmed"
+                            if error.code == "worker.termination_unconfirmed"
+                            else "module.worker_timeout"
+                            if error.code == "worker.timeout"
+                            else "module.worker_request_invalid"
+                            if error.code == "worker.request_invalid"
+                            else "module.worker_response_invalid"
+                            if error.code.startswith("worker.response_")
+                            else "module.worker_failed"
+                        )
+                        return ModuleResponse(
+                            request_id=request.request_id, status="ERROR",
+                            error_code=mapped, warnings=warnings,
+                        )
+                else:
+                    try:
+                        outputs = handler(request.inputs)
+                    except Exception:
+                        return ModuleResponse(
+                            request_id=request.request_id, status="ERROR",
+                            error_code="module.handler_failed", warnings=warnings,
+                        )
                 try:
                     validation_error = _validate_module_output(outputs, operation)
                 except Exception:
@@ -320,8 +445,11 @@ class ModuleRuntime:
                         error_code="module.output_validation_failed", warnings=warnings,
                     )
             finally:
-                if lease is not None:
+                if lease is not None and not lease_quarantined:
                     self._resource_allocator.release(lease.lease_id)
         finally:
-            # Drain includes reservation failures, handler completion and lease release.
+            with self._lock:
+                if isinstance(handler, WorkerIPCClient):
+                    self._worker_invocations.pop(request.request_id, None)
+            # Drain includes reservation failures, handler completion and lease release/quarantine.
             self._finish_invocation(request.module_id)
