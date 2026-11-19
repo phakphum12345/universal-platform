@@ -407,6 +407,10 @@ class ModuleRuntime:
                             if error.code == "worker.termination_unconfirmed"
                             else "module.worker_timeout"
                             if error.code == "worker.timeout"
+                            else "module.worker_request_invalid"
+                            if error.code == "worker.request_invalid"
+                            else "module.worker_response_invalid"
+                            if error.code.startswith("worker.response_")
                             else "module.worker_failed"
                         )
                         return ModuleResponse(
