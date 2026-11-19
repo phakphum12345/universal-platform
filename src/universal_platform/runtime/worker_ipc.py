@@ -187,16 +187,18 @@ class WorkerIPCClient:
             or grace_seconds < 0
         ):
             raise ValueError("grace_seconds must be finite and non-negative")
-        with self._request_lock:
-            worker_id = self._active_requests.get(request_id)
-        if worker_id is None:
-            return False
         deadline = time.monotonic() + max(0.1, grace_seconds + 1.0)
         while True:
-            if self._supervisor.cancel(worker_id, grace_seconds=grace_seconds):
+            with self._request_lock:
+                worker_id = self._active_requests.get(request_id)
+            if worker_id is not None and self._supervisor.cancel(
+                worker_id, grace_seconds=grace_seconds
+            ):
                 return True
             if time.monotonic() >= deadline:
                 return False
+            # The host may request cancellation after ModuleRuntime admission
+            # but just before request() has registered its worker identity.
             time.sleep(0.01)
 
 
