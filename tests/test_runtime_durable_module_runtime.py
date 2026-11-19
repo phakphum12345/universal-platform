@@ -119,8 +119,11 @@ def test_module_runtime_requires_allocator_contract():
         ModuleRuntime(registry, resource_allocator=object())
 
 def test_worker_runtime_persists_quarantine_in_durable_allocator(tmp_path):
+    observed_worker_ids = []
+
     class UnconfirmedSupervisor:
         def run(self, spec):
+            observed_worker_ids.append(spec.worker_id)
             raise WorkerTerminationError(spec.worker_id)
 
         def cancel(self, request_id, *, grace_seconds=1.0):
@@ -180,6 +183,9 @@ def test_worker_runtime_persists_quarantine_in_durable_allocator(tmp_path):
     assert len(quarantined) == 1
     lease, reason = quarantined[0]
     assert lease.owner_id == request.request_id
+    assert lease.lease_kind == "supervised_worker"
+    assert lease.host_instance_id
+    assert lease.worker_id == observed_worker_ids[0]
     assert "termination was not confirmed" in reason
     assert allocator.active_leases() == (lease,)
     assert allocator.available()[0].value == 1
