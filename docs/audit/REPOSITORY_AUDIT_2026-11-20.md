@@ -20,7 +20,7 @@
 | Repository rulesets | Empty list | GitHub rulesets API returned `[]` |
 | Local working tree | UNKNOWN | This audit inspected GitHub refs; no local checkout was available to inspect |
 
-**Critical baseline distinction:** the active engineering implementation is on `docs/phase-0-complete-requirements`, not the default `main` branch. Do not treat a green PR against the development branch as proof that the product is promoted to `main`. A branch comparison/ahead-behind calculation was not run; that value is UNKNOWN.
+**Critical baseline distinction:** the active engineering implementation is on `docs/phase-0-complete-requirements`, not the default `main` branch. Do not treat a green PR against the development branch as proof that the product is promoted to `main`. The GitHub compare API reports the development branch is 878 commits ahead of `main` and 0 commits behind; `main` is an ancestor of the development baseline. Local working-tree state remains UNKNOWN.
 
 ## 2. Pull-request inventory
 
