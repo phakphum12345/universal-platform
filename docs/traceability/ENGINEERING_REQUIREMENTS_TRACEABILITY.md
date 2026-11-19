@@ -355,3 +355,14 @@ This section supersedes the 2026-11-12 runtime status above.
 | UEIC-002H | Versioned bounded Worker IPC framing | PR #245 open at head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped) | IMPLEMENTED / VERIFIED on PR branch; not integrated; review outcome UNKNOWN. |
 
 PR #243 remains open with unique process/thread-handle ownership and descendant/pipe acceptance refinements; reconcile its stale status edits without discarding those requirements. PR #245 formal review submissions and unresolved review threads were empty at last inspection; review outcome remains UNKNOWN. Overall runtime maturity remains PARTIAL.
+
+ 
+## Worker runtime integration checkpoint — 2026-11-20
+
+| Requirement | Evidence | Status |
+|---|---|---|
+| Versioned bounded IPC and supervised stdin | PR #245, #248 merge SHAs `8e3be919f04f92d173935af2724d15c0f4c8e081` / `549581f24ad289c21d272613467d6c5d89bff673` | IMPLEMENTED / VERIFIED / INTEGRATED |
+| One-shot request/response correlation | PR #252 merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`; post-merge checks PASS | IMPLEMENTED / VERIFIED / INTEGRATED |
+| ModuleRuntime host grant/schema dispatch, cancellation and lease quarantine | PR #254 merge SHA `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`; exact-head run #44606596004 PASS (Python 1,142 passed / 4 skipped, Windows supervisor, workflow-sanity); post-merge run #44607892946 pending | IMPLEMENTED / VERIFIED / INTEGRATED; merge verification pending |
+| Immutable cancellation identity | PR #254 uses WorkerInvocationHandle; regression covers startup race and stale handle after request ID reuse | IMPLEMENTED / VERIFIED on exact PR head |
+| Durable lease recovery and OS process identity reconciliation | WP-09G design contract only; no live lease journal or restart reconciliation | DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED |
