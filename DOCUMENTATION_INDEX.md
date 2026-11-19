@@ -5,7 +5,9 @@
 **Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
 
-**Current integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #235–#240 post-merge Python/workflow-sanity checks pass on exact merge SHAs. PR #241 remains open/unmerged; Windows CI passes but Job Object containment is not implemented. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
+**Current integration checkpoint (2026-11-20):** Development Branch at PR #254 base `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #243–#248 and PR #252 are merged. PR #244/#245/#247/#248 merge-SHA checks passed; PR #252 exact-head run #44595003293 passed (Python 1,125 passed / 4 skipped, workflow-sanity and Windows supervisor PASS), and all post-merge Python, workflow-sanity and Windows supervisor checks subsequently passed on the exact merge SHA. PR #251 WP-15B remains a DRAFT pending owner acceptance despite exact-head CI PASS. PR #254 WP-09F worker dispatch is open; exact-head CI is pending on the live PR head, so no PASS is claimed. See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), and [WP-09 Runtime Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md). Repository-wide status remains INCOMPLETE.
+
+**Historical integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #235–#240 post-merge Python/workflow-sanity checks pass on exact merge SHAs. PR #241 remains open/unmerged; Windows CI passes but Job Object containment is not implemented. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
 
 ## How to read documentation status
 
@@ -35,7 +37,9 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## Architecture and system contracts
 
 - [Platform Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md) — conceptual layers and boundaries.
-- [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates (design only).
+- [Policy-Gated Module Runtime](docs/architecture/POLICY_GATED_MODULE_RUNTIME.md) — host permission checks, trusted handlers, supervised worker dispatch, schema validation, cancellation, lease quarantine and explicit security limits.
+- [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — resource registry, log-driven recovery, process supervision, evidence integrity, adapter routing, quota leases and remaining durable-recovery/security gates.
+- [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates; bounded implementation merged in PR #244.
 - [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — function-by-function behavior, tests, failure paths, lease boundaries and remaining runtime integration work.
 - [Worker IPC Protocol](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md#worker-ipc-envelope-requirements) — versioned bounded worker frame contract and integration gates.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md) — engineering entities, revisions, units and provenance.

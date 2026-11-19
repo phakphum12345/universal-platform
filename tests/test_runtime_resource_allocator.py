@@ -108,3 +108,35 @@ def test_allocator_supports_explicit_release_only_lease():
     assert allocator.available(now=now + timedelta(days=30))[0].value == 0
     assert allocator.release(lease.lease_id)
     assert allocator.active_leases(now=now + timedelta(days=30)) == ()
+
+
+def test_quarantined_lease_is_retained_until_explicit_force_release():
+    allocator = ResourceAllocator((ResourceMetric("cpu.cores", 2, "cores"),))
+    now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+    lease = allocator.allocate(
+        "worker-unconfirmed",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        ttl_seconds=1,
+        now=now,
+    )
+    assert allocator.quarantine(lease.lease_id, "worker process-tree exit unconfirmed")
+    assert allocator.quarantined_leases() == (
+        (lease, "worker process-tree exit unconfirmed"),
+    )
+    # Quarantine is not reclaimed by ordinary TTL expiry.
+    assert allocator.active_leases(now=now + timedelta(days=30)) == (lease,)
+    assert allocator.available(now=now + timedelta(days=30))[0].value == 1
+    with pytest.raises(RuntimeError, match="force release"):
+        allocator.release(lease.lease_id)
+    assert allocator.release(lease.lease_id, force=True)
+    assert allocator.quarantined_leases() == ()
+    assert allocator.active_leases(now=now + timedelta(days=30)) == ()
+    assert allocator.available(now=now + timedelta(days=30))[0].value == 2
+
+
+def test_quarantine_requires_existing_lease_and_non_empty_reason():
+    allocator = make_allocator()
+    lease = allocator.allocate("worker", (ResourceMetric("cpu.cores", 1, "cores"),))
+    assert not allocator.quarantine("missing", "reason")
+    with pytest.raises(ValueError, match="reason"):
+        allocator.quarantine(lease.lease_id, " ")

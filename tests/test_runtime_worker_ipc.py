@@ -179,17 +179,18 @@ def test_worker_ipc_client_cancel_retries_across_worker_startup_race():
             return True
 
     client = WorkerIPCClient(DelayedSupervisor(), worker_spec())
+    handle = client.reserve("request-3")
     errors = []
 
     def invoke():
         try:
-            client.request(WorkerFrame("REQUEST", "request-3", {}))
+            client.request(WorkerFrame("REQUEST", "request-3", {}), handle=handle)
         except WorkerIPCError as error:
             errors.append(error)
 
     thread = threading.Thread(target=invoke)
     thread.start()
-    assert client.cancel("request-3", grace_seconds=0.2)
+    assert client.cancel(handle, grace_seconds=0.2)
     thread.join(timeout=2)
     assert not thread.is_alive()
     assert errors[0].code == "worker.cancelled"
@@ -197,8 +198,8 @@ def test_worker_ipc_client_cancel_retries_across_worker_startup_race():
 
 def test_worker_ipc_client_rejects_invalid_cancel_id(supervisor):
     client = WorkerIPCClient(supervisor, worker_spec())
-    with pytest.raises(ValueError, match="request_id"):
-        client.cancel("bad\x00id")
+    with pytest.raises(WorkerIPCError, match="request_id"):
+        client.reserve("bad\x00id")
 
 
 def test_worker_ipc_client_rejects_template_with_preloaded_stdin(supervisor):
@@ -254,11 +255,12 @@ def test_worker_ipc_client_rejects_duplicate_active_request_id_before_second_lau
             return True
 
     client = WorkerIPCClient(BlockingSupervisor(), worker_spec())
+    handle = client.reserve("same-request")
     errors = []
 
     def invoke():
         try:
-            client.request(WorkerFrame("REQUEST", "same-request", {}))
+            client.request(WorkerFrame("REQUEST", "same-request", {}), handle=handle)
         except WorkerIPCError as error:
             errors.append(error)
 
@@ -270,7 +272,7 @@ def test_worker_ipc_client_rejects_duplicate_active_request_id_before_second_lau
     assert duplicate.value.code == "worker.request_already_active"
     assert duplicate.value.termination_confirmed is True
     assert len(calls) == 1
-    assert client.cancel("same-request", grace_seconds=0.1)
+    assert client.cancel(handle, grace_seconds=0.1)
     thread.join(timeout=2)
     assert not thread.is_alive()
     assert errors[0].code == "worker.cancelled"
@@ -295,9 +297,10 @@ def test_worker_ipc_client_cancel_waits_for_request_registration():
             return True
 
     client = WorkerIPCClient(StartingSupervisor(), worker_spec())
+    handle = client.reserve("early-cancel")
     cancel_thread = threading.Thread(
         target=lambda: cancel_results.append(
-            client.cancel("early-cancel", grace_seconds=0.2)
+            client.cancel(handle, grace_seconds=0.2)
         )
     )
     cancel_thread.start()
@@ -305,7 +308,7 @@ def test_worker_ipc_client_cancel_waits_for_request_registration():
 
     def invoke():
         try:
-            client.request(WorkerFrame("REQUEST", "early-cancel", {}))
+            client.request(WorkerFrame("REQUEST", "early-cancel", {}), handle=handle)
         except WorkerIPCError as error:
             request_errors.append(error)
 
@@ -317,3 +320,73 @@ def test_worker_ipc_client_cancel_waits_for_request_registration():
     assert not request_thread.is_alive()
     assert cancel_results == [True]
     assert request_errors[0].code == "worker.cancelled"
+
+
+def test_stale_worker_handle_cannot_cancel_reused_request_id():
+    first_response = encode_frame(WorkerFrame("RESPONSE", "reused-id", {"generation": 1}))
+    second_response = encode_frame(WorkerFrame("RESPONSE", "reused-id", {"generation": 2}))
+    second_started = threading.Event()
+    release_second = threading.Event()
+    cancel_targets = []
+
+    class ReuseSupervisor:
+        def __init__(self):
+            self.calls = 0
+
+        def run(self, spec):
+            self.calls += 1
+            if self.calls == 1:
+                return worker_result(first_response)
+            second_started.set()
+            assert release_second.wait(timeout=2)
+            return worker_result(second_response)
+
+        def cancel(self, worker_id, *, grace_seconds=1.0):
+            cancel_targets.append(worker_id)
+            return False
+
+    client = WorkerIPCClient(ReuseSupervisor(), worker_spec())
+    first_handle = client.reserve("reused-id")
+    first = client.request(
+        WorkerFrame("REQUEST", "reused-id", {"generation": 1}),
+        handle=first_handle,
+    )
+    assert first.payload == {"generation": 1}
+
+    second_handle = client.reserve("reused-id")
+    second_errors = []
+
+    def run_second():
+        try:
+            client.request(
+                WorkerFrame("REQUEST", "reused-id", {"generation": 2}),
+                handle=second_handle,
+            )
+        except WorkerIPCError as error:
+            second_errors.append(error)
+
+    thread = threading.Thread(target=run_second)
+    thread.start()
+    assert second_started.wait(timeout=2)
+    assert first_handle.worker_id != second_handle.worker_id
+    assert not client.cancel(first_handle, grace_seconds=0)
+    assert cancel_targets
+    assert set(cancel_targets) == {first_handle.worker_id}
+    assert thread.is_alive()
+    release_second.set()
+    thread.join(timeout=2)
+    assert not thread.is_alive()
+    assert not second_errors
+
+
+def test_worker_ipc_client_cancel_returns_false_when_supervisor_raises():
+    class RaisingSupervisor:
+        def run(self, spec):
+            raise AssertionError("run is not part of this test")
+
+        def cancel(self, worker_id, *, grace_seconds=1.0):
+            raise RuntimeError("termination status unavailable")
+
+    client = WorkerIPCClient(RaisingSupervisor(), worker_spec())
+    handle = client.reserve("cancel-error")
+    assert client.cancel(handle, grace_seconds=0) is False

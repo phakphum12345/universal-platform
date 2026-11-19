@@ -2,14 +2,19 @@
 
 Status: Proposed sequence. No phase is declared complete.
 
-## Continuous execution control — 2026-11-19
+## Continuous execution control — 2026-11-20
 
-The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the execution ledger for the full repository. Continue the Phase 0–9 roadmap through dependency-ready work packages; do not restart or replace the roadmap for each PR. Track IMPLEMENTED, VERIFIED, INTEGRATED and ACCEPTED independently. Evidence outcomes are PASS, FAIL, SKIPPED and UNKNOWN; SKIPPED/UNKNOWN never count as PASS.
+The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) remains the execution ledger for the full repository. Continue dependency-ready work packages without restarting or replacing the roadmap for each PR. Track IMPLEMENTED, VERIFIED, INTEGRATED and ACCEPTED independently. Evidence outcomes are PASS, FAIL, SKIPPED and UNKNOWN; SKIPPED/UNKNOWN never count as PASS.
 
-Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 merge). Latest verified merged runtime increment: PR #244 at `b6e02988b009754fbf0ccdfc032c33174355e5c6`. PR #245 Worker IPC framing remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). It is verified on its PR branch but not integrated; formal review outcome is UNKNOWN. PR #243 remains OPEN with unique process/thread-handle ownership and descendant/pipe acceptance refinements; preserve those contract requirements while reconciling stale status edits against PR #244. Exact Development Branch HEAD and post-merge CI on PR #244's merge SHA must be independently confirmed during the next live audit.
+Current Development Branch base for PR #254: `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`. `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
 
-**Next dependency sequence:** finish and verify PR #245; reconcile PR #243; implement ModuleRuntime-to-supervised-worker dispatch; bind leases to confirmed process-tree termination; add cancellation/deadline/crash-recovery semantics; then continue CAD, Mechanics, Physics, Hardware, WP-15 Control Center and platform-wide acceptance. See the matrix for scope and exit criteria.
+Verified integration updates: PR #243–#245, #246–#248 and #252 are merged. PR #247 and #248 exact-head and merge-SHA checks passed. PR #252 exact-head run #44595003293 passed workflow-sanity, Windows process-supervisor and Python (1,125 passed / 4 skipped); on merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`, Python, workflow-sanity and Windows supervisor checks all completed PASS.
 
+WP-15: PR #247 inventory is merged; PR #251 contains the canonical WP-15B navigation/user-journey draft and exact-head CI passed, but the PR remains DRAFT pending owner acceptance. No UX decisions are approved by CI.
+
+Current runtime sequence: PR #254 implements ModuleRuntime dispatch through the merged WorkerIPCClient, host input/output schemas and grants, request cancellation, and resource-lease quarantine on unconfirmed termination. Exact-head CI is pending on the current PR head; no PASS is claimed until all required jobs complete. After this slice passes, continue WP-09G durable lease/job recovery and OS security enforcement. Existing RecoveryCoordinator/JSONL recovery evidence is not a durable ResourceAllocator lease store.
+
+Then continue the domain queue: CAD/B-rep and FeatureHistory, Mechanics/Kinematics, Physics/Simulation, Hardware/EDA/Drivers, WP-15C Control Center implementation only after owner acceptance of WP-15B, and repository-wide integration/acceptance. The repository remains INCOMPLETE; no completion percentage is asserted.
 
 ## Phase 0 — Requirements consolidation
 - Consolidate goals, constraints, terminology, and command expectations.
