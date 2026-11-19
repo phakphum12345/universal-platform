@@ -111,3 +111,17 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 ## 9. Explicit non-claims
 
 No general sandbox, privilege separation, token restriction, filesystem/network isolation, CPU/memory/I/O enforcement, dynamic module loading, durable leases, or production-safe untrusted plugin execution is claimed by this slice.
+
+## 10. WP-09E-B one-shot supervised Worker IPC client (candidate)
+
+Branch `feat/wp-09e-worker-ipc-client` adds a one-shot request/response client on top of the versioned frame codec and bounded supervised stdin transport.
+
+- The host supplies a trusted `WorkerSpec` template. Request data cannot choose executable, arguments, environment or working directory.
+- The client encodes one REQUEST frame and supplies it through the supervisor's bounded stdin pipe.
+- `WorkerResult.stdout_bytes` preserves the exact bounded response bytes while the existing decoded `stdout` field remains backward compatible.
+- The client rejects timeout, cancellation, nonzero exit, output truncation, missing/invalid response, trailing bytes, non-RESPONSE message types and request_id mismatch.
+- Cancellation delegates to the host supervisor by request_id and terminates the supervised process tree.
+- One request runs in one process; this is not a persistent worker channel. No in-band CANCEL frame is sent to a persistent process.
+- Tests cover a real one-shot Python worker round-trip and negative response/lifecycle cases.
+
+Dependencies: PR #245 (WorkerFrame protocol) and PR #248 (bounded stdin transport). Exact-head CI is pending. No ModuleRuntime dispatch, host permission/schema integration, resource lease coupling or durable recovery is claimed by this candidate.
