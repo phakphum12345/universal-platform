@@ -400,6 +400,7 @@ class PythonProcessSupervisor:
             entries = tuple(proc_root.iterdir())
         except OSError:
             return None
+        inaccessible = False
         for entry in entries:
             if not entry.name.isdigit():
                 continue
@@ -413,11 +414,16 @@ class PythonProcessSupervisor:
                     continue
                 state = fields[0]
                 group_id = int(fields[2])
+            except PermissionError:
+                inaccessible = True
+                continue
             except (OSError, ValueError, UnicodeError):
                 continue
             if group_id == process_group_id and state not in {"Z", "X"}:
                 return True
-        return False
+        # If /proc hides process metadata, do not mistake inaccessible live
+        # members for an empty group; fall back to the conservative killpg probe.
+        return None if inaccessible else False
 
     @staticmethod
     def _process_group_exists(process_group_id: int) -> bool:
