@@ -1525,3 +1525,15 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 ## WP-15 — Modern Unified Control Center UI
 
 Status: PLANNED. The scope, information architecture, settings governance, delivery sequence and acceptance gates are documented in [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md). No implementation or UI acceptance is claimed. The first implementation step is a source-backed inventory of existing UI routes, components, APIs and tests; no replacement shell should be built before that inventory.
+
+## Current execution checkpoint — 2026-11-19
+
+This section supersedes the 2026-11-12 runtime checkpoint for current PR state. Earlier exact-SHA evidence remains historical and is not reused as evidence for newer commits.
+
+- Latest verified merged runtime increment: PR #244, exact head `8832ad015df3540add0fb015d3429930d20d1518`, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head workflow #43283027429 passed the recorded required jobs. A workflow run on the exact merge SHA was not found in this audit; post-merge integration CI is UNKNOWN.
+- PR #243, `docs/wp-09-windows-job-object-contract`, remains OPEN at exact head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`. Its exact-head run #44552533763 completed successfully for workflow-sanity, Python tests and Windows process supervisor; the documentation-only marker step was SKIPPED. Formal review submissions and unresolved threads were empty. This contract branch overlaps documentation incorporated into PR #244 and must be reconciled before merge.
+- PR #245, `feat/wp-09d-versioned-worker-ipc`, remains OPEN. Its latest edited head is `6ee70eff28745043924c1ea21dc1e1eb20d0d867`. Workflow #44556587432 was IN_PROGRESS at this snapshot; no PASS is claimed for that head yet. The earlier head `ebc44eb92f1171f3c01ee079edadbb50d097250a` had run #44552657995 complete successfully, but that run predates the later documentation and test changes.
+- PR #245 adds a bounded version 1.0 length-prefixed UTF-8 JSON framing primitive and focused tests. It is transport-only: it does not launch a worker, dispatch ModuleRuntime calls, authorize requests, correlate cancellation with active work, or bind resource leases to process termination.
+- PR #245 documentation newline escaping was corrected in `DOCUMENTATION_INDEX.md`, `docs/execution/WORK_PACKAGE_STATUS.md`, `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` and `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md`. Added tests cover partial reads, partial writes, truncated body and invalid message-type types. These later edits require exact-head CI verification.
+- Overall WP-09 remains PARTIAL. Next implementation gate is ModuleRuntime dispatch through supervised worker processes, followed by host-owned deadlines/cancellation, lease retention until confirmed worker-tree termination, durable recovery and separate OS-isolation acceptance.
+- Repository-wide acceptance remains INCOMPLETE. See [Master Completion Matrix](../../MASTER_COMPLETION_MATRIX.md) for the cross-domain execution queue and acceptance boundaries.
