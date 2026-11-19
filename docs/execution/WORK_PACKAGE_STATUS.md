@@ -15,7 +15,7 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | PR #244 merged Windows Job Object containment; PR #245 merged versioned WorkerFrame framing; PR #248 merged bounded supervised stdin. One-shot WorkerIPCClient is now rebased onto the Development Branch in `feat/wp-09e-worker-ipc-client-rebased` and awaits exact-head CI/review. ModuleRuntime worker dispatch, host-side input/output schema and permission enforcement for worker calls, cancellation/deadline races, lease retention/quarantine tied to confirmed process-tree exit, durable recovery and OS security isolation remain open. |
+| 09 | Module runtime | PARTIAL | PR #244 Windows Job Objects, PR #245 versioned WorkerFrame and PR #248 bounded stdin are merged. WP-09E-B WorkerIPCClient is under exact-head validation in PR #252. WP-09F now adds a candidate ModuleRuntime-to-worker dispatch path with host-side input/output schema checks, host-grant admission, cancellation mapping and resource-lease quarantine on unconfirmed termination; exact-head CI is pending. Durable recovery, actual OS resource enforcement and security sandbox/isolation remain open. |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
@@ -410,3 +410,17 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - New tests cover header-aware frame limits, NUL IDs, duplicate active requests, process startup cancellation and zombie-only process-group detection.
 - Exact-head CI is pending; no local test execution is claimed.
 - Boundary: transport/client only. This does not yet dispatch ModuleRuntime operations, enforce worker input schemas or host grants, or provide durable lease recovery or an OS sandbox.
+
+
+## WP-09F — ModuleRuntime supervised worker dispatch (candidate, 2026-11-20)
+
+- Branch: feat/wp-09f-module-runtime-worker-dispatch-rebased, stacked on the rebased WorkerIPCClient candidate.
+- ModuleOperation now supports an optional versioned input schema. Worker-backed registrations require both input and output schemas; legacy trusted in-process handlers remain compatible.
+- ModuleRuntime requires host-granted permissions; request.permissions is never an authority grant.
+- Worker dispatch uses a host-registered WorkerIPCClient and host-configured WorkerSpec. Request payload contains operation identity, schema version, validated inputs, assumptions, source references and requested quota; it does not contain executable configuration or permissions.
+- Input schema validation occurs before process start; output schema validation occurs after the correlated RESPONSE.
+- ModuleRuntime cancellation maps request_id to the active WorkerIPCClient; the client maps it to the unique host-generated worker ID and retries through startup registration.
+- Resource leases are held across worker execution. Confirmed completion/timeout/cancellation releases the lease after supervisor cleanup; unconfirmed process-tree termination quarantines the lease and prevents ordinary TTL expiry or release. If quarantine metadata writing fails, ModuleRuntime still withholds release and reports the retained active lease for manual inspection. Explicit force release is required for recorded quarantines.
+- Tests cover successful worker dispatch, invalid input, schema version mismatch, missing schema, request self-grant rejection, invalid output, timeout, cancellation, unconfirmed termination quarantine and request ID validation.
+- Exact-head Python, workflow-sanity and Windows supervisor CI is pending. No local test execution is claimed.
+- Boundary: quota is still an in-memory admission ledger, not OS CPU/RAM/I/O enforcement. Quarantine is process-local and not durable. This is not a sandbox and does not permit arbitrary/untrusted plugin code.
