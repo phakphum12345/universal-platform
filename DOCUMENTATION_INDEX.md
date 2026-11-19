@@ -338,3 +338,4 @@ See [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_
 
 - [WP-15 — Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md) — information architecture, shared design system, functions/tools/modules, settings governance, diagnostics, accessibility, delivery sequence and acceptance gates. PLANNED; no implementation is claimed.
 - [WP-15A — Existing UI Inventory and Route Map](docs/ui/WP15A_UI_INVENTORY.md) — source-backed inventory of the current CAD workbench, local API routes, security boundaries, tests and Control Center gaps. Draft inventory; review pending.
+- [WP-15B — Control Center IA and User Journeys](docs/ui/WP15B_CONTROL_CENTER_IA.md) — proposed navigation, shell layout, permission-aware capability presentation, representative user journeys, route decision and acceptance gates. Draft; owner decisions pending.
