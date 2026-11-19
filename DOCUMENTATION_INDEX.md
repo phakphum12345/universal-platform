@@ -5,6 +5,8 @@
 **Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
 
+**Current integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #235–#240 post-merge Python/workflow-sanity checks pass on exact merge SHAs. PR #241 remains open/unmerged; Windows CI passes but Job Object containment is not implemented. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
+
 ## How to read documentation status
 
 - **IMPLEMENTED** — source code exists for the stated narrow behavior. This label does not imply a complete product capability.
@@ -326,3 +328,12 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## Latest CAD Boolean evidence reconciliation — 2026-11-08
 
 See [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) and [Requirements Traceability Matrix](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) for PR #200–#213 evidence and explicit remaining limits. The latest audit must distinguish bounded reference-case PASS from overall repository completion, which remains INCOMPLETE.
+
+
+## Current audit — 2026-11-12
+
+- [Repository Audit post-PR #240](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md) — exact integration/main SHAs, PR #235–#241 state, exact merge/head CI evidence, current runtime maturity, documentation reconciliation and next dependency-ready work.
+
+## Modern Control Center UI
+
+- [WP-15 — Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md) — information architecture, shared design system, functions/tools/modules, settings governance, diagnostics, accessibility, delivery sequence and acceptance gates. PLANNED; no implementation is claimed.
