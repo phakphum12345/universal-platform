@@ -74,3 +74,33 @@ def test_write_frame_flushes_and_round_trips():
 def test_rejects_non_finite_values_on_encode():
     with pytest.raises(WorkerProtocolError, match="finite"):
         encode_frame(WorkerFrame("RESPONSE", "r1", {"value": float("inf")}))
+
+
+def test_read_frame_handles_short_reads_and_truncated_body():
+    frame = WorkerFrame("REQUEST", "short-read", {"value": "payload"})
+    encoded = encode_frame(frame)
+
+    class ShortReadBuffer(io.BytesIO):
+        def read(self, size=-1):
+            return super().read(min(size, 2) if size >= 0 else size)
+
+    assert read_frame(ShortReadBuffer(encoded)) == frame
+    with pytest.raises(WorkerProtocolError, match="truncated"):
+        read_frame(io.BytesIO(encoded[:-1]))
+
+
+def test_write_frame_handles_partial_writes():
+    class ShortWriteBuffer(io.BytesIO):
+        def write(self, data):
+            return super().write(data[:3])
+
+    stream = ShortWriteBuffer()
+    frame = WorkerFrame("RESPONSE", "short-write", {"value": 42})
+    write_frame(stream, frame)
+    stream.seek(0)
+    assert read_frame(stream) == frame
+
+
+def test_worker_frame_rejects_non_string_message_type():
+    with pytest.raises(WorkerProtocolError, match="message type"):
+        WorkerFrame(["REQUEST"], "req-1", {})
