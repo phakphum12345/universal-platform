@@ -28,9 +28,9 @@ class WorkerFrame:
     protocol_version: str = PROTOCOL_VERSION
 
     def __post_init__(self) -> None:
-        if self.protocol_version != PROTOCOL_VERSION:
+        if not isinstance(self.protocol_version, str) or self.protocol_version != PROTOCOL_VERSION:
             raise WorkerProtocolError("unsupported protocol version")
-        if self.message_type not in _MESSAGE_TYPES:
+        if not isinstance(self.message_type, str) or self.message_type not in _MESSAGE_TYPES:
             raise WorkerProtocolError("unsupported message type")
         if not isinstance(self.request_id, str) or not self.request_id.strip() or len(self.request_id) > 128:
             raise WorkerProtocolError("request_id must be a non-empty string of at most 128 characters")
