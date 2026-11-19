@@ -170,6 +170,8 @@ class JsonlHashChainJournal:
         chain_started = False
         records: list[dict[str, object]] = []
         for raw in data.splitlines():
+            if len(raw) + 1 > self.max_record_bytes:
+                raise ValueError("journal record exceeds the configured byte limit")
             try:
                 envelope = json.loads(raw.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
