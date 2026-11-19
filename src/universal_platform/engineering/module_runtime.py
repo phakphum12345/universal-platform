@@ -400,14 +400,21 @@ class ModuleRuntime:
                         )
                     except WorkerIPCError as error:
                         if not error.termination_confirmed and lease is not None:
-                            self._resource_allocator.quarantine(
-                                lease.lease_id,
-                                "worker process-tree termination could not be confirmed",
-                            )
+                            # Retain the lease even if writing quarantine metadata
+                            # itself fails; ttl_seconds=None prevents silent expiry.
                             lease_quarantined = True
-                            warnings = warnings + (
-                                "Resource lease quarantined because worker termination was not confirmed; operator inspection is required.",
-                            )
+                            try:
+                                quarantine_recorded = self._resource_allocator.quarantine(
+                                    lease.lease_id,
+                                    "worker process-tree termination could not be confirmed",
+                                )
+                            except Exception:
+                                quarantine_recorded = False
+                            warnings = warnings + ((
+                                "Resource lease quarantined because worker termination was not confirmed; operator inspection is required."
+                                if quarantine_recorded else
+                                "Resource lease remains allocated because worker termination was not confirmed, but quarantine metadata could not be recorded; manual operator inspection is required."
+                            ),)
                         if error.code == "worker.cancelled":
                             return ModuleResponse(
                                 request_id=request.request_id, status="CANCELLED",
