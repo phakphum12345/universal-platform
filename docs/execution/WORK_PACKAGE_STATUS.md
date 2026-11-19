@@ -344,11 +344,39 @@ See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR
 
 ## Current integration reconciliation — 2026-11-12 (post-PR #240)
 
-- Latest verified integration baseline for this work: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
-- Existing supervisor behavior was re-read at this baseline: POSIX process-group cleanup exists; Windows uses `CREATE_NEW_PROCESS_GROUP` and terminates only the direct child.
-- PR #241 adds a Windows CI job only. Its exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` has CI PASS, but it has 0 formal review submissions; no Windows Job Object implementation is present.
-- Added `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` on branch `docs/wp-09-windows-job-object-contract`.
-- Contract requires race-free suspended process creation, Job Object assignment before the primary thread resumes, kill-on-close, fail-closed assignment errors, explicit handle ownership, descendant/pipe cleanup tests and no false sandbox/resource-enforcement claims.
-- This is a documentation/design gate only. Windows Job Object implementation, worker protocol, ModuleRuntime integration and lease retention until confirmed worker termination remain OPEN.
-- Validation of this documentation slice: PR #242 exact-head run `43278690197` completed successfully: `python-tests` PASS and `workflow-sanity` PASS; its documentation-only marker step was SKIPPED and is not counted as PASS. This run is not evidence for this new branch.
-- Status: DESIGN CONTRACT ADDED; implementation and this branch's CI are UNKNOWN/PENDING until a PR is opened and its exact-head workflows complete.
+This section supersedes earlier "latest" headers in this file. Historical checkpoints remain historical and are not current branch-state claims.
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Exact integration HEAD: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Exact `main` HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged and not targeted.
+- Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
+- Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
+- PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
+- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
+- Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
+- No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
+
+## WP-09C — Windows Job Object process-tree containment (implementation branch)
+
+- Branch: `feat/wp-09-windows-job-object`, based on the WP-09 contract branch head `1ff4a0515d560466171b4cca7218e1693352d589`.
+- Added `src/universal_platform/runtime/windows_job.py`: private kill-on-close Job Object; suspended-process assignment; primary-thread invariant check; process-tree termination; OS active-process query; bounded wait and handle cleanup.
+- Updated `src/universal_platform/runtime/supervisor.py`: Windows process creation uses CREATE_SUSPENDED, assignment precedes resume, timeout/cancel target the job, normal root exit waits for descendants, and cleanup raises if OS job emptiness cannot be confirmed.
+- Added Windows tests for root-exits-first grandchild cleanup, assignment failure without worker execution, timeout of descendants and cancellation of descendants; strengthened WorkerSpec container validation.
+- Added `windows-process-supervisor` CI job on `windows-latest` / Python 3.12.
+- Added `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md` with a function-by-function audit of WorkerSpec, WindowsJob, PythonProcessSupervisor, ModuleRuntime and ResourceAllocator.
+- Exact implementation head at audit preparation: pending final PR creation; no CI evidence yet. All Windows-only tests are skipped on non-Windows and are not counted as PASS.
+- Current maturity: IMPLEMENTATION AUTHORED / CI UNKNOWN. WP-09 remains PARTIAL.
+- Explicit remaining work: fault injection for API/handle/reader failures; remove or formally support private `Popen._handle`; versioned worker IPC; ModuleRuntime process dispatch; lease held until process tree empty; crash recovery; security review. No sandbox or OS resource enforcement is claimed.
+
+
+## WP-09D — Versioned Worker IPC framing (in progress, 2026-11-13)
+
+- Base: WP-09C merge `b6e02988b009754fbf0ccdfc032c33174355e5c6`.
+- Branch: `feat/wp-09d-versioned-worker-ipc`.
+- Added `src/universal_platform/runtime/worker_protocol.py`: version 1.0 envelope, length-prefixed UTF-8 JSON frames, strict message types, bounded request IDs and configurable maximum frame size.
+- Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial data.
+- Added `tests/test_runtime_worker_protocol.py` covering the framing and failure paths.
+- This slice is transport-only. ModuleRuntime dispatch, process launch/IPC wiring, host-side schema/permission checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
+- Exact-head CI and review: PENDING. WP-09 remains PARTIAL.
+
