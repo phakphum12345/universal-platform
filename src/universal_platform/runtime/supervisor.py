@@ -53,6 +53,15 @@ class WorkerSpec:
                 raise ValueError("environment entries must have valid names and NUL-free string values")
 
 
+class WorkerTerminationError(RuntimeError):
+    """Raised when the supervisor cannot confirm the worker tree has stopped."""
+
+    def __init__(self, worker_id: str, message: str = "worker process-tree termination could not be confirmed"):
+        self.worker_id = worker_id
+        self.termination_confirmed = False
+        super().__init__(message)
+
+
 @dataclass(frozen=True, slots=True)
 class WorkerResult:
     worker_id: str
@@ -63,6 +72,7 @@ class WorkerResult:
     stdout: str
     stderr: str
     output_truncated: bool
+    stdout_bytes: bytes = b""
 
 
 class PythonProcessSupervisor:
@@ -106,6 +116,7 @@ class PythonProcessSupervisor:
         self._lock = threading.RLock()
         self._processes: dict[str, subprocess.Popen[bytes]] = {}
         self._jobs: dict[str, WindowsJob] = {}
+        self._starting: set[str] = set()
         self._cancelled: set[str] = set()
 
     @property
@@ -134,46 +145,64 @@ class PythonProcessSupervisor:
             creation["start_new_session"] = True
         started = time.monotonic()
 
-        # Serialize ID reservation and process creation. On Windows the
-        # primary thread remains suspended until Job Object assignment succeeds.
+        # Reserve the ID under lock, but do not hold the registry lock while
+        # the OS creates the process. Cancellation can mark a starting worker.
         with self._lock:
-            if spec.worker_id in self._processes:
+            if spec.worker_id in self._processes or spec.worker_id in self._starting:
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
-            job = WindowsJob() if os.name == "nt" else None
-            process: subprocess.Popen[bytes] | None = None
-            try:
-                process = subprocess.Popen(
-                    command,
-                    cwd=str(cwd),
-                    env=dict(spec.environment),
-                    stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=False,
-                    close_fds=True,
-                    **creation,
-                )
+            self._starting.add(spec.worker_id)
+        job = None
+        process: subprocess.Popen[bytes] | None = None
+        try:
+            if os.name == "nt":
+                job = WindowsJob()
+            process = subprocess.Popen(
+                command,
+                cwd=str(cwd),
+                env=dict(spec.environment),
+                stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                close_fds=True,
+                **creation,
+            )
+            if job is not None:
+                job.assign_suspended(process)
+        except Exception as launch_error:
+            cleanup_error: Exception | None = None
+            if process is not None and process.poll() is None:
                 if job is not None:
-                    job.assign_suspended(process)
-            except Exception:
-                if process is not None and process.poll() is None:
                     try:
-                        if job is not None:
-                            job.terminate()
-                        try:
-                            process.kill()
-                        except OSError:
-                            if process.poll() is None:
-                                raise
-                    finally:
-                        process.wait()
-                if job is not None:
+                        job.terminate()
+                    except Exception as error:
+                        cleanup_error = error
+                try:
+                    process.kill()
+                except OSError as error:
+                    if process.poll() is None:
+                        cleanup_error = cleanup_error or error
+                try:
+                    process.wait(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+                except Exception as error:
+                    cleanup_error = cleanup_error or error
+            if job is not None:
+                try:
                     job.close()
-                raise
+                except Exception as error:
+                    cleanup_error = cleanup_error or error
+            with self._lock:
+                self._starting.discard(spec.worker_id)
+                self._cancelled.discard(spec.worker_id)
+            if cleanup_error is not None and process is not None:
+                raise WorkerTerminationError(spec.worker_id) from cleanup_error
+            raise launch_error
+        with self._lock:
             self._processes[spec.worker_id] = process
+            self._starting.discard(spec.worker_id)
             if job is not None:
                 self._jobs[spec.worker_id] = job
-            self._cancelled.discard(spec.worker_id)
+            cancel_requested_before_start = spec.worker_id in self._cancelled
 
         output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
         truncated = threading.Event()
@@ -222,11 +251,15 @@ class PythonProcessSupervisor:
                 reader.start()
             if writer is not None:
                 writer.start()
-            try:
-                process.wait(timeout=spec.timeout_seconds)
-            except subprocess.TimeoutExpired:
-                timed_out = True
+            if cancel_requested_before_start:
+                cancelled = True
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
+            else:
+                try:
+                    process.wait(timeout=spec.timeout_seconds)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
             if writer is not None:
                 writer.join(timeout=max(0.1, spec.terminate_grace_seconds + 0.1))
                 if writer.is_alive():
@@ -238,6 +271,10 @@ class PythonProcessSupervisor:
                 # A successful root process is not complete while descendants
                 # remain in its private Job Object. Stop the remaining tree.
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
+            elif not timed_out and job is None and self._process_group_exists(process.pid):
+                # POSIX descendants may close inherited pipes and outlive the
+                # root. A clean reader join alone is not proof of tree exit.
+                self._terminate_process(process, spec.terminate_grace_seconds)
 
             # A child may exit while a descendant keeps an inherited pipe
             # open. On POSIX, terminate the process group (not merely the
@@ -262,6 +299,7 @@ class PythonProcessSupervisor:
                 stdout=bytes(output["stdout"]).decode("utf-8", errors="replace"),
                 stderr=bytes(output["stderr"]).decode("utf-8", errors="replace"),
                 output_truncated=truncated.is_set(),
+                stdout_bytes=bytes(output["stdout"]),
             )
         finally:
             cleanup_error: Exception | None = None
@@ -296,18 +334,24 @@ class PythonProcessSupervisor:
                             job.close()
                         except Exception as error:
                             cleanup_error = cleanup_error or error
-                elif process.poll() is None:
-                    self._terminate_process(process, spec.terminate_grace_seconds)
+                elif process.poll() is None or (
+                    os.name != "nt" and self._process_group_exists(process.pid)
+                ):
+                    try:
+                        self._terminate_process(process, spec.terminate_grace_seconds)
+                    except Exception as error:
+                        cleanup_error = cleanup_error or error
             finally:
                 with self._lock:
                     self._processes.pop(spec.worker_id, None)
                     self._jobs.pop(spec.worker_id, None)
+                    self._starting.discard(spec.worker_id)
                     self._cancelled.discard(spec.worker_id)
                 for pipe in (process.stdin, process.stdout, process.stderr):
                     if pipe is not None and not pipe.closed:
                         pipe.close()
             if cleanup_error is not None:
-                raise cleanup_error
+                raise WorkerTerminationError(spec.worker_id) from cleanup_error
 
     def cancel(self, worker_id: str, *, grace_seconds: float = 1.0) -> bool:
         if isinstance(grace_seconds, bool) or not isinstance(grace_seconds, (int, float)) or not math.isfinite(grace_seconds) or grace_seconds < 0:
@@ -315,12 +359,47 @@ class PythonProcessSupervisor:
         with self._lock:
             process = self._processes.get(worker_id)
             if process is None:
+                if worker_id in self._starting:
+                    self._cancelled.add(worker_id)
+                    return True
                 return False
             job = self._jobs.get(worker_id)
+            if process.poll() is not None:
+                if job is not None:
+                    try:
+                        if job.active_processes == 0:
+                            return False
+                    except Exception:
+                        # If the OS cannot report Job state, fail toward
+                        # termination rather than assuming the tree is empty.
+                        pass
+                elif not self._process_group_exists(process.pid):
+                    return False
             self._cancelled.add(worker_id)
         # The leader may already have exited while descendants remain in its
-        # Job Object. Cancellation targets the whole registered worker tree.
+        # Job Object or POSIX process group. Cancellation targets the whole tree.
         self._terminate_process(process, grace_seconds, job)
+        return True
+
+    @staticmethod
+    def _process_group_exists(process_group_id: int) -> bool:
+        if os.name == "nt":
+            return False
+        try:
+            os.killpg(process_group_id, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
+
+    @classmethod
+    def _wait_process_group_empty(cls, process_group_id: int, timeout_seconds: float) -> bool:
+        deadline = time.monotonic() + max(0.0, timeout_seconds)
+        while cls._process_group_exists(process_group_id):
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(0.01)
         return True
 
     @staticmethod
@@ -360,3 +439,7 @@ class PythonProcessSupervisor:
             pass
         if process.poll() is None:
             process.wait()
+        if not PythonProcessSupervisor._wait_process_group_empty(
+            process.pid, max(1.0, grace_seconds + 1.0)
+        ):
+            raise RuntimeError("POSIX worker process group did not become empty")
