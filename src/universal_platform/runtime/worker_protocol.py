@@ -94,8 +94,9 @@ def _read_exact(stream: BinaryIO, size: int, *, allow_clean_eof: bool = False) -
 
 
 def read_frame(stream: BinaryIO, *, max_frame_bytes: int = DEFAULT_MAX_FRAME_BYTES) -> WorkerFrame | None:
-    if isinstance(max_frame_bytes, bool) or not isinstance(max_frame_bytes, int) or max_frame_bytes < 1:
-        raise ValueError("max_frame_bytes must be a positive integer")
+    if (isinstance(max_frame_bytes, bool) or not isinstance(max_frame_bytes, int)
+            or max_frame_bytes < 1 or max_frame_bytes > 0xFFFFFFFF):
+        raise ValueError("max_frame_bytes must be a positive uint32 integer")
     header = _read_exact(stream, _HEADER.size, allow_clean_eof=True)
     if header is None:
         return None
