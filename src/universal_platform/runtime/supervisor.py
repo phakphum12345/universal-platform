@@ -124,6 +124,11 @@ class PythonProcessSupervisor:
         with self._lock:
             return tuple(sorted(self._processes))
 
+    @property
+    def max_input_bytes(self) -> int:
+        """Maximum raw stdin buffer size accepted by this supervisor."""
+        return self._max_input_bytes
+
     def run(self, spec: WorkerSpec) -> WorkerResult:
         executable = Path(spec.executable).resolve(strict=True)
         if os.path.normcase(str(executable)) not in self._allowed:
@@ -382,6 +387,39 @@ class PythonProcessSupervisor:
         return True
 
     @staticmethod
+    def _linux_process_group_has_live_members(
+        process_group_id: int,
+        proc_root: Path = Path("/proc"),
+    ) -> bool | None:
+        """Return whether /proc reports a live member; Z/X entries are terminated.
+
+        None means /proc could not be inspected and the caller should fall back
+        to the portable killpg probe.
+        """
+        try:
+            entries = tuple(proc_root.iterdir())
+        except OSError:
+            return None
+        for entry in entries:
+            if not entry.name.isdigit():
+                continue
+            try:
+                stat = (entry / "stat").read_text(encoding="ascii")
+                closing = stat.rfind(")")
+                if closing < 0:
+                    continue
+                fields = stat[closing + 2:].split()
+                if len(fields) < 3:
+                    continue
+                state = fields[0]
+                group_id = int(fields[2])
+            except (OSError, ValueError, UnicodeError):
+                continue
+            if group_id == process_group_id and state not in {"Z", "X"}:
+                return True
+        return False
+
+    @staticmethod
     def _process_group_exists(process_group_id: int) -> bool:
         if os.name == "nt":
             return False
@@ -391,7 +429,10 @@ class PythonProcessSupervisor:
             return False
         except PermissionError:
             return True
-        return True
+        linux_live = PythonProcessSupervisor._linux_process_group_has_live_members(
+            process_group_id
+        )
+        return linux_live if linux_live is not None else True
 
     @classmethod
     def _wait_process_group_empty(cls, process_group_id: int, timeout_seconds: float) -> bool:
