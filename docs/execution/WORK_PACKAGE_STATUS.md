@@ -384,3 +384,26 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
 5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+## WP-09C — Windows Job Object containment (merged; 2026-11-19 reconciliation)
+
+- PR #244 is merged to `docs/phase-0-complete-requirements` at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact PR head `8832ad015df3540add0fb015d3429930d20d1518`.
+- Exact-head workflow #43283027429 passed its recorded required checks. A post-merge workflow run for the exact merge SHA was not found in this audit; post-merge CI is UNKNOWN.
+- Windows Job Objects now provide bounded process-tree containment for the trusted worker supervisor. This is not a general security sandbox and does not enforce CPU, memory, I/O or network quotas.
+- Remaining hardening includes API/handle/reader-startup fault injection, explicit process/thread handle ownership and removal or formal support for private `Popen._handle` usage.
+
+## WP-09D — Versioned Worker IPC framing (PR #245 open)
+
+- Branch: `feat/wp-09d-versioned-worker-ipc`; latest edited head at this snapshot: `6ee70eff28745043924c1ea21dc1e1eb20d0d867`.
+- Adds a version 1.0 envelope, 4-byte network-order length prefix, bounded UTF-8 JSON frames and REQUEST/RESPONSE/CANCEL message types.
+- Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial input.
+- Follow-up edits corrected literal escaped newlines in four documentation files and added partial-read/partial-write/truncated-body/message-type regression tests.
+- Workflow #44556587432 was IN_PROGRESS at this snapshot. The earlier run #44552657995 belongs to pre-edit head `ebc44eb92f1171f3c01ee079edadbb50d097250a` and cannot verify the latest edits.
+- Formal review submissions and unresolved review threads were empty at the last review inspection; review outcome remains UNKNOWN.
+- This is a transport primitive only. ModuleRuntime dispatch, process launch/IPC wiring, host-side permission/schema checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
+
+## WP-09D-DOC — PR #243 reconciliation
+
+- PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; its exact-head workflow #44552533763 completed successfully.
+- Its Windows containment contract overlaps documentation incorporated into PR #244. Do not merge the stale branch wholesale; compare and preserve only unique, still-correct documentation after review.
+
