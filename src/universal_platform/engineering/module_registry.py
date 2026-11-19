@@ -69,6 +69,7 @@ class ModuleOperation:
     required_permissions: tuple[str, ...] = ()
     execution_kind: str = "CALCULATION"
     output_schema: Mapping[str, Any] | None = None
+    input_schema: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         _require_identifier(self.operation_id, "operation_id")
@@ -81,6 +82,17 @@ class ModuleOperation:
             raise InvalidModelError(
                 "execution_kind must be ANALYSIS, CALCULATION, SIMULATION, or EXTERNAL_READ"
             )
+        if self.input_schema is not None:
+            if not isinstance(self.input_schema, Mapping):
+                raise InvalidModelError("input_schema must be a JSON Schema object")
+            frozen_input_schema = _freeze_schema(self.input_schema, "input_schema")
+            if frozen_input_schema.get("type") != "object":
+                raise InvalidModelError("module input schema root must have type object")
+            if frozen_input_schema.get("x-schema-version") != self.input_schema_version:
+                raise InvalidModelError(
+                    "input_schema x-schema-version must match input_schema_version"
+                )
+            object.__setattr__(self, "input_schema", frozen_input_schema)
         if self.output_schema is not None:
             if not isinstance(self.output_schema, Mapping):
                 raise InvalidModelError("output_schema must be a JSON Schema object")
@@ -101,13 +113,15 @@ class ModuleOperation:
             "required_permissions": sorted(self.required_permissions),
             "execution_kind": self.execution_kind,
         }
+        def thaw(value: Any) -> Any:
+            if isinstance(value, Mapping):
+                return {key: thaw(value[key]) for key in sorted(value)}
+            if isinstance(value, tuple):
+                return [thaw(item) for item in value]
+            return value
+        if self.input_schema is not None:
+            result["input_schema"] = thaw(self.input_schema)
         if self.output_schema is not None:
-            def thaw(value: Any) -> Any:
-                if isinstance(value, Mapping):
-                    return {key: thaw(value[key]) for key in sorted(value)}
-                if isinstance(value, tuple):
-                    return [thaw(item) for item in value]
-                return value
             result["output_schema"] = thaw(self.output_schema)
         return result
 
