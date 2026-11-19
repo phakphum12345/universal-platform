@@ -25,7 +25,7 @@
 
 **Lifecycle:** WP-09G-A is IMPLEMENTED / VERIFIED / INTEGRATED via PR #257. WP-09G-B is IMPLEMENTED / VERIFIED on PR #258 head, but NOT INTEGRATED / NOT ACCEPTED. WP-09G-C/D/E are NOT IMPLEMENTED. The repository remains INCOMPLETE.
 
-See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md). Local working-tree state and a complete main-vs-development ahead/behind comparison remain UNKNOWN.
+See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md). The development branch is 878 commits ahead of main and 0 commits behind; local working-tree state remains UNKNOWN.
 
 ---
 
