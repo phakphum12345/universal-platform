@@ -241,6 +241,10 @@ class DurableResourceAllocator:
         state, quarantined = self._replay(records)
         return tuple((state[key], quarantined[key]) for key in sorted(quarantined) if key in state)
 
+    def capacity(self) -> tuple[ResourceMetric, ...]:
+        """Return the immutable host-configured pool capacity."""
+        return tuple(self._capacity[key] for key in sorted(self._capacity))
+
     def available(self, *, now: datetime | None = None) -> tuple[ResourceMetric, ...]:
         leases = self.active_leases(now=now)
         used = {name: 0.0 for name in self._capacity}
