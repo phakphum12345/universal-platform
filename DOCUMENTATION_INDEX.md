@@ -37,7 +37,9 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 ## Architecture and system contracts
 
 - [Platform Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md) — conceptual layers and boundaries.
-- [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates (design only).
+- [Policy-Gated Module Runtime](docs/architecture/POLICY_GATED_MODULE_RUNTIME.md) — host permission checks, trusted handlers, supervised worker dispatch, schema validation, cancellation, lease quarantine and explicit security limits.
+- [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — resource registry, log-driven recovery, process supervision, evidence integrity, adapter routing, quota leases and remaining durable-recovery/security gates.
+- [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates; bounded implementation merged in PR #244.
 - [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — function-by-function behavior, tests, failure paths, lease boundaries and remaining runtime integration work.
 - [Worker IPC Protocol](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md#worker-ipc-envelope-requirements) — versioned bounded worker frame contract and integration gates.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md) — engineering entities, revisions, units and provenance.
