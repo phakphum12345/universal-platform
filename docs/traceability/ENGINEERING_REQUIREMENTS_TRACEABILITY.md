@@ -355,3 +355,19 @@ This section supersedes the 2026-11-12 runtime status above.
 | UEIC-002H | Versioned bounded Worker IPC framing | PR #245 open at head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped) | IMPLEMENTED / VERIFIED on PR branch; not integrated; review outcome UNKNOWN. |
 
 PR #243 remains open with unique process/thread-handle ownership and descendant/pipe acceptance refinements; reconcile its stale status edits without discarding those requirements. PR #245 formal review submissions and unresolved review threads were empty at last inspection; review outcome remains UNKNOWN. Overall runtime maturity remains PARTIAL.
+
+## WP-09 worker execution integration — current reconciliation 2026-11-20
+
+This section supersedes the earlier WP-09 checkpoint rows above; historical evidence remains pinned to its original SHAs.
+
+| Requirement ID | Requirement | Current evidence | Current maturity / evidence outcome |
+|---|---|---|---|
+| UEIC-002F | Contain Windows worker process trees | PR #244 merge `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact merge-SHA checks PASS. PR #243 contract refinements merged at `604ff9edc30081575a34f2d9a9af8bab35261c36`. | IMPLEMENTED / VERIFIED / INTEGRATED for bounded Job Object containment; not a sandbox. |
+| UEIC-002H | Versioned bounded Worker IPC framing | PR #245 merge `8e3be919f04f92d173935af2724d15c0f4c8e081`; merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED. |
+| UEIC-002I | Send bounded request bytes to supervised worker stdin | PR #248 merge `549581f24ad289c21d272613467d6c5d89bff673`; exact-head and merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED. |
+| UEIC-002J | Correlate one-shot Worker IPC requests/responses and confirm process-tree cleanup | PR #252 merge `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`; exact-head run #44595003293: 1,125 passed / 4 skipped; all merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED. |
+| UEIC-002K | Dispatch ModuleRuntime operations through supervised workers with input/output schemas, host grants, cancellation and lease quarantine | PR #254 open at exact head `5347a78f4ad3f0e2ae905f35158baa075252829d`; exact-head workflow #44597948944 QUEUED at this snapshot. | IMPLEMENTATION AUTHORED / CI UNKNOWN / NOT INTEGRATED. |
+| UEIC-002L | Retain a resource lease if quarantine metadata cannot be recorded | PR #254 adds a fail-closed regression: the active ttl=None lease is not released when quarantine recording throws. Exact-head CI QUEUED. | IMPLEMENTATION AUTHORED / CI UNKNOWN. |
+| UEIC-002M | Durable lease/job recovery and OS security enforcement | Existing recovery coordinator and append-only JSONL recovery evidence do not persist worker leases or reconcile orphan processes after restart; no accepted OS privilege/filesystem/network or CPU/memory/I/O enforcement boundary exists. | NOT IMPLEMENTED / UNKNOWN / NOT ACCEPTED. |
+
+Worker-backed dispatch remains trusted-host configured and one process per request. No persistent worker pool, untrusted plugin execution, general sandbox, durable lease store or actual OS resource enforcement is claimed.
