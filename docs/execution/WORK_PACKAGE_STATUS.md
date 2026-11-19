@@ -1,5 +1,40 @@
 # Work Package Status Register
 
+## Live work-package reconciliation — 2026-11-20
+
+**Current integration baseline:** `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e` (PR #257 merge).  
+**Default branch:** `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`; live GitHub settings report no branch protection and no rulesets.  
+**Repository status:** INCOMPLETE.
+
+| WP | Domain | Live status | Next acceptance work |
+|---|---|---|---|
+| 01 | Core architecture | PARTIAL | Identity/authorization, threat model, secure config, audit and cross-domain orchestration |
+| 02 | CAD geometry | PARTIAL | General topology/degeneracies, curved geometry and independent adversarial reference corpus |
+| 03 | CAD generator | PARTIAL | Recompute propagation, broader parametric features and neutral-format fidelity |
+| 04 | Mechanics | PARTIAL | General multi-loop/3D solving, singularity/redundancy and dynamics |
+| 05 | Physics | PARTIAL | Broader validated solvers, convergence, uncertainty and multiphysics coupling |
+| 06 | Hardware/electronics | PARTIAL | Datasheet-backed limits, circuit simulation and diagnostics |
+| 07 | Schematic/PCB | PARTIAL | Full library, PCB, exchange and validation workflows |
+| 08 | Drivers | PARTIAL | Integrate existing driver architecture safely; no physical I/O claim |
+| 09 | Module runtime | PARTIAL | WP-09A–F integrated; WP-09G-A integrated in PR #257; WP-09G-B candidate in PR #258 (1,160 passed / 4 skipped; exact-head workflow-sanity and Windows supervisor PASS) but not merged; WP-09G-C process identity, WP-09G-D restart reconciliation and WP-09G-E audited recovery remain open. Durable allocator is not yet wired into ModuleRuntime. |
+| 10 | System understanding | PARTIAL | Authorized discovery/indexing, provenance and governed adaptation E2E |
+| 11 | API/CLI/UI | PARTIAL | CAD workbench exists; shared Control Center and unified platform API/CLI remain open |
+| 12 | Platform integration | INCOMPLETE | Cross-domain workflows and end-to-end acceptance |
+| 13 | Security/quality | PARTIAL / UNKNOWN | Branch governance mismatch, sandbox/isolation, license/dependency review and full platform security evidence |
+| 14 | Final verification | FAIL / INCOMPLETE | Full repository acceptance gates not met |
+| 15 | Modern Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B remains DRAFT pending owner acceptance; WP-15C+ not started |
+
+### Current PR disposition
+
+| PR | Current disposition | Evidence |
+|---|---|---|
+| #254 | MERGED to development | Merge SHA `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`; exact-head and merge-SHA evidence recorded in Roadmap |
+| #256 | MERGED to development | Durable worker lease recovery design contract; merge SHA `fb47dc0a06b08bf63f1cfe318aa7a79065547b31` |
+| #257 | MERGED to development | Reusable JSONL journal; merge SHA/current HEAD `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; current-head workflow checks PASS |
+| #258 | OPEN; not merged | Head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; 1,160 passed / 4 skipped; all three required workflow jobs PASS; formal review submission absent |
+
+Historical work-package rows below are retained as a dated prior snapshot. They do not supersede this live reconciliation. See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+
 **Baseline integration branch:** `docs/phase-0-complete-requirements`  
 **Last verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge)  
 **Audit date:** 2026-11-12  
