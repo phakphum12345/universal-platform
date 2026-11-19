@@ -120,6 +120,5 @@ def test_durable_allocator_fails_closed_on_corrupt_journal(tmp_path):
     records[0] = json.dumps(damaged, sort_keys=True, separators=(",", ":"))
     path.write_text("\n".join(records) + "\n", encoding="utf-8")
 
-    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="corrupt")
     with pytest.raises(ValueError, match="hash-chain"):
-        restarted.allocate("new-worker", (ResourceMetric("cpu.cores", 1, "cores"),), ttl_seconds=None)
+        DurableResourceAllocator(tmp_path, capacity(), pool_id="corrupt")
