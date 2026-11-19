@@ -62,6 +62,20 @@ def _unique_object(pairs):
 _MAX_JSON_NESTING = 64
 
 
+def _validate_json_object_keys(value: object, *, depth: int = 0) -> None:
+    """Reject Python mapping keys that JSON would silently coerce to strings."""
+    if depth > _MAX_JSON_NESTING:
+        raise WorkerProtocolError("JSON nesting exceeds configured limit")
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if not isinstance(key, str):
+                raise WorkerProtocolError("JSON object keys must be strings")
+            _validate_json_object_keys(child, depth=depth + 1)
+    elif isinstance(value, (list, tuple)):
+        for child in value:
+            _validate_json_object_keys(child, depth=depth + 1)
+
+
 def _validate_json_nesting(document: str) -> None:
     """Reject excessive container nesting before invoking the JSON decoder."""
     depth = 0
@@ -99,6 +113,7 @@ def encode_frame(frame: WorkerFrame, *, max_frame_bytes: int = DEFAULT_MAX_FRAME
         "payload": frame.payload,
     }
     try:
+        _validate_json_object_keys(frame.payload)
         body = json.dumps(
             document, ensure_ascii=False, allow_nan=False,
             separators=(",", ":"), sort_keys=True,
