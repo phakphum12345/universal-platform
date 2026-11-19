@@ -233,7 +233,7 @@ def test_worker_ipc_client_rejects_oversized_frame_before_supervisor():
 
 def test_worker_frame_rejects_nul_request_id():
     with pytest.raises(WorkerProtocolError, match="NUL-free"):
-        WorkerFrame("REQUEST", "bad\\x00id", {})
+        WorkerFrame("REQUEST", "bad\x00id", {})
 
 
 def test_worker_ipc_client_rejects_duplicate_active_request_id_before_second_launch():
