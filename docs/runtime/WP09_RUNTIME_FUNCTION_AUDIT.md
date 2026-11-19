@@ -158,3 +158,30 @@ Branch feat/wp-09e-worker-ipc-client-rebased builds on those integrated dependen
 4. Bind request identity, cancellation, deadlines and ResourceAllocator lease lifecycle to the supervised worker; quarantine a lease if termination is unconfirmed.
 5. Add durable crash recovery and explicit supervisor shutdown semantics.
 6. Complete threat-model-driven OS isolation and platform acceptance before any untrusted-code execution claim.
+
+## 11. WP-09F ModuleRuntime supervised worker dispatch (candidate, 2026-11-20)
+
+Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the rebased one-shot WorkerIPCClient.
+
+- ModuleOperation supports an optional versioned input_schema. Existing trusted in-process handlers remain compatible; worker-backed registration requires both input and output schemas.
+- ModuleRuntime checks host-granted permissions before admission. Request.permissions remains descriptive and cannot grant authority.
+- Worker process configuration remains in the host-supplied WorkerSpec. The worker receives only the operation identity, schema version, validated inputs, assumptions, source references and quota request; it does not receive host permission grants or executable configuration.
+- Input schema validation occurs before process creation. The returned outputs are validated against the host-declared output schema after response correlation.
+- ModuleRuntime tracks request_id to WorkerIPCClient; WorkerIPCClient maps that request ID to a unique host-generated worker ID and supports cancellation during the request-registration/startup race.
+- Resource leases are retained through worker execution. Normal completion, timeout and cancellation release only after supervisor cleanup is confirmed. An unconfirmed termination quarantines the lease; ordinary release and TTL expiry cannot reclaim it. Explicit force release is required.
+- Tests cover success, input/schema rejection, permission denial, output validation, timeout, cancellation, unconfirmed termination and lease quarantine.
+
+### Current gaps and safety limits
+
+- Exact-head CI for this WP-09F candidate is pending; no tests are claimed PASS until the exact branch head is verified.
+- ResourceAllocator remains an in-memory quota ledger. It does not enforce OS CPU, memory, I/O, network or wall-clock limits.
+- Quarantine is process-local and not durable across host restart. Durable lease recovery and reconciliation remain open.
+- This is not a security sandbox. No arbitrary/untrusted plugin execution, privilege separation, filesystem/network isolation or production-safe plugin runtime is claimed.
+- Worker-backed dispatch is one process per request, not a persistent pool or long-lived bidirectional channel.
+
+### Next work
+
+1. Pass exact-head Python, workflow-sanity and Windows supervisor CI for WP-09E-B and WP-09F.
+2. Add fault-injection tests for lease allocation/release exceptions, concurrent revoke/cancel, worker response schema failures and supervisor shutdown.
+3. Design durable quarantine/recovery records and safe operator reconciliation.
+4. Define and validate a threat-model-backed OS isolation boundary before any untrusted-code capability.
