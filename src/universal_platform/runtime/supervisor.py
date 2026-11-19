@@ -209,7 +209,10 @@ class PythonProcessSupervisor:
                     input_errors.append(error)
                 finally:
                     if process.stdin is not None:
-                        process.stdin.close()
+                        try:
+                            process.stdin.close()
+                        except (OSError, ValueError) as error:
+                            input_errors.append(error)
 
             writer = threading.Thread(target=write_input, daemon=True)
         timed_out = False
@@ -261,6 +264,13 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
+            # Stop a blocked input writer before closing its process/Job handles.
+            # On POSIX this also kills descendants that may still hold the pipe.
+            if writer is not None and writer.is_alive():
+                try:
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
+                finally:
+                    writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
             # Keep registry cleanup unconditional even if the OS refuses to
             # confirm termination. Closing the Job Object remains kill-on-close.
             cleanup_error: Exception | None = None
@@ -287,11 +297,6 @@ class PythonProcessSupervisor:
                     self._processes.pop(spec.worker_id, None)
                     self._jobs.pop(spec.worker_id, None)
                     self._cancelled.discard(spec.worker_id)
-                if writer is not None and writer.is_alive():
-                    try:
-                        self._terminate_process(process, spec.terminate_grace_seconds, job)
-                    finally:
-                        writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
                 for pipe in (process.stdin, process.stdout, process.stderr):
                     if pipe is not None and not pipe.closed:
                         pipe.close()
