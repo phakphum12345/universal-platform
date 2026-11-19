@@ -12,7 +12,7 @@ Verified integration updates: PR #243–#245, #246–#248 and #252 are merged. P
 
 WP-15: PR #247 inventory is merged; PR #251 contains the canonical WP-15B navigation/user-journey draft and exact-head CI passed, but the PR remains DRAFT pending owner acceptance. No UX decisions are approved by CI.
 
-Current runtime sequence: PR #254 implements ModuleRuntime dispatch through the merged WorkerIPCClient, host input/output schemas and grants, request cancellation, and resource-lease quarantine on unconfirmed termination. Exact-head workflow #44597003270 was QUEUED at this snapshot; no PASS is claimed. After this slice passes, continue WP-09G durable lease/job recovery and OS security enforcement. Existing RecoveryCoordinator/JSONL recovery evidence is not a durable ResourceAllocator lease store.
+Current runtime sequence: PR #254 implements ModuleRuntime dispatch through the merged WorkerIPCClient, host input/output schemas and grants, request cancellation, and resource-lease quarantine on unconfirmed termination. Exact-head CI is pending on the current PR head; no PASS is claimed until all required jobs complete. After this slice passes, continue WP-09G durable lease/job recovery and OS security enforcement. Existing RecoveryCoordinator/JSONL recovery evidence is not a durable ResourceAllocator lease store.
 
 Then continue the domain queue: CAD/B-rep and FeatureHistory, Mechanics/Kinematics, Physics/Simulation, Hardware/EDA/Drivers, WP-15C Control Center implementation only after owner acceptance of WP-15B, and repository-wide integration/acceptance. The repository remains INCOMPLETE; no completion percentage is asserted.
 
