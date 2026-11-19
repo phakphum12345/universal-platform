@@ -2,6 +2,15 @@
 
 Status: Proposed sequence. No phase is declared complete.
 
+## Continuous execution control — 2026-11-19
+
+The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the execution ledger for the full repository. Continue the Phase 0–9 roadmap through dependency-ready work packages; do not restart or replace the roadmap for each PR. Track IMPLEMENTED, VERIFIED, INTEGRATED and ACCEPTED independently. Evidence outcomes are PASS, FAIL, SKIPPED and UNKNOWN; SKIPPED/UNKNOWN never count as PASS.
+
+Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 merge). Latest verified merged runtime increment: PR #244 at `b6e02988b009754fbf0ccdfc032c33174355e5c6`. PR #245 Worker IPC framing remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). It is verified on its PR branch but not integrated; formal review outcome is UNKNOWN. PR #243 remains OPEN with unique process/thread-handle ownership and descendant/pipe acceptance refinements; preserve those contract requirements while reconciling stale status edits against PR #244. Exact Development Branch HEAD and post-merge CI on PR #244's merge SHA must be independently confirmed during the next live audit.
+
+**Next dependency sequence:** finish and verify PR #245; reconcile PR #243; implement ModuleRuntime-to-supervised-worker dispatch; bind leases to confirmed process-tree termination; add cancellation/deadline/crash-recovery semantics; then continue CAD, Mechanics, Physics, Hardware, WP-15 Control Center and platform-wide acceptance. See the matrix for scope and exit criteria.
+
+
 ## Phase 0 — Requirements consolidation
 - Consolidate goals, constraints, terminology, and command expectations.
 - Separate confirmed requirements, proposals, assumptions, and open questions.

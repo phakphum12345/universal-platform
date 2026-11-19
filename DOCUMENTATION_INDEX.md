@@ -24,6 +24,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Vision](VISION.md) — product purpose and principles.
 - [Master Blueprint](MASTER_BLUEPRINT.md) — consolidated capability and architecture blueprint.
 - [Roadmap](ROADMAP.md) — phased delivery and evidence gates.
+- [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) — repository-wide workstream maturity, evidence boundaries, dependency queue and acceptance gates.
 - [Contributing](CONTRIBUTING.md) — contribution and change expectations.
 - [Decision Register](docs/decisions/DECISION_REGISTER.md) — confirmed decisions, proposals and open questions.
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md) — tool, solver and CAD technology evaluation policy.
@@ -36,6 +37,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Platform Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md) — conceptual layers and boundaries.
 - [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates (design only).
 - [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — function-by-function behavior, tests, failure paths, lease boundaries and remaining runtime integration work.
+- [Worker IPC Protocol](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md#worker-ipc-envelope-requirements) — versioned bounded worker frame contract and integration gates.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md) — engineering entities, revisions, units and provenance.
 - [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md) — module metadata, request/response and authority boundary.
 - [Frame-bound Coordinate Contract](docs/architecture/FRAMED_COORDINATE_CONTRACT.md) — framed points and displacement vectors.
@@ -142,7 +144,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [Repository Audit post-PR #207](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR207.md) — current pinned integration baseline, CAD Boolean progress, cross-domain inventory and repository-wide remaining gates.
 - [Repository Audit post-PR #213](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR213.md) — exact integration/main SHAs, PR #200–#213 bounded Boolean evidence, cross-domain inventory and remaining repository-wide gates.
-- [Repository Audit post-PR #215](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR215.md) — exact integration/main SHAs, PR #200–#215 Boolean evidence, isolated coplanar-contact regression and cross-domain remaining gates.\n- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
+- [Repository Audit post-PR #215](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR215.md) — exact integration/main SHAs, PR #200–#215 Boolean evidence, isolated coplanar-contact regression and cross-domain remaining gates.
+- [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md) — historical PR #78 baseline.
 - [Repository Audit post-PR #80](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md) — current integration SHA, PR #80 evidence, maturity boundaries and remaining gated work.
 
 - [Planar Geometry Precision Policy](docs/decisions/PLANAR_GEOMETRY_PRECISION_POLICY.md) — dependency-free exact-rational predicate policy for PlanarRegion v1.
