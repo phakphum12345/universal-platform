@@ -316,3 +316,17 @@ This section supersedes the 2026-11-12 runtime status above. Historical workflow
 | RT-09-10 | Versioned bounded worker IPC framing | PR #245 open at head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped) | IMPLEMENTED / VERIFIED on PR branch; NOT INTEGRATED; formal review outcome UNKNOWN. |
 
 PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; preserve its unique process/thread-handle ownership and descendant/pipe acceptance refinements while reconciling stale status edits. PR #245 has no formal review submissions or unresolved review threads at the last inspection; review outcome is UNKNOWN. WP-09 remains PARTIAL and repository-wide acceptance remains INCOMPLETE.
+
+ 
+## WP-09 current runtime traceability — 2026-11-20
+
+| Requirement | Current evidence | Maturity / status |
+|---|---|---|
+| Bounded worker stdin and request framing | PR #245 merge `8e3be919f04f92d173935af2724d15c0f4c8e081`; PR #248 merge `549581f24ad289c21d272613467d6c5d89bff673` | IMPLEMENTED / VERIFIED / INTEGRATED |
+| One-shot correlated WorkerIPCClient | PR #252 merge `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`; exact merge-SHA checks PASS | IMPLEMENTED / VERIFIED / INTEGRATED |
+| Host-authorized ModuleRuntime worker dispatch, schemas, cancellation and lease quarantine | PR #254 merge `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`; exact-head run #44606596004 Python 1,142 passed / 4 skipped, Windows supervisor PASS, workflow-sanity PASS; post-merge #44607892946 pending | IMPLEMENTED / VERIFIED / INTEGRATED; post-merge UNKNOWN/PENDING |
+| Durable live lease state, cross-process allocation and restart reconciliation | [WP-09G contract](../runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md); no durable allocator implementation | DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED |
+| OS identity-backed orphan process cleanup | Contract defines PID plus process-creation/start token and platform liveness adapter; implementation absent | NOT IMPLEMENTED / UNKNOWN |
+| Privilege, filesystem/network isolation and OS resource enforcement | Not provided by current trusted-worker supervisor | NOT IMPLEMENTED / NOT ACCEPTED |
+
+Skipped platform tests are not PASS. The existing JsonlRecoveryEvidenceStore is recovery-outcome evidence and is not evidence of durable live lease state.
