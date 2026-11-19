@@ -1,6 +1,6 @@
 # WP-15 — Modern Unified Control Center UI
 
-**Status:** PLANNED — requirements and acceptance design only. WP-15A source-backed inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md) and awaits review; no shared Control Center implementation or usability acceptance is claimed.  
+**Status:** PLANNED — requirements and acceptance design only. WP-15A inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); WP-15B IA and journeys are drafted in [WP15B_CONTROL_CENTER_IA.md](WP15B_CONTROL_CENTER_IA.md). Both await owner review/acceptance; no shared Control Center implementation or usability acceptance is claimed.  
 **Repository:** `phakphum12345/universal-platform`  
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
@@ -101,7 +101,7 @@ For every setting define owner/scope, type, default, validation, allowed values/
 ## 9. Delivery sequence and dependencies
 
 1. **WP-15A — UI inventory and user journeys:** source-backed inventory drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); review/accept the canonical CAD workbench, API route map, security boundaries, tests and capability gaps before building a shared shell. No duplicate shell.
-2. **WP-15B — IA and interaction specification:** validate navigation, task flows, roles/permissions, responsive behavior and information density using representative user journeys.
+2. **WP-15B — IA and interaction specification:** proposed in [WP15B_CONTROL_CENTER_IA.md](WP15B_CONTROL_CENTER_IA.md); owner must accept navigation, personas, entrypoint, responsive behavior, accessibility target and representative user journeys before WP-15C.
 3. **WP-15C — Design system and application shell:** tokens, accessible primitives, responsive shell, navigation, command palette and global status.
 4. **WP-15D — Overview and workspace:** health, recent activity, projects/tasks and evidence links.
 5. **WP-15E — Functions/tools/modules catalogue:** searchable real capability registry, details, authorization and lifecycle states.
@@ -131,7 +131,7 @@ Dependencies: API/CLI contracts, identity and authorization, module/function met
 
 ## 11. Evidence and status rules
 
-Current state: **PLANNED**. WP-15A inventory is drafted but review/acceptance is pending. This document and the inventory are planning/evidence artifacts, not evidence of an implemented Control Center. WP-15 must remain PARTIAL until each delivery slice has source, tests, exact-SHA CI, security review and user acceptance. SKIPPED, missing and UNKNOWN checks are never PASS.
+Current state: **PLANNED**. WP-15A inventory and WP-15B IA are drafted; owner review/acceptance is pending. These documents are planning/evidence artifacts, not evidence of an implemented Control Center. WP-15 must remain PARTIAL until each delivery slice has source, tests, exact-SHA CI, security review and user acceptance. SKIPPED, missing and UNKNOWN checks are never PASS.
 
 ## 12. Open decisions
 
