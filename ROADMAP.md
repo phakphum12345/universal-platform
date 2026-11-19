@@ -6,13 +6,13 @@ Status: Proposed sequence. No phase is declared complete.
 
 The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) remains the execution ledger for the full repository. Continue dependency-ready work packages without restarting or replacing the roadmap for each PR. Track IMPLEMENTED, VERIFIED, INTEGRATED and ACCEPTED independently. Evidence outcomes are PASS, FAIL, SKIPPED and UNKNOWN; SKIPPED/UNKNOWN never count as PASS.
 
-Current Development Branch base for PR #254: `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`. `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+Current Development Branch now includes PR #254 merge SHA f2ee9045c6316b2ff9026ea5196fedf1232f71a3. main remains unchanged; no promotion to main is implied.
 
 Verified integration updates: PR #243–#245, #246–#248 and #252 are merged. PR #247 and #248 exact-head and merge-SHA checks passed. PR #252 exact-head run #44595003293 passed workflow-sanity, Windows process-supervisor and Python (1,125 passed / 4 skipped); on merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`, Python, workflow-sanity and Windows supervisor checks all completed PASS.
 
 WP-15: PR #247 inventory is merged; PR #251 contains the canonical WP-15B navigation/user-journey draft and exact-head CI passed, but the PR remains DRAFT pending owner acceptance. No UX decisions are approved by CI.
 
-Current runtime sequence: PR #254 implements ModuleRuntime dispatch through the merged WorkerIPCClient, host input/output schemas and grants, request cancellation, and resource-lease quarantine on unconfirmed termination. Exact-head CI is pending on the current PR head; no PASS is claimed until all required jobs complete. After this slice passes, continue WP-09G durable lease/job recovery and OS security enforcement. Existing RecoveryCoordinator/JSONL recovery evidence is not a durable ResourceAllocator lease store.
+Current runtime sequence: PR #254 is merged and verified. Exact-head run #44606596004 and exact merge-SHA run #44607892946 both passed Python 1,142 passed / 4 skipped, Windows supervisor and workflow-sanity. WP-09F is IMPLEMENTED / VERIFIED / INTEGRATED. Continue WP-09G durable lease/job recovery: the existing RecoveryCoordinator/JSONL recovery evidence is not a durable ResourceAllocator lease store. See docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md; implementation is not yet accepted.
 
 Then continue the domain queue: CAD/B-rep and FeatureHistory, Mechanics/Kinematics, Physics/Simulation, Hardware/EDA/Drivers, WP-15C Control Center implementation only after owner acceptance of WP-15B, and repository-wide integration/acceptance. The repository remains INCOMPLETE; no completion percentage is asserted.
 
