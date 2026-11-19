@@ -27,6 +27,7 @@ class WorkerSpec:
     environment: Mapping[str, str] = field(default_factory=dict)
     timeout_seconds: float = 30.0
     terminate_grace_seconds: float = 1.0
+    stdin_data: bytes | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.worker_id, str) or not self.worker_id.strip() or "\x00" in self.worker_id:
@@ -41,6 +42,8 @@ class WorkerSpec:
             raise ValueError("working_directory must be a non-empty NUL-free string")
         if not isinstance(self.environment, Mapping):
             raise ValueError("environment must be a mapping of string names to values")
+        if self.stdin_data is not None and not isinstance(self.stdin_data, bytes):
+            raise ValueError("stdin_data must be bytes or None")
         if isinstance(self.timeout_seconds, bool) or not isinstance(self.timeout_seconds, (int, float)) or not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be finite and positive")
         if isinstance(self.terminate_grace_seconds, bool) or not isinstance(self.terminate_grace_seconds, (int, float)) or not math.isfinite(self.terminate_grace_seconds) or self.terminate_grace_seconds < 0:
@@ -79,6 +82,7 @@ class PythonProcessSupervisor:
         working_root: str | os.PathLike[str],
         allowed_executables: Sequence[str | os.PathLike[str]],
         max_output_bytes: int = 256_000,
+        max_input_bytes: int = 1_048_576,
     ) -> None:
         root = Path(working_root).resolve(strict=True)
         if not root.is_dir():
@@ -93,9 +97,12 @@ class PythonProcessSupervisor:
             allowed.add(os.path.normcase(str(executable)))
         if isinstance(max_output_bytes, bool) or not isinstance(max_output_bytes, int) or max_output_bytes < 1:
             raise ValueError("max_output_bytes must be positive")
+        if isinstance(max_input_bytes, bool) or not isinstance(max_input_bytes, int) or max_input_bytes < 1:
+            raise ValueError("max_input_bytes must be positive")
         self._root = root
         self._allowed = frozenset(allowed)
         self._max_output_bytes = max_output_bytes
+        self._max_input_bytes = max_input_bytes
         self._lock = threading.RLock()
         self._processes: dict[str, subprocess.Popen[bytes]] = {}
         self._jobs: dict[str, WindowsJob] = {}
@@ -112,6 +119,8 @@ class PythonProcessSupervisor:
             raise PermissionError("executable is not allow-listed")
         if not executable.is_file():
             raise ValueError("executable must be a file")
+        if spec.stdin_data is not None and memoryview(spec.stdin_data).nbytes > self._max_input_bytes:
+            raise ValueError("worker stdin payload exceeds max_input_bytes")
         cwd = (self._root / spec.working_directory).resolve(strict=True)
         if not cwd.is_dir() or not cwd.is_relative_to(self._root):
             raise PermissionError("working directory must remain beneath working_root")
@@ -137,7 +146,7 @@ class PythonProcessSupervisor:
                     command,
                     cwd=str(cwd),
                     env=dict(spec.environment),
-                    stdin=subprocess.DEVNULL,
+                    stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     shell=False,
@@ -184,16 +193,47 @@ class PythonProcessSupervisor:
             threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True),
             threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True),
         ]
+        input_errors: list[BaseException] = []
+        writer: threading.Thread | None = None
+        if spec.stdin_data is not None:
+            def write_input() -> None:
+                try:
+                    view = memoryview(spec.stdin_data)
+                    offset = 0
+                    while offset < len(view):
+                        written = os.write(process.stdin.fileno(), view[offset:])
+                        if written <= 0:
+                            raise BrokenPipeError("worker stdin closed before the request was written")
+                        offset += written
+                except (BrokenPipeError, OSError, ValueError) as error:
+                    input_errors.append(error)
+                finally:
+                    if process.stdin is not None:
+                        try:
+                            process.stdin.close()
+                        except (OSError, ValueError) as error:
+                            input_errors.append(error)
+
+            writer = threading.Thread(target=write_input, daemon=True)
         timed_out = False
         cancelled = False
         try:
             for reader in readers:
                 reader.start()
+            if writer is not None:
+                writer.start()
             try:
                 process.wait(timeout=spec.timeout_seconds)
             except subprocess.TimeoutExpired:
                 timed_out = True
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
+            if writer is not None:
+                writer.join(timeout=max(0.1, spec.terminate_grace_seconds + 0.1))
+                if writer.is_alive():
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
+                    writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+                    if writer.is_alive():
+                        raise RuntimeError("worker stdin writer did not stop after process termination")
             if not timed_out and job is not None and not job.wait_empty(spec.terminate_grace_seconds):
                 # A successful root process is not complete while descendants
                 # remain in its private Job Object. Stop the remaining tree.
@@ -211,6 +251,8 @@ class PythonProcessSupervisor:
 
             with self._lock:
                 cancelled = spec.worker_id in self._cancelled
+            if input_errors and not timed_out and not cancelled:
+                raise RuntimeError("worker stdin write failed") from input_errors[0]
             return WorkerResult(
                 worker_id=spec.worker_id,
                 exit_code=process.poll(),
@@ -222,9 +264,22 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
+            cleanup_error: Exception | None = None
+            # Stop a blocked input writer before closing its process/Job handles.
+            # On POSIX this also kills descendants that may still hold the pipe.
+            if writer is not None and writer.is_alive():
+                try:
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
+                except Exception as error:
+                    cleanup_error = error
+                finally:
+                    writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+                    if writer.is_alive():
+                        cleanup_error = cleanup_error or RuntimeError(
+                            "worker stdin writer did not stop during cleanup"
+                        )
             # Keep registry cleanup unconditional even if the OS refuses to
             # confirm termination. Closing the Job Object remains kill-on-close.
-            cleanup_error: Exception | None = None
             try:
                 if job is not None:
                     try:
@@ -235,7 +290,7 @@ class PythonProcessSupervisor:
                                 "Windows worker process tree did not become empty"
                             )
                     except Exception as error:
-                        cleanup_error = error
+                        cleanup_error = cleanup_error or error
                     finally:
                         try:
                             job.close()
@@ -248,8 +303,8 @@ class PythonProcessSupervisor:
                     self._processes.pop(spec.worker_id, None)
                     self._jobs.pop(spec.worker_id, None)
                     self._cancelled.discard(spec.worker_id)
-                for pipe in (process.stdout, process.stderr):
-                    if pipe is not None:
+                for pipe in (process.stdin, process.stdout, process.stderr):
+                    if pipe is not None and not pipe.closed:
                         pipe.close()
             if cleanup_error is not None:
                 raise cleanup_error

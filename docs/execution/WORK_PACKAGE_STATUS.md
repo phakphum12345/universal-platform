@@ -385,30 +385,14 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
 
-## Current Development Branch baseline — 2026-11-19
+## WP-09E-A — bounded one-shot worker stdin transport (candidate)
 
-- Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
-- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion is implied.
-
-## WP-09C — Windows Job Object containment (merged; 2026-11-19 reconciliation)
-
-- PR #244 is merged to `docs/phase-0-complete-requirements` at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact PR head `8832ad015df3540add0fb015d3429930d20d1518`.
-- Exact-head workflow #43283027429 passed its recorded required checks. A post-merge workflow run for the exact merge SHA was not found in this audit; post-merge CI is UNKNOWN.
-- Windows Job Objects now provide bounded process-tree containment for the trusted worker supervisor. This is not a general security sandbox and does not enforce CPU, memory, I/O or network quotas.
-- Remaining hardening includes API/handle/reader-startup fault injection, explicit process/thread handle ownership and removal or formal support for private `Popen._handle` usage.
-
-## WP-09D — Versioned Worker IPC framing (PR #245 open)
-
-- Branch: `feat/wp-09d-versioned-worker-ipc`; latest exact head: `2cd11f445f003f68a4478f1ceff04fd29c823b28`.
-- Adds a version 1.0 envelope, 4-byte network-order length prefix, bounded UTF-8 JSON frames and REQUEST/RESPONSE/CANCEL message types.
-- Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial input.
-- Follow-up edits corrected literal escaped newlines in four documentation files and added partial-read/partial-write/truncated-body/message-type regression tests.
-- Exact-head workflow #44562681272 passed workflow-sanity, Windows process supervisor and Python (1,096 passed, 4 skipped). Earlier run #44561148170 failed two negative tests because generic serialization error wrapping masked specific protocol errors; the latest head preserves WorkerProtocolError and passes those tests.
-- Formal review submissions and unresolved review threads were empty at the last review inspection; review outcome remains UNKNOWN.
-- This is a transport primitive only. ModuleRuntime dispatch, process launch/IPC wiring, host-side permission/schema checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
-
-## WP-09D-DOC — PR #243 reconciliation
-
-- PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; its exact-head workflow #44552533763 completed successfully.
-- Its unique contract refinements cover audited process/primary-thread handle ownership and revised descendant/pipe acceptance cases; PR #244 supplies the bounded implementation but does not make these design requirements redundant. Preserve the unique contract content and reconcile stale status/work-package edits; do not merge the branch wholesale.
-
+- Branch: `feat/wp-09e-bounded-worker-stdin`, based on the Development Branch baseline.
+- Extends `WorkerSpec` with optional immutable `stdin_data` bytes; existing callers retain `DEVNULL` behavior when it is omitted.
+- Adds host-configured `max_input_bytes` (default 1 MiB) and rejects oversized input before process creation.
+- Writes request bytes on a dedicated writer thread while stdout/stderr continue to drain concurrently; closes stdin to deliver EOF.
+- Timeout/cancellation and descendants holding inherited pipes must not strand the writer; cleanup terminates the supervised process tree and joins the writer.
+- A worker that closes stdin before the full request is written fails the invocation rather than silently reporting success.
+- Tests cover request echo/EOF, configured input cap, early worker exit, blocked writer timeout, invalid input type and invalid limit.
+- Latest exact-head workflow #44567047096 on `5a6a8ffe4cec8a3eba1a325a260875c16d53837b`: workflow-sanity PASS, Windows process supervisor PASS, Python 1,080 passed / 4 skipped. This run includes the bytes-subclass input-cap regression; verified on this PR branch, not yet integrated.
+- Boundary: this is a bounded one-shot input transport foundation only. It does not yet frame/decode WorkerFrame messages, validate a worker response, correlate requests, dispatch ModuleRuntime operations or bind leases to worker termination.
