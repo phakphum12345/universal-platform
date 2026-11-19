@@ -364,9 +364,20 @@ class PythonProcessSupervisor:
                     return True
                 return False
             job = self._jobs.get(worker_id)
+            if process.poll() is not None:
+                if job is not None:
+                    try:
+                        if job.active_processes == 0:
+                            return False
+                    except Exception:
+                        # If the OS cannot report Job state, fail toward
+                        # termination rather than assuming the tree is empty.
+                        pass
+                elif not self._process_group_exists(process.pid):
+                    return False
             self._cancelled.add(worker_id)
         # The leader may already have exited while descendants remain in its
-        # Job Object. Cancellation targets the whole registered worker tree.
+        # Job Object or POSIX process group. Cancellation targets the whole tree.
         self._terminate_process(process, grace_seconds, job)
         return True
 
