@@ -12,15 +12,37 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from threading import Condition, RLock
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
 from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
-from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
 from ..runtime.resources.models import ResourceMetric
+
+
+class ResourceLeasePort(Protocol):
+    """Minimal lease surface consumed by ModuleRuntime."""
+
+    lease_id: str
+
+
+@runtime_checkable
+class ResourceAllocatorPort(Protocol):
+    """Host-supplied quota allocator; implementations may be in-memory or durable."""
+
+    def capacity(self) -> tuple[ResourceMetric, ...]: ...
+    def allocate(
+        self,
+        owner_id: str,
+        requested: tuple[ResourceMetric, ...],
+        *,
+        ttl_seconds: float | None = 60.0,
+    ) -> ResourceLeasePort: ...
+    def quarantine(self, lease_id: str, reason: str) -> bool: ...
+    def release(self, lease_id: str) -> bool: ...
+
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 RegisteredHandler = ModuleHandler | WorkerIPCClient
@@ -165,12 +187,12 @@ class ModuleRuntime:
         self,
         registry: ModuleRegistry,
         *,
-        resource_allocator: ResourceAllocator | None = None,
+        resource_allocator: ResourceAllocatorPort | None = None,
     ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise InvalidModelError("registry must be a ModuleRegistry")
-        if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocator):
-            raise InvalidModelError("resource_allocator must be a ResourceAllocator")
+        if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocatorPort):
+            raise InvalidModelError("resource_allocator must implement the resource allocator contract")
         self._registry = registry
         self._resource_allocator = resource_allocator
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
@@ -277,7 +299,7 @@ class ModuleRuntime:
             # independently by the invocation's termination result.
             return False
 
-    def _reserve_resources(self, request: ModuleRequest) -> ResourceLease | None:
+    def _reserve_resources(self, request: ModuleRequest) -> ResourceLeasePort | None:
         if not request.resource_limits:
             return None
         allocator = self._resource_allocator
@@ -366,12 +388,12 @@ class ModuleRuntime:
                 self._active_invocations.get(request.module_id, 0) + 1
             )
 
-        lease: ResourceLease | None = None
+        lease: ResourceLeasePort | None = None
         lease_quarantined = False
         try:
             try:
                 lease = self._reserve_resources(request)
-            except (ValueError, RuntimeError, OverflowError):
+            except (ValueError, RuntimeError, OverflowError, OSError):
                 return ModuleResponse(
                     request_id=request.request_id, status="REJECTED",
                     error_code="module.resource_reservation_failed",
