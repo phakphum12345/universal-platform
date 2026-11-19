@@ -124,3 +124,37 @@ The Development Branch implementation baseline currently keeps `WorkerSpec` inpu
 - New tests cover echo/EOF, input bound, early exit, blocked-writer timeout, invalid type and invalid supervisor limit.
 
 This is not yet a complete IPC channel: no versioned frame decode/encode is invoked here, no RESPONSE is validated, no request correlation exists, and ModuleRuntime/resource leases are not yet integrated. Latest exact-head workflow #44567047096 on `5a6a8ffe4cec8a3eba1a325a260875c16d53837b` passed workflow-sanity and Windows process supervisor; Python 1,080 passed / 4 skipped. This includes the bytes-subclass input-cap regression and verifies the candidate on its PR branch only, not after integration.
+
+## 10. Current integration reconciliation — 2026-11-20
+
+The earlier sections describe historical WP-09 implementation slices. The current Development Branch has since integrated:
+- PR #244: Windows Job Object process-tree containment.
+- PR #245: versioned WorkerFrame protocol and bounded framing.
+- PR #248: bounded one-shot stdin transport with writer lifecycle and byte-accurate input-cap enforcement.
+
+### WP-09E-B rebased WorkerIPCClient candidate
+
+Branch feat/wp-09e-worker-ipc-client-rebased builds on those integrated dependencies.
+
+- WorkerIPCClient runs one host-configured WorkerSpec per REQUEST and accepts exactly one correlated RESPONSE frame.
+- The client accounts for the 4-byte framing header when constraining the frame body to the supervisor's configured max_input_bytes.
+- The supervisor exposes its input cap. Raw bounded stdout bytes are retained separately from the backward-compatible decoded stdout string.
+- Each invocation receives a host-generated unique worker ID. The protocol request ID is used only for response correlation and host cancellation mapping; duplicate active IDs are rejected before a second launch.
+- Request IDs are bounded and NUL-free. Cancellation validates its grace period and retries through the process-start race.
+- Linux process-group detection ignores zombie-only groups when /proc confirms no live group member; inaccessible process metadata falls back to a conservative liveness result.
+- A process-tree cleanup failure raises WorkerTerminationError; the client reports termination_confirmed=False. This is the required signal for the later ModuleRuntime layer to quarantine capacity safely.
+
+### Current validation boundary
+
+- Exact-head CI for this rebased candidate is pending. Do not reuse earlier PR #250 CI or PR #248 CI as evidence for this new head.
+- This candidate is still transport-only. It does not yet register worker-backed operations in ModuleRuntime, validate worker input schemas against module contracts, bind host grants to worker dispatch, retain/quarantine ResourceAllocator leases, or provide durable recovery.
+- The supervisor is process-tree management, not a security sandbox. No arbitrary/untrusted plugin code execution is supported or claimed.
+
+### Next WP-09 gates
+
+1. Pass exact-head Python, workflow-sanity and Windows supervisor CI for the rebased WorkerIPCClient.
+2. Review and integrate the one-shot client without treating skipped platform tests as passing.
+3. Implement ModuleRuntime worker dispatch using host-owned process configuration and validated input/output schemas.
+4. Bind request identity, cancellation, deadlines and ResourceAllocator lease lifecycle to the supervised worker; quarantine a lease if termination is unconfirmed.
+5. Add durable crash recovery and explicit supervisor shutdown semantics.
+6. Complete threat-model-driven OS isolation and platform acceptance before any untrusted-code execution claim.
