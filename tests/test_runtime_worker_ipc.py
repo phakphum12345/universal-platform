@@ -274,3 +274,46 @@ def test_worker_ipc_client_rejects_duplicate_active_request_id_before_second_lau
     thread.join(timeout=2)
     assert not thread.is_alive()
     assert errors[0].code == "worker.cancelled"
+
+
+def test_worker_ipc_client_cancel_waits_for_request_registration():
+    started = threading.Event()
+    release = threading.Event()
+    cancel_results = []
+    request_errors = []
+
+    class StartingSupervisor:
+        def run(self, spec):
+            started.set()
+            assert release.wait(timeout=2)
+            return worker_result(cancelled=True, exit_code=-9)
+
+        def cancel(self, worker_id, *, grace_seconds=1.0):
+            if not started.is_set():
+                return False
+            release.set()
+            return True
+
+    client = WorkerIPCClient(StartingSupervisor(), worker_spec())
+    cancel_thread = threading.Thread(
+        target=lambda: cancel_results.append(
+            client.cancel("early-cancel", grace_seconds=0.2)
+        )
+    )
+    cancel_thread.start()
+    time.sleep(0.05)
+
+    def invoke():
+        try:
+            client.request(WorkerFrame("REQUEST", "early-cancel", {}))
+        except WorkerIPCError as error:
+            request_errors.append(error)
+
+    request_thread = threading.Thread(target=invoke)
+    request_thread.start()
+    cancel_thread.join(timeout=2)
+    request_thread.join(timeout=2)
+    assert not cancel_thread.is_alive()
+    assert not request_thread.is_alive()
+    assert cancel_results == [True]
+    assert request_errors[0].code == "worker.cancelled"
