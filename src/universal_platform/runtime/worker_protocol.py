@@ -59,6 +59,35 @@ def _unique_object(pairs):
     return result
 
 
+_MAX_JSON_NESTING = 64
+
+
+def _validate_json_nesting(document: str) -> None:
+    """Reject excessive container nesting before invoking the JSON decoder."""
+    depth = 0
+    in_string = False
+    escaped = False
+    for character in document:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > _MAX_JSON_NESTING:
+                raise WorkerProtocolError("JSON nesting exceeds configured limit")
+        elif character in "]}":
+            depth -= 1
+            if depth < 0:
+                raise WorkerProtocolError("invalid JSON container nesting")
+
+
 def encode_frame(frame: WorkerFrame, *, max_frame_bytes: int = DEFAULT_MAX_FRAME_BYTES) -> bytes:
     if (isinstance(max_frame_bytes, bool) or not isinstance(max_frame_bytes, int)
             or max_frame_bytes < 1 or max_frame_bytes > 0xFFFFFFFF):
@@ -105,8 +134,10 @@ def read_frame(stream: BinaryIO, *, max_frame_bytes: int = DEFAULT_MAX_FRAME_BYT
         raise WorkerProtocolError("frame length is zero or exceeds configured size limit")
     body = _read_exact(stream, length)
     try:
+        text_body = body.decode("utf-8")
+        _validate_json_nesting(text_body)
         document = json.loads(
-            body.decode("utf-8"),
+            text_body,
             object_pairs_hook=_unique_object,
             parse_constant=_reject_constant,
             parse_float=_parse_finite_float,
