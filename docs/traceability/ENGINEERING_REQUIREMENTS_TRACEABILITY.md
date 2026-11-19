@@ -337,3 +337,21 @@ This section supersedes the earlier historical status rows above for the bounded
 | UEIC-002E | Supervise trusted workers and clean up POSIX descendants | PR #240; merge `c3d9800ebb46caff38bf18c13142e218ee2c6c63`; post-merge run [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) | PASS for bounded POSIX cleanup; Windows Job Objects and ModuleRuntime integration remain open. |
 
 The PR #241 Windows CI candidate remains OPEN and unmerged. Its exact-head CI passed, but it adds only a Windows test job. Windows descendant cleanup is not implemented; formal review outcome is UNKNOWN because the automated review did not complete. See [WP-09 runtime requirements](REQUIREMENTS_TRACEABILITY_MATRIX.md#wp-09-runtime-requirements--reconciliation-2026-11-12) and [the current repository audit](../audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
+
+## Module Runtime and Physics integration traceability — current reconciliation 2026-11-19
+
+This section supersedes the 2026-11-12 runtime status above.
+
+| Requirement ID | Requirement | Implementation / evidence | Status and boundary |
+|---|---|---|---|
+| UEIC-002A | Invoke explicitly registered handlers only after host-side permission checks | PR #235; `module_runtime.py`; post-merge run #42835668819 | PASS for trusted in-process callables; no request self-grant and no arbitrary code loading. |
+| UEIC-003A | Expose bounded built-in Physics solvers through the module contract | PR #236; post-merge run #42879990889 | PASS for three analytical solver adapters only; not multiphysics, FEA or CFD. |
+| UEIC-002B | Reserve and release host-configured invocation quota | PR #237; post-merge run #43031735312 | PASS for in-memory process-local reservation; no OS resource enforcement or durable lease. |
+| UEIC-002C | Enforce versioned module output schemas | PR #238; post-merge run #43136866268 | PASS for supported schema subset; unsupported keywords fail closed. |
+| UEIC-002D | Drain in-flight invocations when revoking a grant | PR #239; post-merge run #43138398688 | PASS for synchronous in-process lifecycle; stuck handlers can block revocation. |
+| UEIC-002E | Supervise trusted workers and clean up POSIX descendants | PR #240; post-merge run #43168374709 | PASS for bounded POSIX cleanup and registry cleanup. |
+| UEIC-002F | Contain Windows worker process trees | PR #244 merge `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head run #43283027429 passed recorded required jobs | IMPLEMENTED / VERIFIED / INTEGRATED for bounded Job Object containment; post-merge CI is UNKNOWN in this audit. Not a general sandbox. |
+| UEIC-002G | Route ModuleRuntime invocations through supervised workers and retain leases until worker termination | No merged integration; PR #245 contains transport framing only | FAIL / NOT IMPLEMENTED on the Development Branch. |
+| UEIC-002H | Versioned bounded Worker IPC framing | PR #245 open, latest edited head `6ee70eff28745043924c1ea21dc1e1eb20d0d867`, workflow #44556587432 in progress at snapshot | IMPLEMENTED on PR branch only; latest-head verification pending; not integrated. |
+
+PR #243 is open but potentially superseded by the contract and implementation incorporated into PR #244. PR #245 formal review submissions and unresolved review threads were empty at last inspection; review outcome remains UNKNOWN. Overall runtime maturity remains PARTIAL.
