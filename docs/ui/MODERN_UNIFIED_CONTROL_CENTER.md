@@ -101,7 +101,7 @@ For every setting define owner/scope, type, default, validation, allowed values/
 ## 9. Delivery sequence and dependencies
 
 1. **WP-15A — UI inventory and user journeys:** source-backed inventory drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); review/accept the canonical CAD workbench, API route map, security boundaries, tests and capability gaps before building a shared shell. No duplicate shell.
-2. **WP-15B — IA and interaction specification:** proposed in [WP15B_CONTROL_CENTER_IA.md](WP15B_CONTROL_CENTER_IA.md); owner must accept navigation, personas, entrypoint, responsive behavior, accessibility target and representative user journeys before WP-15C.
+2. **WP-15B — IA and interaction specification:** proposed in [WP-15B_NAVIGATION_USER_JOURNEYS.md](WP-15B_NAVIGATION_USER_JOURNEYS.md); this remains a draft until the owner accepts navigation, personas, entrypoint, responsive behavior, accessibility target and representative user journeys before WP-15C.
 3. **WP-15C — Design system and application shell:** tokens, accessible primitives, responsive shell, navigation, command palette and global status.
 4. **WP-15D — Overview and workspace:** health, recent activity, projects/tasks and evidence links.
 5. **WP-15E — Functions/tools/modules catalogue:** searchable real capability registry, details, authorization and lifecycle states.
