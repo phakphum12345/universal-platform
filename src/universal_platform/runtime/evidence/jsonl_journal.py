@@ -133,7 +133,10 @@ class JsonlHashChainJournal:
     def _open_journal_file(self) -> int:
         if self.path.is_symlink():
             raise ValueError("journal file must not be a symbolic link")
-        flags = os.O_RDWR | os.O_APPEND | os.O_CREAT
+        # Do not use O_APPEND here: Windows CRT descriptors can force
+        # subsequent reads to EOF. The journal lock serializes writers, and
+        # append() explicitly seeks to EOF before writing.
+        flags = os.O_RDWR | os.O_CREAT
         flags |= getattr(os, "O_NOFOLLOW", 0)
         descriptor = os.open(self.path, flags, 0o600)
         if not stat.S_ISREG(os.fstat(descriptor).st_mode):
