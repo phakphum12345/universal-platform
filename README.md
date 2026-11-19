@@ -20,7 +20,6 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 ## Initial implementation (active development)
 
 
-
 The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
 Current modules include:
