@@ -352,10 +352,14 @@ class ModuleRuntime:
                     )
                 try:
                     worker_handle = handler.reserve(request.request_id)
-                except WorkerIPCError:
+                except WorkerIPCError as error:
                     return ModuleResponse(
                         request_id=request.request_id, status="REJECTED",
-                        error_code="module.request_id_already_active",
+                        error_code=(
+                            "module.worker_request_invalid"
+                            if error.code == "worker.request_invalid"
+                            else "module.request_id_already_active"
+                        ),
                     )
                 self._worker_invocations[request.request_id] = (handler, worker_handle)
             self._active_invocations[request.module_id] = (
