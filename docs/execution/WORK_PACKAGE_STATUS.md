@@ -394,5 +394,5 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Timeout/cancellation and descendants holding inherited pipes must not strand the writer; cleanup terminates the supervised process tree and joins the writer.
 - A worker that closes stdin before the full request is written fails the invocation rather than silently reporting success.
 - Tests cover request echo/EOF, configured input cap, early worker exit, blocked writer timeout, invalid input type and invalid limit.
-- Exact-head CI and Windows runner evidence: pending.
+- Exact-head workflow #44564111567 on `a090652fcadcb2f1e0ebff4bf395edf1038ff113`: workflow-sanity PASS, Windows process supervisor PASS, Python 1,079 passed / 4 skipped. Verified on this PR branch; not yet integrated.
 - Boundary: this is a bounded one-shot input transport foundation only. It does not yet frame/decode WorkerFrame messages, validate a worker response, correlate requests, dispatch ModuleRuntime operations or bind leases to worker termination.
