@@ -66,6 +66,28 @@ def test_supervisor_timeout_unblocks_writer_when_worker_does_not_read_stdin(supe
     assert supervisor.active_worker_ids == ()
 
 
+def test_supervisor_cancellation_unblocks_writer_when_worker_does_not_read_stdin(supervisor):
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "blocked-stdin-cancel", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        stdin_data=b"x" * 1_000_000,
+        timeout_seconds=10,
+        terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "blocked-stdin-cancel" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "blocked-stdin-cancel" in supervisor.active_worker_ids
+    assert supervisor.cancel("blocked-stdin-cancel", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
 def test_supervisor_reports_early_worker_stdin_close(supervisor):
     with pytest.raises(RuntimeError, match="stdin write failed"):
         supervisor.run(WorkerSpec(
