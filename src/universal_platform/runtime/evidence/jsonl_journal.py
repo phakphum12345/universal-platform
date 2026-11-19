@@ -103,7 +103,7 @@ class JsonlHashChainJournal:
                     envelope["previous_hash"] = previous_hash
                     canonical = self._canonical_json(envelope)
                     envelope["record_hash"] = hashlib.sha256(canonical).hexdigest()
-                    payload = self._canonical_json(envelope) + b"\\n"
+                    payload = self._canonical_json(envelope) + b"\n"
                     if len(payload) > self.max_record_bytes:
                         raise ValueError("journal record exceeds the configured byte limit")
                     payloads.append(payload)
