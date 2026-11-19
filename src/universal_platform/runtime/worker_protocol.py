@@ -33,8 +33,15 @@ class WorkerFrame:
             raise WorkerProtocolError("unsupported protocol version")
         if not isinstance(self.message_type, str) or self.message_type not in _MESSAGE_TYPES:
             raise WorkerProtocolError("unsupported message type")
-        if not isinstance(self.request_id, str) or not self.request_id.strip() or len(self.request_id) > 128:
-            raise WorkerProtocolError("request_id must be a non-empty string of at most 128 characters")
+        if (
+            not isinstance(self.request_id, str)
+            or not self.request_id.strip()
+            or len(self.request_id) > 128
+            or "\x00" in self.request_id
+        ):
+            raise WorkerProtocolError(
+                "request_id must be a non-empty NUL-free string of at most 128 characters"
+            )
         if not isinstance(self.payload, dict):
             raise WorkerProtocolError("payload must be a JSON object")
 

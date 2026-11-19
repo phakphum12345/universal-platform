@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import subprocess
 import sys
 import threading
 import time
@@ -18,6 +19,34 @@ def supervisor(tmp_path):
     )
 
 
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process-group behavior")
+def test_supervisor_terminates_descendants_that_close_all_pipes(tmp_path):
+    marker = tmp_path / "descendant-survived"
+    child_code = (
+        "import time; from pathlib import Path; time.sleep(0.6); "
+        f"Path({str(marker)!r}).write_text('survived', encoding='utf-8')"
+    )
+    parent_code = (
+        "import subprocess, sys; "
+        "subprocess.Popen([sys.executable, '-c', "
+        f"{child_code!r}], stdin=subprocess.DEVNULL, "
+        "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)"
+    )
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_output_bytes=64,
+    )
+    result = instance.run(WorkerSpec(
+        "detached-pipes-child", sys.executable, ("-c", parent_code),
+        working_directory=".", timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert instance.active_worker_ids == ()
+
+
 def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
     result = supervisor.run(WorkerSpec(
         "worker-a", sys.executable, ("-c", "print('worker-ok')"),
@@ -26,6 +55,35 @@ def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
     assert result.exit_code == 0
     assert result.stdout.strip() == "worker-ok"
     assert not result.timed_out and not result.cancelled
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_cancellation_during_process_start_is_not_lost(supervisor, monkeypatch):
+    starting = threading.Event()
+    continue_start = threading.Event()
+    original_popen = subprocess.Popen
+
+    def delayed_popen(*args, **kwargs):
+        starting.set()
+        assert continue_start.wait(timeout=3)
+        return original_popen(*args, **kwargs)
+
+    monkeypatch.setattr("universal_platform.runtime.supervisor.subprocess.Popen", delayed_popen)
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "cancel-during-start", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        timeout_seconds=10,
+        terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    assert starting.wait(timeout=3)
+    assert supervisor.cancel("cancel-during-start", grace_seconds=0.1)
+    continue_start.set()
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
     assert supervisor.active_worker_ids == ()
 
 
@@ -195,6 +253,20 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("bad-path", sys.executable + chr(0), arguments=())
     with pytest.raises(ValueError, match="stdin_data must be bytes"):
         WorkerSpec("bad-stdin", sys.executable, stdin_data="not bytes")
+
+
+def test_process_group_probe_ignores_zombie_only_groups(tmp_path):
+    from universal_platform.runtime.supervisor import PythonProcessSupervisor
+
+    zombie = tmp_path / "100"
+    zombie.mkdir()
+    (zombie / "stat").write_text("100 (worker child) Z 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is False
+
+    live = tmp_path / "101"
+    live.mkdir()
+    (live / "stat").write_text("101 (worker child) S 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is True
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")

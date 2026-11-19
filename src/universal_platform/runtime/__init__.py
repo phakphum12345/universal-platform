@@ -1,7 +1,8 @@
 """Governed runtime resource management, supervision and recovery primitives."""
 from .resources.registry import ResourceRegistry
 from .resources.models import ResourceRecord, ResourceState
-from .supervisor import PythonProcessSupervisor, WorkerResult, WorkerSpec
+from .supervisor import PythonProcessSupervisor, WorkerResult, WorkerSpec, WorkerTerminationError
+from .worker_ipc import WorkerIPCClient, WorkerIPCError
 
 __all__ = [
     "PythonProcessSupervisor",
@@ -9,5 +10,8 @@ __all__ = [
     "ResourceRegistry",
     "ResourceState",
     "WorkerResult",
+    "WorkerTerminationError",
+    "WorkerIPCClient",
+    "WorkerIPCError",
     "WorkerSpec",
 ]
