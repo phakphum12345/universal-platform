@@ -46,7 +46,7 @@ The executable, arguments, working directory and environment remain in the host-
 
 ModuleRuntime reserves an immutable `WorkerInvocationHandle` before dispatch and binds request_id to that exact handle. Cancellation retries only against the captured host-generated worker ID through process startup; stale handles cannot terminate a later request even if request_id is reused. A ResourceAllocator lease is held across worker execution and released only after supervisor cleanup is confirmed. If termination is unconfirmed, the lease is quarantined; if quarantine metadata writing itself fails, the active lease is still not released and manual inspection is required.
 
-This integration is still trusted-worker execution under the host account. Resource quotas are admission accounting only; quarantine is process-local and not durable; there is no persistent worker pool, crash replay, privilege separation, filesystem/network isolation or general-purpose sandbox. Exact-head CI for the current WP-09F integration must pass before it is treated as verified.
+WP-09F is integrated and verified by PR #254 (merge SHA f2ee9045c6316b2ff9026ea5196fedf1232f71a3; exact-head and post-merge checks PASS). This remains trusted-worker execution under the host account. Resource quotas are admission accounting only; quarantine is process-local and not durable; there is no persistent worker pool, crash replay, privilege separation, filesystem/network isolation or general-purpose sandbox. WP-09G durable lease recovery is design-only; see ../runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md.
 ## Adapter replacement and repair safeguards
 
 - A repair executor must explicitly declare sandboxed = True; the coordinator does not itself create the sandbox.
