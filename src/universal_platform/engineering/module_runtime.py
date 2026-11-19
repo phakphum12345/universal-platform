@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from math import isfinite
 from threading import Condition, RLock
 from typing import Any, Protocol, runtime_checkable
+from uuid import uuid4
 
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
@@ -195,6 +196,7 @@ class ModuleRuntime:
             raise InvalidModelError("resource_allocator must implement the resource allocator contract")
         self._registry = registry
         self._resource_allocator = resource_allocator
+        self._host_instance_id = uuid4().hex
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
         self._worker_invocations: dict[str, tuple[WorkerIPCClient, WorkerInvocationHandle]] = {}
         self._grants: dict[str, frozenset[str]] = {}
@@ -299,7 +301,12 @@ class ModuleRuntime:
             # independently by the invocation's termination result.
             return False
 
-    def _reserve_resources(self, request: ModuleRequest) -> ResourceLeasePort | None:
+    def _reserve_resources(
+        self,
+        request: ModuleRequest,
+        *,
+        worker_handle: WorkerInvocationHandle | None = None,
+    ) -> ResourceLeasePort | None:
         if not request.resource_limits:
             return None
         allocator = self._resource_allocator
@@ -312,6 +319,15 @@ class ModuleRuntime:
             if capacity is None:
                 raise ValueError(f"resource metric is not host-configured: {name}")
             requested.append(ResourceMetric(name, amount, capacity.unit))
+        if worker_handle is not None:
+            allocate_worker = getattr(allocator, "allocate_worker", None)
+            if callable(allocate_worker):
+                return allocate_worker(
+                    request.request_id,
+                    tuple(requested),
+                    host_instance_id=self._host_instance_id,
+                    worker_id=worker_handle.worker_id,
+                )
         return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
@@ -344,6 +360,7 @@ class ModuleRuntime:
         key = (request.module_id, request.operation)
         required = frozenset(operation.required_permissions)
         # Admission and active-count increment share revoke's condition lock.
+        worker_handle: WorkerInvocationHandle | None = None
         with self._condition:
             granted = self._grants.get(request.module_id, frozenset())
             handler = self._handlers.get(key)
@@ -392,7 +409,7 @@ class ModuleRuntime:
         lease_quarantined = False
         try:
             try:
-                lease = self._reserve_resources(request)
+                lease = self._reserve_resources(request, worker_handle=worker_handle)
             except (ValueError, RuntimeError, OverflowError, OSError):
                 return ModuleResponse(
                     request_id=request.request_id, status="REJECTED",
