@@ -2,30 +2,32 @@
 
 ## Live repository reconciliation — 2026-11-20
 
-**This live snapshot supersedes the historical snapshot immediately below.** It does not erase historical evidence.
+**This live snapshot supersedes the historical snapshot immediately below.** Historical rows and evidence are retained.
 
-- Development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e` (PR #257 merge).
-- Default `main`: `96e75010716226037893155b9fd4b13410fb0d6f`; GitHub reports `protected=false` and no repository rulesets. The prior "Protected branch" label is not verified and conflicts with live settings.
-- Development tree: 450 entries; main tree: 10 entries. The application source/tests are on the development branch, not main.
-- PR inventory #1–#258: 239 merged, 18 closed without merge, 1 open.
-- PR #258 is OPEN, clean/mergeable, base development @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`, head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`. Exact-head workflow-sanity, Python and Windows supervisor checks PASS; Python reported 1,160 passed / 4 skipped. No formal review submission or unresolved inline thread was returned. It is not merged and has no post-merge evidence.
-- PR #257 integrates the reusable JSONL journal at the current development HEAD. PR #258 implements/validates the durable allocator candidate only on its PR head; it does not yet provide OS identity hand-off, orphan-process reconciliation, operator force release, or ModuleRuntime integration.
+- Development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Development is 878 commits ahead of `main` and 0 behind; `main` is an ancestor of development.
+- GitHub reports both `main` and development as `protected=false`; required status-check enforcement is off; repository rulesets are empty.
+- PR inventory #1–#260: 239 merged, 18 closed without merge, 3 open (#258, #259, #260).
+- PR #258: open, clean, exact head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; workflow-sanity, Python and Windows supervisor PASS; Python 1,160 passed / 4 skipped. The four Linux skips are Windows-only supervisor tests and are exercised by the Windows job. No formal review submission; not merged.
+- PR #259: documentation/audit reconciliation PR; latest head is being revalidated after the final baseline corrections.
+- PR #260: stacked on #258; ModuleRuntime durable allocator integration, supervised worker identity persistence, quarantine replay and multiprocess contention tests. Windows job PASS (21 process-supervisor tests, 20 journal tests, 14 durable allocator/integration/multiprocess tests; platform-specific skips remain SKIPPED). Full Python suite pending.
+- WP-09G-A is integrated via #257. WP-09G-B is implemented on #258 and integration is a candidate on #260; not yet accepted. WP-09G-C/D/E remain open.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
-| Core architecture / governance | PARTIAL | Resolve main branch protection mismatch; identity/authorization, threat model, secure config, audit, migration/rollback and platform orchestration |
+| Core architecture / governance | PARTIAL | Enable branch protection for main and development; identity/authorization, threat model, secure config, audit, migration/rollback and platform orchestration |
 | CAD / Geometry / Generator | PARTIAL | General topology/degeneracies, curved geometry, recompute propagation, broader interoperability and independent adversarial references |
 | Mechanics / Kinematics | PARTIAL | General multi-loop/3D configuration solving, singularity/redundancy analysis, dynamics and contact |
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
 | Hardware / EDA / Drivers | PARTIAL | Datasheet constraints, full PCB/library workflows, circuit simulation, BOM/footprint validation and safe device diagnostics |
 | Interchange | PARTIAL | Broader versioned profiles, fidelity/loss accounting and independent round-trip validation |
-| Runtime / Worker | PARTIAL | WP-09G-B not integrated; WP-09G-C/D/E process identity, restart reconciliation and audited recovery remain open; no general sandbox or OS resource enforcement |
+| Runtime / Worker | PARTIAL | WP-09G-B dependency chain not merged; WP-09G-C/D/E process identity, restart reconciliation and audited recovery remain open; no general sandbox or OS resource enforcement |
 | Unified Control Center | PLANNED / DESIGN | WP-15B owner acceptance; WP-15C shared shell and subsequent real-backend work not started |
 | Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
 
-**Lifecycle:** WP-09G-A is IMPLEMENTED / VERIFIED / INTEGRATED via PR #257. WP-09G-B is IMPLEMENTED / VERIFIED on PR #258 head, but NOT INTEGRATED / NOT ACCEPTED. WP-09G-C/D/E are NOT IMPLEMENTED. The repository remains INCOMPLETE.
+**Lifecycle:** WP-09G-A is IMPLEMENTED / VERIFIED / INTEGRATED via PR #257. WP-09G-B is IMPLEMENTED / VERIFIED on PR #258 head; ModuleRuntime integration is a candidate on PR #260; neither is ACCEPTED until reviewed and merged with post-merge evidence. WP-09G-C/D/E are NOT IMPLEMENTED. The repository remains INCOMPLETE.
 
-See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md). The development branch is 878 commits ahead of main and 0 commits behind; local working-tree state remains UNKNOWN.
+See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
 
 ---
 
@@ -33,7 +35,7 @@ See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and
 **Repository:** `phakphum12345/universal-platform`  
 **Development branch:** `docs/phase-0-complete-requirements`  
 **Exact Development Branch HEAD at PR #246 base:** `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge)  
-**Protected branch:** `main`  
+**Historical protected-branch claim:** `main` (not true at the 2026-11-20 live API check; protection is disabled).  
 **Latest verified merged runtime increment:** PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`  
 **Main HEAD observed during this audit:** `96e75010716226037893155b9fd4b13410fb0d6f`
 
