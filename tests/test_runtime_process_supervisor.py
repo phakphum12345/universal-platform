@@ -29,6 +29,54 @@ def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
     assert supervisor.active_worker_ids == ()
 
 
+def test_supervisor_sends_bounded_stdin_and_closes_pipe(supervisor):
+    payload = b'{"protocol_version":"1.0","message_type":"REQUEST"}'
+    result = supervisor.run(WorkerSpec(
+        "stdin-echo", sys.executable,
+        ("-c", "import sys; sys.stdout.buffer.write(sys.stdin.buffer.read())"),
+        stdin_data=payload,
+        timeout_seconds=3,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.encode("utf-8") == payload
+    assert not result.timed_out
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_rejects_stdin_payload_over_configured_limit(tmp_path):
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_input_bytes=3,
+    )
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        instance.run(WorkerSpec("oversized-input", sys.executable, stdin_data=b"four"))
+
+
+def test_supervisor_timeout_unblocks_writer_when_worker_does_not_read_stdin(supervisor):
+    result = supervisor.run(WorkerSpec(
+        "blocked-stdin-timeout", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        stdin_data=b"x" * 1_000_000,
+        timeout_seconds=0.1,
+        terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_reports_early_worker_stdin_close(supervisor):
+    with pytest.raises(RuntimeError, match="stdin write failed"):
+        supervisor.run(WorkerSpec(
+            "early-stdin-close", sys.executable,
+            ("-c", "pass"),
+            stdin_data=b"x" * 1_000_000,
+            timeout_seconds=3,
+        ))
+    assert supervisor.active_worker_ids == ()
+
+
 def test_supervisor_rejects_unlisted_executable(supervisor, tmp_path):
     other = tmp_path / "not-allowed"
     other.write_text("not executable", encoding="utf-8")
@@ -84,6 +132,8 @@ def test_supervisor_supports_external_cancellation(supervisor):
 def test_supervisor_rejects_invalid_limits(tmp_path):
     with pytest.raises(ValueError, match="max_output_bytes"):
         PythonProcessSupervisor(working_root=tmp_path, allowed_executables=(sys.executable,), max_output_bytes=0)
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        PythonProcessSupervisor(working_root=tmp_path, allowed_executables=(sys.executable,), max_input_bytes=0)
     with pytest.raises(ValueError, match="timeout_seconds"):
         WorkerSpec("invalid", sys.executable, timeout_seconds=0)
 
@@ -103,6 +153,8 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("bad-env-container", sys.executable, environment=[])
     with pytest.raises(ValueError, match="NUL-free"):
         WorkerSpec("bad-path", sys.executable + chr(0), arguments=())
+    with pytest.raises(ValueError, match="stdin_data must be bytes"):
+        WorkerSpec("bad-stdin", sys.executable, stdin_data="not bytes")
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
