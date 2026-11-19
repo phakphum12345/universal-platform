@@ -391,3 +391,10 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Tests include a real one-shot Python worker round-trip and malformed/mismatched/trailing/truncated response, terminal state and cancellation delegation cases.
 - Exact-head CI and Windows runner evidence: pending.
 - Boundary: this client is transport only. ModuleRuntime dispatch, host-side input/output schema validation in the worker path, permission admission, deadline/cancellation race integration, lease retention and durable recovery remain separate gates.
+
+### WP-09E-B termination evidence boundary — candidate update
+
+- The supervisor now checks POSIX process-group liveness after the root exits, including descendants that closed inherited stdout/stderr pipes; it sends termination and waits for the group to become empty.
+- A cleanup failure is surfaced as `WorkerTerminationError`; `WorkerIPCError.termination_confirmed` is false for that outcome so a host integration can retain/quarantine its resource lease.
+- Windows cleanup continues to require an empty Job Object before a normal result is returned.
+- This branch does not yet implement the ModuleRuntime lease-quarantine action; it exposes the explicit signal needed by the next integration work package.
