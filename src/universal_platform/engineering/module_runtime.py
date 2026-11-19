@@ -246,6 +246,10 @@ class ModuleRuntime:
             raise InvalidModelError("worker handler requires a declared input schema")
         if operation.output_schema is None:
             raise InvalidModelError("worker handler requires a declared output schema")
+        if not operation.required_permissions:
+            raise InvalidModelError(
+                "worker handler operation must declare at least one host permission"
+            )
         key = (module_id, operation.operation_id)
         with self._lock:
             if key in self._handlers:
@@ -254,6 +258,13 @@ class ModuleRuntime:
 
     def cancel(self, request_id: str) -> bool:
         """Cancel an admitted supervised worker invocation by request_id."""
+        if (
+            not isinstance(request_id, str)
+            or not request_id.strip()
+            or len(request_id) > 128
+            or "\\x00" in request_id
+        ):
+            return False
         with self._lock:
             client = self._worker_invocations.get(request_id)
         if client is None:
