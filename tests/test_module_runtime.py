@@ -806,5 +806,5 @@ def test_module_runtime_cancel_rejects_invalid_request_ids():
     ))
     runtime = ModuleRuntime(registry)
     assert not runtime.cancel("")
-    assert not runtime.cancel("bad\\x00id")
+    assert not runtime.cancel("bad\x00id")
     assert not runtime.cancel("x" * 129)
