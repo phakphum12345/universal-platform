@@ -399,11 +399,11 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ## WP-09D — Versioned Worker IPC framing (PR #245 open)
 
-- Branch: `feat/wp-09d-versioned-worker-ipc`; latest edited head at this snapshot: `6ee70eff28745043924c1ea21dc1e1eb20d0d867`.
+- Branch: `feat/wp-09d-versioned-worker-ipc`; latest exact head: `2cd11f445f003f68a4478f1ceff04fd29c823b28`.
 - Adds a version 1.0 envelope, 4-byte network-order length prefix, bounded UTF-8 JSON frames and REQUEST/RESPONSE/CANCEL message types.
 - Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial input.
 - Follow-up edits corrected literal escaped newlines in four documentation files and added partial-read/partial-write/truncated-body/message-type regression tests.
-- Workflow #44556587432 was IN_PROGRESS at this snapshot. The earlier run #44552657995 belongs to pre-edit head `ebc44eb92f1171f3c01ee079edadbb50d097250a` and cannot verify the latest edits.
+- Exact-head workflow #44562681272 passed workflow-sanity, Windows process supervisor and Python (1,096 passed, 4 skipped). Earlier run #44561148170 failed two negative tests because generic serialization error wrapping masked specific protocol errors; the latest head preserves WorkerProtocolError and passes those tests.
 - Formal review submissions and unresolved review threads were empty at the last review inspection; review outcome remains UNKNOWN.
 - This is a transport primitive only. ModuleRuntime dispatch, process launch/IPC wiring, host-side permission/schema checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
 
