@@ -18,7 +18,7 @@
 | ID | Finding | Evidence | Required action | State |
 |---|---|---|---|---|
 | GOV-001 | Documentation describes `main` as protected, but GitHub reports `main.protected=false` and no repository rulesets | Live branch and ruleset API snapshot in the 2026-11-20 audit | Owner/admin must configure and verify branch protection or rulesets (required reviews, status checks, stale approval dismissal, restrictions appropriate to the workflow); update docs only after the live settings are verified | FAIL / OPEN |
-| GOV-002 | Product source is on a non-default development branch while `main` contains only the small blueprint/docs tree | `main` HEAD `96e7501...`; development HEAD `2eff621...`; tree counts 10 vs 450 | Define an explicit promotion/release policy, compare branches, validate full release gates and obtain separate authorization before any promotion to `main` | OPEN |
+| GOV-002 | Product source is on a non-default development branch while `main` contains only the small blueprint/docs tree | `main` HEAD `96e7501...`; development HEAD `2eff621...`; tree counts 10 vs 450 | Define an explicit promotion/release policy, validate full release gates and obtain separate authorization before any promotion to `main`; the live compare currently reports development ahead by 878 commits and main behind by 0 | OPEN |
 | SEC-001 | Process supervision and Windows Job Objects are not a general security sandbox | Runtime contracts and source docstrings explicitly disclaim privilege, filesystem/network and OS resource isolation | Threat-model and implement least-privilege worker identity, filesystem/network controls and platform-specific enforcement before executing untrusted plugins/code | OPEN |
 
 ## P1 — Runtime durability and recovery
