@@ -113,4 +113,4 @@ The Development Branch implementation baseline currently keeps `WorkerSpec` inpu
 - Early child stdin closure before the payload is fully sent raises a supervisor error rather than returning a successful WorkerResult.
 - New tests cover echo/EOF, input bound, early exit, blocked-writer timeout, invalid type and invalid supervisor limit.
 
-This is not yet a complete IPC channel: no versioned frame decode/encode is invoked here, no RESPONSE is validated, no request correlation exists, and ModuleRuntime/resource leases are not yet integrated. Exact-head CI is pending; no pass is claimed.
+This is not yet a complete IPC channel: no versioned frame decode/encode is invoked here, no RESPONSE is validated, no request correlation exists, and ModuleRuntime/resource leases are not yet integrated. Exact-head workflow #44564111567 on `a090652fcadcb2f1e0ebff4bf395edf1038ff113` passed workflow-sanity and Windows process supervisor; Python 1,079 passed / 4 skipped. This verifies the candidate on its PR branch only, not after integration.
