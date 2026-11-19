@@ -60,3 +60,10 @@ The supervisor bounds retained output per stream and does not invoke a shell. Te
 **Known platform limitation:** Windows currently terminates only the direct child. CREATE_NEW_PROCESS_GROUP is not a process-tree containment boundary. Windows descendant cleanup requires Job Object assignment and lifecycle handling; until implemented and tested on Windows, descendant termination and reader-thread cleanup on Windows are UNKNOWN and must not be claimed as PASS.
 
 **Integration limitation:** ModuleRuntime still invokes trusted Python callables in-process. It does not automatically route module operations through the process supervisor, and it cannot forcibly stop a blocked Python thread. ResourceAllocator leases are released when the in-process invocation exits, not when a timed-out worker process is forcibly stopped. End-to-end worker protocol, request/worker identity mapping, host-owned deadlines, cancellation races, lease release after worker termination, and OS-enforced isolation remain open acceptance work. This supervisor is not a sandbox and must not run untrusted plugin code.
+
+ 
+## WP-09F integrated cancellation and lease boundary — 2026-11-20
+
+PR #254 is integrated at `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`. Each invocation reserves an immutable WorkerInvocationHandle before process startup. ModuleRuntime cancellation snapshots that exact handle and WorkerIPCClient retries only against its host-generated worker ID. Reusing a request ID after completion creates a new worker identity; an old handle cannot target it. Supervisor exceptions are converted to a false cancellation result.
+
+The ResourceAllocator lease is process-local and remains held until the supervisor confirms process-tree cleanup. Unconfirmed termination quarantines the lease; if quarantine metadata writing fails, the active lease remains charged. This state does not survive host restart. WP-09G durable lease journaling and reconciliation remain unimplemented. The trusted worker still runs with host-account privileges and is not a sandbox.
