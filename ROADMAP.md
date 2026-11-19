@@ -8,7 +8,7 @@ The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) remains the executio
 
 Current Development Branch base for PR #254: `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`. `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
 
-Verified integration updates: PR #243–#245, #246–#248 and #252 are merged. PR #247 and #248 exact-head and merge-SHA checks passed. PR #252 exact-head run #44595003293 passed workflow-sanity, Windows process-supervisor and Python (1,125 passed / 4 skipped); on merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`, workflow-sanity and Windows checks passed while post-merge Python was still IN_PROGRESS at this snapshot.
+Verified integration updates: PR #243–#245, #246–#248 and #252 are merged. PR #247 and #248 exact-head and merge-SHA checks passed. PR #252 exact-head run #44595003293 passed workflow-sanity, Windows process-supervisor and Python (1,125 passed / 4 skipped); on merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`, Python, workflow-sanity and Windows supervisor checks all completed PASS.
 
 WP-15: PR #247 inventory is merged; PR #251 contains the canonical WP-15B navigation/user-journey draft and exact-head CI passed, but the PR remains DRAFT pending owner acceptance. No UX decisions are approved by CI.
 
