@@ -158,3 +158,17 @@ Branch feat/wp-09e-worker-ipc-client-rebased builds on those integrated dependen
 4. Bind request identity, cancellation, deadlines and ResourceAllocator lease lifecycle to the supervised worker; quarantine a lease if termination is unconfirmed.
 5. Add durable crash recovery and explicit supervisor shutdown semantics.
 6. Complete threat-model-driven OS isolation and platform acceptance before any untrusted-code execution claim.
+
+ 
+## 13. Current integrated WP-09F state — 2026-11-20
+
+PR #254 merged at `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`. Exact-head run #44606596004 passed Python 1,142 passed / 4 skipped, Windows supervisor and workflow-sanity. Exact merge-SHA run #44607892946 was pending at this snapshot.
+
+- ModuleRuntime registers host-configured WorkerIPCClient handlers only for operations with versioned input/output schemas and explicit required host permissions.
+- Admission reserves an immutable WorkerInvocationHandle before worker process startup. The runtime cancellation map stores the client and exact handle; the client retries cancellation only against the captured unique worker ID. This closes the stale request-ID reuse race.
+- Worker request configuration (executable, args, cwd, environment) remains host-owned. Request payload does not carry executable configuration or permission grants.
+- ResourceAllocator leases are held through execution. Confirmed process-tree cleanup permits release; unconfirmed termination triggers quarantine. If quarantine metadata persistence fails, the active lease remains charged and manual inspection is required.
+- The allocator and quarantine state are still in-memory. This is not durable crash recovery, cross-process capacity accounting, a sandbox, or OS-enforced resource limits.
+- Codex review threads for quarantine wording, stale cancellation identity and boolean cancellation exceptions were addressed and resolved. A fresh review on the latest PR head was requested; no new approval state is inferred from the old review receipt.
+
+Next: WP-09G-A journal primitive, WP-09G-B durable allocator, WP-09G-C supervisor identity hand-off, WP-09G-D restart reconciliation and WP-09G-E audited operator recovery.
