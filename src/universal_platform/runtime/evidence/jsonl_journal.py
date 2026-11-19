@@ -10,6 +10,7 @@ from pathlib import Path
 import stat
 from threading import Lock
 from typing import Iterator
+from uuid import uuid4
 
 
 class JsonlHashChainJournal:
@@ -38,6 +39,8 @@ class JsonlHashChainJournal:
             raise ValueError("journal root must be a directory")
         if not filename or Path(filename).name != filename or filename in {".", ".."}:
             raise ValueError("journal filename must be a simple file name")
+        if filename.endswith(".lock"):
+            raise ValueError("journal filenames ending in .lock are reserved for lock files")
         if (
             isinstance(max_record_bytes, bool)
             or not isinstance(max_record_bytes, int)
@@ -131,19 +134,96 @@ class JsonlHashChainJournal:
             raise ValueError("journal record must contain finite JSON-compatible values") from exc
 
     def _open_journal_file(self) -> int:
+        self._ensure_file_exists(self.path)
         if self.path.is_symlink():
             raise ValueError("journal file must not be a symbolic link")
         # Use binary mode on Windows so CRLF translation cannot make
-        # os.read return fewer bytes than fstat reports.
-        # The journal lock serializes writers; append() explicitly seeks EOF.
-        flags = os.O_RDWR | os.O_CREAT
+        # os.read return fewer bytes than fstat reports. Writers seek to EOF
+        # explicitly while holding the shared journal lock.
+        flags = os.O_RDWR
         flags |= getattr(os, "O_NOFOLLOW", 0)
         flags |= getattr(os, "O_BINARY", 0)
-        descriptor = os.open(self.path, flags, 0o600)
+        descriptor = os.open(self.path, flags)
         if not stat.S_ISREG(os.fstat(descriptor).st_mode):
             os.close(descriptor)
             raise ValueError("journal target must be a regular file")
         return descriptor
+
+    def _ensure_file_exists(self, path: Path, *, initial_bytes: bytes = b"") -> None:
+        """Create a file with durable directory-entry semantics on each OS."""
+        if path.is_symlink():
+            raise ValueError("journal target must not be a symbolic link")
+        if path.exists():
+            return
+        if os.name == "nt":
+            temporary = self.root / f".{path.name}.{uuid4().hex}.tmp"
+            flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
+            flags |= getattr(os, "O_BINARY", 0)
+            descriptor = os.open(temporary, flags, 0o600)
+            try:
+                if initial_bytes:
+                    view = memoryview(initial_bytes)
+                    while view:
+                        written = os.write(descriptor, view)
+                        if written <= 0:
+                            raise OSError("incomplete temporary journal file write")
+                        view = view[written:]
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+            try:
+                self._move_file_write_through(temporary, path)
+            except FileExistsError:
+                if path.is_symlink():
+                    raise ValueError("journal target must not be a symbolic link")
+            finally:
+                if temporary.exists():
+                    temporary.unlink()
+            return
+
+        flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
+        flags |= getattr(os, "O_NOFOLLOW", 0)
+        flags |= getattr(os, "O_BINARY", 0)
+        try:
+            descriptor = os.open(path, flags, 0o600)
+        except FileExistsError:
+            if path.is_symlink():
+                raise ValueError("journal target must not be a symbolic link")
+            return
+        try:
+            if initial_bytes:
+                view = memoryview(initial_bytes)
+                while view:
+                    written = os.write(descriptor, view)
+                    if written <= 0:
+                        raise OSError("incomplete initial journal file write")
+                    view = view[written:]
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        directory_descriptor = os.open(self.root, directory_flags)
+        try:
+            os.fsync(directory_descriptor)
+        finally:
+            os.close(directory_descriptor)
+
+    @staticmethod
+    def _move_file_write_through(source: Path, destination: Path) -> None:
+        """Atomically create a Windows directory entry with write-through."""
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        move_file = kernel32.MoveFileExW
+        move_file.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD]
+        move_file.restype = wintypes.BOOL
+        # MOVEFILE_WRITE_THROUGH (0x8); do not replace an existing journal.
+        if not move_file(str(source), str(destination), 0x8):
+            error = ctypes.get_last_error()
+            if error in (80, 183):  # ERROR_FILE_EXISTS / ERROR_ALREADY_EXISTS
+                raise FileExistsError(error, os.strerror(error), str(destination))
+            raise OSError(error, os.strerror(error), str(destination))
 
     def _read_all(self, descriptor: int) -> bytes:
         size = os.fstat(descriptor).st_size
@@ -214,12 +294,13 @@ class JsonlHashChainJournal:
 
     @contextmanager
     def _cross_process_lock(self) -> Iterator[None]:
+        self._ensure_file_exists(self.lock_path, initial_bytes=b"0")
         if self.lock_path.is_symlink():
             raise ValueError("journal lock file must not be a symbolic link")
-        flags = os.O_RDWR | os.O_CREAT
+        flags = os.O_RDWR
         flags |= getattr(os, "O_NOFOLLOW", 0)
         flags |= getattr(os, "O_BINARY", 0)
-        descriptor = os.open(self.lock_path, flags, 0o600)
+        descriptor = os.open(self.lock_path, flags)
         try:
             if not stat.S_ISREG(os.fstat(descriptor).st_mode):
                 raise ValueError("journal lock target must be a regular file")
