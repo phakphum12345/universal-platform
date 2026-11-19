@@ -96,7 +96,7 @@ class WorkerIPCClient:
             not isinstance(request_id, str)
             or not request_id.strip()
             or len(request_id) > 128
-            or "\\x00" in request_id
+            or "\x00" in request_id
         ):
             raise WorkerIPCError("worker.request_invalid", "request_id is invalid")
 
@@ -138,7 +138,6 @@ class WorkerIPCClient:
         if frame.message_type != "REQUEST":
             raise WorkerIPCError("worker.invalid_request_type", "only REQUEST frames can be dispatched")
         self._validate_request_id(frame.request_id)
-        owns_handle = handle is None
         if handle is None:
             handle = self.reserve(frame.request_id)
         elif (
