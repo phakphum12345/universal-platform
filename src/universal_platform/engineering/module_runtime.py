@@ -1,9 +1,10 @@
-"""Policy-gated in-process execution for explicitly registered trusted handlers.
+"""Policy-gated dispatch to trusted handlers or host-configured supervised workers.
 
-This is an application-level permission boundary, not an OS sandbox. Handler
-callables are supplied by trusted application code; this module never imports
-or downloads code based on a request. Optional resource leases reserve host-
-configured quota for one invocation and are always released afterward.
+This is an application-level permission boundary, not an OS sandbox. In-process
+handler callables and worker executable specifications are supplied by trusted
+host code; requests never load code or choose process configuration. Optional
+resource leases reserve host-configured quota and are released only after worker
+termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
@@ -154,8 +155,10 @@ class ModuleRuntime:
     """Dispatch registered handlers after host-side permission and quota checks.
 
     Request.permissions is descriptive and is never treated as an authority
-    grant. Resource limits are reservation requests against a host-configured
-    in-memory quota pool; they do not limit actual CPU, memory, I/O or runtime.
+    grant. Worker process configuration is host-owned. Resource limits are
+    reservation requests against a host-configured in-memory quota pool; they
+    do not limit actual CPU, memory, I/O or runtime. A lease is retained in
+    quarantine if the supervisor cannot confirm worker process-tree exit.
     """
 
     def __init__(
