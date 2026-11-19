@@ -371,3 +371,14 @@ This section supersedes the earlier WP-09 checkpoint rows above; historical evid
 | UEIC-002M | Durable lease/job recovery and OS security enforcement | Existing recovery coordinator and append-only JSONL recovery evidence do not persist worker leases or reconcile orphan processes after restart; no accepted OS privilege/filesystem/network or CPU/memory/I/O enforcement boundary exists. | NOT IMPLEMENTED / UNKNOWN / NOT ACCEPTED. |
 
 Worker-backed dispatch remains trusted-host configured and one process per request. No persistent worker pool, untrusted plugin execution, general sandbox, durable lease store or actual OS resource enforcement is claimed.
+
+## Current worker runtime integration — 2026-11-20 after PR #254
+
+| Requirement | Evidence | Status |
+|---|---|---|
+| UEIC-002K | PR #254 merge f2ee9045c6316b2ff9026ea5196fedf1232f71a3; exact-head run #44606596004 and post-merge run #44607892946: Python 1,142 passed / 4 skipped, Windows supervisor PASS, workflow-sanity PASS | IMPLEMENTED / VERIFIED / INTEGRATED |
+| UEIC-002L | Fail-closed lease retention when quarantine metadata persistence fails; regression covered by exact-head and merge-SHA Python suite | IMPLEMENTED / VERIFIED / INTEGRATED within process-local allocator |
+| UEIC-002M | Durable Worker Lease Recovery Contract; no durable lease store or orphan reconciliation code | DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED |
+| UEIC-002N | Immutable WorkerInvocationHandle prevents stale cancellation from targeting later requests that reuse request_id | IMPLEMENTED / VERIFIED / INTEGRATED |
+
+Worker-backed execution remains trusted-host configured, one process per request, and is not a sandbox. Durable lease state, cross-process capacity accounting and OS isolation remain open.
