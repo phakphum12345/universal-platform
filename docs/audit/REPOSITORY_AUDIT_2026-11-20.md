@@ -123,7 +123,7 @@ Historical audit entries and PR evidence should remain intact. New dated reconci
 
 ## 6. Governance and CI findings
 
-1. GitHub reports `main.protected = false`; the repository rulesets endpoint returned an empty list. This conflicts with documentation that calls `main` a protected branch. The mismatch is a governance finding; no settings were changed in this audit.
+1. GitHub reports both `main.protected = false` and `docs/phase-0-complete-requirements.protected = false`; the development branch's required-status-check enforcement is off, and the repository rulesets endpoint returned an empty list. This conflicts with documentation that calls `main` a protected branch and means neither integration branch enforces required approvals/checks at the GitHub settings layer. No settings were changed in this audit.
 2. The active development branch is not the default branch. Merge to the development branch and promotion to `main` are separate decisions.
 3. PR #258 has green exact-head checks but no formal review submission. Under the documented gate, do not merge until required approval and all applicable review conditions are satisfied.
 4. Four Python tests were skipped on PR #258's exact head. Record them as SKIPPED; do not count them as passed.
