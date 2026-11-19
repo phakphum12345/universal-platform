@@ -101,3 +101,16 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 ## 8. Explicit non-claims
 
 No general sandbox, privilege separation, token restriction, filesystem/network isolation, CPU/memory/I/O enforcement, dynamic module loading, durable leases, or production-safe untrusted plugin execution is claimed by this slice.
+
+## 9. WP-09E-A bounded one-shot worker stdin transport (candidate)
+
+The Development Branch implementation baseline currently keeps `WorkerSpec` input at `DEVNULL`. Candidate branch `feat/wp-09e-bounded-worker-stdin` adds an optional byte payload for trusted, host-configured one-shot workers.
+
+- `WorkerSpec.stdin_data`: optional immutable bytes; omitted input preserves the existing closed-stdin behavior.
+- `PythonProcessSupervisor.max_input_bytes`: host-configured positive bound, default 1 MiB; oversized input is rejected before process creation.
+- A dedicated writer thread sends the exact payload while stdout/stderr reader threads drain output concurrently, then closes stdin so the child observes EOF.
+- The supervisor joins the writer under the same timeout/cancellation lifecycle. If a worker/descendant does not read input, process-tree termination must unblock the writer; a writer that cannot be joined is a hard failure.
+- Early child stdin closure before the payload is fully sent raises a supervisor error rather than returning a successful WorkerResult.
+- New tests cover echo/EOF, input bound, early exit, blocked-writer timeout, invalid type and invalid supervisor limit.
+
+This is not yet a complete IPC channel: no versioned frame decode/encode is invoked here, no RESPONSE is validated, no request correlation exists, and ModuleRuntime/resource leases are not yet integrated. Exact-head CI is pending; no pass is claimed.
