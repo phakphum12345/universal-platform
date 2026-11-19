@@ -6,6 +6,7 @@ from universal_platform.runtime.supervisor import (
     PythonProcessSupervisor,
     WorkerResult,
     WorkerSpec,
+    WorkerTerminationError,
 )
 from universal_platform.runtime.worker_ipc import WorkerIPCClient, WorkerIPCError
 from universal_platform.runtime.worker_protocol import WorkerFrame, encode_frame
@@ -140,6 +141,21 @@ def test_worker_ipc_client_maps_supervisor_terminal_states(result, code):
     with pytest.raises(WorkerIPCError) as error:
         client.request(WorkerFrame("REQUEST", "request-3", {}))
     assert error.value.code == code
+
+
+def test_worker_ipc_client_exposes_unconfirmed_process_tree_termination():
+    class UnconfirmedSupervisor:
+        def run(self, spec):
+            raise WorkerTerminationError(spec.worker_id)
+
+        def cancel(self, request_id, *, grace_seconds=1.0):
+            return False
+
+    client = WorkerIPCClient(UnconfirmedSupervisor(), worker_spec())
+    with pytest.raises(WorkerIPCError) as error:
+        client.request(WorkerFrame("REQUEST", "request-3", {}))
+    assert error.value.code == "worker.termination_unconfirmed"
+    assert error.value.termination_confirmed is False
 
 
 def test_worker_ipc_client_cancel_delegates_to_supervisor():
