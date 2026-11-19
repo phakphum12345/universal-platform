@@ -25,6 +25,9 @@ WP-09G must close that gap without treating an evidence record as a live reserva
 8. **Cancellation is identity-bound:** cancellation targets the immutable worker identity reserved for that invocation, never a new lookup that can bind to a later request reusing the same request ID.
 9. **No silent repair:** malformed or tampered journal data is not truncated, skipped, or automatically rewritten.
 10. **Audited operator action:** any manual force release requires an authenticated operator identity, a non-empty reason, and a durable audit event.
+11. **Pinned pool capacity:** every process using the same pool ID must verify the same canonical capacity-and-unit configuration before admission.
+12. **Safe compaction:** journal rotation must preserve a verifiable state checkpoint and an explicit archive-retention policy; never discard history needed to reconstruct active or quarantined leases.
+13. **Honest integrity guarantee:** an unkeyed SHA-256 chain detects accidental corruption but is not proof against an actor who can rewrite the journal and recompute the chain. Strong tamper evidence requires a separately protected checkpoint/signing key.
 
 ## 3. Durable data model
 
@@ -71,6 +74,19 @@ Every event contains a unique event ID, monotonically increasing sequence, UTC t
 
 Do not reuse `RecoveryEvidenceRecord` as this journal: its record grain and fields describe completed recovery outcomes, not the live state transitions needed to rebuild a resource pool. Prefer extracting a small reusable, tested hash-chain/locking primitive from the existing evidence store rather than copying a second subtly different implementation.
 
+## 3.4 Trusted-storage boundary and tamper evidence
+
+The SHA-256 hash chain detects accidental corruption, record modification, reordering, truncation and incomplete writes when the previously trusted chain head is known. An unkeyed hash chain does **not** authenticate the writer and cannot detect a malicious actor who can rewrite the entire journal or restore an older valid copy and recompute every hash.
+
+The default local mode therefore assumes the journal directory, lock file and host account are protected by operating-system access controls and that untrusted principals cannot write or restore the journal. It must not be described as tamper-proof against a privileged host administrator or compromised host.
+
+If the threat model includes an actor with journal write/restore access, use a separately protected trust anchor:
+- Sign periodic checkpoints with a key held outside the journal directory (for example, an OS-protected keystore/TPM-backed key) or publish the checkpoint digest to a separate operator-controlled trust domain.
+- A checkpoint contains pool ID, covered sequence, chain-head hash, snapshot digest, key ID, timestamp and signature.
+- Startup verifies the signature and compares the latest locally stored checkpoint with the trusted external anchor before replay.
+- Never store the signing key beside the journal. If the required key/anchor is unavailable or does not match, the pool remains unavailable for new admissions.
+- If this stronger mode is not configured, report the narrower accidental-corruption guarantee explicitly.
+
 ## 4. Journal and allocator transaction rules
 
 ### 4.1 Store integrity and locking
@@ -82,6 +98,12 @@ Do not reuse `RecoveryEvidenceRecord` as this journal: its record grain and fiel
 - Append one complete newline-terminated event and call `fsync` before reporting success.
 - Treat an incomplete final line, sequence gap, invalid hash, unsupported schema version, or lock/write/fsync failure as a hard store error.
 - Never silently truncate, skip, or reset a corrupt journal. Recovery requires an explicit, separately audited repair/export procedure.
+
+### 4.1.1 Pool capacity configuration pinning
+
+A pool ID has one canonical, versioned capacity configuration. The initial durable state records a POOL_INITIALIZED event containing a sorted list of metric names, values and units plus a deterministic configuration fingerprint. Every process opening that pool must compare its requested configuration with the persisted fingerprint before accepting reservations. A mismatch fails closed; it must not let one process enforce a larger capacity than another.
+
+A capacity change is a separate POOL_CAPACITY_UPDATED transition. It requires an authorized operator identity, reason, expected prior configuration version and a check that the new capacity does not invalidate active reservations. The event is appended and fsynced before any process uses the new capacity. All processes must refresh the pinned configuration while holding the shared pool lock. Ordinary worker requests cannot change pool capacity.
 
 ### 4.2 Acquire
 
@@ -111,6 +133,20 @@ The exact Windows and POSIX mechanisms must be implemented and tested by their o
 - On unconfirmed termination, append and fsync `LEASE_QUARANTINED`; keep the allocation charged and exclude it from ordinary TTL expiry.
 - If quarantine persistence fails, keep the active lease charged in memory, stop new admissions for the affected pool, and surface a critical recovery-store error. Do not claim the quarantine is durable.
 - A release-event persistence failure leaves the lease charged and retryable; it must not be optimistically removed from memory.
+
+### 4.5 Journal checkpointing, rotation and compaction
+
+A hard total-store cap without compaction would eventually block all future worker admissions even after leases are released. Rotation must therefore be part of the durable-store design, not an operational afterthought.
+
+- Keep the active journal segment bounded. Before it reaches its configured limit, acquire the exclusive pool lock, verify the entire active chain and reconstruct the canonical pool state.
+- Create a checkpoint snapshot containing the pool ID, schema version, pinned capacity configuration/fingerprint, all active and quarantined lease records, the last covered sequence, the last chain-head hash, snapshot timestamp and snapshot digest.
+- Write the snapshot to a new temporary file in the same protected directory, fsync the file, atomically rename it into place, and fsync the containing directory before treating the checkpoint as committed.
+- Start the next journal segment with a SEGMENT_STARTED record that references the checkpoint digest, covered sequence and covered chain-head hash. Replay verifies the checkpoint and segment anchor before applying later events.
+- Preserve the prior segment as a read-only archive. Archive rotation has its own size/retention policy; delete an archived segment only after its checkpoint is verified and, where strong tamper evidence is required, anchored by the external signature/trust domain described in §3.4.
+- Never remove events required to reconstruct active or quarantined leases. Terminal history may be compacted into the checkpoint only when the snapshot contains the complete resulting state and the covered history remains verifiable through the checkpoint anchor.
+- If archival retention or checkpoint persistence cannot complete within the configured storage budget, stop new admissions before the active journal reaches its hard limit. Do not discard records, clear quarantine, or silently reset the journal to regain capacity.
+
+The exact snapshot schema, segment naming, atomic replacement semantics and archive retention limits must be covered by fault-injection tests on every supported OS. A local unkeyed snapshot is still only accidental-corruption protection, not protection against a privileged actor who can replace both snapshot and journal.
 
 ## 5. Host restart and orphan reconciliation
 
@@ -160,6 +196,11 @@ If the journal cannot durably record the operator action, the lease remains char
 
 - Deterministic replay of every event type and supported schema version
 - Concurrent cross-process acquisition with a capacity race; no overcommit
+- Same pool ID opened with different capacity/units; mismatch must block admission
+- Authorized capacity update with active leases; reject unsafe changes and audit accepted changes
+- Journal approaching active-segment cap; checkpoint/rotation preserves replay state and all active/quarantined leases
+- Snapshot, archive or external checkpoint write failure; previous verified state remains authoritative and admissions fail closed
+- Old segment/snapshot replacement or replay; trusted checkpoint anchor mismatch blocks admission in strong-integrity mode
 - Crash injection before/after every durable append, fsync and worker-start gate transition
 - Tampered hash, sequence gap, malformed JSON, incomplete tail, symlink and non-regular-file rejection
 - Lock contention, lock timeout, write failure, disk-full and fsync failure behavior
