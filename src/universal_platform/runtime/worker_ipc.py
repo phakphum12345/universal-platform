@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from io import BytesIO
+import math
 import threading
 import time
 from uuid import uuid4
@@ -179,6 +180,13 @@ class WorkerIPCClient:
             or "\x00" in request_id
         ):
             raise ValueError("request_id must be a non-empty string of at most 128 characters")
+        if (
+            isinstance(grace_seconds, bool)
+            or not isinstance(grace_seconds, (int, float))
+            or not math.isfinite(grace_seconds)
+            or grace_seconds < 0
+        ):
+            raise ValueError("grace_seconds must be finite and non-negative")
         with self._request_lock:
             worker_id = self._active_requests.get(request_id)
         if worker_id is None:
