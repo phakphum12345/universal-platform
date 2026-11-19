@@ -151,9 +151,11 @@ class PythonProcessSupervisor:
             if spec.worker_id in self._processes or spec.worker_id in self._starting:
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
             self._starting.add(spec.worker_id)
-        job = WindowsJob() if os.name == "nt" else None
+        job = None
         process: subprocess.Popen[bytes] | None = None
         try:
+            if os.name == "nt":
+                job = WindowsJob()
             process = subprocess.Popen(
                 command,
                 cwd=str(cwd),
@@ -167,24 +169,34 @@ class PythonProcessSupervisor:
             )
             if job is not None:
                 job.assign_suspended(process)
-        except Exception:
+        except Exception as launch_error:
+            cleanup_error: Exception | None = None
             if process is not None and process.poll() is None:
-                try:
-                    if job is not None:
-                        job.terminate()
+                if job is not None:
                     try:
-                        process.kill()
-                    except OSError:
-                        if process.poll() is None:
-                            raise
-                finally:
-                    process.wait()
+                        job.terminate()
+                    except Exception as error:
+                        cleanup_error = error
+                try:
+                    process.kill()
+                except OSError as error:
+                    if process.poll() is None:
+                        cleanup_error = cleanup_error or error
+                try:
+                    process.wait(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+                except Exception as error:
+                    cleanup_error = cleanup_error or error
             if job is not None:
-                job.close()
+                try:
+                    job.close()
+                except Exception as error:
+                    cleanup_error = cleanup_error or error
             with self._lock:
                 self._starting.discard(spec.worker_id)
                 self._cancelled.discard(spec.worker_id)
-            raise
+            if cleanup_error is not None and process is not None:
+                raise WorkerTerminationError(spec.worker_id) from cleanup_error
+            raise launch_error
         with self._lock:
             self._processes[spec.worker_id] = process
             self._starting.discard(spec.worker_id)
