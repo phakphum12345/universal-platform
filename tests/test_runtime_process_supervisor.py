@@ -255,6 +255,20 @@ def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
         WorkerSpec("bad-stdin", sys.executable, stdin_data="not bytes")
 
 
+def test_process_group_probe_ignores_zombie_only_groups(tmp_path):
+    from universal_platform.runtime.supervisor import PythonProcessSupervisor
+
+    zombie = tmp_path / "100"
+    zombie.mkdir()
+    (zombie / "stat").write_text("100 (worker child) Z 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is False
+
+    live = tmp_path / "101"
+    live.mkdir()
+    (live / "stat").write_text("101 (worker child) S 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is True
+
+
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
 def test_supervisor_cleans_descendants_that_keep_pipes_open_after_parent_exits(supervisor):
     child = "import time; time.sleep(30)"
