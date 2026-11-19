@@ -125,3 +125,10 @@ Branch `feat/wp-09e-worker-ipc-client` adds a one-shot request/response client o
 - Tests cover a real one-shot Python worker round-trip and negative response/lifecycle cases.
 
 Dependencies: PR #245 (WorkerFrame protocol) and PR #248 (bounded stdin transport). Exact-head CI is pending. No ModuleRuntime dispatch, host permission/schema integration, resource lease coupling or durable recovery is claimed by this candidate.
+
+### Process-tree termination confirmation
+
+- POSIX supervision now checks whether the worker process group still exists after the root exits, even if descendants closed inherited output pipes; it terminates the remaining group and waits for it to become empty.
+- Windows supervision requires the Job Object to report no active processes.
+- Cleanup failures raise `WorkerTerminationError`. `WorkerIPCClient` converts this to `WorkerIPCError(code="worker.termination_unconfirmed", termination_confirmed=False)`.
+- This signal is designed for ModuleRuntime to quarantine a resource lease rather than release capacity while a process may remain alive. The lease-quarantine integration itself is not yet implemented.
