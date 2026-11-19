@@ -116,6 +116,7 @@ class PythonProcessSupervisor:
         self._lock = threading.RLock()
         self._processes: dict[str, subprocess.Popen[bytes]] = {}
         self._jobs: dict[str, WindowsJob] = {}
+        self._starting: set[str] = set()
         self._cancelled: set[str] = set()
 
     @property
@@ -147,8 +148,9 @@ class PythonProcessSupervisor:
         # Serialize ID reservation and process creation. On Windows the
         # primary thread remains suspended until Job Object assignment succeeds.
         with self._lock:
-            if spec.worker_id in self._processes:
+            if spec.worker_id in self._processes or spec.worker_id in self._starting:
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
+            self._starting.add(spec.worker_id)
             job = WindowsJob() if os.name == "nt" else None
             process: subprocess.Popen[bytes] | None = None
             try:
@@ -179,11 +181,14 @@ class PythonProcessSupervisor:
                         process.wait()
                 if job is not None:
                     job.close()
+                self._starting.discard(spec.worker_id)
+                self._cancelled.discard(spec.worker_id)
                 raise
             self._processes[spec.worker_id] = process
+            self._starting.discard(spec.worker_id)
             if job is not None:
                 self._jobs[spec.worker_id] = job
-            self._cancelled.discard(spec.worker_id)
+            cancel_requested_before_start = spec.worker_id in self._cancelled
 
         output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
         truncated = threading.Event()
@@ -232,11 +237,15 @@ class PythonProcessSupervisor:
                 reader.start()
             if writer is not None:
                 writer.start()
-            try:
-                process.wait(timeout=spec.timeout_seconds)
-            except subprocess.TimeoutExpired:
-                timed_out = True
+            if cancel_requested_before_start:
+                cancelled = True
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
+            else:
+                try:
+                    process.wait(timeout=spec.timeout_seconds)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                    self._terminate_process(process, spec.terminate_grace_seconds, job)
             if writer is not None:
                 writer.join(timeout=max(0.1, spec.terminate_grace_seconds + 0.1))
                 if writer.is_alive():
@@ -322,6 +331,7 @@ class PythonProcessSupervisor:
                 with self._lock:
                     self._processes.pop(spec.worker_id, None)
                     self._jobs.pop(spec.worker_id, None)
+                    self._starting.discard(spec.worker_id)
                     self._cancelled.discard(spec.worker_id)
                 for pipe in (process.stdin, process.stdout, process.stderr):
                     if pipe is not None and not pipe.closed:
@@ -335,6 +345,9 @@ class PythonProcessSupervisor:
         with self._lock:
             process = self._processes.get(worker_id)
             if process is None:
+                if worker_id in self._starting:
+                    self._cancelled.add(worker_id)
+                    return True
                 return False
             job = self._jobs.get(worker_id)
             self._cancelled.add(worker_id)
