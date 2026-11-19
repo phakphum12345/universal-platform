@@ -110,3 +110,21 @@ def test_jsonl_hash_chain_journal_reserves_lock_file_suffix(tmp_path):
         JsonlHashChainJournal(tmp_path, filename="events.jsonl.lock")
     with pytest.raises(ValueError, match="reserved for lock files"):
         JsonlHashChainJournal(tmp_path, filename="events.jsonl.LOCK")
+
+
+@pytest.mark.skipif(__import__("os").name == "nt", reason="Windows uses MoveFileExW WRITE_THROUGH")
+def test_new_journal_creation_fsyncs_parent_directory(tmp_path, monkeypatch):
+    import os
+    import stat
+
+    real_fsync = os.fsync
+    synced_directories = []
+
+    def track_fsync(descriptor):
+        if stat.S_ISDIR(os.fstat(descriptor).st_mode):
+            synced_directories.append(True)
+        return real_fsync(descriptor)
+
+    monkeypatch.setattr(os, "fsync", track_fsync)
+    JsonlHashChainJournal(tmp_path).append({"event_type": "LEASE_ACQUIRED"})
+    assert synced_directories
