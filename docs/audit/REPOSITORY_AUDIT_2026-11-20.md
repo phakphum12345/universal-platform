@@ -51,7 +51,7 @@ The only open PR at the audit snapshot is:
 - A separate push run #44618681967 also completed all three jobs successfully on the same exact head
 - Post-merge evidence: NOT APPLICABLE; PR is not merged
 
-The four skipped tests remain **SKIPPED**, not PASS. The CI evidence is for this PR head only and does not establish post-merge integration or acceptance. No merge is authorized by this audit.
+The four skipped tests remain **SKIPPED**, not PASS. They are the four Windows-only supervisor tests in `tests/test_runtime_process_supervisor.py`; the Windows job ran that file (21 passed / 2 POSIX-only skipped) and the journal tests (20 passed / 1 Windows-only skipped). The CI evidence is for this PR head only and does not establish post-merge integration or acceptance. No merge is authorized by this audit.
 
 ### Closed-without-merge dispositions
 
@@ -147,5 +147,13 @@ Historical audit entries and PR evidence should remain intact. New dated reconci
 - The four skipped test names/reasons were not established by the available job-log excerpt and remain SKIPPED / UNKNOWN as to applicability.
 - No complete branch ahead/behind comparison between `main` and the development branch was performed.
 - No independent specialist certification of physical engineering results is claimed.
+
+## 9. Subsequent execution updates — 2026-11-20
+
+The initial inventory above was captured before the audit and runtime follow-up PRs were created. The current queue now contains PR #258, #259 and #260; the current PR inventory is #1–#260 with 239 merged, 18 closed without merge and 3 open.
+
+- **PR #259** carries this audit, technical debt register and synchronized status/roadmap/traceability documentation. Its first head passed workflow-sanity, Windows supervisor and Python (1,150 passed / 4 skipped); the latest head is being revalidated after final baseline corrections.
+- **PR #260** is stacked on #258. It adds a runtime-checkable allocator port, durable ModuleRuntime integration, logical worker/host identity persistence, quarantine replay and a subprocess capacity-race test. Its Windows job passed: process supervisor 21 passed / 2 POSIX-only skipped; JSONL journal 20 passed / 1 Windows-only skipped; durable allocator + ModuleRuntime + multiprocess tests 14 passed / 0 skipped. Its full Python suite is pending at this update.
+- Both `main` and development have branch protection disabled; required status checks are unenforced and the repository has no rulesets. No settings were changed.
 
 **Final audit status: INCOMPLETE.** No PR was merged, no branch was force-updated, no branch was deleted, no production deployment was performed, and no main-branch change was made.
