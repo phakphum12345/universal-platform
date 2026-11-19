@@ -357,26 +357,58 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
 - No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
 
-## WP-09C — Windows Job Object process-tree containment (implementation branch)
+| PR | Exact head SHA | Exact merge SHA | Post-merge run |
+|---|---|---|---|
+| #235 | `d5674ba2a1b3f172357aad69f208883d1586755e` | `95253414616c992c606c0e73d69c48c30df4cd36` | [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) |
+| #236 | `92c0827ef39d575bd5c8ff940c6395de6d75b900` | `4853f297e988603e30069859e6b1486283fcf00f` | [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) |
+| #237 | `c22b37f1db0b1adfce4a71d18cd715bea358cae0` | `2801c8b990af564a6655203f8cfc9a52db70dce3` | [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) |
+| #238 | `2e2e833237f681381876e0fffb73a00a78dd69e1` | `564130639fc02aa8ce856b0d8ea33c0f0b1a7237` | [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) |
+| #239 | `98d4f86772cc69765335320d34b56e0391d31e7e` | `53167ffeb6efb829640363a33dffe08edd788e90` | [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) |
+| #240 | `17923b36201bbc1129eceabbfd98e24386c8fd8c` | `c3d9800ebb46caff38bf18c13142e218ee2c6c63` | [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) |
 
-- Branch: `feat/wp-09-windows-job-object`, based on the WP-09 contract branch head `1ff4a0515d560466171b4cca7218e1693352d589`.
-- Added `src/universal_platform/runtime/windows_job.py`: private kill-on-close Job Object; suspended-process assignment; primary-thread invariant check; process-tree termination; OS active-process query; bounded wait and handle cleanup.
-- Updated `src/universal_platform/runtime/supervisor.py`: Windows process creation uses CREATE_SUSPENDED, assignment precedes resume, timeout/cancel target the job, normal root exit waits for descendants, and cleanup raises if OS job emptiness cannot be confirmed.
-- Added Windows tests for root-exits-first grandchild cleanup, assignment failure without worker execution, timeout of descendants and cancellation of descendants; strengthened WorkerSpec container validation.
-- Added `windows-process-supervisor` CI job on `windows-latest` / Python 3.12.
-- Added `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md` with a function-by-function audit of WorkerSpec, WindowsJob, PythonProcessSupervisor, ModuleRuntime and ResourceAllocator.
-- Exact implementation head at audit preparation: pending final PR creation; no CI evidence yet. All Windows-only tests are skipped on non-Windows and are not counted as PASS.
-- Current maturity: IMPLEMENTATION AUTHORED / CI UNKNOWN. WP-09 remains PARTIAL.
-- Explicit remaining work: fault injection for API/handle/reader failures; remove or formally support private `Popen._handle`; versioned worker IPC; ModuleRuntime process dispatch; lease held until process tree empty; crash recovery; security review. No sandbox or OS resource enforcement is claimed.
+### Runtime maturity boundary
 
+- ModuleRuntime now performs host-grant-gated invocation of explicitly registered trusted Python handlers; request-supplied permissions do not grant authority.
+- The runtime enforces a deliberately bounded output-schema subset and releases in-memory resource leases in a `finally` path.
+- The Physics bridge exposes three bounded analytical solvers: axial stress, ideal DC Ohm's law/power, and linear thermal expansion.
+- Resource reservation is host-configured, in-memory, process-local admission control. It does not enforce actual CPU, RAM, I/O, network or wall-clock consumption.
+- The process supervisor is a separate allow-listed trusted-worker facility. POSIX process-group cleanup is covered by tests; Windows currently terminates only the direct child.
+- ModuleRuntime does not route invocations through the process supervisor. Worker protocol integration, host-owned deadlines, cancellation/worker races, lease release after worker termination, durable recovery and OS-enforced isolation remain open.
+- None of these facilities is a sandbox. Do not execute untrusted plugin code.
 
-## WP-09D — Versioned Worker IPC framing (in progress, 2026-11-13)
+### Next dependency-ready work
 
-- Base: WP-09C merge `b6e02988b009754fbf0ccdfc032c33174355e5c6`.
-- Branch: `feat/wp-09d-versioned-worker-ipc`.
-- Added `src/universal_platform/runtime/worker_protocol.py`: version 1.0 envelope, length-prefixed UTF-8 JSON frames, strict message types, bounded request IDs and configurable maximum frame size.
-- Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial data.
-- Added `tests/test_runtime_worker_protocol.py` covering the framing and failure paths.
-- This slice is transport-only. ModuleRuntime dispatch, process launch/IPC wiring, host-side schema/permission checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
-- Exact-head CI and review: PENDING. WP-09 remains PARTIAL.
+1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
+3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
+4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
+5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
+6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+## Current Development Branch baseline — 2026-11-19
+
+- Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
+- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion is implied.
+
+## WP-09C — Windows Job Object containment (merged; 2026-11-19 reconciliation)
+
+- PR #244 is merged to `docs/phase-0-complete-requirements` at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact PR head `8832ad015df3540add0fb015d3429930d20d1518`.
+- Exact-head workflow #43283027429 passed its recorded required checks. A post-merge workflow run for the exact merge SHA was not found in this audit; post-merge CI is UNKNOWN.
+- Windows Job Objects now provide bounded process-tree containment for the trusted worker supervisor. This is not a general security sandbox and does not enforce CPU, memory, I/O or network quotas.
+- Remaining hardening includes API/handle/reader-startup fault injection, explicit process/thread handle ownership and removal or formal support for private `Popen._handle` usage.
+
+## WP-09D — Versioned Worker IPC framing (PR #245 open)
+
+- Branch: `feat/wp-09d-versioned-worker-ipc`; latest exact head: `2cd11f445f003f68a4478f1ceff04fd29c823b28`.
+- Adds a version 1.0 envelope, 4-byte network-order length prefix, bounded UTF-8 JSON frames and REQUEST/RESPONSE/CANCEL message types.
+- Decoder rejects malformed/truncated/oversized frames, duplicate keys, unknown fields/versions/types and non-finite JSON values; clean EOF is distinct from partial input.
+- Follow-up edits corrected literal escaped newlines in four documentation files and added partial-read/partial-write/truncated-body/message-type regression tests.
+- Exact-head workflow #44562681272 passed workflow-sanity, Windows process supervisor and Python (1,096 passed, 4 skipped). Earlier run #44561148170 failed two negative tests because generic serialization error wrapping masked specific protocol errors; the latest head preserves WorkerProtocolError and passes those tests.
+- Formal review submissions and unresolved review threads were empty at the last review inspection; review outcome remains UNKNOWN.
+- This is a transport primitive only. ModuleRuntime dispatch, process launch/IPC wiring, host-side permission/schema checks, cancellation correlation, crash semantics and lease coupling remain OPEN.
+
+## WP-09D-DOC — PR #243 reconciliation
+
+- PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; its exact-head workflow #44552533763 completed successfully.
+- Its unique contract refinements cover audited process/primary-thread handle ownership and revised descendant/pipe acceptance cases; PR #244 supplies the bounded implementation but does not make these design requirements redundant. Preserve the unique contract content and reconcile stale status/work-package edits; do not merge the branch wholesale.
 

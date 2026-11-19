@@ -1,6 +1,6 @@
 # Windows Job Object Process-Tree Containment Contract
 
-**Status:** WP-09C merged to integration at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; post-merge CI is running. WP-09D IPC framing is in progress.  
+**Status:** PR #244 merged at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head workflow #43283027429 passed its recorded required jobs. Post-merge CI on the exact merge SHA is UNKNOWN in the current audit.  
 **Work package:** WP-09, Windows process supervision.  
 **Baseline:** integration commit `c3d9800ebb46caff38bf18c13142e218ee2c6c63`.  
 **Scope:** containment and deterministic cleanup for explicitly trusted worker processes on Windows.
@@ -22,7 +22,7 @@ The implementation MUST guarantee that no worker instruction executes before the
 5. Resume the primary thread only after successful assignment.
 6. Retain the Job Object handle for the entire worker lifetime. Closing it is a final cleanup backstop, not a substitute for waiting for termination.
 
-The implementation must document how it obtains and resumes the primary thread handle without relying on an unverified process/thread enumeration race. Prefer a single audited process-creation adapter that owns the process and primary-thread handles end to end.
+The implementation must document how it obtains and resumes the primary thread handle without relying on an unverified process/thread enumeration race. Prefer a single audited process-creation adapter that owns the process and primary-thread handles end to end. The current bounded implementation still uses a suspended Popen process, Toolhelp thread snapshot and CPython's private `Popen._handle`; replacing that dependency with a dedicated `CreateProcessW` adapter remains a hardening follow-up.
 
 ## 3. Job Object policy
 
@@ -74,4 +74,4 @@ This framing implementation is not yet integrated into ModuleRuntime or the proc
 
 ## 8. Non-goals
 
-This contract does not implement a general security sandbox, module loading, worker IPC, durable resource leases, OS resource quotas, network isolation, or production execution of untrusted plugins. Those remain separate WP-09 gates.
+This contract does not implement a general security sandbox, module loading, an end-to-end worker IPC channel or ModuleRuntime dispatch, durable resource leases, OS resource quotas, network isolation, or production execution of untrusted plugins. The versioned framing primitive is transport-only until process dispatch, correlation, cancellation and lease lifecycle are integrated and verified.

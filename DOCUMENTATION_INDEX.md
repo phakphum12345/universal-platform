@@ -24,6 +24,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Vision](VISION.md) — product purpose and principles.
 - [Master Blueprint](MASTER_BLUEPRINT.md) — consolidated capability and architecture blueprint.
 - [Roadmap](ROADMAP.md) — phased delivery and evidence gates.
+- [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) — repository-wide workstream maturity, evidence boundaries, dependency queue and acceptance gates.
 - [Contributing](CONTRIBUTING.md) — contribution and change expectations.
 - [Decision Register](docs/decisions/DECISION_REGISTER.md) — confirmed decisions, proposals and open questions.
 - [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md) — tool, solver and CAD technology evaluation policy.

@@ -297,3 +297,22 @@ Evidence semantics: missing acquisition, missing datasheet values, unsupported d
 | RT-09-09 | OS-enforced isolation, durable lease/recovery and resource enforcement | No acceptance evidence found in the inspected source/docs | UNKNOWN / NOT IMPLEMENTED; require dedicated security and platform acceptance. |
 
 PR #241 exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4` is OPEN and unmerged. Exact-head PR workflow [43168390970](https://github.com/phakphum12345/universal-platform/actions/runs/43168390970) passed all three jobs; formal review submissions and review threads were empty, while the Codex review automation could not complete because its usage limit was reached. Review outcome is UNKNOWN. Overall WP-09 remains PARTIAL and repository-wide acceptance remains INCOMPLETE.
+
+## WP-09 runtime requirements — current reconciliation 2026-11-19
+
+This section supersedes the 2026-11-12 runtime status above. Historical workflow evidence remains pinned to its original commits.
+
+| Requirement ID | Requirement | Current evidence | Current maturity / evidence outcome |
+|---|---|---|---|
+| RT-09-01 | Host-authorized invocation of explicitly registered module handlers | PR #235; `module_runtime.py`; post-merge run #42835668819 | IMPLEMENTED / VERIFIED / INTEGRATED for trusted in-process dispatch only; no arbitrary plugin loading or OS isolation. |
+| RT-09-02 | Bridge built-in Physics solvers through ModuleRuntime | PR #236; post-merge run #42879990889 | IMPLEMENTED / VERIFIED / INTEGRATED for axial stress, ideal DC Ohm's law/power and linear thermal expansion only. |
+| RT-09-03 | Reserve host-configured quota for a module invocation | PR #237; post-merge run #43031735312 | IMPLEMENTED / VERIFIED / INTEGRATED for in-memory process-local reservation; actual CPU/RAM/I/O/network/deadline enforcement is not implemented. |
+| RT-09-04 | Validate module outputs against a versioned schema | PR #238; post-merge run #43136866268 | IMPLEMENTED / VERIFIED / INTEGRATED for the documented bounded JSON Schema subset; not full Draft 2020-12 conformance. |
+| RT-09-05 | Drain admitted invocations during grant revocation | PR #239; post-merge run #43138398688 | IMPLEMENTED / VERIFIED / INTEGRATED for synchronous in-process drain; a stuck handler can block revoke indefinitely. |
+| RT-09-06 | Clean up trusted worker lifecycle and POSIX descendants | PR #240; post-merge run #43168374709 | IMPLEMENTED / VERIFIED / INTEGRATED for bounded POSIX process-group cleanup and registry cleanup. |
+| RT-09-07 | Windows process-tree containment with Job Objects | PR #244 merged at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head run #43283027429 passed recorded required jobs | IMPLEMENTED / VERIFIED / INTEGRATED at the bounded trusted-worker supervisor layer; post-merge CI on exact merge SHA is UNKNOWN in this audit. Not a general sandbox or OS resource quota. |
+| RT-09-08 | Route ModuleRuntime work through supervised workers and bind leases to worker termination | No merged end-to-end adapter; PR #245 only supplies transport framing on an open feature branch | FAIL / NOT IMPLEMENTED on the Development Branch. |
+| RT-09-09 | OS-enforced isolation, durable lease/recovery and resource enforcement | No acceptance evidence found in the inspected source/docs | UNKNOWN / NOT ACCEPTED; requires separate threat model, implementation and platform-specific security tests. |
+| RT-09-10 | Versioned bounded worker IPC framing | PR #245 open at head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped) | IMPLEMENTED / VERIFIED on PR branch; NOT INTEGRATED; formal review outcome UNKNOWN. |
+
+PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; preserve its unique process/thread-handle ownership and descendant/pipe acceptance refinements while reconciling stale status edits. PR #245 has no formal review submissions or unresolved review threads at the last inspection; review outcome is UNKNOWN. WP-09 remains PARTIAL and repository-wide acceptance remains INCOMPLETE.
