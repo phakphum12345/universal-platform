@@ -1,6 +1,6 @@
 # WP-15 — Modern Unified Control Center UI
 
-**Status:** PLANNED — requirements and acceptance design only. No UI implementation or usability acceptance is claimed by this document.  
+**Status:** PLANNED — requirements and acceptance design only. WP-15A source-backed inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md) and awaits review; no shared Control Center implementation or usability acceptance is claimed.  
 **Repository:** `phakphum12345/universal-platform`  
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
@@ -100,7 +100,7 @@ For every setting define owner/scope, type, default, validation, allowed values/
 
 ## 9. Delivery sequence and dependencies
 
-1. **WP-15A — UI inventory and user journeys:** inspect existing UI, routes, components, API contracts and tests; map current capability to screen/action. Identify canonical entry point and gaps. No duplicate shell.
+1. **WP-15A — UI inventory and user journeys:** source-backed inventory drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); review/accept the canonical CAD workbench, API route map, security boundaries, tests and capability gaps before building a shared shell. No duplicate shell.
 2. **WP-15B — IA and interaction specification:** validate navigation, task flows, roles/permissions, responsive behavior and information density using representative user journeys.
 3. **WP-15C — Design system and application shell:** tokens, accessible primitives, responsive shell, navigation, command palette and global status.
 4. **WP-15D — Overview and workspace:** health, recent activity, projects/tasks and evidence links.
@@ -131,7 +131,7 @@ Dependencies: API/CLI contracts, identity and authorization, module/function met
 
 ## 11. Evidence and status rules
 
-Current state: **PLANNED**. This document is a design/requirements artifact, not evidence of an implemented Control Center. WP-15 must remain PARTIAL until each delivery slice has source, tests, exact-SHA CI, security review and user acceptance. SKIPPED, missing and UNKNOWN checks are never PASS.
+Current state: **PLANNED**. WP-15A inventory is drafted but review/acceptance is pending. This document and the inventory are planning/evidence artifacts, not evidence of an implemented Control Center. WP-15 must remain PARTIAL until each delivery slice has source, tests, exact-SHA CI, security review and user acceptance. SKIPPED, missing and UNKNOWN checks are never PASS.
 
 ## 12. Open decisions
 
