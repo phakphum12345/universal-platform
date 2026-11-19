@@ -316,3 +316,20 @@ This section supersedes the 2026-11-12 runtime status above. Historical workflow
 | RT-09-10 | Versioned bounded worker IPC framing | PR #245 open at head `2cd11f445f003f68a4478f1ceff04fd29c823b28`; exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped) | IMPLEMENTED / VERIFIED on PR branch; NOT INTEGRATED; formal review outcome UNKNOWN. |
 
 PR #243 remains OPEN at head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`; preserve its unique process/thread-handle ownership and descendant/pipe acceptance refinements while reconciling stale status edits. PR #245 has no formal review submissions or unresolved review threads at the last inspection; review outcome is UNKNOWN. WP-09 remains PARTIAL and repository-wide acceptance remains INCOMPLETE.
+
+## WP-09 runtime requirements — current reconciliation 2026-11-20
+
+This section supersedes the 2026-11-19 runtime checkpoint above. Earlier rows remain historical evidence only.
+
+| Requirement ID | Requirement | Current evidence | Current maturity / evidence outcome |
+|---|---|---|---|
+| RT-09-01–06 | Host-grant invocation, Physics bridge, quota reservation, bounded output schema, grant revocation and POSIX supervisor lifecycle | PR #235–#240 and exact merge-SHA checks | IMPLEMENTED / VERIFIED / INTEGRATED for their documented bounded behaviors; not general isolation or OS resource enforcement. |
+| RT-09-07 | Windows process-tree containment with Job Objects | PR #244 merged at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact merge-SHA checks PASS. PR #243 contract refinements merged at `604ff9edc30081575a34f2d9a9af8bab35261c36`; merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED for trusted process-tree containment; not a sandbox. |
+| RT-09-10 | Versioned bounded Worker IPC framing | PR #245 merged at `8e3be919f04f92d173935af2724d15c0f4c8e081`; merge-SHA Python, Windows supervisor and workflow-sanity checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED. |
+| RT-09-11 | Bounded one-shot worker stdin transport | PR #248 merged at `549581f24ad289c21d272613467d6c5d89bff673`; exact-head and merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED; byte-accurate input cap includes the actual stdin buffer. |
+| RT-09-12 | One-shot WorkerIPCClient request/response correlation and process lifecycle | PR #252 merged at `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`; exact-head run #44595003293: 1,125 passed / 4 skipped, workflow-sanity PASS, Windows supervisor PASS; all merge-SHA checks PASS. | IMPLEMENTED / VERIFIED / INTEGRATED. |
+| RT-09-08 / RT-09-13 | Route ModuleRuntime operations through supervised workers; validate input/output schemas, require host grants, map cancellation and retain/quarantine leases | PR #254 open at exact head `5347a78f4ad3f0e2ae905f35158baa075252829d`; exact-head workflow #44597948944 QUEUED at this snapshot. | IMPLEMENTATION AUTHORED / CI UNKNOWN / NOT INTEGRATED. Do not claim PASS until exact-head Python, Windows supervisor and workflow-sanity jobs pass. |
+| RT-09-14 | Fail-closed lease retention if quarantine metadata recording fails | PR #254 adds an explicit regression test and retains the active ttl=None lease without release when quarantine recording throws. Exact-head CI is QUEUED. | IMPLEMENTATION AUTHORED / CI UNKNOWN. |
+| RT-09-09 | Durable worker/job/lease recovery, cross-process accounting and OS enforcement | Existing RecoveryCoordinator and JsonlRecoveryEvidenceStore persist recovery outcomes, but do not persist/reconcile ResourceAllocator leases or restore active worker state after host restart. No accepted privilege/filesystem/network boundary or OS CPU/RAM/I/O enforcement exists. | NOT IMPLEMENTED / UNKNOWN / NOT ACCEPTED. Requires a separate durable-state design, orphan-worker reconciliation and threat-model-driven platform tests. |
+
+WP-09 remains PARTIAL. Repository-wide acceptance remains INCOMPLETE. `SKIPPED` platform tests are not counted as PASS.
