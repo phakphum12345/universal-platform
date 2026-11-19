@@ -53,6 +53,15 @@ class WorkerSpec:
                 raise ValueError("environment entries must have valid names and NUL-free string values")
 
 
+class WorkerTerminationError(RuntimeError):
+    """Raised when the supervisor cannot confirm the worker tree has stopped."""
+
+    def __init__(self, worker_id: str, message: str = "worker process-tree termination could not be confirmed"):
+        self.worker_id = worker_id
+        self.termination_confirmed = False
+        super().__init__(message)
+
+
 @dataclass(frozen=True, slots=True)
 class WorkerResult:
     worker_id: str
@@ -239,6 +248,10 @@ class PythonProcessSupervisor:
                 # A successful root process is not complete while descendants
                 # remain in its private Job Object. Stop the remaining tree.
                 self._terminate_process(process, spec.terminate_grace_seconds, job)
+            elif not timed_out and job is None and self._process_group_exists(process.pid):
+                # POSIX descendants may close inherited pipes and outlive the
+                # root. A clean reader join alone is not proof of tree exit.
+                self._terminate_process(process, spec.terminate_grace_seconds)
 
             # A child may exit while a descendant keeps an inherited pipe
             # open. On POSIX, terminate the process group (not merely the
@@ -298,8 +311,13 @@ class PythonProcessSupervisor:
                             job.close()
                         except Exception as error:
                             cleanup_error = cleanup_error or error
-                elif process.poll() is None:
-                    self._terminate_process(process, spec.terminate_grace_seconds)
+                elif process.poll() is None or (
+                    os.name != "nt" and self._process_group_exists(process.pid)
+                ):
+                    try:
+                        self._terminate_process(process, spec.terminate_grace_seconds)
+                    except Exception as error:
+                        cleanup_error = cleanup_error or error
             finally:
                 with self._lock:
                     self._processes.pop(spec.worker_id, None)
@@ -309,7 +327,7 @@ class PythonProcessSupervisor:
                     if pipe is not None and not pipe.closed:
                         pipe.close()
             if cleanup_error is not None:
-                raise cleanup_error
+                raise WorkerTerminationError(spec.worker_id) from cleanup_error
 
     def cancel(self, worker_id: str, *, grace_seconds: float = 1.0) -> bool:
         if isinstance(grace_seconds, bool) or not isinstance(grace_seconds, (int, float)) or not math.isfinite(grace_seconds) or grace_seconds < 0:
@@ -323,6 +341,18 @@ class PythonProcessSupervisor:
         # The leader may already have exited while descendants remain in its
         # Job Object. Cancellation targets the whole registered worker tree.
         self._terminate_process(process, grace_seconds, job)
+        return True
+
+    @staticmethod
+    def _process_group_exists(process_group_id: int) -> bool:
+        if os.name == "nt":
+            return False
+        try:
+            os.killpg(process_group_id, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
         return True
 
     @staticmethod
