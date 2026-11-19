@@ -1537,3 +1537,13 @@ This section supersedes the 2026-11-12 runtime checkpoint for current PR state. 
 - PR #245 documentation newline escaping was corrected in `DOCUMENTATION_INDEX.md`, `docs/execution/WORK_PACKAGE_STATUS.md`, `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` and `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md`. Added tests cover partial reads/writes, truncated bodies, invalid message-type types, non-finite exponent overflow, JSON nesting limits and encoder/decoder consistency. These changes are verified by exact-head run #44562681272.
 - Overall WP-09 remains PARTIAL. Next implementation gate is ModuleRuntime dispatch through supervised worker processes, followed by host-owned deadlines/cancellation, lease retention until confirmed worker-tree termination, durable recovery and separate OS-isolation acceptance.
 - Repository-wide acceptance remains INCOMPLETE. See [Master Completion Matrix](../../MASTER_COMPLETION_MATRIX.md) for the cross-domain execution queue and acceptance boundaries.
+
+ 
+## Current runtime checkpoint — 2026-11-20 (PR #254 integrated)
+
+- PR #254 merged into the Development Branch at `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`. Exact-head run #44606596004 passed: Python 1,142 passed / 4 skipped, Windows process-supervisor PASS, workflow-sanity PASS.
+- Exact merge-SHA post-merge run #44607892946 was still running at this documentation snapshot; post-merge verification is not yet claimed PASS.
+- WP-09F is IMPLEMENTED / VERIFIED / INTEGRATED: ModuleRuntime dispatches through host-configured WorkerIPCClient; validates versioned input/output schemas and host grants; uses immutable WorkerInvocationHandle cancellation identity; holds ResourceAllocator leases until confirmed process-tree cleanup; and quarantines leases when termination is unconfirmed.
+- Cancellation uses the captured host-generated worker ID rather than looking up by request_id during retries. Stale handles cannot target a later invocation after request_id reuse. Supervisor cancellation exceptions remain inside the boolean API.
+- WP-09G is DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED. See [Durable Worker Lease Recovery Contract](../runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md). The current ResourceAllocator remains process-local; JsonlRecoveryEvidenceStore records recovery outcomes, not live worker lease state.
+- Remaining WP-09G work: durable event journal, cross-process capacity accounting, OS process identity/start-gate hand-off, startup orphan reconciliation and audited operator recovery. Security sandbox and actual OS CPU/memory/I/O enforcement remain separate acceptance gates.
