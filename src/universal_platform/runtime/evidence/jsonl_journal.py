@@ -82,7 +82,7 @@ class JsonlHashChainJournal:
                 if len(payload) > self.max_record_bytes:
                     raise ValueError("journal record exceeds the configured byte limit")
                 if len(current) + len(payload) > self.max_store_bytes:
-                    raise ValueError("journal reached its configured total byte limit")
+                    raise ValueError("journal store reached its configured total byte limit")
                 os.lseek(descriptor, 0, os.SEEK_END)
                 view = memoryview(payload)
                 while view:
