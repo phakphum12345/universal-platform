@@ -1,4 +1,6 @@
 import sys
+import threading
+import time
 
 import pytest
 
@@ -158,11 +160,38 @@ def test_worker_ipc_client_exposes_unconfirmed_process_tree_termination():
     assert error.value.termination_confirmed is False
 
 
-def test_worker_ipc_client_cancel_delegates_to_supervisor():
-    stub = StubSupervisor(worker_result())
-    client = WorkerIPCClient(stub, worker_spec())
+def test_worker_ipc_client_cancel_retries_across_worker_startup_race():
+    started = threading.Event()
+    cancelled = threading.Event()
+
+    class DelayedSupervisor:
+        def run(self, spec):
+            time.sleep(0.1)
+            started.set()
+            assert cancelled.wait(timeout=2)
+            return worker_result(cancelled=True, exit_code=-9)
+
+        def cancel(self, request_id, *, grace_seconds=1.0):
+            if not started.is_set():
+                return False
+            cancelled.set()
+            return True
+
+    client = WorkerIPCClient(DelayedSupervisor(), worker_spec())
+    errors = []
+
+    def invoke():
+        try:
+            client.request(WorkerFrame("REQUEST", "request-3", {}))
+        except WorkerIPCError as error:
+            errors.append(error)
+
+    thread = threading.Thread(target=invoke)
+    thread.start()
     assert client.cancel("request-3", grace_seconds=0.2)
-    assert stub.cancelled == [("request-3", 0.2)]
+    thread.join(timeout=2)
+    assert not thread.is_alive()
+    assert errors[0].code == "worker.cancelled"
 
 
 def test_worker_ipc_client_rejects_invalid_cancel_id(supervisor):
