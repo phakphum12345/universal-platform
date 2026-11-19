@@ -11,7 +11,7 @@ from universal_platform.runtime.supervisor import (
     WorkerTerminationError,
 )
 from universal_platform.runtime.worker_ipc import WorkerIPCClient, WorkerIPCError
-from universal_platform.runtime.worker_protocol import WorkerFrame, encode_frame
+from universal_platform.runtime.worker_protocol import WorkerFrame, WorkerProtocolError, encode_frame
 
 
 @pytest.fixture
@@ -94,7 +94,8 @@ def test_worker_ipc_client_uses_request_id_and_exact_framed_stdin():
     client = WorkerIPCClient(stub, worker_spec())
     response = client.request(request)
     assert response.payload == {"value": 8}
-    assert stub.spec.worker_id == "request-3"
+    assert stub.spec.worker_id.startswith("worker-")
+    assert stub.spec.worker_id != "request-3"
     assert stub.spec.stdin_data == encode_frame(request)
 
 
@@ -204,3 +205,72 @@ def test_worker_ipc_client_rejects_template_with_preloaded_stdin(supervisor):
     template = WorkerSpec("template", sys.executable, stdin_data=b"unexpected")
     with pytest.raises(ValueError, match="template"):
         WorkerIPCClient(supervisor, template)
+
+
+def test_worker_ipc_client_accounts_for_four_byte_frame_header():
+    class LimitedSupervisor(StubSupervisor):
+        max_input_bytes = 64
+
+    response = encode_frame(WorkerFrame("RESPONSE", "request-3", {"ok": True}))
+    stub = LimitedSupervisor(worker_result(response))
+    client = WorkerIPCClient(stub, worker_spec(), max_frame_bytes=1024)
+    client.request(WorkerFrame("REQUEST", "request-3", {"x": 1}))
+    assert len(stub.spec.stdin_data) <= stub.max_input_bytes
+    assert client._max_frame_bytes == stub.max_input_bytes - 4
+
+
+def test_worker_ipc_client_rejects_oversized_frame_before_supervisor():
+    class LimitedSupervisor(StubSupervisor):
+        max_input_bytes = 64
+
+    stub = LimitedSupervisor(worker_result())
+    client = WorkerIPCClient(stub, worker_spec(), max_frame_bytes=1024)
+    with pytest.raises(WorkerIPCError) as error:
+        client.request(WorkerFrame("REQUEST", "request-3", {"data": "x" * 200}))
+    assert error.value.code == "worker.request_invalid"
+    assert not hasattr(stub, "spec")
+
+
+def test_worker_frame_rejects_nul_request_id():
+    with pytest.raises(WorkerProtocolError, match="NUL-free"):
+        WorkerFrame("REQUEST", "bad\\x00id", {})
+
+
+def test_worker_ipc_client_rejects_duplicate_active_request_id_before_second_launch():
+    started = threading.Event()
+    release = threading.Event()
+    calls = []
+
+    class BlockingSupervisor:
+        def run(self, spec):
+            calls.append(spec)
+            started.set()
+            assert release.wait(timeout=2)
+            return worker_result(cancelled=True, exit_code=-9)
+
+        def cancel(self, worker_id, *, grace_seconds=1.0):
+            assert worker_id == calls[0].worker_id
+            release.set()
+            return True
+
+    client = WorkerIPCClient(BlockingSupervisor(), worker_spec())
+    errors = []
+
+    def invoke():
+        try:
+            client.request(WorkerFrame("REQUEST", "same-request", {}))
+        except WorkerIPCError as error:
+            errors.append(error)
+
+    thread = threading.Thread(target=invoke)
+    thread.start()
+    assert started.wait(timeout=2)
+    with pytest.raises(WorkerIPCError) as duplicate:
+        client.request(WorkerFrame("REQUEST", "same-request", {}))
+    assert duplicate.value.code == "worker.request_already_active"
+    assert duplicate.value.termination_confirmed is True
+    assert len(calls) == 1
+    assert client.cancel("same-request", grace_seconds=0.1)
+    thread.join(timeout=2)
+    assert not thread.is_alive()
+    assert errors[0].code == "worker.cancelled"
