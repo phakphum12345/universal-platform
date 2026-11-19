@@ -1,25 +1,25 @@
 # Policy-Gated Module Runtime
 
-**Status:** Initial in-process execution boundary; not a sandbox and not production isolation.
+**Status:** Host-grant-gated trusted-handler and supervised-worker dispatch; not a sandbox and not production isolation.
 
 ## Current behavior
 
-`ModuleRegistry` remains a metadata-only declaration store. `ModuleRuntime` adds a narrow host-controlled dispatch boundary over explicitly registered Python callables:
+`ModuleRegistry` remains a metadata-only declaration store. `ModuleRuntime` adds a narrow host-controlled dispatch boundary over explicitly registered trusted Python callables or host-configured one-shot supervised workers:
 
-1. Host code registers a handler for an already-declared module operation.
+1. Host code registers either a trusted in-process callable or a WorkerIPCClient backed by a host-configured WorkerSpec for an already-declared module operation.
 2. Host code grants a module an immutable subset of permissions declared by its manifest.
-3. Invocation validates the request envelope, resolves the declared operation and checks its input schema version.
+3. Invocation validates the request envelope, resolves the declared operation and checks its input schema version; worker-backed operations additionally require a declared versioned input schema and validate inputs before process launch.
 4. Required operation permissions are checked against the host-side grant. `ModuleRequest.permissions` is untrusted descriptive input and cannot grant authority.
-5. Only then is the pre-registered handler called.
-6. Unknown operations, schema mismatch, missing handlers and insufficient permissions are rejected. Handler exceptions return a stable sanitized error without exception text.
+5. Only then is the pre-registered handler called or the host-configured worker process started. Worker request data cannot select executable, arguments, environment or working directory.
+6. Unknown operations, schema mismatch, missing handlers and insufficient permissions are rejected. Worker-backed operations must declare at least one host permission. Handler/worker failures return stable sanitized errors without exception text.
 
 Grants can be revoked. Handler registration does not import modules, download code, or execute code supplied by a request.
 
 ## Security boundary and limitations
 
-This is application-level authorization for trusted in-process handlers. It does **not** provide OS process isolation, filesystem/network restrictions, resource quotas, code signing, durable grant storage, human approval, or safe execution of untrusted plugins. A handler runs with the host process's privileges. Do not register untrusted callables.
+This is application-level authorization for trusted in-process handlers and host-configured worker dispatch. It does **not** provide a security sandbox, privilege separation, filesystem/network restrictions, OS-enforced CPU/memory/I/O limits, code signing, durable grant storage, human approval, or safe execution of untrusted plugins. In-process handlers run with host-process privileges; supervised workers run with the host account's privileges unless an independently reviewed OS policy is added. Do not register untrusted callables or executables.
 
-The process supervisor is a separate trusted-worker facility and is not a sandbox. A future isolated worker adapter must enforce OS/container policy independently and should not weaken this in-process permission check.
+The process supervisor is integrated for one-shot trusted-worker dispatch, but it is not a sandbox. Any future isolated worker adapter must enforce OS/container policy independently and must not weaken the host-grant permission check.
 
 ## Acceptance evidence
 
@@ -30,7 +30,7 @@ Focused tests cover allowed invocation, request self-grant rejection, missing/re
 
 ModuleRuntime may be constructed with a host-configured ResourceAllocator. When a validated ModuleRequest.resource_limits mapping is non-empty, the runtime maps each metric name to the unit declared by the allocator capacity and atomically reserves that amount before invoking the handler. Unknown metrics, missing allocators and exhausted capacity fail closed before handler execution. The lease is released in a finally path after both successful and failed handler execution.
 
-This is a reservation/lease lifecycle, not enforcement of actual CPU time, resident memory, I/O, network use or execution deadlines. The request supplies an amount to reserve, but cannot define capacity or units. Capacity and units are controlled by host configuration. Runtime invocation leases use explicit release rather than TTL expiry, so an active handler retains its reservation until the finally path releases it. General allocator callers may continue using finite TTL leases. The allocator and leases are in-memory and process-local; they are not durable or coordinated across processes. A process crash discards the in-memory pool and does not provide cross-process accounting.
+This is a reservation/lease lifecycle, not enforcement of actual CPU time, resident memory, I/O, network use or execution deadlines. The request supplies an amount to reserve, but cannot define capacity or units. Capacity and units are controlled by host configuration. Runtime invocation leases use explicit release rather than TTL expiry. In-process handlers retain the reservation until the handler and validation path finish. Worker-backed handlers retain the reservation until supervisor cleanup is confirmed; an unconfirmed worker termination quarantines the lease and blocks ordinary release/TTL expiry. If quarantine metadata cannot be written, ModuleRuntime still withholds release and reports the retained active lease for manual inspection. General allocator callers may continue using finite TTL leases. The allocator and leases are in-memory and process-local; they are not durable or coordinated across processes. A host crash discards the in-memory pool and does not provide cross-process accounting.
 
 
 ## Output schema enforcement — WP-09A
@@ -57,6 +57,6 @@ The allow-listed process supervisor is still separate from ModuleRuntime and rem
 
 The supervisor bounds retained output per stream and does not invoke a shell. Tests cover timeout, external cancellation, duplicate worker IDs, and POSIX descendants that retain inherited pipes after the parent exits.
 
-**Known platform limitation:** Windows currently terminates only the direct child. CREATE_NEW_PROCESS_GROUP is not a process-tree containment boundary. Windows descendant cleanup requires Job Object assignment and lifecycle handling; until implemented and tested on Windows, descendant termination and reader-thread cleanup on Windows are UNKNOWN and must not be claimed as PASS.
+**Windows containment status:** PR #244 integrated Windows Job Object containment: the process is created suspended, assigned to a kill-on-close Job Object before resume, and timeout/cancellation/normal-root-exit cleanup checks the Job Object process count. Windows-specific supervisor tests run on a Windows CI job. Job Objects provide process-tree containment, not a full security sandbox or OS resource quota.
 
-**Integration limitation:** ModuleRuntime still invokes trusted Python callables in-process. It does not automatically route module operations through the process supervisor, and it cannot forcibly stop a blocked Python thread. ResourceAllocator leases are released when the in-process invocation exits, not when a timed-out worker process is forcibly stopped. End-to-end worker protocol, request/worker identity mapping, host-owned deadlines, cancellation races, lease release after worker termination, and OS-enforced isolation remain open acceptance work. This supervisor is not a sandbox and must not run untrusted plugin code.
+**Current worker integration boundary (WP-09E-B/WP-09F):** ModuleRuntime can register a WorkerIPCClient for a declared operation, validate versioned input/output schemas, require an explicit host permission, send one correlated REQUEST frame and accept exactly one RESPONSE frame. Each request receives a unique host-generated worker ID; cancellation maps request_id to that worker ID and retries through startup registration. Resource leases remain held until supervisor cleanup is confirmed and are quarantined when termination is unconfirmed. This is one process per request, not a persistent worker pool. Durable lease recovery, cross-process accounting, worker restart/replay semantics, privilege separation, filesystem/network isolation and full OS sandbox acceptance remain open. Do not run untrusted plugin code.
