@@ -48,6 +48,7 @@ class ResourceAllocator:
         self.pool_id = pool_id
         self._capacity = {item.name: item for item in items}
         self._leases: dict[str, ResourceLease] = {}
+        self._quarantined: dict[str, str] = {}
         self._lock = RLock()
 
     def capacity(self) -> tuple[ResourceMetric, ...]:
@@ -105,8 +106,31 @@ class ResourceAllocator:
             self._leases[lease.lease_id] = lease
             return lease
 
-    def release(self, lease_id: str) -> bool:
+    def quarantine(self, lease_id: str, reason: str) -> bool:
+        """Retain a lease indefinitely when worker termination is unconfirmed."""
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError("quarantine reason must be a non-empty string")
         with self._lock:
+            if lease_id not in self._leases:
+                return False
+            self._quarantined[lease_id] = reason.strip()
+            return True
+
+    def quarantined_leases(self) -> tuple[tuple[ResourceLease, str], ...]:
+        """Return retained leases and their reasons for host diagnostics."""
+        with self._lock:
+            return tuple(
+                (self._leases[key], self._quarantined[key])
+                for key in sorted(self._quarantined)
+                if key in self._leases
+            )
+
+    def release(self, lease_id: str, *, force: bool = False) -> bool:
+        """Release a lease; quarantined leases require explicit operator force."""
+        with self._lock:
+            if lease_id in self._quarantined and not force:
+                raise RuntimeError("quarantined lease requires explicit force release")
+            self._quarantined.pop(lease_id, None)
             return self._leases.pop(lease_id, None) is not None
 
     def active_leases(self, *, now: datetime | None = None) -> tuple[ResourceLease, ...]:
@@ -135,7 +159,8 @@ class ResourceAllocator:
     def _expire(self, now: datetime) -> None:
         expired = [
             key for key, lease in self._leases.items()
-            if lease.expires_at is not None and lease.expires_at <= now
+            if key not in self._quarantined
+            and lease.expires_at is not None and lease.expires_at <= now
         ]
         for key in expired:
             del self._leases[key]
