@@ -384,3 +384,15 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
 5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+## WP-09E-A — bounded one-shot worker stdin transport (candidate)
+
+- Branch: `feat/wp-09e-bounded-worker-stdin`, based on the Development Branch baseline.
+- Extends `WorkerSpec` with optional immutable `stdin_data` bytes; existing callers retain `DEVNULL` behavior when it is omitted.
+- Adds host-configured `max_input_bytes` (default 1 MiB) and rejects oversized input before process creation.
+- Writes request bytes on a dedicated writer thread while stdout/stderr continue to drain concurrently; closes stdin to deliver EOF.
+- Timeout/cancellation and descendants holding inherited pipes must not strand the writer; cleanup terminates the supervised process tree and joins the writer.
+- A worker that closes stdin before the full request is written fails the invocation rather than silently reporting success.
+- Tests cover request echo/EOF, configured input cap, early worker exit, blocked writer timeout, invalid input type and invalid limit.
+- Exact-head CI and Windows runner evidence: pending.
+- Boundary: this is a bounded one-shot input transport foundation only. It does not yet frame/decode WorkerFrame messages, validate a worker response, correlate requests, dispatch ModuleRuntime operations or bind leases to worker termination.
