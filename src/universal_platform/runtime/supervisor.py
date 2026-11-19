@@ -264,16 +264,22 @@ class PythonProcessSupervisor:
                 output_truncated=truncated.is_set(),
             )
         finally:
+            cleanup_error: Exception | None = None
             # Stop a blocked input writer before closing its process/Job handles.
             # On POSIX this also kills descendants that may still hold the pipe.
             if writer is not None and writer.is_alive():
                 try:
                     self._terminate_process(process, spec.terminate_grace_seconds, job)
+                except Exception as error:
+                    cleanup_error = error
                 finally:
                     writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
+                    if writer.is_alive():
+                        cleanup_error = cleanup_error or RuntimeError(
+                            "worker stdin writer did not stop during cleanup"
+                        )
             # Keep registry cleanup unconditional even if the OS refuses to
             # confirm termination. Closing the Job Object remains kill-on-close.
-            cleanup_error: Exception | None = None
             try:
                 if job is not None:
                     try:
@@ -284,7 +290,7 @@ class PythonProcessSupervisor:
                                 "Windows worker process tree did not become empty"
                             )
                     except Exception as error:
-                        cleanup_error = error
+                        cleanup_error = cleanup_error or error
                     finally:
                         try:
                             job.close()
