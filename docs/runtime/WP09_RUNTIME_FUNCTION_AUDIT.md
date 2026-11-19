@@ -79,7 +79,7 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 | `available` | Computes configured capacity minus active reservations. | Represents quota ledger availability, not measured host resources. |
 | `_expire` | Removes leases whose expiry is at or before the supplied time. | WP-09 worker leases use `ttl_seconds=None` today, but ModuleRuntime currently releases them when the in-process handler returns. |
 
-## 6. Added acceptance coverage on this branch
+## 6. Windows Job Object acceptance coverage (merged in PR #244)
 
 - Existing cross-platform tests still cover allow-listing, working-root escape rejection, bounded output, timeout, cancellation, malformed limits and duplicate worker IDs.
 - Windows-only tests added for root-exits-first child/grandchild cleanup, injected Job Object assignment failure (worker must not execute), timeout of a process tree, and cancellation of a process tree.
@@ -87,7 +87,7 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 - POSIX descendant-pipe cleanup remains POSIX-only.
 - **Exact-head CI is pending.** Tests skipped on non-Windows are not counted as Windows PASS; the Windows runner must execute them.
 
-## 7. WP-09D versioned worker IPC framing (in progress)
+## 7. WP-09D versioned worker IPC framing (merged in PR #245; historical checkpoint)
 
 - Added `runtime/worker_protocol.py` with a versioned 1.0 envelope and 4-byte network-order length prefix.
 - Message types are restricted to REQUEST, RESPONSE and CANCEL; request IDs are bounded to 128 characters.
@@ -97,7 +97,7 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 - Added `tests/test_runtime_worker_protocol.py` for round-trip, framing, size limits, malformed input, duplicate keys, NaN/Infinity and EOF behavior.
 - Boundary: this is a transport primitive only. It is not yet connected to `ModuleRuntime` or `PythonProcessSupervisor`; no worker is launched and no permission is delegated by the frame.
 
-## 8. Remaining WP-09 implementation work
+## 8. Remaining WP-09 implementation work at the WP-09D checkpoint (historical)
 
 1. Verify this Windows Job Object slice on the exact PR head and repair every CI failure.
 2. Add fault-injection coverage for Job Object creation/configuration, thread enumeration/open/resume, query/terminate/close, reader startup and cleanup failures.
@@ -112,9 +112,9 @@ The implementation uses the Popen process handle (`process._handle`) and Toolhel
 
 No general sandbox, privilege separation, token restriction, filesystem/network isolation, CPU/memory/I/O enforcement, dynamic module loading, durable leases, or production-safe untrusted plugin execution is claimed by this slice.
 
-## 9. WP-09E-A bounded one-shot worker stdin transport (candidate)
+## 10. WP-09E-A bounded one-shot worker stdin transport (merged in PR #248; historical candidate notes)
 
-The Development Branch implementation baseline currently keeps `WorkerSpec` input at `DEVNULL`. Candidate branch `feat/wp-09e-bounded-worker-stdin` adds an optional byte payload for trusted, host-configured one-shot workers.
+Historical pre-merge note: the bounded stdin transport described below is now integrated through PR #248. The current integrated state and evidence are recorded in section 11. The earlier candidate branch was `feat/wp-09e-bounded-worker-stdin`.
 
 - `WorkerSpec.stdin_data`: optional immutable bytes; omitted input preserves the existing closed-stdin behavior.
 - `PythonProcessSupervisor.max_input_bytes`: host-configured positive bound, default 1 MiB; oversized input is rejected before process creation.
@@ -125,7 +125,7 @@ The Development Branch implementation baseline currently keeps `WorkerSpec` inpu
 
 This is not yet a complete IPC channel: no versioned frame decode/encode is invoked here, no RESPONSE is validated, no request correlation exists, and ModuleRuntime/resource leases are not yet integrated. Latest exact-head workflow #44567047096 on `5a6a8ffe4cec8a3eba1a325a260875c16d53837b` passed workflow-sanity and Windows process supervisor; Python 1,080 passed / 4 skipped. This includes the bytes-subclass input-cap regression and verifies the candidate on its PR branch only, not after integration.
 
-## 10. Current integration reconciliation — 2026-11-20
+## 11. Current integration reconciliation — 2026-11-20
 
 The earlier sections describe historical WP-09 implementation slices. The current Development Branch has since integrated:
 - PR #244: Windows Job Object process-tree containment.
@@ -159,7 +159,7 @@ Branch feat/wp-09e-worker-ipc-client-rebased builds on those integrated dependen
 5. Add durable crash recovery and explicit supervisor shutdown semantics.
 6. Complete threat-model-driven OS isolation and platform acceptance before any untrusted-code execution claim.
 
-## 11. WP-09F ModuleRuntime supervised worker dispatch (candidate, 2026-11-20)
+## 12. WP-09F ModuleRuntime supervised worker dispatch (candidate, 2026-11-20)
 
 Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the rebased one-shot WorkerIPCClient.
 
