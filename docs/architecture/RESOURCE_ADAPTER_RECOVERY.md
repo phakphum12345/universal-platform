@@ -79,3 +79,10 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 9. Exact-head CI, security review and adversarial tests before any merge.
 
 No arbitrary self-modification, privilege escalation, automatic production code patching or physical hardware control is enabled.
+
+ 
+## WP-09F integration and WP-09G recovery boundary — 2026-11-20
+
+PR #254 integrates ModuleRuntime worker dispatch at merge SHA `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`. Worker cancellation uses an immutable per-invocation handle; ResourceAllocator leases remain held until process-tree cleanup is confirmed and are quarantined on uncertainty. Quarantine-store failure does not release the active lease.
+
+This behavior is fail-closed only within the running host process. The ResourceAllocator and quarantine metadata remain in memory and do not survive restart. JsonlRecoveryEvidenceStore records completed recovery outcomes; it is not a durable worker lease ledger. See [Durable Worker Lease Recovery Contract](../runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md) for the proposed journal, identity hand-off, restart reconciliation and operator recovery design. Those capabilities are not implemented yet.
