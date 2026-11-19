@@ -4,8 +4,9 @@
 **Work package:** WP-15B  
 **Parent:** WP-15 Modern Unified Control Center UI  
 **Repository:** `phakphum12345/universal-platform`  
-**Target branch:** `docs/reconcile-2026-11-12-pr240`  
+**Target branch:** `docs/phase-0-complete-requirements`  
 **Scope:** Information architecture, navigation, representative user journeys, shared UI state and integration boundaries.  
+**WP-15A source inventory:** [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md)  
 **Non-goal:** This document does not implement UI, add API endpoints, change runtime behavior or authorize a merge.
 
 ## 1. Purpose and design constraints
@@ -65,7 +66,7 @@ The following is a proposed information architecture, not a claim that these rou
 ### Journey B — Create or continue a CAD task
 
 1. User opens Workspaces → CAD.
-2. UI opens or embeds/links the existing CAD Generator Workbench instead of duplicating its modeling UI.
+2. UI navigates to or route-loads the existing CAD Generator Workbench instead of duplicating its modeling UI. Do not use an iframe: the current CAD host sends `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'`.
 3. User selects a supported polygon-extrusion template or an existing history.
 4. UI communicates the selected history/revision and the relevant operation result.
 5. User edits, regenerates, undoes/redoes or branches only through the existing supported CAD API operations.
@@ -85,7 +86,7 @@ The following is a proposed information architecture, not a claim that these rou
 - `GET/POST /v1/histories/{id}/branches`
 - `POST /v1/histories/{id}/merge`
 
-The API was observed as loopback-bound, bearer-token protected and dynamically port-configured during WP-15A. Do not hard-code a port or expose it publicly as part of this UI work.
+The API was observed as loopback-bound, bearer-token protected and dynamically port-configured during WP-15A. Its current host serves the CAD UI at `/` and sends `X-Frame-Options: DENY` plus CSP `frame-ancestors 'none'`; do not iframe this workbench or weaken those headers to make embedding appear to work. Preserve the current root route and API contract. The Control Center must use route/client navigation or a separately designed local host with dynamic port discovery; do not hard-code a port or expose it publicly.
 
 ### Journey C — Discover a module and inspect its execution boundary
 
@@ -101,8 +102,8 @@ The API was observed as loopback-bound, bearer-token protected and dynamically p
 ### Journey D — Find and use a tool or function
 
 1. User opens Tools or Functions and searches by name, domain or supported capability.
-2. Detail view presents purpose, input/output contract, dependencies, execution mode, resource bounds, required grants and limitations.
-3. UI distinguishes implemented, partial, planned, unavailable and unknown maturity.
+2. Detail view presents purpose, input/output contract, dependencies, execution mode, required grants and limitations. Show resource bounds or reservation only when the host actually configures and enforces them; the current default built-in Physics bridge constructs ModuleRuntime without a ResourceAllocator and its normal requests carry no resource limits, so do not imply that this path reserves host quota.
+3. UI displays the registry's exact `ModuleManifest.maturity` value (`CONCEPT`, `EXPERIMENTAL`, `VALIDATED`, `PRODUCTION_CANDIDATE`, `STABLE` or `DEPRECATED`) and separately displays availability, execution lifecycle and evidence state. Do not map repository work-package states onto module maturity.
 4. User invokes only a verified operation with a validated input schema and sufficient host authorization.
 5. UI displays structured result, failure, cancellation or timeout only when the backend contract supports that outcome.
 
@@ -132,6 +133,19 @@ The API was observed as loopback-bound, bearer-token protected and dynamically p
 **Acceptance:** Settings are typed, scoped, validated and auditable. Host policy cannot be overridden by a user preference.
 
 ## 4. Shared application state
+
+### 4.0 Capability maturity versus verification evidence
+
+For module catalogue entries, display `ModuleManifest.maturity` exactly as declared by the trusted registry: `CONCEPT`, `EXPERIMENTAL`, `VALIDATED`, `PRODUCTION_CANDIDATE`, `STABLE` or `DEPRECATED`. Do not translate these values into repository work-package states. Keep the following dimensions separate:
+
+- **Module maturity:** the registry enum above.
+- **Availability/execution:** whether the operation is registered, host-authorized and currently executable; use the actual runtime response/state.
+- **Repository implementation lifecycle:** IMPLEMENTED, VERIFIED, INTEGRATED and ACCEPTED, used by the completion matrix and traceability, not as ModuleManifest maturity.
+- **Evidence outcome:** PASS, FAIL, SKIPPED or UNKNOWN, always linked to its source and exact revision.
+
+A module marked VALIDATED or STABLE is not proof that a particular invocation, build or repository integration passed its current checks.
+
+
 
 The shell should share only state needed for consistent navigation and context. Suggested state domains:
 
@@ -165,7 +179,7 @@ Do not convert timeout, missing endpoint, parse failure, stale response or autho
 
 | Domain | Existing source identified in WP-15A | UI integration rule | Open gap / verification |
 |---|---|---|---|
-| CAD | `engineering/static/cad_generator.html`, `cad_generator.js`, `cad_generator.css`; `engineering/cad_generator_http_api.py` | Reuse the existing workbench and API contracts | Shared-shell embedding/routing and API lifecycle need implementation tests |
+| CAD | `engineering/static/cad_generator.html`, `cad_generator.js`, `cad_generator.css`; `engineering/cad_generator_http_api.py` | Reuse through route/client navigation and existing API contracts; no iframe while frame-denial headers are active | Shared-shell route/host lifecycle and API compatibility need implementation tests |
 | Modules | `engineering/module_registry.py`, `module_runtime.py` | Present metadata separately from trusted handler execution | No arbitrary plugin loader or OS sandbox claim |
 | Physics | `engineering/physics.py`, `PhysicsSolverRegistry` | Discover registered solvers and supported adapters | Unified UI/API contract and maturity map need verification |
 | Resources | `runtime/resources/registry.py`, `runtime/health/monitor.py` | Display source-backed resource/health information | Unified resource/job endpoints and freshness contract need verification |
@@ -196,6 +210,7 @@ The UI must not treat hidden navigation, disabled buttons or client-side checks 
 - Desktop: support efficient navigation between overview, domain workbenches and detail panels.
 - Tablet: collapse secondary navigation and preserve readable tables/details without losing context.
 - Mobile: prioritize status, task inspection and safe read-only workflows; complex engineering editing must be explicitly tested before being claimed as supported.
+- Proposed viewport test baseline: desktop 1280×800 and 1440×900; tablet 768×1024; mobile 390×844 and 360×800. These are test targets for owner review, not a claim of current support.
 - All navigation and core flows must be keyboard operable with visible focus and logical focus order.
 - Use semantic headings, labels and controls; communicate status with text/icons as well as color.
 - Respect reduced-motion preferences and maintain usable contrast.
@@ -237,7 +252,7 @@ This work package does not:
 
 ## 10. Current status
 
-**WP-15B: DRAFT — recorded for review; acceptance pending.**  
+**WP-15B: DRAFT — consolidated into this canonical document; user review and acceptance pending.**  
 **WP-15C–WP-15J: PLANNED — implementation not started.**
 
 This document is a specification artifact only. Its presence in a pull request is not evidence that the UI or its integrations have been implemented or tested.
