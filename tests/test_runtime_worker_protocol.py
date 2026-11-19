@@ -129,6 +129,14 @@ def test_json_nesting_limit_accepts_boundary_and_ignores_delimiters_in_strings()
     assert decoded.payload["text"] == 'brackets [ ] braces { } and escaped quote " ]'
 
 
+def test_encode_rejects_json_nesting_beyond_decoder_limit():
+    nested = 0
+    for _ in range(63):
+        nested = [nested]
+    with pytest.raises(WorkerProtocolError, match="nesting"):
+        encode_frame(WorkerFrame("REQUEST", "r1", {"nested": nested}))
+
+
 def test_max_frame_bytes_must_fit_uint32_header():
     frame = WorkerFrame("REQUEST", "r1", {})
     with pytest.raises(ValueError, match="uint32"):
