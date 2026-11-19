@@ -21,7 +21,7 @@
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
 | 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
-| 15 | Modern Unified Control Center UI | PLANNED / WP-15A INVENTORY DRAFTED | Source-backed inventory and route map drafted in [WP-15A inventory](../ui/WP15A_UI_INVENTORY.md) on branch `docs/wp-15a-ui-inventory`; covers the existing CAD workbench, local API, security boundary and tests. Inventory review and exact-head CI pending; no shared shell or other Control Center implementation is claimed. Next: WP-15B user journeys/IA acceptance. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
+| 15 | Modern Unified Control Center UI | PLANNED / WP-15A INVENTORY DRAFTED / WP-15B IA DRAFTED | Source-backed UI inventory and proposed IA/user journeys are drafted in [WP-15A](../ui/WP15A_UI_INVENTORY.md) and [WP-15B](../ui/WP15B_CONTROL_CENTER_IA.md). Both await owner review/acceptance; no shared shell or other Control Center implementation is claimed. Next: accept navigation, personas, entrypoint, browser and accessibility decisions before WP-15C. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
 
 ## Latest verified implementation slices — 2026-11-10
 
