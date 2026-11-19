@@ -1,6 +1,6 @@
 # Runtime Resource Adapter and Log-Driven Recovery
 
-**Status:** Incremental implementation; process supervision is available for explicitly trusted, allow-listed workers. This is not a production security sandbox or a complete self-healing platform.
+**Status:** Incremental implementation; host-authorized ModuleRuntime dispatch can use explicitly trusted, allow-listed supervised workers. Windows Job Object and POSIX process-group cleanup are implemented. This is not a production security sandbox or a complete self-healing platform.
 
 ## Resource model
 
@@ -16,7 +16,7 @@ ResourceSnapshotCollector registers a metric provider per resource, collects uni
 
 ## Resource quota allocation and leases
 
-ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. Leases can be released explicitly or reclaimed when a later operation observes their expiry. The implementation is process-local; it does not discover host capacity, enforce OS-level CPU/memory limits, coordinate multiple processes/machines or persist leases across restarts.
+ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. Runtime worker leases are held until supervisor cleanup is confirmed; unconfirmed termination quarantines a lease and prevents ordinary TTL expiry/release. If quarantine metadata recording fails, ModuleRuntime still withholds release and reports the retained active lease for manual inspection. The allocator remains process-local; it does not discover host capacity, enforce OS-level CPU/memory limits, coordinate multiple processes/machines or persist leases across restarts.
 
 ## Log-driven diagnosis
 
@@ -34,10 +34,19 @@ The coordinator can read from a LogSource, detect an unhealthy current adapter w
 
 ## Python process supervision
 
-PythonProcessSupervisor launches explicitly allow-listed executable files without a shell, confines working directories beneath a configured root, starts with an explicit environment mapping, bounds retained stdout/stderr per stream, enforces a wall-clock timeout and supports external cancellation. On POSIX it starts a new session and signals the process group for termination. On Windows this version terminates the direct child only.
+PythonProcessSupervisor launches explicitly allow-listed executable files without a shell, confines working directories beneath a configured root, starts with an explicit environment mapping, bounds retained stdout/stderr per stream, accepts bounded stdin bytes, enforces a wall-clock timeout and supports external cancellation. On POSIX it starts a new session, signals the process group and waits for live descendants to exit; Linux zombie-only groups are treated as terminated when /proc confirms no live member. On Windows it creates the process suspended, assigns it to a kill-on-close Job Object before resume, and checks Job Object process count during timeout, cancellation and normal-root-exit cleanup.
 
-**Important security boundary:** this is an OS process supervisor, not a sandbox. Allow-listed executables and their arguments must be trusted. It does not provide filesystem/network syscall isolation, OS-level CPU/memory quotas, durable checkpoints, restart policies, heartbeat monitoring, Windows Job Object containment or protection against a compromised worker. Do not run untrusted code through it.
+**Important security boundary:** this is an OS process supervisor, not a sandbox. Allow-listed executables and their arguments must be trusted. Job Objects/process groups provide process-tree lifecycle containment only; they do not provide filesystem/network syscall isolation, OS-level CPU/memory quotas, durable checkpoints, restart policies, heartbeat monitoring or protection against a compromised worker. Do not run untrusted code through it.
 
+## ModuleRuntime supervised worker dispatch
+
+ModuleRuntime supports a host-registered WorkerIPCClient for a declared module operation. Worker-backed operations require a versioned input schema, a versioned output schema and at least one explicit host permission. The host grant is checked before admission; request.permissions is descriptive and never grants authority.
+
+The executable, arguments, working directory and environment remain in the host-owned WorkerSpec. The request frame carries operation identity, schema version, validated input, assumptions, source references and quota request, but never executable configuration or host permission grants. One process is started per request; WorkerIPCClient accepts exactly one correlated RESPONSE frame and rejects missing, malformed, mismatched or trailing output.
+
+Cancellation maps the public request_id to a unique host-generated worker ID and retries through the request-registration/process-start race. A ResourceAllocator lease is held across worker execution and released only after supervisor cleanup is confirmed. If termination is unconfirmed, the lease is quarantined; if quarantine metadata writing itself fails, the active lease is still not released and manual inspection is required.
+
+This integration is still trusted-worker execution under the host account. Resource quotas are admission accounting only; quarantine is process-local and not durable; there is no persistent worker pool, crash replay, privilege separation, filesystem/network isolation or general-purpose sandbox. Exact-head CI for the current WP-09F integration must pass before it is treated as verified.
 ## Adapter replacement and repair safeguards
 
 - A repair executor must explicitly declare sandboxed = True; the coordinator does not itself create the sandbox.
@@ -61,7 +70,8 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 - ResourceHealthMonitor tests cover critical/warning thresholds, missing/wrong-unit UNKNOWN findings, latest-snapshot enforcement and no automatic reactivation.
 - Log parsing/redaction, bounded file ingestion, path traversal and evidence persistence have focused tests.
 - Coordinator integration tests cover log source -> analysis -> sleep/repair/validate/canary -> evidence -> resume, including evidence-write failure before resume.
-- Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded output, timeout and external cancellation.
+- Process supervisor tests cover allow-list enforcement, working-directory confinement, bounded stdin/stdout/stderr, timeout, cancellation races, POSIX descendant cleanup and Windows Job Object process-tree containment.
+- Worker IPC tests cover versioned request/response framing, request correlation, exact one-response semantics, frame/header limits, NUL request IDs, unique worker IDs, duplicate request rejection and process-tree termination evidence.
 - Adapter catalog tests cover capability/kind matching, numeric minimum versions, explicit license allow-lists, dependency checks, priority selection, asleep-only replacement and no mutation after failed health/canary checks.
 - Recovery fallback tests cover unhealthy current adapter detection, asleep-only compatible replacement, route switching before repair, evidence persistence and quarantine when no fallback candidate passes.
 - RuntimeAdapterRouter tests cover bound-route identity, synchronized registry/route replacement, stale-route rejection and preservation of the old adapter after failed candidate validation.
@@ -70,7 +80,7 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 
 1. Persistent resource registry, durable leases and cross-process concurrency control.
 2. Stream log sources, cursoring, rotation, retention and robust cross-source correlation.
-3. OS sandbox implementation for untrusted repair and worker code; platform-specific process-tree containment.
+3. OS sandbox implementation for untrusted repair and worker code; process-tree containment exists but is not a sandbox.
 4. OS-enforced CPU/memory/disk/network quotas and broader resource telemetry collectors.
 5. Checkpoint/restore, heartbeat, crash restart policy and lifecycle integration with ResourceRegistry/RecoveryCoordinator.
 6. Cross-process adapter routing, active-task transfer, durable route state and production canary traffic policy; local policy-gated fallback and in-process route replacement are implemented.
