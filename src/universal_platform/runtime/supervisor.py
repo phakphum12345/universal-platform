@@ -355,6 +355,15 @@ class PythonProcessSupervisor:
             return True
         return True
 
+    @classmethod
+    def _wait_process_group_empty(cls, process_group_id: int, timeout_seconds: float) -> bool:
+        deadline = time.monotonic() + max(0.0, timeout_seconds)
+        while cls._process_group_exists(process_group_id):
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(0.01)
+        return True
+
     @staticmethod
     def _terminate_process(
         process: subprocess.Popen[bytes],
@@ -392,3 +401,7 @@ class PythonProcessSupervisor:
             pass
         if process.poll() is None:
             process.wait()
+        if not PythonProcessSupervisor._wait_process_group_empty(
+            process.pid, max(1.0, grace_seconds + 1.0)
+        ):
+            raise RuntimeError("POSIX worker process group did not become empty")
