@@ -1,8 +1,8 @@
 # Work Package Status Register
 
 **Baseline integration branch:** `docs/phase-0-complete-requirements`  
-**Last verified integration baseline:** `c14cde5eacfa31b1ebc5be0ec3641610ecceb4de` (PR #233 squash merge)  
-**Audit date:** 2026-11-10  
+**Last verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge)  
+**Audit date:** 2026-11-12  
 **Status:** INCOMPLETE — evidence-based register; update after each verified implementation slice.
 
 | WP | Domain | Current status | Evidence / next action |
@@ -15,12 +15,13 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | Windows Job Object process-tree implementation and acceptance tests authored on PR branch; exact-head Windows CI pending. Worker IPC, ModuleRuntime integration, worker-owned lease lifecycle, fault-injection coverage and OS sandboxing remain open |
+| 09 | Module runtime | PARTIAL | PR #235–#240 implement trusted in-process dispatch, bounded Physics bridge, host-configured in-memory reservations, output-schema subset, grant/revoke drain and POSIX supervisor cleanup. ModuleRuntime-to-supervisor integration, Windows Job Objects, lease release tied to worker termination, durable recovery and OS sandbox remain open |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
 | 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
+| 15 | Modern Unified Control Center UI | PLANNED | UI inventory and route/API map first; then shared responsive design system, overview/workspace, modules/tools/functions catalogue, schema-backed settings, diagnostics/audit, workbench integration, accessibility and browser E2E. No implementation or acceptance claimed yet; see [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
 
 ## Latest verified implementation slices — 2026-11-10
 
@@ -341,7 +342,7 @@ See [Repository Audit post-PR #207](../audit/REPOSITORY_AUDIT_2026-11-08_POST_PR
 - Status: IN_PROGRESS — exact-head CI and review evidence pending. This does not establish OS isolation or general plugin loading.
 
 
-## WP-09 Windows Job Object containment — design gate (2026-11-13)
+## Current integration reconciliation — 2026-11-12 (post-PR #240)
 
 - Latest verified integration baseline for this work: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
 - Existing supervisor behavior was re-read at this baseline: POSIX process-group cleanup exists; Windows uses `CREATE_NEW_PROCESS_GROUP` and terminates only the direct child.
