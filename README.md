@@ -5,6 +5,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 ## Current status — 2026-11-19
 
 - Stage: Active incremental implementation on `docs/phase-0-complete-requirements`; the repository is **INCOMPLETE**.
+- Exact Development Branch HEAD at PR #246 creation: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
 - Latest verified merged runtime increment: PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head run #43283027429 passed its recorded required jobs; post-merge CI on the exact merge SHA was not found in this audit and remains UNKNOWN.
 - Main HEAD observed: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
 - PR #243 (Windows containment documentation) remains OPEN and appears potentially superseded by the contract and implementation incorporated into PR #244. Reconcile its unique changes before any merge.
