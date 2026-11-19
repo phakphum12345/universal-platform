@@ -182,7 +182,7 @@ The E2E file installs/launches Playwright Chromium. This inventory does not esta
 | Jobs/execution centre | CAD regenerate action/result only | Requires runtime job lifecycle API and cancellation evidence |
 | Diagnostics | CAD health and local result/error display only | Requires platform diagnostic source aggregation |
 | Activity/audit | CAD API audit log exists; no global audit UI found | Needs safe, redacted, user-visible platform audit query contract |
-| CAD workbench | Implemented | Embed/reuse under shell; preserve current API and user journeys |
+| CAD workbench | Implemented | Reuse through route/client navigation under the shell; do not iframe because the existing host sends `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'`. Preserve current API and user journeys. |
 | Mechanics workbench | No browser workbench found in inspected source | Planned until actual UI/API inventory identifies one |
 | Physics workbench | No browser workbench found in inspected source | Planned until actual UI/API inventory identifies one |
 | Hardware workbench | No browser workbench found in inspected source | Planned until actual UI/API inventory identifies one |
