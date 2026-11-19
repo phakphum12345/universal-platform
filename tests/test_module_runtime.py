@@ -9,6 +9,8 @@ from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
 from universal_platform.engineering.module_runtime import ModuleRuntime
 from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
+from universal_platform.runtime.resources.allocator import ResourceAllocator
+from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.worker_ipc import WorkerIPCClient
 
 
