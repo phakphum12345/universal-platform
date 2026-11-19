@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import replace
 from io import BytesIO
 
-from .supervisor import PythonProcessSupervisor, WorkerSpec
+from .supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
 from .worker_protocol import (
     DEFAULT_MAX_FRAME_BYTES,
     WorkerFrame,
@@ -23,8 +23,15 @@ from .worker_protocol import (
 class WorkerIPCError(RuntimeError):
     """A supervised worker request failed its transport or lifecycle contract."""
 
-    def __init__(self, code: str, message: str):
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        termination_confirmed: bool = True,
+    ):
         self.code = code
+        self.termination_confirmed = termination_confirmed
         super().__init__(message)
 
 
@@ -79,8 +86,18 @@ class WorkerIPCClient:
         )
         try:
             result = self._supervisor.run(spec)
+        except WorkerTerminationError as error:
+            raise WorkerIPCError(
+                "worker.termination_unconfirmed",
+                "supervisor could not confirm worker process-tree termination",
+                termination_confirmed=False,
+            ) from error
         except Exception as error:
-            raise WorkerIPCError("worker.supervisor_failed", "supervised worker execution failed") from error
+            raise WorkerIPCError(
+                "worker.supervisor_failed",
+                "supervised worker execution failed",
+                termination_confirmed=True,
+            ) from error
 
         if result.timed_out:
             raise WorkerIPCError("worker.timeout", "worker exceeded its host-owned deadline")
