@@ -1,6 +1,6 @@
 # Windows Job Object Process-Tree Containment Contract
 
-**Status:** IMPLEMENTATION ADDED ON FEATURE BRANCH — exact-head CI and review pending.  
+**Status:** PR #244 merged at `b6e02988b009754fbf0ccdfc032c33174355e5c6`; exact-head workflow #43283027429 passed its recorded required jobs. Post-merge CI on the exact merge SHA is UNKNOWN in the current audit.  
 **Work package:** WP-09, Windows process supervision.  
 **Baseline:** integration commit `c3d9800ebb46caff38bf18c13142e218ee2c6c63`.  
 **Scope:** containment and deterministic cleanup for explicitly trusted worker processes on Windows.
