@@ -103,6 +103,7 @@ def encode_frame(frame: WorkerFrame, *, max_frame_bytes: int = DEFAULT_MAX_FRAME
             document, ensure_ascii=False, allow_nan=False,
             separators=(",", ":"), sort_keys=True,
         ).encode("utf-8")
+        _validate_json_nesting(body.decode("utf-8"))
     except (TypeError, ValueError, UnicodeEncodeError, RecursionError) as error:
         raise WorkerProtocolError("frame payload is not finite UTF-8 JSON") from error
     if not body or len(body) > max_frame_bytes:
