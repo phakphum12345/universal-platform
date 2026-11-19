@@ -7,7 +7,7 @@ a persistent channel or a security sandbox.
 """
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from io import BytesIO
 import math
 import threading
@@ -37,6 +37,14 @@ class WorkerIPCError(RuntimeError):
         self.code = code
         self.termination_confirmed = termination_confirmed
         super().__init__(message)
+
+
+@dataclass(frozen=True, slots=True)
+class WorkerInvocationHandle:
+    """Immutable cancellation identity reserved before a worker process starts."""
+
+    request_id: str
+    worker_id: str
 
 
 class WorkerIPCClient:
@@ -80,32 +88,68 @@ class WorkerIPCClient:
         self._worker_spec = worker_spec
         self._max_frame_bytes = max_frame_bytes
         self._request_lock = threading.RLock()
-        self._active_requests: dict[str, str] = {}
+        self._active_requests: dict[str, WorkerInvocationHandle] = {}
 
-    def request(self, frame: WorkerFrame) -> WorkerFrame:
-        """Send one REQUEST and return its exactly correlated RESPONSE."""
-        if not isinstance(frame, WorkerFrame):
-            raise TypeError("frame must be a WorkerFrame")
-        if frame.message_type != "REQUEST":
-            raise WorkerIPCError("worker.invalid_request_type", "only REQUEST frames can be dispatched")
+    @staticmethod
+    def _validate_request_id(request_id: str) -> None:
         if (
-            not isinstance(frame.request_id, str)
-            or not frame.request_id.strip()
-            or len(frame.request_id) > 128
-            or "\x00" in frame.request_id
+            not isinstance(request_id, str)
+            or not request_id.strip()
+            or len(request_id) > 128
+            or "\\x00" in request_id
         ):
             raise WorkerIPCError("worker.request_invalid", "request_id is invalid")
 
+    def reserve(self, request_id: str) -> WorkerInvocationHandle:
+        """Reserve a unique worker identity before admission reaches process start."""
+        self._validate_request_id(request_id)
         with self._request_lock:
-            if frame.request_id in self._active_requests:
-                # No second process was started for this invocation; the
-                # existing invocation retains its own worker identity/lease.
+            if request_id in self._active_requests:
                 raise WorkerIPCError(
                     "worker.request_already_active",
                     "request_id is already active in this WorkerIPCClient",
                 )
-            worker_id = f"worker-{uuid4().hex}"
-            self._active_requests[frame.request_id] = worker_id
+            handle = WorkerInvocationHandle(
+                request_id=request_id,
+                worker_id=f"worker-{uuid4().hex}",
+            )
+            self._active_requests[request_id] = handle
+            return handle
+
+    def release(self, handle: WorkerInvocationHandle) -> bool:
+        """Release an unused/completed reservation; stale handles cannot release a newer one."""
+        if not isinstance(handle, WorkerInvocationHandle):
+            return False
+        with self._request_lock:
+            if self._active_requests.get(handle.request_id) != handle:
+                return False
+            self._active_requests.pop(handle.request_id, None)
+            return True
+
+    def request(
+        self,
+        frame: WorkerFrame,
+        *,
+        handle: WorkerInvocationHandle | None = None,
+    ) -> WorkerFrame:
+        """Send one REQUEST using its pre-reserved identity and return one correlated RESPONSE."""
+        if not isinstance(frame, WorkerFrame):
+            raise TypeError("frame must be a WorkerFrame")
+        if frame.message_type != "REQUEST":
+            raise WorkerIPCError("worker.invalid_request_type", "only REQUEST frames can be dispatched")
+        self._validate_request_id(frame.request_id)
+        owns_handle = handle is None
+        if handle is None:
+            handle = self.reserve(frame.request_id)
+        elif (
+            not isinstance(handle, WorkerInvocationHandle)
+            or handle.request_id != frame.request_id
+        ):
+            raise WorkerIPCError("worker.request_handle_invalid", "worker handle does not match request_id")
+        with self._request_lock:
+            if self._active_requests.get(frame.request_id) != handle:
+                raise WorkerIPCError("worker.request_handle_invalid", "worker handle is not the active reservation")
+        worker_id = handle.worker_id
 
         try:
             try:
@@ -167,39 +211,38 @@ class WorkerIPCClient:
                 raise WorkerIPCError("worker.response_correlation_mismatch", "worker response request_id did not match")
             return response
         finally:
-            with self._request_lock:
-                if self._active_requests.get(frame.request_id) == worker_id:
-                    self._active_requests.pop(frame.request_id, None)
+            # ModuleRuntime also releases in its outer finally so a reservation
+            # is removed when resource admission fails before request() starts.
+            self.release(handle)
 
-    def cancel(self, request_id: str, *, grace_seconds: float = 1.0) -> bool:
-        """Cancel the supervised process tree for an in-flight request."""
-        if (
-            not isinstance(request_id, str)
-            or not request_id.strip()
-            or len(request_id) > 128
-            or "\x00" in request_id
-        ):
-            raise ValueError("request_id must be a non-empty string of at most 128 characters")
+    def cancel(
+        self,
+        handle: WorkerInvocationHandle,
+        *,
+        grace_seconds: float = 1.0,
+    ) -> bool:
+        """Cancel only the process identity captured by this invocation handle."""
+        if not isinstance(handle, WorkerInvocationHandle):
+            return False
         if (
             isinstance(grace_seconds, bool)
             or not isinstance(grace_seconds, (int, float))
             or not math.isfinite(grace_seconds)
             or grace_seconds < 0
         ):
-            raise ValueError("grace_seconds must be finite and non-negative")
+            return False
         deadline = time.monotonic() + max(0.1, grace_seconds + 1.0)
         while True:
-            with self._request_lock:
-                worker_id = self._active_requests.get(request_id)
-            if worker_id is not None and self._supervisor.cancel(
-                worker_id, grace_seconds=grace_seconds
-            ):
-                return True
+            try:
+                if self._supervisor.cancel(handle.worker_id, grace_seconds=grace_seconds):
+                    return True
+            except Exception:
+                # Cancellation is a boolean control API. The request thread
+                # independently reports unconfirmed cleanup and retains leases.
+                return False
             if time.monotonic() >= deadline:
                 return False
-            # The host may request cancellation after ModuleRuntime admission
-            # but just before request() has registered its worker identity.
             time.sleep(0.01)
 
 
-__all__ = ["WorkerIPCClient", "WorkerIPCError"]
+__all__ = ["WorkerIPCClient", "WorkerIPCError", "WorkerInvocationHandle"]
