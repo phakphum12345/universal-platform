@@ -120,7 +120,7 @@ class PythonProcessSupervisor:
             raise PermissionError("executable is not allow-listed")
         if not executable.is_file():
             raise ValueError("executable must be a file")
-        if spec.stdin_data is not None and len(spec.stdin_data) > self._max_input_bytes:
+        if spec.stdin_data is not None and memoryview(spec.stdin_data).nbytes > self._max_input_bytes:
             raise ValueError("worker stdin payload exceeds max_input_bytes")
         cwd = (self._root / spec.working_directory).resolve(strict=True)
         if not cwd.is_dir() or not cwd.is_relative_to(self._root):
