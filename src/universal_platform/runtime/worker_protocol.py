@@ -37,7 +37,7 @@ class WorkerFrame:
             not isinstance(self.request_id, str)
             or not self.request_id.strip()
             or len(self.request_id) > 128
-            or "\\x00" in self.request_id
+            or "\x00" in self.request_id
         ):
             raise WorkerProtocolError(
                 "request_id must be a non-empty NUL-free string of at most 128 characters"
