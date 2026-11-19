@@ -185,3 +185,15 @@ Branch feat/wp-09f-module-runtime-worker-dispatch-rebased is stacked on the reba
 2. Add fault-injection tests for lease allocation/release exceptions, concurrent revoke/cancel, worker response schema failures and supervisor shutdown.
 3. Design durable quarantine/recovery records and safe operator reconciliation.
 4. Define and validate a threat-model-backed OS isolation boundary before any untrusted-code capability.
+
+
+## 14. Authoritative WP-09F integration — 2026-11-20
+
+PR #254 merged at f2ee9045c6316b2ff9026ea5196fedf1232f71a3. Exact-head run #44606596004 and exact merge-SHA run #44607892946 both passed: Python 1,142 passed / 4 skipped, Windows process-supervisor PASS, workflow-sanity PASS.
+
+- ModuleRuntime registers WorkerIPCClient only for operations with declared versioned input/output schemas and explicit host permissions.
+- An immutable WorkerInvocationHandle is reserved before process startup. Cancellation snapshots the handle and targets its unique worker ID; stale cancellation cannot target a later invocation after request_id reuse.
+- Worker executable configuration remains host-owned. Resource leases are released only after confirmed process-tree cleanup and are quarantined on uncertainty.
+- Quarantine and allocator state are still in-memory and do not survive host restart. This is not durable lease recovery, cross-process quota enforcement, a sandbox or OS resource enforcement.
+
+WP-09G is design-only. See DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md for WP-09G-A through WP-09G-E.
