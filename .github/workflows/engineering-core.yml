@@ -68,3 +68,5 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Run process supervisor tests on Windows
         run: python -m pytest -q tests/test_runtime_process_supervisor.py
+      - name: Run durable JSONL journal and recovery evidence tests on Windows
+        run: python -m pytest -q tests/test_runtime_jsonl_journal.py tests/test_runtime_log_sources_evidence.py
