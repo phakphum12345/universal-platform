@@ -51,9 +51,9 @@ Revocation removes the grant before waiting for admitted invocations to drain. C
 The revoke operation is synchronous and can wait indefinitely if an in-process handler never returns. Call it from a control-plane thread, not from the module's own handler. It does not forcibly cancel or terminate handlers. Timeout, cancellation and untrusted-handler process isolation remain separate follow-up work under WP-09C; this lifecycle is not OS-level enforcement.
 
 
-## Trusted process-supervisor lifecycle hardening — WP-09C (partial)
+## Trusted process-supervisor lifecycle hardening — WP-09C (merged implementation)
 
-The allow-listed process supervisor is still separate from ModuleRuntime and remains restricted to trusted executables. The current lifecycle hardening serializes worker-ID reservation with process creation, rejects duplicate IDs before spawning a second process, tracks cancellation until run cleanup, and makes registry removal unconditional. On POSIX, workers start in a new session and termination signals the process group even if its leader has exited; this closes the inherited-pipe case where a descendant outlives the parent and keeps stdout/stderr open.
+The allow-listed process supervisor remains restricted to host-configured trusted executables and is invoked through WorkerIPCClient. The lifecycle hardening serializes worker-ID reservation with process creation, rejects duplicate IDs before spawning a second process, tracks cancellation until run cleanup, and makes registry removal unconditional. On POSIX, workers start in a new session and termination signals the process group even if its leader has exited; this closes the inherited-pipe case where a descendant outlives the parent and keeps stdout/stderr open.
 
 The supervisor bounds retained output per stream and does not invoke a shell. Tests cover timeout, external cancellation, duplicate worker IDs, and POSIX descendants that retain inherited pipes after the parent exits.
 
