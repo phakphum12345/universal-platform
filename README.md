@@ -2,23 +2,24 @@
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status — 2026-11-19
+## Current status — 2026-11-20
 
-- Stage: Active incremental implementation on `docs/phase-0-complete-requirements`; the repository is **INCOMPLETE**.
-- Historical audit baseline before PR #116: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; its recorded historical suite result was 732 passed. Retained for traceability only, not current CI evidence.
-- Exact Development Branch HEAD at PR #246 creation: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
-- Latest verified merged runtime increment: PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head run #43283027429 passed its recorded required jobs; post-merge CI on the exact merge SHA was not found in this audit and remains UNKNOWN.
-- Main HEAD observed: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
-- PR #243 (Windows containment contract refinement) remains OPEN. It contains unique process/thread-handle ownership and descendant/pipe acceptance refinements not made redundant by PR #244's implementation; preserve those requirements while reconciling its stale status edits.
-- PR #245 (versioned Worker IPC framing) remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`. Exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). Formal review submissions and unresolved review threads were empty; review outcome is UNKNOWN. The transport primitive is verified on its PR branch but not integrated.
-- Earlier PR #245 runs #44559792152 and #44562681272 apply to different exact heads; only #44562681272 verifies the latest head. Run #44561148170 failed two newly added negative tests due error wrapping; the fix is included in the latest passing head.
-- The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the repository-wide execution ledger. Use it with [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md).
-- Runtime maturity remains PARTIAL: ModuleRuntime is not yet wired through supervised workers; IPC integration, lease coupling, durable recovery and security isolation remain open.
-- CAD, Mechanics, Physics, Hardware/EDA, Unified Control Center and platform-wide acceptance remain PARTIAL or PLANNED as detailed in the matrix.
-- Local working-tree state and protected-branch configuration are UNKNOWN to this GitHub-only audit.
-- Principles: local-first, cost-aware, evidence-driven, modular and secure. No new paid service or public exposure without documented need and approval.
+- Overall lifecycle: **INCOMPLETE**. The repository is in active incremental development, not release acceptance.
+- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e` (PR #257 merge).
+- Default `main`: `96e75010716226037893155b9fd4b13410fb0d6f`. GitHub comparison reports development is **878 commits ahead / 0 behind**; main is an ancestor of the development branch.
+- GitHub reports both `main` and `docs/phase-0-complete-requirements` as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Workflow checks run, but GitHub does not enforce them as branch protection.
+- PR inventory at the initial audit was #1–#258 (239 merged, 18 closed without merge, 1 open). Execution work subsequently opened PRs #259 and #260; current inventory is #1–#260 (239 merged, 18 closed without merge, 3 open: #258, #259, #260).
+- PR #258 (WP-09G-B durable allocator) is open at head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; exact-head workflow-sanity, Python and Windows supervisor jobs PASS. Python reported 1,160 passed / 4 skipped. The four Linux skips are Windows-specific supervisor tests; the Windows job ran 21 passed / 2 POSIX-only skipped, and the journal job ran 20 passed / 1 Windows-only skipped. No formal review submission; not merged.
+- PR #259 is the repository audit/documentation reconciliation. Its first head passed 1,150 Python tests with 4 platform-specific skips, Windows supervisor and workflow sanity. The latest documentation head is being revalidated.
+- PR #260 is stacked on PR #258 and wires durable leases into ModuleRuntime, persists worker/host IDs, verifies quarantine replay and adds multiprocess contention tests. Its Windows job passed: process supervisor 21 passed / 2 POSIX-only skipped; journal 20 passed / 1 Windows-only skipped; durable allocator + ModuleRuntime + multiprocess tests 14 passed / 0 skipped. Latest Python full-suite result is pending.
+- WP-09G-A journal is integrated via PR #257. WP-09G-B is implemented on PR #258 and has a ModuleRuntime integration candidate in PR #260; neither is accepted until the dependency chain is reviewed, integrated and verified on merge SHAs. WP-09G-C/D/E (OS process identity, startup process-tree reconciliation and audited operator recovery) remain open.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. WP-15B remains a DRAFT pending owner acceptance; WP-15C is not started.
+- No merge to `main` or deployment is implied. Local working-tree state is UNKNOWN to this GitHub-only audit.
+- Use the [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) as the current evidence set.
 
 ## Initial implementation (active development)
+
+
 
 The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
