@@ -808,3 +808,29 @@ def test_module_runtime_cancel_rejects_invalid_request_ids():
     assert not runtime.cancel("")
     assert not runtime.cancel("bad\x00id")
     assert not runtime.cancel("x" * 129)
+
+
+def test_worker_termination_quarantine_failure_still_retains_lease(tmp_path, monkeypatch):
+    class UnconfirmedSupervisor:
+        def run(self, spec):
+            raise WorkerTerminationError(spec.worker_id)
+
+        def cancel(self, worker_id, *, grace_seconds=1.0):
+            return False
+
+    runtime, allocator, _ = setup_worker_runtime(
+        tmp_path, "pass", supervisor=UnconfirmedSupervisor()
+    )
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+
+    def fail_quarantine(lease_id, reason):
+        raise RuntimeError("quarantine store unavailable")
+
+    monkeypatch.setattr(allocator, "quarantine", fail_quarantine)
+    result = runtime.invoke(worker_request())
+    assert result.status == "ERROR"
+    assert result.error_code == "module.worker_termination_unconfirmed"
+    assert any("quarantine metadata could not be recorded" in warning for warning in result.warnings)
+    assert len(allocator.active_leases()) == 1
+    assert allocator.available()[0].value == 1
+    assert allocator.quarantined_leases() == ()
