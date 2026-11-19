@@ -15,7 +15,7 @@
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | PR #235–#240 implement trusted in-process dispatch, bounded Physics bridge, host-configured in-memory reservations, output-schema subset, grant/revoke drain and POSIX supervisor cleanup. ModuleRuntime-to-supervisor integration, Windows Job Objects, lease release tied to worker termination, durable recovery and OS sandbox remain open |
+| 09 | Module runtime | PARTIAL | PR #244 merged Windows Job Object containment; PR #245 merged versioned WorkerFrame framing; PR #248 merged bounded supervised stdin. One-shot WorkerIPCClient is now rebased onto the Development Branch in `feat/wp-09e-worker-ipc-client-rebased` and awaits exact-head CI/review. ModuleRuntime worker dispatch, host-side input/output schema and permission enforcement for worker calls, cancellation/deadline races, lease retention/quarantine tied to confirmed process-tree exit, durable recovery and OS security isolation remain open. |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
@@ -396,3 +396,17 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Tests cover request echo/EOF, configured input cap, early worker exit, blocked writer timeout, invalid input type and invalid limit.
 - Latest exact-head workflow #44567047096 on `5a6a8ffe4cec8a3eba1a325a260875c16d53837b`: workflow-sanity PASS, Windows process supervisor PASS, Python 1,080 passed / 4 skipped. This run includes the bytes-subclass input-cap regression; verified on this PR branch, not yet integrated.
 - Boundary: this is a bounded one-shot input transport foundation only. It does not yet frame/decode WorkerFrame messages, validate a worker response, correlate requests, dispatch ModuleRuntime operations or bind leases to worker termination.
+
+
+## WP-09E-B — one-shot supervised Worker IPC client (rebased candidate, 2026-11-20)
+
+- Branch: `feat/wp-09e-worker-ipc-client-rebased`, based on the current Development Branch after PR #245 and PR #248 integration.
+- Uses the versioned WorkerFrame codec and the merged bounded stdin transport; the encoded frame limit is reduced by the 4-byte header so the complete buffer stays within the supervisor's configured `max_input_bytes`.
+- Worker process identity is host-generated and unique per invocation; protocol request IDs remain correlation keys only. Duplicate active request IDs are rejected before a second process can start.
+- Request IDs are bounded and NUL-free. Cancellation maps the external request ID to the host-generated worker ID and validates the host grace period.
+- Preserves bounded raw stdout bytes and requires exactly one correlated RESPONSE frame.
+- Supervisor exposes its configured input cap and confirms POSIX process-group cleanup, treating zombie-only Linux process groups as terminated while remaining conservative when /proc metadata is inaccessible. Windows Job Object emptiness remains required.
+- Cleanup failures raise `WorkerTerminationError` and propagate `termination_confirmed=False`; ModuleRuntime lease quarantine is not yet integrated.
+- New tests cover header-aware frame limits, NUL IDs, duplicate active requests, process startup cancellation and zombie-only process-group detection.
+- Exact-head CI is pending; no local test execution is claimed.
+- Boundary: transport/client only. This does not yet dispatch ModuleRuntime operations, enforce worker input schemas or host grants, or provide durable lease recovery or an OS sandbox.
