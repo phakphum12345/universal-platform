@@ -2,20 +2,21 @@
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status
-- Stage: Active incremental implementation on the integration branch; repository is not complete.
-- Historical post-PR #113 workflow #42279521637: `workflow-sanity` PASS, `python-tests` PASS, **732 passed in 3.79s**; this is a superseded historical baseline, not current CI evidence. The associated integration baseline before PR #116 was `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`.
-- Latest verified integration baseline: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merged 2026-11-12).
-- Main HEAD: `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged; no promotion performed).
-- Latest post-merge workflow on the exact integration HEAD: [run #43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709); `python-tests` PASS and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED and is not counted as PASS.
-- PRs #235–#240 are merged to the integration branch; exact merge SHAs and post-merge runs are recorded in [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and the [2026-11-12 audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
-- PR #241 remains OPEN and unmerged. Its exact-head PR workflow [#43168390970](https://github.com/phakphum12345/universal-platform/actions/runs/43168390970) passed the Windows supervisor test job, Python tests and workflow sanity; this does not implement Windows Job Objects or prove descendant cleanup.
-- Recursive tree at `c3d9800ebb46caff38bf18c13142e218ee2c6c63`: 392 blobs (156 Markdown, 202 Python, 28 JSON); recursive response not truncated.
-- Local working tree: UNKNOWN (GitHub API inspection only). Branch protection: UNKNOWN.
-- Principles: Local-first, cost-aware, evidence-driven, modular, secure.
-- Hardware boundary: Analysis and simulation only; no physical control.
-- Remaining scope: recompute propagation; B-rep face/edge selection and sectioning; nested cavity material islands; arbitrary 3D Boolean and ambiguous branching topology; full STEP/AP242 and 3MF assembly interchange; broader EDA/circuit simulation; additional validated physics methods; OS-enforced sandboxing; and broader API/CLI/UI integration remain incomplete.
-- Driver generation: Existing capability is to be inventoried and reused; no duplicate generator is planned.
+## Current status — 2026-11-19
+
+- Stage: Active incremental implementation on `docs/phase-0-complete-requirements`; the repository is **INCOMPLETE**.
+- Historical audit baseline before PR #116: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; its recorded historical suite result was 732 passed. Retained for traceability only, not current CI evidence.
+- Exact Development Branch HEAD at PR #246 creation: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
+- Latest verified merged runtime increment: PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head run #43283027429 passed its recorded required jobs; post-merge CI on the exact merge SHA was not found in this audit and remains UNKNOWN.
+- Main HEAD observed: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+- PR #243 (Windows containment contract refinement) remains OPEN. It contains unique process/thread-handle ownership and descendant/pipe acceptance refinements not made redundant by PR #244's implementation; preserve those requirements while reconciling its stale status edits.
+- PR #245 (versioned Worker IPC framing) remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`. Exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). Formal review submissions and unresolved review threads were empty; review outcome is UNKNOWN. The transport primitive is verified on its PR branch but not integrated.
+- Earlier PR #245 runs #44559792152 and #44562681272 apply to different exact heads; only #44562681272 verifies the latest head. Run #44561148170 failed two newly added negative tests due error wrapping; the fix is included in the latest passing head.
+- The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the repository-wide execution ledger. Use it with [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md).
+- Runtime maturity remains PARTIAL: ModuleRuntime is not yet wired through supervised workers; IPC integration, lease coupling, durable recovery and security isolation remain open.
+- CAD, Mechanics, Physics, Hardware/EDA, Unified Control Center and platform-wide acceptance remain PARTIAL or PLANNED as detailed in the matrix.
+- Local working-tree state and protected-branch configuration are UNKNOWN to this GitHub-only audit.
+- Principles: local-first, cost-aware, evidence-driven, modular and secure. No new paid service or public exposure without documented need and approval.
 
 ## Initial implementation (active development)
 
