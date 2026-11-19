@@ -262,7 +262,7 @@ class ModuleRuntime:
             not isinstance(request_id, str)
             or not request_id.strip()
             or len(request_id) > 128
-            or "\\x00" in request_id
+            or "\x00" in request_id
         ):
             return False
         with self._lock:
