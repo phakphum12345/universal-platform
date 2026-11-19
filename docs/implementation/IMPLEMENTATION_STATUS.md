@@ -1548,3 +1548,13 @@ This section supersedes the 2026-11-12 runtime checkpoint for current PR state. 
 - PR #254 adds ModuleRuntime worker dispatch, versioned input schema validation, host permission gating, cancellation mapping, lease quarantine and fail-closed lease retention if quarantine metadata writing fails. Exact-head CI is pending on the live PR head; implementation is authored but not VERIFIED or INTEGRATED.
 - WP-09 remains PARTIAL. Durable lease/job recovery is still open: the existing RecoveryCoordinator and JSONL recovery evidence store persist recovery evidence but do not persist/reconcile ResourceAllocator worker leases or restore active worker state after host restart. OS privilege/filesystem/network isolation and actual CPU/memory/I/O enforcement are also not accepted.
 - Repository-wide acceptance remains INCOMPLETE. See [Master Completion Matrix](../../MASTER_COMPLETION_MATRIX.md) for the dependency queue and explicit acceptance boundaries.
+
+## Authoritative runtime checkpoint — 2026-11-20 (after PR #254 merge)
+
+- PR #254 merged into the Development Branch at f2ee9045c6316b2ff9026ea5196fedf1232f71a3.
+- Exact-head run #44606596004: Python 1,142 passed / 4 skipped; Windows process-supervisor PASS; workflow-sanity PASS.
+- Exact merge-SHA post-merge run #44607892946: Python 1,142 passed / 4 skipped; Windows process-supervisor PASS; workflow-sanity PASS.
+- WP-09F is IMPLEMENTED / VERIFIED / INTEGRATED: host-configured WorkerIPCClient dispatch, versioned input/output schemas, host permission admission, immutable WorkerInvocationHandle cancellation, confirmed process-tree cleanup before lease release, and fail-closed lease quarantine.
+- WP-09G is DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED. The current ResourceAllocator and quarantine state are process-local. JsonlRecoveryEvidenceStore is recovery-outcome evidence, not a durable live worker lease ledger.
+- The Durable Worker Lease Recovery Contract defines WP-09G-A through WP-09G-E. OS sandboxing and actual CPU/memory/I/O enforcement remain separate acceptance gates.
+- Repository-wide acceptance remains INCOMPLETE; main remains unchanged.
