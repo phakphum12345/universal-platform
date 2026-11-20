@@ -77,14 +77,14 @@ Persist a platform-specific identity object, not a raw process handle:
 - Job Object identity and process creation identity on Windows
 - Supervisor-generated `worker_id` and host instance ID
 
-A platform adapter must expose three-valued liveness: `PRESENT`, `ABSENT`, or `UNKNOWN`. It must return `ABSENT` only when it has verified the exact process identity and the entire supervised process tree is gone. Unsupported platforms and ambiguous identity return `UNKNOWN`, which quarantines the lease.
+A platform adapter must expose three-valued liveness: `PRESENT`, `ABSENT`, or `UNKNOWN`. It must return `ABSENT` only when it has verified the exact process identity and the entire supervised process tree is gone. Unsupported platforms and ambiguous identity return `UNKNOWN`, which quarantines the lease. On Linux, the supervisor creates a new session/process group so its PID, PGID and SID anchor the worker tree; the liveness adapter refuses non-leader identities and does not count a reused leader PID as the original worker. On Windows, the named kill-on-close Job Object is the process-tree anchor. `host_instance_id` is generated once per host process and shared by its `ModuleRuntime` instances; it must change after a host process restart.
 
 ### 3.3 Append-only lease events
 
 Use a versioned event journal with at least:
 
 - `LEASE_ACQUIRED`
-- `WORKER_IDENTITY_RECORDED`
+- `LEASE_PROCESS_BOUND`
 - `LEASE_QUARANTINED`
 - `LEASE_RELEASED`
 - `LEASE_RECOVERED_RELEASED`
