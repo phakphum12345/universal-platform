@@ -1056,3 +1056,11 @@ def test_module_runtime_reconciles_existing_worker_leases_before_startup(tmp_pat
         event["event_type"] == "LEASE_RECOVERED_RELEASED"
         for event in restarted_allocator._journal.read_all()
     )
+
+
+def test_module_runtime_instances_share_process_scoped_host_identity():
+    first = ModuleRuntime(ModuleRegistry())
+    second = ModuleRuntime(ModuleRegistry())
+    explicit = ModuleRuntime(ModuleRegistry(), host_instance_id="explicit-host-instance")
+    assert first._host_instance_id == second._host_instance_id
+    assert explicit._host_instance_id == "explicit-host-instance"
