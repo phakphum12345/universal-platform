@@ -9,7 +9,7 @@
 - GitHub reports `main` and development as `protected=false`; required status-check enforcement is off; repository rulesets are empty.
 - PR inventory #1–#266: 239 merged, 18 closed without merge, 9 open (#258–#266). No current PR is merged.
 - PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
-- PR #259 @ `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a`: exact-head CI PASS; Python 1,150 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
+- PR #259: audit/documentation refresh branch; previous verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed (Python 1,150 passed / 4 skipped, Windows and workflow sanity PASS). This live documentation update advances the branch; its new exact head must be revalidated.
 - PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
 - PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable process identity snapshot foundation.
 - PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable lease identity binding and replay.
