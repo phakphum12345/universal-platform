@@ -24,34 +24,41 @@
 
 ## 2. Pull-request inventory
 
-The GitHub PR collection was enumerated across pages 1–3, covering PR numbers #1–#258.
+The GitHub PR collection was refreshed through PR #266.
 
 | Disposition | Count |
 |---|---:|
 | Merged | 239 |
 | Closed without merge | 18 |
-| Open | 1 |
-| Total | 258 |
+| Open | 9 |
+| Total | 266 |
 
-The only open PR at the audit snapshot is:
+All nine open PRs are #258–#266. Exact-head CI, base/head dependency, mergeability and review status were refreshed. All nine currently report `mergeable=true`; none has formal review submissions or unresolved inline review threads in the latest review query. Mergeability is not approval.
 
-### PR #258 — feat(runtime): add durable resource lease allocation
+| PR | Base → Head | Exact Head SHA | Exact-head CI | Dependency / Scope |
+|---|---|---|---|---|
+| #258 | development → `feat/wp-09g-b-durable-resource-allocator` | `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719` | PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS | Durable allocator foundation; no OS identity hand-off |
+| #259 | development → `audit/repository-recon-2026-11-20` | `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` | PASS; Python 1,150 passed / 4 skipped; Windows supervisor and workflow sanity PASS | Audit and documentation refresh |
+| #260 | #258 branch → `feat/wp-09g-b-module-runtime-durable-allocator` | `47d2ac49eab69d9dd8c260d8803a73070c25aad1` | PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS | ModuleRuntime durable allocator integration; depends on #258 |
+| #261 | #260 branch → `feat/wp-09g-c-process-identity-handoff` | `3e8af697ead9050dd531f27ce8bbaef358145261` | PASS; Python, Windows supervisor and workflow sanity PASS | OS process identity snapshot primitive; depends on #260 |
+| #262 | #261 branch → `feat/wp-09g-c-durable-process-identity` | `30c61a6715ac47b9bb583ee2de9603802ee7d2c3` | PASS; Python 1,176 passed / 4 skipped; Windows supervisor and workflow sanity PASS | Durable lease identity binding/replay; depends on #261 |
+| #263 | #262 branch → `feat/wp-09g-c-supervisor-start-gate` | `077edafe5c1e750be6270b28f98fd42430348a98` | PASS; Python 1,179 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed; workflow sanity PASS | Linux bootstrap gate; Windows suspended-process/Job Object identity hand-off; depends on #262 |
+| #264 | #263 branch → `feat/wp-09g-c-module-runtime-identity-binding` | `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9` | PASS; Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed; workflow sanity PASS | Durable identity callback wired through WorkerIPC/ModuleRuntime; depends on #263 |
+| #265 | #264 branch → `feat/wp-09g-d-process-liveness` | `088db6ad3178ac02321012a50fb319f5996d2d52` | Python IN_PROGRESS; Windows supervisor 22 passed / 5 skipped, journal 20 passed / 1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped; workflow sanity PASS | Linux procfs and Windows named Job Object liveness inspector; depends on #264 |
+| #266 | #265 branch → `feat/wp-09g-d-allocator-reconciliation` | `ed214969d9382e4dd343d24df0bd4d38d83e670b` | QUEUED | Startup reconciliation, durable recovered-release evidence and ModuleRuntime startup gate; depends on #265 |
+
+### PR #258 — durable resource allocator
 
 - URL: https://github.com/phakphum12345/universal-platform/pull/258
 - State: OPEN; not Draft
 - Base: `docs/phase-0-complete-requirements` at `2eff621e4ff24e98250bc085b2c652cd366a5e2e`
 - Head: `feat/wp-09g-b-durable-resource-allocator` at `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`
-- Mergeability: `true`; mergeable state `clean`
-- Diff: 5 files, 578 additions, 25 deletions
-- Formal review submissions: none returned
-- Unresolved inline review threads: none returned
-- Exact-head PR workflow run: #44618695050
-- Exact-head checks: `workflow-sanity` PASS; `python-tests` PASS; `windows-process-supervisor` PASS
-- Python result from the job log: 1,160 passed, 4 skipped
-- A separate push run #44618681967 also completed all three jobs successfully on the same exact head
+- Mergeability: `true`; no formal review or unresolved thread
+- Exact-head workflow run #44618695050
+- Python result: 1,160 passed / 4 skipped; Windows supervisor 21 passed / 2 POSIX-only skipped; journal 20 passed / 1 Windows-only skipped
 - Post-merge evidence: NOT APPLICABLE; PR is not merged
 
-The four skipped tests remain **SKIPPED**, not PASS. They are the four Windows-only supervisor tests in `tests/test_runtime_process_supervisor.py`; the Windows job ran that file (21 passed / 2 POSIX-only skipped) and the journal tests (20 passed / 1 Windows-only skipped). The CI evidence is for this PR head only and does not establish post-merge integration or acceptance. No merge is authorized by this audit.
+The four skipped tests remain SKIPPED, not PASS. The Windows job runs the applicable Windows supervisor cases. No merge is authorized by this audit.
 
 ### Closed-without-merge dispositions
 
@@ -72,27 +79,43 @@ The remaining older closed/unmerged entries should remain available for historic
 
 ### Verified development-branch increments
 
-- PR #243–#245, #246–#248, #252, #254, #256 and #257 are merged on the development branch according to the PR records and current branch history.
+- PR #243–#245, #246–#248, #252, #254, #256 and #257 are merged on the development branch according to PR records and current branch history.
 - PR #254 merge SHA: `f2ee9045c6316b2ff9026ea5196fedf1232f71a3`; WP-09F has exact-head and exact merge-SHA evidence documented in the current roadmap.
 - PR #256 merge SHA: `fb47dc0a06b08bf63f1cfe318aa7a79065547b31`; it establishes the durable worker lease recovery design contract.
-- PR #257 merge SHA / current development HEAD: `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; it extracts the reusable bounded JSONL hash-chain journal. The exact current-head workflow run #44618335033 reports workflow-sanity, Python and Windows supervisor checks PASS.
-- PR #258 adds an independent `DurableResourceAllocator` using journal-backed acquire/release/quarantine, pool-capacity fingerprinting, TTL expiry and non-expiring supervised-worker lease records. It is implemented and verified on its PR head, but not integrated into the development branch until merged.
+- PR #257 merge SHA / current development HEAD: `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; it extracts the reusable bounded JSONL hash-chain journal. Its exact-head workflow run reports workflow-sanity, Python and Windows supervisor checks PASS.
 
-### WP-09G acceptance boundary
+### WP-09G-B — durable allocator and ModuleRuntime
 
-PR #258 explicitly does not implement:
-- OS process identity hand-off from the supervisor;
-- startup reconciliation of orphaned worker process trees;
-- PID-reuse-safe liveness verification;
-- audited operator force release;
-- full WP-09G-E fault-injection and platform acceptance.
+- PR #258 adds a journal-backed `DurableResourceAllocator` with acquire/release/quarantine, pool-capacity fingerprinting, TTL expiry and non-expiring supervised-worker lease records. Exact-head CI passes, but it is not integrated.
+- PR #260 wires a runtime-checkable allocator port into ModuleRuntime, records host/worker logical identity, quarantines unconfirmed termination and adds subprocess capacity-race coverage. Exact-head CI passes, but it remains stacked on #258 and unmerged.
+- The durable allocator uses an unkeyed JSONL hash chain. It detects accidental corruption under its assumptions; it is not an authenticated trust anchor against a privileged writer who can rewrite the journal and recompute the chain.
 
-Code inspection also found that the existing `ModuleRuntime` imports the in-memory `ResourceAllocator`; PR #258 exports the durable allocator but does not yet wire it into the ModuleRuntime worker lifecycle. The new allocator concurrency test uses multiple allocator instances with `ThreadPoolExecutor`; this PR's added test does not itself demonstrate contention between separate OS processes. The journal has cross-process locking code, but direct process-level allocator regression evidence remains required.
+### WP-09G-C — OS process identity and pre-execution hand-off
 
-The JSONL hash chain is unkeyed. It detects accidental corruption under its stated assumptions; it is not an authenticated trust anchor against a privileged writer who can rewrite the journal and recompute the chain. The recovery contract also calls for checkpoint/rotation, crash-point fault injection, process-liveness states and operator audit behavior, which remain outside PR #258.
+- PR #261 adds immutable OS identity snapshots: Linux PID/start-time/boot/process-group/session and Windows PID/process-creation FILETIME plus Job Object name.
+- PR #262 adds a durable `LEASE_PROCESS_BOUND` event, validates host/worker identity against a supervised-worker lease, makes identical binding idempotent, rejects replacement/quarantined/ordinary/unknown leases and restores identity on journal replay.
+- PR #263 adds a Linux bootstrap start gate: the bootstrap waits on an inherited descriptor while the parent captures and persists identity, then executes the worker payload only after callback success. Windows creates the worker suspended, assigns it to a named kill-on-close Job Object, captures process creation identity and resumes only after persistence.
+- PR #264 routes the identity callback through WorkerIPC and ModuleRuntime, creates identity-only worker leases when no resource quota metrics are requested, and verifies from inside the worker that its own PID/worker/host identity is already present in the journal before request execution. Callback failure prevents payload execution; unconfirmed cleanup quarantines the lease.
+- #261–#264 exact-head CI is PASS, but the chain remains unmerged and unaccepted pending review, dependency integration and post-merge checks.
 
-**WP-09G-B status:** IMPLEMENTED / VERIFIED on PR head; NOT INTEGRATED / NOT ACCEPTED.  
-**WP-09G-C/D/E status:** NOT IMPLEMENTED / NOT VERIFIED / NOT INTEGRATED / NOT ACCEPTED.
+### WP-09G-D — process-tree liveness and startup reconciliation
+
+- PR #265 adds Linux procfs inspection using boot ID, start-time, process-group and session identity; Windows inspection queries the named Job Object's active-process count. The inspector returns PRESENT / ABSENT / UNKNOWN and fails closed on PID reuse ambiguity, unsupported platforms or incomplete inspection. It does not release leases.
+- PR #266 connects liveness evidence to durable allocator startup replay, blocks admissions until reconciliation, records `LEASE_RECOVERED_RELEASED` only for exact-identity ABSENT evidence, retains same-host PRESENT leases, quarantines other-host PRESENT and UNKNOWN states, and never clears existing quarantine. ModuleRuntime runs pending reconciliation before becoming available.
+- PR #265's latest Python CI is IN_PROGRESS; its Windows and workflow-sanity checks pass. PR #266 exact-head CI is QUEUED.
+
+### WP-09G-E — operator recovery
+
+Authenticated operator force release, durable operator identity/reason/audit events, authorization boundary and audit-persistence failure behavior remain NOT IMPLEMENTED. No ordinary release path may clear a quarantined lease.
+
+### Runtime acceptance boundary
+
+The worker supervisor is not a general OS security sandbox. Current code does not establish complete filesystem/network isolation, privilege separation, OS CPU/memory/I/O enforcement, safe adoption of prior-host processes, crash-proof external audit anchoring, journal checkpoint/rotation, or full fault-injection at every persistence boundary. These remain explicit security/reliability gaps.
+
+**WP-09G-B:** IMPLEMENTED / VERIFIED on PR heads; NOT INTEGRATED / NOT ACCEPTED.  
+**WP-09G-C:** Candidate implementation CI-verified through PR #264; NOT INTEGRATED / NOT ACCEPTED.  
+**WP-09G-D:** IN PROGRESS; #265 Python and #266 full CI pending.  
+**WP-09G-E:** NOT IMPLEMENTED / NOT VERIFIED / NOT INTEGRATED / NOT ACCEPTED.
 
 ## 4. Domain capability status
 
