@@ -60,7 +60,7 @@ class ProcessIdentity:
         if self.job_object_id is not None and (
             not isinstance(self.job_object_id, str)
             or not self.job_object_id.strip()
-            or "\\x00" in self.job_object_id
+            or "\x00" in self.job_object_id
         ):
             raise ValueError("job_object_id must be a non-empty NUL-free string or None")
 
