@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
+import sys
 from typing import Any
 
 
@@ -216,7 +217,7 @@ def capture_process_identity(
 
 
 def sys_platform_linux() -> bool:
-    return os.name == "posix" and Path("/proc").is_dir()
+    return sys.platform == "linux"
 
 
 __all__ = ["ProcessIdentity", "capture_process_identity"]
