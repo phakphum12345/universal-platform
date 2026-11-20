@@ -317,10 +317,13 @@ class ExtrudedProfileSolid:
                 _validate_segment_ids(ids, len(self.holes[i]), f"hole {i} segment_ids", any_curved_hole)
         outer_samples = _profile_loop_samples(self.profile, outer_sweeps)
         for index, hole in enumerate(self.holes):
-            _validate_profile_loop(hole, hole_sweeps[index], f"extruded profile hole {index}")
             hole_samples = _profile_loop_samples(hole, hole_sweeps[index])
+            # Report containment violations before validating the hole's own
+            # topology. This keeps the public error precise when an invalid
+            # curved hole crosses or touches the outer boundary.
             if _loops_intersect(outer_samples, hole_samples) or not all(_point_in_polygon(point, outer_samples) for point in hole_samples):
                 raise InvalidModelError("extruded profile holes must lie strictly inside the outer profile without touching it")
+            _validate_profile_loop(hole, hole_sweeps[index], f"extruded profile hole {index}")
         sampled_holes = tuple(_profile_loop_samples(hole, hole_sweeps[i]) for i, hole in enumerate(self.holes))
         for i, first in enumerate(sampled_holes):
             for second in sampled_holes[i+1:]:

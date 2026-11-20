@@ -1,5 +1,22 @@
 # WP-09G — Durable Worker Lease and Crash-Recovery Contract
 
+## Implementation checkpoint — 2026-11-20
+
+This section records candidate implementation state without changing the acceptance requirements below.
+
+- **WP-09G-A — journal primitive:** integrated on the development branch by PR #257 at `2eff621e4ff24e98250bc085b2c652cd366a5e2e`.
+- **WP-09G-B — durable allocator:** implemented and exact-head verified on PR #258 at `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`. A stacked integration candidate adds the `ResourceAllocatorPort` contract so `ModuleRuntime` can accept either the existing in-memory allocator or an explicitly host-injected `DurableResourceAllocator`. The durable allocator exposes its host-configured capacity through the same port.
+- The stacked ModuleRuntime integration candidate is not merged or accepted. It preserves the default in-memory behavior and does not automatically select a durable storage root. When a host injects the durable allocator for a WorkerIPCClient invocation, the candidate records the reserved worker_id and a runtime host_instance_id as a non-expiring supervised_worker lease; an unconfirmed termination quarantines that lease and the candidate test verifies quarantine replay after allocator restart.
+- The PR #258 allocator concurrency test exercises multiple instances with threads. This stacked integration candidate adds a separate subprocess-based capacity-race regression using a shared journal; its exact-head Linux/Windows CI result is still pending.
+- **WP-09G-C — process identity snapshot primitive:** candidate implementation in PR #261 at `3e8af697ead9050dd531f27ce8bbaef358145261` adds immutable Linux PID/start-time/boot/process-group/session identity and Windows PID/process-creation-time identity capture, with focused validation tests. Exact-head CI passed; the PR remains a draft and is not integrated.
+- **WP-09G-C — durable identity binding:** candidate implementation in draft PR #262 adds an append-only `LEASE_PROCESS_BOUND` event, validates host/worker identity against a non-expiring supervised-worker lease, makes identical binding idempotent, rejects replacement/quarantined/ordinary/unknown leases, and restores the identity during journal replay. This is lease persistence only; it does not yet guarantee that the worker payload is blocked until this event is fsynced.
+- **WP-09G-C remaining work:** supervisor callback and POSIX start gate, Windows suspended-process persistence before resume, ModuleRuntime/WorkerIPC wiring to bind the captured identity before payload execution, and cross-platform crash/fault-injection tests remain open. **WP-09G-D/E** (startup process-tree reconciliation and authenticated/audited operator recovery) remain not implemented.
+- No sandbox, privilege separation, filesystem/network isolation, or OS CPU/memory/I/O enforcement is claimed.
+
+The lifecycle remains IMPLEMENTED → VERIFIED → INTEGRATED → ACCEPTED. PR-head verification does not establish integration or acceptance.
+
+---
+
 **Status:** Design contract / implementation not yet accepted  
 **Scope:** Durable resource reservations used by supervised workers, process identity hand-off, restart reconciliation, and operator-controlled recovery  
 **Dependencies:** WP-09E-A bounded stdin, WP-09E-B one-shot WorkerIPCClient, WP-09F ModuleRuntime worker dispatch, Windows Job Object containment, POSIX process-group supervision  

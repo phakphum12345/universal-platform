@@ -63,37 +63,65 @@ class JsonlHashChainJournal:
 
     def append(self, record: Mapping[str, object]) -> dict[str, object]:
         """Append one JSON object and fsync it before returning the chained envelope."""
-        if not isinstance(record, Mapping):
-            raise TypeError("journal record must be a mapping")
-        envelope = dict(record)
-        if self._CHAIN_FIELDS.intersection(envelope):
-            raise ValueError("journal record must not supply reserved chain fields")
-        if any(not isinstance(key, str) or not key for key in envelope):
-            raise ValueError("journal record keys must be non-empty strings")
+        appended = self.append_transaction(lambda _records: (record,))
+        if not appended:
+            raise RuntimeError("single-record append unexpectedly produced no event")
+        return appended[0]
+
+    def append_transaction(self, build_records):
+        """Atomically inspect verified records and append a derived event batch.
+
+        The callback executes while both the in-process and cross-process locks
+        are held. It receives an immutable tuple of copied, verified records
+        and must return an iterable of event mappings. Returning an empty
+        iterable performs a read-only transaction. Callback or validation
+        failures append nothing.
+        """
+        if not callable(build_records):
+            raise TypeError("build_records must be callable")
 
         with self._lock, self._cross_process_lock():
             descriptor = self._open_journal_file()
             try:
                 current = self._read_all(descriptor)
-                sequence, previous_hash, _legacy_count = self._verify_bytes(current)
-                envelope["sequence"] = sequence + 1
-                envelope["previous_hash"] = previous_hash
-                canonical = self._canonical_json(envelope)
-                envelope["record_hash"] = hashlib.sha256(canonical).hexdigest()
-                payload = self._canonical_json(envelope) + b"\n"
-                if len(payload) > self.max_record_bytes:
-                    raise ValueError("journal record exceeds the configured byte limit")
-                if len(current) + len(payload) > self.max_store_bytes:
+                sequence, previous_hash, _legacy_count, records = self._verify_bytes(
+                    current, include_records=True
+                )
+                proposed = tuple(build_records(tuple(dict(item) for item in records)))
+                payloads: list[bytes] = []
+                envelopes: list[dict[str, object]] = []
+                for record in proposed:
+                    if not isinstance(record, Mapping):
+                        raise TypeError("journal transaction events must be mappings")
+                    envelope = dict(record)
+                    if self._CHAIN_FIELDS.intersection(envelope):
+                        raise ValueError("journal record must not supply reserved chain fields")
+                    if any(not isinstance(key, str) or not key for key in envelope):
+                        raise ValueError("journal record keys must be non-empty strings")
+                    envelope["sequence"] = sequence + 1
+                    envelope["previous_hash"] = previous_hash
+                    canonical = self._canonical_json(envelope)
+                    envelope["record_hash"] = hashlib.sha256(canonical).hexdigest()
+                    payload = self._canonical_json(envelope) + b"\n"
+                    if len(payload) > self.max_record_bytes:
+                        raise ValueError("journal record exceeds the configured byte limit")
+                    payloads.append(payload)
+                    envelopes.append(dict(envelope))
+                    sequence += 1
+                    previous_hash = envelope["record_hash"]
+                combined = b"".join(payloads)
+                if len(current) + len(combined) > self.max_store_bytes:
                     raise ValueError("journal store reached its configured total byte limit")
-                os.lseek(descriptor, 0, os.SEEK_END)
-                view = memoryview(payload)
-                while view:
-                    written = os.write(descriptor, view)
-                    if written <= 0:
-                        raise OSError("incomplete journal append")
-                    view = view[written:]
-                os.fsync(descriptor)
-                return dict(envelope)
+                if combined:
+                    os.lseek(descriptor, 0, os.SEEK_END)
+                    view = memoryview(combined)
+                    while view:
+                        written = os.write(descriptor, view)
+                        if written <= 0:
+                            raise OSError("incomplete journal transaction append")
+                        view = view[written:]
+                    os.fsync(descriptor)
+                return tuple(envelopes)
             finally:
                 os.close(descriptor)
 

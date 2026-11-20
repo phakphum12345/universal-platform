@@ -1,0 +1,65 @@
+name: Geometry Batch Validation
+
+on:
+  push:
+    branches:
+      - main
+      - "docs/**"
+      - "feat/**"
+    paths:
+      - ".github/workflows/geometry-batch.yml"
+      - "pyproject.toml"
+      - "src/universal_platform/engineering/geometry_batch.py"
+      - "src/universal_platform/engineering/primitive_geometry.py"
+      - "tests/test_geometry_batch.py"
+      - "tests/test_primitive_geometry.py"
+      - "schemas/geometry/**"
+  pull_request:
+    branches:
+      - main
+      - "docs/phase-0-complete-requirements"
+    paths:
+      - ".github/workflows/geometry-batch.yml"
+      - "pyproject.toml"
+      - "src/universal_platform/engineering/geometry_batch.py"
+      - "src/universal_platform/engineering/primitive_geometry.py"
+      - "tests/test_geometry_batch.py"
+      - "tests/test_primitive_geometry.py"
+      - "schemas/geometry/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  geometry-batch:
+    name: Geometry batch · ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            shell: bash
+          - name: Windows
+            os: windows-latest
+            shell: pwsh
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Verify root geometry terminal command
+        run: up-geometry validate --help
+      - name: Test multi-file geometry validation and safe repair behavior
+        run: python -m pytest -q tests/test_geometry_batch.py tests/test_primitive_geometry.py

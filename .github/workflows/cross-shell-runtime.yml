@@ -1,0 +1,55 @@
+name: Cross-Shell Runtime Validation
+
+on:
+  push:
+    branches:
+      - "docs/phase-0-complete-requirements"
+      - "ci/cross-shell-runtime-validation"
+  pull_request:
+    branches:
+      - "docs/phase-0-complete-requirements"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-runtime:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu · bash
+            os: ubuntu-latest
+            shell: bash
+          - name: Ubuntu · sh
+            os: ubuntu-latest
+            shell: sh
+          - name: Windows · PowerShell
+            os: windows-latest
+            shell: pwsh
+          - name: Windows · cmd
+            os: windows-latest
+            shell: cmd
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Verify selected shell and Python runtime
+        env:
+          SELECTED_SHELL: ${{ matrix.shell }}
+        run: python -c "import os, platform, sys; print('shell=' + os.environ['SELECTED_SHELL']); print('platform=' + platform.platform()); print('python=' + sys.version)"
+      - name: Run complete test suite
+        run: python -m pytest -q
