@@ -143,8 +143,8 @@ class DurableResourceAllocator:
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         amounts = tuple(requested)
-        if not amounts:
-            raise ValueError("at least one resource amount is required")
+        if not amounts and lease_kind != "supervised_worker":
+            raise ValueError("ordinary leases require at least one resource amount")
         if len({item.name for item in amounts}) != len(amounts):
             raise ValueError("requested metric names must be unique")
         for item in amounts:
