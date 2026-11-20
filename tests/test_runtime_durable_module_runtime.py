@@ -126,6 +126,10 @@ def test_worker_runtime_persists_quarantine_in_durable_allocator(tmp_path):
             observed_worker_ids.append(spec.worker_id)
             raise WorkerTerminationError(spec.worker_id)
 
+        def run_with_identity(self, spec, *, host_instance_id, on_process_started):
+            observed_worker_ids.append(spec.worker_id)
+            raise WorkerTerminationError(spec.worker_id)
+
         def cancel(self, request_id, *, grace_seconds=1.0):
             return False
 
