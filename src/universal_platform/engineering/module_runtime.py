@@ -429,12 +429,16 @@ class ModuleRuntime:
                 )
 
             identity_binder = getattr(self._resource_allocator, "bind_process_identity", None)
+            supports_durable_worker_identity = (
+                callable(getattr(self._resource_allocator, "allocate_worker", None))
+                and callable(identity_binder)
+            )
             warnings = (
                 (
                     "Host quota reservation acquired for this invocation; it is not an OS resource limit.",
                     "The supervised worker identity is persisted before its payload is allowed to execute.",
                 )
-                if lease is not None and callable(identity_binder) and worker_handle is not None
+                if lease is not None and supports_durable_worker_identity and worker_handle is not None
                 else ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
                 if lease is not None else ()
             )
@@ -453,7 +457,7 @@ class ModuleRuntime:
                                 for name in sorted(request.resource_limits)
                             },
                         }
-                        if lease is not None and callable(identity_binder):
+                        if lease is not None and supports_durable_worker_identity:
                             response_frame = handler.request(
                                 WorkerFrame("REQUEST", request.request_id, request_payload),
                                 handle=worker_handle,
