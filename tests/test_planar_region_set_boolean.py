@@ -4,7 +4,10 @@ from pathlib import Path
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.planar_boolean import PlanarRegionBooleanOperation as Operation, _stitch
+from universal_platform.engineering.planar_boolean import (
+    PlanarRegionBooleanOperation as Operation,
+)
+from universal_platform.engineering.planar_boolean import _stitch
 from universal_platform.engineering.planar_region import PlanarRegion
 from universal_platform.engineering.planar_region_set_boolean import (
     PlanarRegionSetBooleanResult,

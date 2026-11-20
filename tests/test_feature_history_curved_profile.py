@@ -9,8 +9,10 @@ from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchArc,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 
 

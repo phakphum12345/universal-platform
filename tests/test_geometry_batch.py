@@ -2,8 +2,11 @@ import json
 
 from universal_platform.engineering.frame_graph import FrameGraph
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.primitive_geometry import BoxSolid, PrimitiveGeometryModel
 from universal_platform.engineering.geometry_batch import main
+from universal_platform.engineering.primitive_geometry import (
+    BoxSolid,
+    PrimitiveGeometryModel,
+)
 
 
 def _snapshot():

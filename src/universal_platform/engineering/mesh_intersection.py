@@ -5,12 +5,13 @@ rationals. It is an offline diagnostic, not a mesh repair or CAD kernel.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
 from itertools import combinations
 from json import dumps
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .mesh import TriangleMesh, validate_triangle_mesh
@@ -142,7 +143,7 @@ class MeshIntersectionAnalysis:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "MeshIntersectionAnalysis":
+    def from_dict(cls, value: Mapping[str, Any]) -> MeshIntersectionAnalysis:
         if not isinstance(value, Mapping) or set(value) != _RESULT_FIELDS:
             raise InvalidModelError("MeshIntersectionAnalysis snapshot has missing or unknown fields")
         if value["schema_version"] != cls.SCHEMA_VERSION:

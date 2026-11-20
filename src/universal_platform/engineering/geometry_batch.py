@@ -12,8 +12,9 @@ import json
 import os
 import stat
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from .errors import InvalidModelError
 from .primitive_geometry import PrimitiveGeometryModel
@@ -101,7 +102,7 @@ def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
     except (OSError, UnicodeError, json.JSONDecodeError, InvalidModelError, KeyError, TypeError, ValueError) as exc:
         result["status"] = "FAIL"
         result["errors"].append(f"{type(exc).__name__}: {exc}")
-    except Exception as exc:  # Keep processing the remaining files after an unexpected per-file failure.
+    except Exception as exc:  # noqa: BLE001  # Keep processing the remaining files after an unexpected per-file failure.
         result["status"] = "FAIL"
         result["errors"].append(f"Unexpected {type(exc).__name__}: {exc}")
     return result

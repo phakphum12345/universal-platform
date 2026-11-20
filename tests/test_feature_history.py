@@ -4,13 +4,21 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.feature_history import (
-    FeatureHistory, FeatureKind, FeatureNode, RegenerationStatus,
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+    RegenerationStatus,
     regenerate_feature_history,
 )
 from universal_platform.engineering.feature_history_editor import suppress_feature
 from universal_platform.engineering.parametric_sketch import (
-    ParametricSketch, SketchConstraint, SketchConstraintKind as Kind,
-    SketchPoint, SketchSegment,
+    ParametricSketch,
+    SketchConstraint,
+    SketchPoint,
+    SketchSegment,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 
 

@@ -1,6 +1,11 @@
 import pytest
 
-from universal_platform.engineering.assembly import Assembly, Joint, JointType, PartOccurrence
+from universal_platform.engineering.assembly import (
+    Assembly,
+    Joint,
+    JointType,
+    PartOccurrence,
+)
 from universal_platform.engineering.geometry import Vec3
 
 

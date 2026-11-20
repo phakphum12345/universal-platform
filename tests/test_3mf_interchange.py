@@ -6,7 +6,11 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
+from universal_platform.engineering.mesh import (
+    TriangleMesh,
+    tessellate_box,
+    validate_triangle_mesh,
+)
 from universal_platform.engineering.primitive_geometry import BoxSolid
 from universal_platform.engineering.three_mf import export_3mf, import_3mf
 

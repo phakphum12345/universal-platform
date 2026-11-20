@@ -5,9 +5,9 @@ not solve closed loops, constraints, dynamics, collisions or flexible bodies.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from math import cos, isfinite, sin, sqrt
-from typing import Mapping
 
 from .assembly import Assembly, Joint, JointType
 from .errors import InvalidModelError

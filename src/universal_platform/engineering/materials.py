@@ -1,8 +1,9 @@
 """Traceable material property record; values are not certified allowables."""
 from dataclasses import dataclass
-from .quantity import Quantity
+
 from .errors import InvalidModelError
 from .provenance import SourceRef
+from .quantity import Quantity
 
 PRESSURE = (-1, 1, -2, 0, 0)
 DENSITY = (-3, 1, 0, 0, 0)

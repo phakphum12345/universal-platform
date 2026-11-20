@@ -64,7 +64,7 @@ class FramedPoint3:
         if not isinstance(self.value, Vec3):
             raise InvalidModelError("FramedPoint3 value must be Vec3")
 
-    def transform_to(self, graph: FrameGraph, target_frame: str) -> "FramedPoint3":
+    def transform_to(self, graph: FrameGraph, target_frame: str) -> FramedPoint3:
         if not isinstance(graph, FrameGraph):
             raise InvalidModelError("transform_to requires a FrameGraph")
         if not isinstance(target_frame, str) or not target_frame.strip():
@@ -88,7 +88,7 @@ class FramedPoint3:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "FramedPoint3":
+    def from_dict(cls, value: Mapping[str, Any]) -> FramedPoint3:
         frame_id, point, unit = _read_snapshot(value, cls.KIND)
         return cls(frame_id, point, unit)
 
@@ -109,7 +109,7 @@ class FramedVector3:
         if not isinstance(self.value, Vec3):
             raise InvalidModelError("FramedVector3 value must be Vec3")
 
-    def transform_to(self, graph: FrameGraph, target_frame: str) -> "FramedVector3":
+    def transform_to(self, graph: FrameGraph, target_frame: str) -> FramedVector3:
         if not isinstance(graph, FrameGraph):
             raise InvalidModelError("transform_to requires a FrameGraph")
         transform = graph.transform_between(self.frame_id, target_frame)
@@ -131,6 +131,6 @@ class FramedVector3:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "FramedVector3":
+    def from_dict(cls, value: Mapping[str, Any]) -> FramedVector3:
         frame_id, vector, unit = _read_snapshot(value, cls.KIND)
         return cls(frame_id, vector, unit)

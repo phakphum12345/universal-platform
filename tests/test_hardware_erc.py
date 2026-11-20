@@ -3,9 +3,18 @@ import json
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.hardware.erc import ERCSeverity, ERCStatus, check_electrical_rules
+from universal_platform.hardware.erc import (
+    ERCSeverity,
+    ERCStatus,
+    check_electrical_rules,
+)
 from universal_platform.hardware.schematic import (
-    Component, Net, Pin, PinElectricalType, PinRef, SchematicModel,
+    Component,
+    Net,
+    Pin,
+    PinElectricalType,
+    PinRef,
+    SchematicModel,
 )
 
 

@@ -7,11 +7,11 @@ a persistent channel or a security sandbox.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
-from io import BytesIO
 import math
 import threading
 import time
+from dataclasses import dataclass, replace
+from io import BytesIO
 from uuid import uuid4
 
 from .supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
@@ -235,7 +235,7 @@ class WorkerIPCClient:
             try:
                 if self._supervisor.cancel(handle.worker_id, grace_seconds=grace_seconds):
                     return True
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # Cancellation is a boolean control API. The request thread
                 # independently reports unconfirmed cleanup and retains leases.
                 return False

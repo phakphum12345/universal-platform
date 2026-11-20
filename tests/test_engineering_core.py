@@ -1,15 +1,32 @@
 import math
+
 import pytest
 
-from universal_platform.engineering.quantity import Quantity, LENGTH, TIME
-from universal_platform.engineering.errors import DimensionMismatchError, SolverError, InvalidModelError
+from universal_platform.engineering.assembly import (
+    Assembly,
+    Joint,
+    JointType,
+    PartOccurrence,
+)
+from universal_platform.engineering.constraints import (
+    Constraint,
+    ConstraintKind,
+    evaluate_constraints,
+)
+from universal_platform.engineering.errors import (
+    DimensionMismatchError,
+    InvalidModelError,
+    SolverError,
+)
+from universal_platform.engineering.geometry import Box, Cylinder, Vec3
 from universal_platform.engineering.linear_solver import solve_linear
-from universal_platform.engineering.geometry import Box, Cylinder
-from universal_platform.engineering.assembly import Assembly, PartOccurrence, Joint, JointType
-from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.constraints import Constraint, ConstraintKind, evaluate_constraints
-from universal_platform.engineering.provenance import EvidenceKind, EvidenceStatus, EvidenceRecord
-from universal_platform.engineering.safety import SafetyGate, RiskTier
+from universal_platform.engineering.provenance import (
+    EvidenceKind,
+    EvidenceRecord,
+    EvidenceStatus,
+)
+from universal_platform.engineering.quantity import Quantity
+from universal_platform.engineering.safety import RiskTier, SafetyGate
 from universal_platform.engineering.simulation import solve_static_linear_system
 
 

@@ -3,10 +3,10 @@ from fractions import Fraction
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.triangle_fragment_arrangement import RationalPlane
 from universal_platform.engineering.global_triangle_arrangement import (
     arrange_triangle_mesh_globally,
 )
+from universal_platform.engineering.triangle_fragment_arrangement import RationalPlane
 
 F = Fraction
 

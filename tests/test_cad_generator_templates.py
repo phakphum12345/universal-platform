@@ -7,7 +7,6 @@ from universal_platform.engineering import (
 )
 from universal_platform.engineering.errors import InvalidModelError
 
-
 SQUARE = ((0.0, 0.0), (12.0, 0.0), (12.0, 8.0), (0.0, 8.0))
 
 

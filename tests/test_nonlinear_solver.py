@@ -6,8 +6,8 @@ import pytest
 from universal_platform.engineering.errors import SolverError
 from universal_platform.engineering.nonlinear_solver import (
     NonlinearConstraint,
-    NonlinearSolveStatus,
     NonlinearSolverOptions,
+    NonlinearSolveStatus,
     VariableBound,
     solve_nonlinear_constraints,
 )
@@ -304,7 +304,6 @@ def test_jacobian_rank_diagnostic_labels_underdetermined_full_row_rank():
 
 
 def test_jacobian_rank_tolerance_is_validated_and_diagnostics_can_be_uncomputed():
-    from universal_platform.engineering.nonlinear_solver import JacobianRankDiagnostics
 
     with pytest.raises(SolverError, match="step, tolerance and damping"):
         solve_nonlinear_constraints(

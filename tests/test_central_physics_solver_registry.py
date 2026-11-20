@@ -1,21 +1,21 @@
-from dataclasses import dataclass
 
 import pytest
 
 from universal_platform.engineering import (
     AxialStressSolver,
-    LinearThermalExpansionSolver,
-    OhmsLawSolver,
     PhysicsDomain,
     PhysicsInput,
     PhysicsMethod,
     PhysicsProblem,
     PhysicsSolverDescriptor,
     PhysicsSolverRegistry,
-    PhysicsSolverResponse,
     register_builtin_physics_solvers,
 )
-from universal_platform.engineering.provenance import EvidenceKind, EvidenceStatus, SourceRef
+from universal_platform.engineering.provenance import (
+    EvidenceKind,
+    EvidenceStatus,
+    SourceRef,
+)
 from universal_platform.engineering.quantity import Quantity
 
 
@@ -115,7 +115,7 @@ def test_registry_rejects_missing_inputs_and_dimension_errors():
          PhysicsInput("resistance", Quantity.of(2, "m"))),
         validity_range="ideal DC",
     )
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         solve(registry, wrong_dimension, "builtin.ohms-law")
 
 

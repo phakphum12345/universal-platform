@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
 from universal_platform.engineering import (
-    BoxSolid, analyze_mesh_intersections, tessellate_box, validate_triangle_mesh,
+    BoxSolid,
+    analyze_mesh_intersections,
+    tessellate_box,
+    validate_triangle_mesh,
 )
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3

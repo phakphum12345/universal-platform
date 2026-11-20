@@ -1,12 +1,12 @@
 """Validated provenance records and conservative evidence aggregation."""
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from math import isfinite
-import re
 from types import MappingProxyType
 from typing import Any
 from uuid import uuid4
@@ -108,14 +108,14 @@ class EvidenceRecord:
     method: str | None = None
     limitations: tuple[str, ...] = ()
     record_id: str = field(default_factory=lambda: str(uuid4()))
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not isinstance(self.kind, EvidenceKind):
-            raise ValueError("kind must be an EvidenceKind")
+            raise ValueError("kind must be an EvidenceKind")  # noqa: TRY004
         if not isinstance(self.status, EvidenceStatus):
-            raise ValueError("status must be an EvidenceStatus")
+            raise ValueError("status must be an EvidenceStatus")  # noqa: TRY004
         if not isinstance(self.statement, str) or not self.statement.strip():
             raise ValueError("Evidence statement cannot be empty")
         if self.status is EvidenceStatus.PASS and self.kind is EvidenceKind.UNKNOWN:
@@ -130,7 +130,7 @@ class EvidenceRecord:
         if len(source_keys) != len(set(source_keys)):
             raise ValueError("source_refs must not contain duplicate source locators")
         if not isinstance(self.limitations, tuple):
-            raise ValueError("limitations must be an immutable tuple")
+            raise ValueError("limitations must be an immutable tuple")  # noqa: TRY004
         if any(not isinstance(item, str) or not item.strip() for item in self.limitations):
             raise ValueError("limitations entries must be non-empty strings")
         if len(self.limitations) != len(set(self.limitations)):
@@ -141,13 +141,13 @@ class EvidenceRecord:
         if not isinstance(self.created_at, str) or not self.created_at.strip():
             raise ValueError("created_at cannot be empty")
         try:
-            timestamp = datetime.fromisoformat(self.created_at.replace("Z", "+00:00"))
+            timestamp = datetime.fromisoformat(self.created_at)
         except ValueError as exc:
             raise ValueError("created_at must be ISO-8601") from exc
         if timestamp.tzinfo is None or timestamp.utcoffset() is None:
             raise ValueError("created_at must include a timezone")
         if not isinstance(self.metadata, Mapping):
-            raise ValueError("metadata must be a JSON object")
+            raise ValueError("metadata must be a JSON object")  # noqa: TRY004
         object.__setattr__(self, "metadata", _freeze_json(self.metadata))
 
     def to_dict(self) -> dict[str, Any]:
@@ -193,7 +193,7 @@ class EvidenceGateResult:
 def evaluate_evidence_gate(records: tuple[EvidenceRecord, ...]) -> EvidenceGateResult:
     """Aggregate required evidence; missing evidence is UNKNOWN, never PASS."""
     if not isinstance(records, tuple):
-        raise ValueError("records must be an immutable tuple")
+        raise ValueError("records must be an immutable tuple")  # noqa: TRY004
     if any(not isinstance(record, EvidenceRecord) for record in records):
         raise ValueError("records must contain EvidenceRecord values")
     record_ids = tuple(record.record_id for record in records)

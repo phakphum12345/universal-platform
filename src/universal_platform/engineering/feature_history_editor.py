@@ -210,4 +210,4 @@ def reorder_features(
     )
 
 
-__all__ = ["add_feature", "replace_feature", "remove_feature", "reorder_features", "suppress_feature", "unsuppress_feature"]
+__all__ = ["add_feature", "remove_feature", "reorder_features", "replace_feature", "suppress_feature", "unsuppress_feature"]

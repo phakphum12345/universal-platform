@@ -1,13 +1,13 @@
 """Journal-backed resource reservations with cross-process admission serialization."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+from collections.abc import Iterable
+from dataclasses import dataclass, replace
+from datetime import UTC, datetime, timedelta
 from math import isfinite
 from pathlib import Path
-from typing import Iterable
 from uuid import uuid4
 
 from ..evidence.jsonl_journal import JsonlHashChainJournal
@@ -139,7 +139,7 @@ class DurableResourceAllocator:
                 raise ValueError("supervised worker leases require host_instance_id and worker_id")
         elif host_instance_id is not None or worker_id is not None:
             raise ValueError("worker identity fields are only valid for supervised worker leases")
-        captured = now or datetime.now(timezone.utc)
+        captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         amounts = tuple(requested)
@@ -221,7 +221,7 @@ class DurableResourceAllocator:
         if not isinstance(lease_id, str) or not lease_id.strip():
             raise ValueError("lease_id must be a non-empty string")
         if not isinstance(identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")
+            raise ValueError("identity must be a ProcessIdentity")  # noqa: TRY004
         result: dict[str, DurableResourceLease] = {}
 
         def bind(records):
@@ -297,7 +297,7 @@ class DurableResourceAllocator:
         return bool(result["changed"])
 
     def active_leases(self, *, now: datetime | None = None) -> tuple[DurableResourceLease, ...]:
-        captured = now or datetime.now(timezone.utc)
+        captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         result: dict[str, tuple[DurableResourceLease, ...]] = {}
@@ -347,7 +347,7 @@ class DurableResourceAllocator:
             "pool_id": self.pool_id,
             "event_id": uuid4().hex,
             "event_type": event_type,
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "occurred_at": datetime.now(UTC).isoformat(),
             **payload,
         }
 

@@ -97,7 +97,9 @@ def test_rational_v1_fails_closed_for_cavity_shells():
 
 
 def test_rational_parser_rejects_oversized_decimal_strings_before_int_conversion():
-    from universal_platform.engineering.rational_faceted_solid import _parse_integer_string
+    from universal_platform.engineering.rational_faceted_solid import (
+        _parse_integer_string,
+    )
 
     with pytest.raises(InvalidModelError, match="before integer conversion"):
         _parse_integer_string("9" * 4, "numerator", 8)
@@ -108,7 +110,9 @@ def test_rational_parser_rejects_oversized_decimal_strings_before_int_conversion
 
 
 def test_rational_parser_accepts_bit_limit_boundary_and_rejects_next_value():
-    from universal_platform.engineering.rational_faceted_solid import _parse_integer_string
+    from universal_platform.engineering.rational_faceted_solid import (
+        _parse_integer_string,
+    )
 
     assert _parse_integer_string("255", "integer", 8) == 255
     with pytest.raises(InvalidModelError, match="max_coordinate_bits"):
@@ -256,7 +260,9 @@ def test_from_dict_preflights_pairwise_work_before_coordinate_parsing(monkeypatc
 
 
 def test_rational_integer_parser_handles_values_near_hard_bit_ceiling():
-    from universal_platform.engineering.rational_faceted_solid import _parse_integer_string
+    from universal_platform.engineering.rational_faceted_solid import (
+        _parse_integer_string,
+    )
 
     # More than Python's default int(string) digit limit, but within 16,384 bits.
     value = "1" + "0" * 4931

@@ -1,8 +1,8 @@
 import hashlib
 import json
-from types import SimpleNamespace
 from math import cos, pi, sin
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -14,12 +14,22 @@ from universal_platform.engineering import (
     validate_brep_solid,
 )
 from universal_platform.engineering.brep import (
-    BRepEdge, BRepEdgeUse, BRepFace, BRepLoop, BRepShell, BRepVertex,
-    brep_from_triangle_mesh, triangle_mesh_from_brep,
+    BRepEdge,
+    BRepEdgeUse,
+    BRepFace,
+    BRepLoop,
+    BRepShell,
+    BRepVertex,
+    brep_from_triangle_mesh,
+    triangle_mesh_from_brep,
 )
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
+from universal_platform.engineering.mesh import (
+    TriangleMesh,
+    tessellate_box,
+    validate_triangle_mesh,
+)
 from universal_platform.engineering.primitive_geometry import BoxSolid
 
 

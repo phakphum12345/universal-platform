@@ -2,7 +2,9 @@ import subprocess
 import sys
 import time
 
-from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
+from universal_platform.runtime.resources.durable_allocator import (
+    DurableResourceAllocator,
+)
 from universal_platform.runtime.resources.models import ResourceMetric
 
 

@@ -6,11 +6,11 @@ vertex coordinates via their exact rational values.
 """
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
-from hashlib import sha256
-import re
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from .errors import InvalidModelError
 from .geometry import Vec3
@@ -216,7 +216,7 @@ class BRepSolid:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "BRepSolid":
+    def from_dict(cls, value: Mapping[str, object]) -> BRepSolid:
         required = {
             "schema_version", "profile", "solid_id", "frame_id", "length_unit",
             "source_geometry_sha256", "vertices", "edges", "loops", "faces", "shell",
@@ -462,9 +462,9 @@ def _validate_brep_topology(solid: BRepSolid) -> BRepValidationResult:
         drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
         keep_axes = tuple(axis for axis in range(3) if axis != drop_axis)
 
-        def project(point: Vec3) -> tuple[Fraction, Fraction]:
+        def project(point: Vec3, axes: tuple[int, int] = keep_axes) -> tuple[Fraction, Fraction]:
             coords = (_q(point.x), _q(point.y), _q(point.z))
-            return coords[keep_axes[0]], coords[keep_axes[1]]
+            return coords[axes[0]], coords[axes[1]]
 
         projected_loops: list[tuple[tuple[Fraction, Fraction], ...]] = []
         for points in face_points:
@@ -675,11 +675,11 @@ def triangle_mesh_from_brep(solid: BRepSolid) -> TriangleMesh:
         drop_axis = max(range(3), key=lambda axis: abs(normal[axis]))
         keep_axes = tuple(axis for axis in range(3) if axis != drop_axis)
 
-        def project(loop_points: tuple[Vec3, ...]) -> tuple[Vec2, ...]:
+        def project(loop_points: tuple[Vec3, ...], axes: tuple[int, int] = keep_axes) -> tuple[Vec2, ...]:
             return tuple(
                 Vec2(
-                    (point.x, point.y, point.z)[keep_axes[0]],
-                    (point.x, point.y, point.z)[keep_axes[1]],
+                    (point.x, point.y, point.z)[axes[0]],
+                    (point.x, point.y, point.z)[axes[1]],
                 )
                 for point in loop_points
             )

@@ -4,8 +4,8 @@ from fractions import Fraction
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.planar_region import PlanarRegion
 from universal_platform.engineering.primitive_geometry import Vec2
-from universal_platform.engineering.planar_region import PlanarRegion, PRECISION_POLICY
 
 
 def _region(region_id="region.plate", outer=None, holes=(), unit="mm", frame="part"):

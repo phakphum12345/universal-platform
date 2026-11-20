@@ -9,9 +9,9 @@ used.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Sequence
 
 from .errors import InvalidModelError
 from .triangle_fragment_arrangement import RationalPoint3, RationalTriangle3

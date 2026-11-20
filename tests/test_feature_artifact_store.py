@@ -17,9 +17,11 @@ from universal_platform.engineering.feature_history import (
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 
 

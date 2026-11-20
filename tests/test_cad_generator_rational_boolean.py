@@ -1,21 +1,21 @@
+import json
 from fractions import Fraction as F
 from hashlib import sha256
-import json
 
 import pytest
 
 from universal_platform.engineering import (
+    BooleanBoundarySelection,
+    BoxSolid,
     BRepBooleanOperation,
     CADGeneratorService,
     RationalBooleanSolid,
     SelectedBoundaryFragment,
-    BooleanBoundarySelection,
-    assemble_rational_boolean_solid,
-    BoxSolid,
-    TriangleMesh,
-    tessellate_box,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
+    TriangleMesh,
+    assemble_rational_boolean_solid,
+    tessellate_box,
 )
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3

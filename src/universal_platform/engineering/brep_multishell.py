@@ -6,12 +6,13 @@ closed when containment, shell separation, or mesh intersection is unresolved.
 """
 from __future__ import annotations
 
+import json
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
-import json
-import re
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .brep import BRepSolid, triangle_mesh_from_brep, validate_brep_solid
 from .errors import InvalidModelError
@@ -251,7 +252,7 @@ class BRepMultiShellSolid:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "BRepMultiShellSolid":
+    def from_dict(cls, value: Mapping[str, Any]) -> BRepMultiShellSolid:
         required = {
             "schema_version", "profile", "solid_id", "frame_id", "length_unit",
             "source_geometry_sha256", "outer_shell", "cavity_shells",

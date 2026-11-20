@@ -1,33 +1,40 @@
 import pytest
 
 from universal_platform.engineering.mechanism_model import (
-    FrameReference, GeometryKind, GeometryReference, JointKind, JointModel,
-    LinkModel, MechanismModel, SolverCapability, validate_mechanism_model,
+    FrameReference,
+    GeometryKind,
+    GeometryReference,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
+    SolverCapability,
+    validate_mechanism_model,
 )
 
 
 def model(**changes):
-    values = dict(
-        model_id="mechanism/demo",
-        revision="r1",
-        links=(
+    values = {
+        "model_id": "mechanism/demo",
+        "revision": "r1",
+        "links": (
             LinkModel("ground", "p1", "frame/ground", ("geom/ground",)),
             LinkModel("crank", "p1", "frame/crank"),
         ),
-        joints=(
+        "joints": (
             JointModel("joint/rev", JointKind.REVOLUTE, "ground", "crank",
                        "frame/joint", (0.0, 0.0, 1.0), "rad", -1.0, 1.0),
         ),
-        frames=(
+        "frames": (
             FrameReference("frame/world"),
             FrameReference("frame/ground", "frame/world", "ground"),
             FrameReference("frame/crank", "frame/world", "crank"),
             FrameReference("frame/joint", "frame/world"),
         ),
-        geometry=(
+        "geometry": (
             GeometryReference("geom/ground", "ground", "frame/ground", GeometryKind.ANALYTIC),
         ),
-    )
+    }
     values.update(changes)
     return MechanismModel(**values)
 

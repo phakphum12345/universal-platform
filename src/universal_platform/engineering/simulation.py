@@ -1,10 +1,13 @@
 """Transparent analytical checks; not a general-purpose FEA/CFD solver."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from math import isfinite
+
 from .errors import EngineeringError
-from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus
 from .linear_solver import solve_linear
+from .provenance import EvidenceKind, EvidenceRecord, EvidenceStatus
+
 
 @dataclass(frozen=True, slots=True)
 class SimulationResult:

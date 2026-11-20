@@ -1,15 +1,20 @@
 from fractions import Fraction
 from hashlib import sha256
 
-from universal_platform.engineering.brep_boolean import BRepBooleanOperation
 from universal_platform.engineering.boolean_boundary_selection import (
-    BooleanBoundarySelection, select_boolean_boundary_fragments,
+    BooleanBoundarySelection,
+    select_boolean_boundary_fragments,
 )
-from universal_platform.engineering.boolean_shell_assembly import assemble_boolean_shells
+from universal_platform.engineering.boolean_shell_assembly import (
+    assemble_boolean_shells,
+)
+from universal_platform.engineering.brep_boolean import BRepBooleanOperation
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box
 from universal_platform.engineering.primitive_geometry import BoxSolid
-from universal_platform.engineering.triangle_fragment_arrangement import RationalTriangleFragment
+from universal_platform.engineering.triangle_fragment_arrangement import (
+    RationalTriangleFragment,
+)
 
 
 def _box(solid_id, size, offset=0.0):
@@ -52,7 +57,7 @@ def test_shell_assembly_rejects_resource_exhaustion():
     meshes,selection=_difference_selection()
     try:
         assemble_boolean_shells(selection,meshes,max_faces=1)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         assert "max_faces" in str(exc)
     else:
         raise AssertionError("face budget must fail closed")

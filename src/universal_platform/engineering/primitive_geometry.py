@@ -5,12 +5,12 @@ manufacturability validator.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
 from math import atan2, ceil, cos, isfinite, pi, sin, sqrt, tan
 from typing import Any, ClassVar
-import re
 
 from .errors import InvalidModelError
 from .frame_graph import FrameGraph
@@ -484,7 +484,7 @@ class PrimitiveGeometryModel:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "PrimitiveGeometryModel":
+    def from_dict(cls, value: Mapping[str, Any]) -> PrimitiveGeometryModel:
         if not isinstance(value, Mapping) or set(value) != {"schema_version", "frame_graph", "solids"}:
             raise InvalidModelError("PrimitiveGeometryModel snapshot has missing or unknown fields")
         if value["schema_version"] not in cls.SUPPORTED_SCHEMA_VERSIONS:

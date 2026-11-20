@@ -1,9 +1,5 @@
 import pytest
 
-from universal_platform.engineering.errors import SolverError
-from universal_platform.engineering.linear_solver import solve_linear
-from universal_platform.engineering.simulation import solve_static_linear_system
-from universal_platform.engineering.provenance import EvidenceKind, EvidenceStatus
 from universal_platform.engineering import (
     PhysicsDomain,
     PhysicsInput,
@@ -13,6 +9,10 @@ from universal_platform.engineering import (
     Quantity,
     register_builtin_physics_solvers,
 )
+from universal_platform.engineering.errors import SolverError
+from universal_platform.engineering.linear_solver import solve_linear
+from universal_platform.engineering.provenance import EvidenceKind, EvidenceStatus
+from universal_platform.engineering.simulation import solve_static_linear_system
 
 
 def test_linear_solver_matches_independent_exact_two_by_two_reference():

@@ -3,7 +3,10 @@ import json
 
 import pytest
 
-from universal_platform.engineering.brep import brep_from_triangle_mesh, validate_brep_solid
+from universal_platform.engineering.brep import (
+    brep_from_triangle_mesh,
+    validate_brep_solid,
+)
 from universal_platform.engineering.brep_boolean import (
     BRepBooleanOperation,
     BRepBooleanResult,
@@ -11,7 +14,10 @@ from universal_platform.engineering.brep_boolean import (
 )
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
+from universal_platform.engineering.mesh import (
+    TriangleMesh,
+    tessellate_box,
+)
 from universal_platform.engineering.primitive_geometry import BoxSolid
 
 
@@ -143,7 +149,9 @@ def test_axis_aligned_brep_boolean_enforces_input_and_grid_limits_and_strict_res
 
 def test_axis_aligned_brep_boolean_public_api_is_exported():
     from universal_platform.engineering import BRepBooleanOperation as PublicOperation
-    from universal_platform.engineering import boolean_axis_aligned_brep_solids as public_boolean
+    from universal_platform.engineering import (
+        boolean_axis_aligned_brep_solids as public_boolean,
+    )
     assert PublicOperation is BRepBooleanOperation
     assert public_boolean is boolean_axis_aligned_brep_solids
 

@@ -7,8 +7,9 @@ an assembly constraint or motion solver.
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from .errors import InvalidModelError
 from .transforms import RigidTransform
@@ -127,7 +128,7 @@ class FrameGraph:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "FrameGraph":
+    def from_dict(cls, value: Mapping[str, object]) -> FrameGraph:
         """Load a strict versioned snapshot; unknown frames and cycles are rejected."""
         expected = {"schema_version", "frames", "transforms"}
         if not isinstance(value, Mapping) or set(value) != expected:

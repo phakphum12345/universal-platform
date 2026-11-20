@@ -6,7 +6,7 @@ It is intentionally limited to one planar four-bar loop.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import hypot, isfinite
 from typing import Literal
 
@@ -38,7 +38,7 @@ class PlanarFourBarModelSnapshot:
     output_rocker_length: Quantity
     input_angle_rad: float
     branch: AssemblyBranch = "left"
-    tolerance: Quantity = Quantity(1e-9, LENGTH, "m")
+    tolerance: Quantity = field(default_factory=lambda: Quantity(1e-9, LENGTH, "m"))
 
 
 @dataclass(frozen=True, slots=True)

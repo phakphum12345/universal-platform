@@ -5,10 +5,10 @@ provide a security sandbox. The host remains the authority for permissions.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import math
 import struct
+from dataclasses import dataclass
 from typing import BinaryIO, Literal
 
 PROTOCOL_VERSION = "1.0"

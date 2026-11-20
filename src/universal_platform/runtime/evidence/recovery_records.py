@@ -27,11 +27,11 @@ class RecoveryEvidenceRecord:
         if self.captured_at.tzinfo is None or self.captured_at.utcoffset() is None:
             raise ValueError("captured_at must be timezone-aware")
         if not isinstance(self.event_fingerprints, tuple):
-            raise ValueError("event_fingerprints must be an immutable tuple")
+            raise ValueError("event_fingerprints must be an immutable tuple")  # noqa: TRY004
         if len(set(self.event_fingerprints)) != len(self.event_fingerprints):
             raise ValueError("event fingerprints must be unique")
         if not isinstance(self.repaired, bool) or not isinstance(self.resumed, bool):
-            raise ValueError("repaired and resumed must be booleans")
+            raise ValueError("repaired and resumed must be booleans")  # noqa: TRY004
         if any(
             len(item) != 64 or any(ch not in "0123456789abcdef" for ch in item)
             for item in self.event_fingerprints

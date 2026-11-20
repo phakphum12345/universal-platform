@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -8,7 +8,12 @@ from universal_platform.runtime.health.monitor import (
     ResourceHealthRule,
     ThresholdComparison,
 )
-from universal_platform.runtime.resources.models import ResourceMetric, ResourceRecord, ResourceSnapshot, ResourceState
+from universal_platform.runtime.resources.models import (
+    ResourceMetric,
+    ResourceRecord,
+    ResourceSnapshot,
+    ResourceState,
+)
 from universal_platform.runtime.resources.registry import ResourceRegistry
 
 
@@ -19,7 +24,7 @@ def make_registry():
 
 
 def record_snapshot(registry, sequence, metrics):
-    snapshot = ResourceSnapshot("host-1", sequence, datetime.now(timezone.utc), tuple(metrics))
+    snapshot = ResourceSnapshot("host-1", sequence, datetime.now(UTC), tuple(metrics))
     registry.record_snapshot(snapshot)
     return snapshot
 

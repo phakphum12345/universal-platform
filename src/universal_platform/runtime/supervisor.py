@@ -5,15 +5,15 @@ with this adapter; use an OS/container sandbox with an explicit policy.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
 import os
-from pathlib import Path
 import signal
 import subprocess
 import threading
 import time
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
 
 from .windows_job import WindowsJob
 
@@ -35,13 +35,13 @@ class WorkerSpec:
         if not isinstance(self.executable, str) or not self.executable.strip() or "\x00" in self.executable:
             raise ValueError("executable must be a non-empty NUL-free string")
         if not isinstance(self.arguments, tuple):
-            raise ValueError("arguments must be an immutable tuple")
+            raise ValueError("arguments must be an immutable tuple")  # noqa: TRY004
         if any(not isinstance(item, str) or "\x00" in item for item in self.arguments):
             raise ValueError("arguments must be NUL-free strings")
         if not isinstance(self.working_directory, str) or not self.working_directory.strip() or "\x00" in self.working_directory:
             raise ValueError("working_directory must be a non-empty NUL-free string")
         if not isinstance(self.environment, Mapping):
-            raise ValueError("environment must be a mapping of string names to values")
+            raise ValueError("environment must be a mapping of string names to values")  # noqa: TRY004
         if self.stdin_data is not None and not isinstance(self.stdin_data, bytes):
             raise ValueError("stdin_data must be bytes or None")
         if isinstance(self.timeout_seconds, bool) or not isinstance(self.timeout_seconds, (int, float)) or not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
@@ -174,13 +174,13 @@ class PythonProcessSupervisor:
             )
             if job is not None:
                 job.assign_suspended(process)
-        except Exception as launch_error:
+        except Exception:
             cleanup_error: Exception | None = None
             if process is not None and process.poll() is None:
                 if job is not None:
                     try:
                         job.terminate()
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001
                         cleanup_error = error
                 try:
                     process.kill()
@@ -189,19 +189,19 @@ class PythonProcessSupervisor:
                         cleanup_error = cleanup_error or error
                 try:
                     process.wait(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
-                except Exception as error:
+                except Exception as error:  # noqa: BLE001
                     cleanup_error = cleanup_error or error
             if job is not None:
                 try:
                     job.close()
-                except Exception as error:
+                except Exception as error:  # noqa: BLE001
                     cleanup_error = cleanup_error or error
             with self._lock:
                 self._starting.discard(spec.worker_id)
                 self._cancelled.discard(spec.worker_id)
             if cleanup_error is not None and process is not None:
                 raise WorkerTerminationError(spec.worker_id) from cleanup_error
-            raise launch_error
+            raise
         with self._lock:
             self._processes[spec.worker_id] = process
             self._starting.discard(spec.worker_id)
@@ -313,7 +313,7 @@ class PythonProcessSupervisor:
             if writer is not None and writer.is_alive():
                 try:
                     self._terminate_process(process, spec.terminate_grace_seconds, job)
-                except Exception as error:
+                except Exception as error:  # noqa: BLE001
                     cleanup_error = error
                 finally:
                     writer.join(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
@@ -332,19 +332,19 @@ class PythonProcessSupervisor:
                             cleanup_error = RuntimeError(
                                 "Windows worker process tree did not become empty"
                             )
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001
                         cleanup_error = cleanup_error or error
                     finally:
                         try:
                             job.close()
-                        except Exception as error:
+                        except Exception as error:  # noqa: BLE001
                             cleanup_error = cleanup_error or error
                 elif process.poll() is None or (
                     os.name != "nt" and self._process_group_exists(process.pid)
                 ):
                     try:
                         self._terminate_process(process, spec.terminate_grace_seconds)
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001
                         cleanup_error = cleanup_error or error
             finally:
                 with self._lock:
@@ -374,7 +374,7 @@ class PythonProcessSupervisor:
                     try:
                         if job.active_processes == 0:
                             return False
-                    except Exception:
+                    except Exception:  # noqa: BLE001, S110
                         # If the OS cannot report Job state, fail toward
                         # termination rather than assuming the tree is empty.
                         pass

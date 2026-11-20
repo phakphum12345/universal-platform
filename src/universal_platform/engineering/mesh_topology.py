@@ -6,11 +6,12 @@ vertices, welding, snapping, or claiming geometric self-intersection freedom.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 from json import dumps
 from math import dist, floor, isfinite
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .mesh import TriangleMesh
@@ -172,7 +173,7 @@ class MeshTopologyAnalysis:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "MeshTopologyAnalysis":
+    def from_dict(cls, value: Mapping[str, Any]) -> MeshTopologyAnalysis:
         if not isinstance(value, Mapping) or set(value) != _ANALYSIS_FIELDS:
             raise InvalidModelError("MeshTopologyAnalysis snapshot has missing or unknown fields")
         if value["schema_version"] != cls.SCHEMA_VERSION:

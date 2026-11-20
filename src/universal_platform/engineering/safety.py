@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from enum import IntEnum
 
+
 class RiskTier(IntEnum):
     INFORMATIONAL = 0
     LOW_CONSEQUENCE = 1

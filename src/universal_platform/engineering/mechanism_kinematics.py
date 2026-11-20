@@ -7,10 +7,10 @@ caller-supplied engineering inputs with provenance labels.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
-from typing import Mapping
 
 from .errors import InvalidModelError
 from .mechanism_loops import (
@@ -29,11 +29,10 @@ from .mechanism_model import MechanismModel
 from .nonlinear_solver import (
     NonlinearConstraint,
     NonlinearSolveResult,
-    NonlinearSolveStatus,
     NonlinearSolverOptions,
+    NonlinearSolveStatus,
     solve_nonlinear_constraints,
 )
-
 
 RESULT_SCHEMA_VERSION = "1.0"
 

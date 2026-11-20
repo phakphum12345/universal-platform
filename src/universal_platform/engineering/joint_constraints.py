@@ -6,20 +6,18 @@ kinematic consistency layer, not a dynamics or physical-feasibility solver.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from math import atan2, cos, isfinite, sin, sqrt
-from typing import Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
 from .mechanism_model import (
-    CoordinateKind,
     JointKind,
     MechanismModel,
     validate_mechanism_model,
 )
 from .transforms import Matrix3, RigidTransform
-
 
 _IDENTITY: Matrix3 = (
     (1.0, 0.0, 0.0),

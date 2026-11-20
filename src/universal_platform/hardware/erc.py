@@ -5,12 +5,13 @@ standards-compliance checker, or proof of physical safety.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
 import hashlib
 import json
+from dataclasses import dataclass
+from enum import Enum
 
 from universal_platform.engineering.errors import InvalidModelError
+
 from .schematic import PinElectricalType, SchematicModel
 
 

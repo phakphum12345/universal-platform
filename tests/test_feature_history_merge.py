@@ -3,7 +3,11 @@ from __future__ import annotations
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.feature_history import FeatureHistory, FeatureKind, FeatureNode
+from universal_platform.engineering.feature_history import (
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+)
 from universal_platform.engineering.feature_history_merge import merge_feature_histories
 
 

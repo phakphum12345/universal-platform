@@ -1,42 +1,47 @@
-import pytest
 
-from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mechanism_model import (
-    FrameReference, GeometryKind, GeometryPlacement, GeometryReference,
-    JointFramePlacement, JointKind, JointModel, LinkModel, MechanismModel,
+    FrameReference,
+    GeometryKind,
+    GeometryPlacement,
+    GeometryReference,
+    JointFramePlacement,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
     validate_mechanism_model,
 )
 from universal_platform.engineering.transforms import RigidTransform
 
 
 def base_model(**changes):
-    values = dict(
-        model_id="mechanism/placement-demo",
-        revision="r2",
-        links=(
+    values = {
+        "model_id": "mechanism/placement-demo",
+        "revision": "r2",
+        "links": (
             LinkModel("ground", "part-r1", "frame/ground", ("geometry/base",)),
             LinkModel("slider", "part-r3", "frame/slider"),
         ),
-        joints=(
+        "joints": (
             JointModel(
                 "joint/slide", JointKind.PRISMATIC, "ground", "slider",
                 "frame/joint", (1.0, 0.0, 0.0), "m",
             ),
         ),
-        frames=(
+        "frames": (
             FrameReference("frame/world"),
             FrameReference("frame/ground", "frame/world", "ground"),
             FrameReference("frame/slider", "frame/world", "slider"),
             FrameReference("frame/joint", "frame/world"),
             FrameReference("frame/geometry/base", "frame/ground", "ground"),
         ),
-        geometry=(
+        "geometry": (
             GeometryReference(
                 "geometry/base", "ground", "frame/ground", GeometryKind.ANALYTIC
             ),
         ),
-    )
+    }
     values.update(changes)
     return MechanismModel(**values)
 
@@ -126,7 +131,7 @@ def test_joint_placement_rejects_unknown_joint_and_duplicate_ids():
 
 
 def test_geometry_placement_requires_matching_geometry_frame_and_owner():
-    _, geometry_placements = placements()
+    _, _geometry_placements = placements()
     bad = GeometryPlacement(
         "geometry/base",
         RigidTransform("frame/slider", "frame/slider"),

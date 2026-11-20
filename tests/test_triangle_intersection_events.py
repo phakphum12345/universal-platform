@@ -140,8 +140,13 @@ def test_plane_split_partitions_source_triangle_into_exact_fragments():
     assert all(item.cutter_triangle_index == 1 for item in fragments)
     assert mesh.to_dict() == before
 
-    from universal_platform.engineering.triangle_intersection_events import _cross, _sub, _dot
     from fractions import Fraction
+
+    from universal_platform.engineering.triangle_intersection_events import (
+        _cross,
+        _dot,
+        _sub,
+    )
     source_normal = (Fraction(0), Fraction(0), Fraction(4))
     total_area2 = Fraction(0)
     for item in fragments:

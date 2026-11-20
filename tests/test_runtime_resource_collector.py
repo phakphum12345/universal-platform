@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -32,7 +32,7 @@ def test_collector_records_unit_bearing_monotonic_snapshots():
     provider = FakeProvider()
     collector = ResourceSnapshotCollector(
         registry,
-        clock=lambda: datetime(2026, 11, 7, tzinfo=timezone.utc),
+        clock=lambda: datetime(2026, 11, 7, tzinfo=UTC),
     )
     collector.register_provider("host-1", provider)
     first = collector.collect("host-1")

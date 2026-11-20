@@ -1,14 +1,22 @@
-import math
 
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.joint_constraints import generate_joint_constraints
-from universal_platform.engineering.joint_jacobian import build_joint_constraint_jacobian
+from universal_platform.engineering.joint_jacobian import (
+    build_joint_constraint_jacobian,
+)
 from universal_platform.engineering.mechanism_model import (
-    CoordinateKind, FrameReference, GeneralizedCoordinate, JointCoordinateParameterization,
-    JointFramePlacement, JointKind, JointModel, LinkModel, MechanismModel,
+    CoordinateKind,
+    FrameReference,
+    GeneralizedCoordinate,
+    JointCoordinateParameterization,
+    JointFramePlacement,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 from universal_platform.engineering.nonlinear_solver import JacobianMethod
 from universal_platform.engineering.transforms import RigidTransform

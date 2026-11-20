@@ -1,10 +1,19 @@
 import pytest
-from universal_platform.engineering.quantity import Quantity
-from universal_platform.engineering.errors import DimensionMismatchError, EngineeringError, InvalidModelError
-from universal_platform.engineering.mechanics import axial_stress, axial_strain, factor_of_safety
-from universal_platform.engineering.electrical import ohms_law, electrical_power
-from universal_platform.engineering.thermal import linear_thermal_expansion
+
+from universal_platform.engineering.electrical import electrical_power, ohms_law
+from universal_platform.engineering.errors import (
+    DimensionMismatchError,
+    EngineeringError,
+    InvalidModelError,
+)
 from universal_platform.engineering.materials import Material
+from universal_platform.engineering.mechanics import (
+    axial_strain,
+    axial_stress,
+    factor_of_safety,
+)
+from universal_platform.engineering.quantity import Quantity
+from universal_platform.engineering.thermal import linear_thermal_expansion
 
 
 def test_axial_stress_strain_and_factor_of_safety():

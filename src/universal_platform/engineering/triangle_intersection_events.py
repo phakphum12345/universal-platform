@@ -6,9 +6,10 @@ it does not split triangles, classify solid membership, or assemble solids.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .mesh import TriangleMesh
@@ -68,7 +69,7 @@ class TriangleIntersectionSegment:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "TriangleIntersectionSegment":
+    def from_dict(cls, value: Mapping[str, Any]) -> TriangleIntersectionSegment:
         if not isinstance(value, Mapping) or set(value) != _RESULT_FIELDS:
             raise InvalidModelError("TriangleIntersectionSegment has missing or unknown fields")
         if (value["schema_version"] != cls.SCHEMA_VERSION
