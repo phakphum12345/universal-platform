@@ -18,6 +18,7 @@ from uuid import uuid4
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
+from ..runtime.process_reconciliation import ProcessIdentityInspector
 from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from ..runtime.resources.models import ResourceMetric
@@ -189,14 +190,34 @@ class ModuleRuntime:
         registry: ModuleRegistry,
         *,
         resource_allocator: ResourceAllocatorPort | None = None,
+        host_instance_id: str | None = None,
+        process_identity_inspector: ProcessIdentityInspector | None = None,
     ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise InvalidModelError("registry must be a ModuleRegistry")
         if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocatorPort):
             raise InvalidModelError("resource_allocator must implement the resource allocator contract")
+        if host_instance_id is not None and (
+            not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id
+        ):
+            raise InvalidModelError("host_instance_id must be a non-empty NUL-free string")
+        if process_identity_inspector is not None and not callable(
+            getattr(process_identity_inspector, "inspect", None)
+        ):
+            raise InvalidModelError("process_identity_inspector must provide inspect(identity)")
         self._registry = registry
         self._resource_allocator = resource_allocator
-        self._host_instance_id = uuid4().hex
+        self._host_instance_id = host_instance_id or uuid4().hex
+        self._process_identity_inspector = process_identity_inspector or ProcessIdentityInspector()
+        reconcile_startup = getattr(resource_allocator, "reconcile_startup", None)
+        if (
+            callable(reconcile_startup)
+            and getattr(resource_allocator, "startup_reconciliation_required", False)
+        ):
+            reconcile_startup(
+                self._process_identity_inspector,
+                current_host_instance_id=self._host_instance_id,
+            )
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
         self._worker_invocations: dict[str, tuple[WorkerIPCClient, WorkerInvocationHandle]] = {}
         self._grants: dict[str, frozenset[str]] = {}
