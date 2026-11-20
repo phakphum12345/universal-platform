@@ -24,18 +24,35 @@ def _is_geometry_candidate(path: Path) -> bool:
 
 
 def _expand_inputs(inputs: Sequence[str], recursive: bool) -> list[Path]:
-    discovered: set[Path] = set()
+    """Expand inputs without changing their caller-supplied order.
+
+    Files found inside a directory or glob are sorted for deterministic output.
+    Repeated paths are emitted only once, at their first occurrence.
+    """
+    discovered: list[Path] = []
+    seen: set[Path] = set()
+
+    def add(path: Path) -> None:
+        resolved_path = path.absolute()
+        if resolved_path not in seen:
+            seen.add(resolved_path)
+            discovered.append(resolved_path)
+
     for raw in inputs:
-        matches = [Path(item) for item in glob.glob(raw, recursive=recursive)] if glob.has_magic(raw) else [Path(raw)]
+        matches = (
+            sorted((Path(item) for item in glob.glob(raw, recursive=recursive)), key=lambda item: str(item).casefold())
+            if glob.has_magic(raw)
+            else [Path(raw)]
+        )
         for candidate in matches:
             if candidate.is_dir():
                 iterator = candidate.rglob("*.json") if recursive else candidate.glob("*.json")
-                for path in iterator:
+                for path in sorted(iterator, key=lambda item: str(item).casefold()):
                     if "schemas" not in path.parts and _is_geometry_candidate(path):
-                        discovered.add(path.absolute())
+                        add(path)
             elif _is_geometry_candidate(candidate):
-                discovered.add(candidate.absolute())
-    return sorted(discovered, key=lambda item: str(item).casefold())
+                add(candidate)
+    return discovered
 
 
 def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
