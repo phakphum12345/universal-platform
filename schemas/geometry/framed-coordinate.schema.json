@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Frame-bound Spatial Coordinate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "frame_id", "coordinates"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "enum": ["POINT", "VECTOR"] },
+    "frame_id": { "type": "string", "minLength": 1 },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z", "unit"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" },
+        "unit": { "enum": ["m", "mm", "cm", "km", "in"] }
+      }
+    }
+  }
+}

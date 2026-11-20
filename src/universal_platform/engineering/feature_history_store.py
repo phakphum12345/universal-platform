@@ -1,0 +1,1019 @@
+"""Durable, revisioned storage for immutable FeatureHistory documents.
+
+The store persists source documents only. It deliberately does not serialize or
+rehydrate computed geometry artifacts, solver objects, or executable code.
+SQLite transactions provide atomic commits and cross-process optimistic locking.
+"""
+from __future__ import annotations
+
+import json
+import re
+import sqlite3
+from contextlib import closing
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from hashlib import sha256
+from math import isfinite
+from pathlib import Path
+from typing import Final
+
+from .errors import InvalidModelError
+from .feature_history import FeatureHistory
+from .feature_history_merge import FeatureHistoryMergeResult, merge_feature_histories
+
+_STORE_SCHEMA_VERSION: Final[int] = 1  # Revision digest envelope version; stable across additive DB migrations.
+_DATABASE_SCHEMA_VERSION: Final[int] = 3
+_HISTORY_ID: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
+_HEX_DIGEST: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
+_BRANCH_NAME: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+
+
+class FeatureHistoryRevisionConflict(RuntimeError):
+    """Raised when the caller's expected revision is not the current head."""
+
+    def __init__(self, history_id: str, expected_revision: int, current_revision: int):
+        self.history_id = history_id
+        self.expected_revision = expected_revision
+        self.current_revision = current_revision
+        super().__init__(
+            f"feature history {history_id!r} is at revision {current_revision}; "
+            f"expected revision {expected_revision}"
+        )
+
+
+class FeatureHistoryStoreIntegrityError(RuntimeError):
+    """Raised when persisted revision data fails its hash-chain or schema checks."""
+
+
+class FeatureHistoryMergeConflictError(RuntimeError):
+    """Raised when a branch merge has unresolved semantic conflicts."""
+
+    def __init__(self, result: FeatureHistoryMergeResult):
+        self.result = result
+        self.conflicts = result.conflicts
+        super().__init__("FeatureHistory merge has unresolved conflicts")
+
+
+class FeatureHistoryNavigationUnavailable(RuntimeError):
+    """Raised when no Undo or Redo target is available."""
+
+    def __init__(self, code: str):
+        if code not in {"NO_UNDO", "NO_REDO"}:
+            raise ValueError("unsupported navigation error code")
+        self.code = code
+        super().__init__(code)
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryRevision:
+    history_id: str
+    revision: int
+    parent_sha256: str | None
+    content_sha256: str
+    created_at: str
+    history: FeatureHistory
+    operation: str = "legacy"
+    source_revision: int | None = None
+    target_revision: int | None = None
+    merge_provenance: FeatureHistoryMergeProvenance | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryMergeProvenance:
+    source_history_id: str
+    source_revision: int
+    source_sha256: str
+    root_history_id: str
+    fork_revision: int
+    fork_sha256: str
+    algorithm_version: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "source_history_id": self.source_history_id,
+            "source_revision": self.source_revision,
+            "source_sha256": self.source_sha256,
+            "root_history_id": self.root_history_id,
+            "fork_revision": self.fork_revision,
+            "fork_sha256": self.fork_sha256,
+            "algorithm_version": self.algorithm_version,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryBranch:
+    branch_history_id: str
+    root_history_id: str
+    branch_name: str
+    fork_revision: int
+    fork_sha256: str
+    created_at: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "branch_history_id": self.branch_history_id,
+            "root_history_id": self.root_history_id,
+            "branch_name": self.branch_name,
+            "fork_revision": self.fork_revision,
+            "fork_sha256": self.fork_sha256,
+            "created_at": self.created_at,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureHistoryNavigationState:
+    history_id: str
+    current_revision: int
+    can_undo: bool
+    can_redo: bool
+    undo_depth: int
+    redo_depth: int
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "history_id": self.history_id,
+            "current_revision": self.current_revision,
+            "can_undo": self.can_undo,
+            "can_redo": self.can_redo,
+            "undo_depth": self.undo_depth,
+            "redo_depth": self.redo_depth,
+        }
+
+
+def _canonical_json(value: object) -> str:
+    try:
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        )
+    except (TypeError, ValueError) as exc:
+        raise InvalidModelError("feature history snapshot must be finite JSON data") from exc
+
+
+def _revision_digest(
+    history_id: str,
+    revision: int,
+    parent_sha256: str | None,
+    snapshot_json: str,
+) -> str:
+    envelope = {
+        "schema_version": _STORE_SCHEMA_VERSION,
+        "history_id": history_id,
+        "revision": revision,
+        "parent_sha256": parent_sha256,
+        "snapshot": json.loads(snapshot_json),
+    }
+    return sha256(_canonical_json(envelope).encode("utf-8")).hexdigest()
+
+
+class SQLiteFeatureHistoryStore:
+    """Local durable FeatureHistory document store with immutable revisions.
+
+    A caller must pass the revision it previously read (0 for first creation).
+    Writes use BEGIN IMMEDIATE and compare-and-swap inside one SQLite
+    transaction, so concurrent writers cannot silently overwrite one another.
+    The database path is explicit and must refer to a filesystem database;
+    in-memory and SQLite URI modes are intentionally unsupported.
+    """
+
+    def __init__(self, database_path: str | Path, *, timeout_seconds: float = 5.0):
+        if isinstance(database_path, str) and not database_path.strip():
+            raise ValueError("database_path must be a non-empty filesystem path")
+        raw_path = str(database_path)
+        if raw_path in {":memory:", ""} or raw_path.startswith("file:"):
+            raise ValueError("database_path must be a filesystem path, not a SQLite URI")
+        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be a positive number")
+        self.database_path = Path(database_path).expanduser().resolve()
+        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        self.timeout_seconds = float(timeout_seconds)
+        self._initialize()
+
+    def _connect(self) -> sqlite3.Connection:
+        connection = sqlite3.connect(
+            str(self.database_path), timeout=self.timeout_seconds,
+            isolation_level=None,
+        )
+        connection.execute(f"PRAGMA busy_timeout = {int(self.timeout_seconds * 1000)}")
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA synchronous = FULL")
+        return connection
+
+    def _initialize(self) -> None:
+        with closing(self._connect()) as connection:
+            existing_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+            if existing_version > _DATABASE_SCHEMA_VERSION:
+                raise FeatureHistoryStoreIntegrityError("database schema version is newer than this implementation")
+            connection.execute("PRAGMA journal_mode = WAL")
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_revisions (
+                    history_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL CHECK (revision > 0),
+                    parent_sha256 TEXT,
+                    snapshot_json TEXT NOT NULL,
+                    content_sha256 TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (history_id, revision),
+                    UNIQUE (history_id, content_sha256)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_heads (
+                    history_id TEXT PRIMARY KEY,
+                    revision INTEGER NOT NULL CHECK (revision > 0),
+                    content_sha256 TEXT NOT NULL,
+                    FOREIGN KEY (history_id, revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_navigation (
+                    history_id TEXT PRIMARY KEY,
+                    undo_stack_json TEXT NOT NULL,
+                    redo_stack_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (history_id)
+                      REFERENCES feature_history_heads(history_id)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_branches (
+                    branch_history_id TEXT PRIMARY KEY,
+                    root_history_id TEXT NOT NULL,
+                    branch_name TEXT NOT NULL,
+                    fork_revision INTEGER NOT NULL CHECK (fork_revision > 0),
+                    fork_sha256 TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE (root_history_id, branch_name),
+                    FOREIGN KEY (branch_history_id)
+                      REFERENCES feature_history_heads(history_id),
+                    FOREIGN KEY (root_history_id, fork_revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_revision_actions (
+                    history_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    operation TEXT NOT NULL CHECK (operation IN ('legacy', 'create', 'edit', 'undo', 'redo')),
+                    source_revision INTEGER,
+                    target_revision INTEGER,
+                    PRIMARY KEY (history_id, revision),
+                    FOREIGN KEY (history_id, revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_history_merge_actions (
+                    target_history_id TEXT NOT NULL,
+                    target_revision INTEGER NOT NULL,
+                    source_history_id TEXT NOT NULL,
+                    source_revision INTEGER NOT NULL,
+                    source_sha256 TEXT NOT NULL,
+                    root_history_id TEXT NOT NULL,
+                    fork_revision INTEGER NOT NULL,
+                    fork_sha256 TEXT NOT NULL,
+                    algorithm_version TEXT NOT NULL,
+                    PRIMARY KEY (target_history_id, target_revision),
+                    FOREIGN KEY (target_history_id, target_revision)
+                      REFERENCES feature_history_revisions(history_id, revision),
+                    FOREIGN KEY (source_history_id, source_revision)
+                      REFERENCES feature_history_revisions(history_id, revision),
+                    FOREIGN KEY (root_history_id, fork_revision)
+                      REFERENCES feature_history_revisions(history_id, revision)
+                )
+                """
+            )
+            # Additive, non-destructive migration for databases created before
+            # persistent navigation metadata existed.
+            for history_id, revision in connection.execute(
+                "SELECT history_id, revision FROM feature_history_heads"
+            ).fetchall():
+                connection.execute(
+                    """
+                    INSERT OR IGNORE INTO feature_history_navigation
+                      (history_id, undo_stack_json, redo_stack_json, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        history_id,
+                        _canonical_json(list(range(1, int(revision)))),
+                        "[]",
+                        datetime.now(UTC).isoformat(),
+                    ),
+                )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                SELECT history_id, revision, 'legacy', NULL, NULL
+                FROM feature_history_revisions
+                """
+            )
+            connection.execute(f"PRAGMA user_version = {_DATABASE_SCHEMA_VERSION}")
+
+    @staticmethod
+    def _read_navigation_stacks(
+        connection: sqlite3.Connection, history_id: str, current_revision: int
+    ) -> tuple[list[int], list[int]]:
+        row = connection.execute(
+            "SELECT undo_stack_json, redo_stack_json FROM feature_history_navigation WHERE history_id = ?",
+            (history_id,),
+        ).fetchone()
+        if row is None:
+            undo_stack = list(range(1, current_revision))
+            redo_stack: list[int] = []
+            connection.execute(
+                """
+                INSERT INTO feature_history_navigation
+                  (history_id, undo_stack_json, redo_stack_json, updated_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    history_id, _canonical_json(undo_stack), "[]",
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+            return undo_stack, redo_stack
+        try:
+            undo_stack = json.loads(row[0])
+            redo_stack = json.loads(row[1])
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise FeatureHistoryStoreIntegrityError("navigation stack JSON is invalid") from exc
+        if not isinstance(undo_stack, list) or not isinstance(redo_stack, list):
+            raise FeatureHistoryStoreIntegrityError("navigation stacks must be JSON arrays")
+        for stack in (undo_stack, redo_stack):
+            if any(
+                isinstance(item, bool) or not isinstance(item, int)
+                or item < 1 or item >= current_revision
+                for item in stack
+            ) or len(stack) != len(set(stack)):
+                raise FeatureHistoryStoreIntegrityError("navigation stack contains an invalid revision")
+        if set(undo_stack).intersection(redo_stack):
+            raise FeatureHistoryStoreIntegrityError("a revision cannot be in both navigation stacks")
+        for target_revision in set(undo_stack + redo_stack):
+            target = connection.execute(
+                """
+                SELECT 1 FROM feature_history_revisions
+                WHERE history_id = ? AND revision = ?
+                """,
+                (history_id, target_revision),
+            ).fetchone()
+            if target is None:
+                raise FeatureHistoryStoreIntegrityError(
+                    "navigation stack references a missing revision"
+                )
+        return undo_stack, redo_stack
+
+    @staticmethod
+    def _write_navigation_stacks(
+        connection: sqlite3.Connection,
+        history_id: str,
+        undo_stack: list[int],
+        redo_stack: list[int],
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO feature_history_navigation
+              (history_id, undo_stack_json, redo_stack_json, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(history_id) DO UPDATE SET
+              undo_stack_json = excluded.undo_stack_json,
+              redo_stack_json = excluded.redo_stack_json,
+              updated_at = excluded.updated_at
+            """,
+            (
+                history_id, _canonical_json(undo_stack), _canonical_json(redo_stack),
+                datetime.now(UTC).isoformat(),
+            ),
+        )
+
+    def get_navigation_state(self, history_id: str) -> FeatureHistoryNavigationState:
+        if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
+            raise ValueError("history_id must be a stable lowercase identifier")
+        with closing(self._connect()) as connection:
+            head = connection.execute(
+                "SELECT revision FROM feature_history_heads WHERE history_id = ?",
+                (history_id,),
+            ).fetchone()
+            if head is None:
+                raise KeyError(history_id)
+            current_revision = int(head[0])
+            undo_stack, redo_stack = self._read_navigation_stacks(
+                connection, history_id, current_revision
+            )
+        return FeatureHistoryNavigationState(
+            history_id, current_revision, bool(undo_stack), bool(redo_stack),
+            len(undo_stack), len(redo_stack),
+        )
+
+    def save(
+        self,
+        history: FeatureHistory,
+        *,
+        expected_revision: int,
+    ) -> FeatureHistoryRevision:
+        """Append a new immutable revision if expected_revision is still head.
+
+        Use expected_revision=0 to create a history for the first time.
+        """
+        if not isinstance(history, FeatureHistory):
+            raise InvalidModelError("save requires a FeatureHistory")
+        if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 0:
+            raise ValueError("expected_revision must be a non-negative integer")
+        snapshot_json = _canonical_json(history.to_dict())
+        now = datetime.now(UTC).isoformat()
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (history.history_id,),
+            ).fetchone()
+            current_revision = int(row[0]) if row else 0
+            if current_revision != expected_revision:
+                raise FeatureHistoryRevisionConflict(
+                    history.history_id, expected_revision, current_revision
+                )
+            undo_stack, _redo_stack = self._read_navigation_stacks(
+                connection, history.history_id, current_revision
+            ) if current_revision else ([], [])
+            if current_revision:
+                undo_stack.append(current_revision)
+            redo_stack: list[int] = []
+            revision = current_revision + 1
+            parent_sha256 = str(row[1]) if row else None
+            digest = _revision_digest(
+                history.history_id, revision, parent_sha256, snapshot_json
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (history.history_id, revision, parent_sha256, snapshot_json, digest, now),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_heads (history_id, revision, content_sha256)
+                VALUES (?, ?, ?)
+                ON CONFLICT(history_id) DO UPDATE SET
+                  revision = excluded.revision,
+                  content_sha256 = excluded.content_sha256
+                """,
+                (history.history_id, revision, digest),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, ?, ?, ?, NULL)
+                """,
+                (
+                    history.history_id, revision,
+                    "create" if current_revision == 0 else "edit",
+                    current_revision or None,
+                ),
+            )
+            self._write_navigation_stacks(
+                connection, history.history_id, undo_stack, redo_stack
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        return FeatureHistoryRevision(
+            history.history_id, revision, parent_sha256, digest, now, history,
+            "create" if expected_revision == 0 else "edit", expected_revision or None, None,
+        )
+
+    def load(
+        self,
+        history_id: str,
+        *,
+        revision: int | None = None,
+    ) -> FeatureHistoryRevision:
+        """Load and verify a revision and every preceding link in its hash chain."""
+        if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
+            raise ValueError("history_id must be a stable lowercase identifier")
+        if revision is not None and (
+            isinstance(revision, bool) or not isinstance(revision, int) or revision < 1
+        ):
+            raise ValueError("revision must be a positive integer")
+        with closing(self._connect()) as connection:
+            head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (history_id,),
+            ).fetchone()
+            if head is None:
+                raise KeyError(history_id)
+            target = int(head[0]) if revision is None else revision
+            if target > int(head[0]):
+                raise KeyError(f"{history_id}@{target}")
+            rows = connection.execute(
+                """
+                SELECT r.revision, r.parent_sha256, r.snapshot_json, r.content_sha256,
+                       r.created_at, a.operation, a.source_revision, a.target_revision
+                FROM feature_history_revisions AS r
+                LEFT JOIN feature_history_revision_actions AS a
+                  ON a.history_id = r.history_id AND a.revision = r.revision
+                WHERE r.history_id = ? AND r.revision <= ?
+                ORDER BY r.revision
+                """,
+                (history_id, target),
+            ).fetchall()
+            merge_row = connection.execute(
+                """
+                SELECT source_history_id, source_revision, source_sha256,
+                       root_history_id, fork_revision, fork_sha256, algorithm_version
+                FROM feature_history_merge_actions
+                WHERE target_history_id = ? AND target_revision = ?
+                """,
+                (history_id, target),
+            ).fetchone()
+
+        expected_parent: str | None = None
+        selected: FeatureHistoryRevision | None = None
+        if len(rows) != target:
+            raise FeatureHistoryStoreIntegrityError("revision sequence is incomplete")
+        for expected_number, row in enumerate(rows, start=1):
+            stored_number, parent, snapshot_json, stored_digest, created_at, operation, source_revision, target_revision = row
+            if int(stored_number) != expected_number or parent != expected_parent:
+                raise FeatureHistoryStoreIntegrityError("revision sequence or parent digest is invalid")
+            if not isinstance(snapshot_json, str):
+                raise FeatureHistoryStoreIntegrityError("revision snapshot is not text")
+            try:
+                snapshot = json.loads(snapshot_json)
+                canonical = _canonical_json(snapshot)
+                if canonical != snapshot_json:
+                    raise FeatureHistoryStoreIntegrityError("revision snapshot is not canonical JSON")
+                calculated = _revision_digest(
+                    history_id, expected_number, parent, snapshot_json
+                )
+                if calculated != stored_digest or not _HEX_DIGEST.fullmatch(str(stored_digest)):
+                    raise FeatureHistoryStoreIntegrityError("revision content digest mismatch")
+                history = FeatureHistory.from_dict(snapshot)
+            except FeatureHistoryStoreIntegrityError:
+                raise
+            except Exception as exc:
+                raise FeatureHistoryStoreIntegrityError("revision snapshot failed schema validation") from exc
+            if history.history_id != history_id:
+                raise FeatureHistoryStoreIntegrityError("snapshot history_id does not match its record")
+            selected = FeatureHistoryRevision(
+                history_id, expected_number, parent, stored_digest, created_at, history,
+                operation or "legacy", source_revision, target_revision,
+            )
+            expected_parent = stored_digest
+        if selected is None:
+            raise FeatureHistoryStoreIntegrityError("requested revision is missing")
+        if target == int(head[0]) and selected.content_sha256 != head[1]:
+            raise FeatureHistoryStoreIntegrityError("head digest does not match the latest revision")
+        if merge_row is not None:
+            provenance = FeatureHistoryMergeProvenance(
+                str(merge_row[0]), int(merge_row[1]), str(merge_row[2]),
+                str(merge_row[3]), int(merge_row[4]), str(merge_row[5]), str(merge_row[6]),
+            )
+            selected = FeatureHistoryRevision(
+                selected.history_id, selected.revision, selected.parent_sha256,
+                selected.content_sha256, selected.created_at, selected.history,
+                "merge", selected.source_revision, selected.target_revision, provenance,
+            )
+        return selected
+
+    def undo(self, history_id: str, *, expected_revision: int) -> FeatureHistoryRevision:
+        """Append a new revision restoring the next persistent Undo target."""
+        return self._restore_from_navigation_stack(
+            history_id, expected_revision=expected_revision, operation="undo"
+        )
+
+    def redo(self, history_id: str, *, expected_revision: int) -> FeatureHistoryRevision:
+        """Append a new revision restoring the next persistent Redo target."""
+        return self._restore_from_navigation_stack(
+            history_id, expected_revision=expected_revision, operation="redo"
+        )
+
+    def _restore_from_navigation_stack(
+        self, history_id: str, *, expected_revision: int, operation: str
+    ) -> FeatureHistoryRevision:
+        if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
+            raise ValueError("history_id must be a stable lowercase identifier")
+        if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
+            raise ValueError("expected_revision must be a positive integer")
+        if operation not in {"undo", "redo"}:
+            raise ValueError("operation must be undo or redo")
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (history_id,),
+            ).fetchone()
+            if head is None:
+                raise KeyError(history_id)
+            current_revision = int(head[0])
+            if current_revision != expected_revision:
+                raise FeatureHistoryRevisionConflict(
+                    history_id, expected_revision, current_revision
+                )
+            undo_stack, redo_stack = self._read_navigation_stacks(
+                connection, history_id, current_revision
+            )
+            source_stack = undo_stack if operation == "undo" else redo_stack
+            destination_stack = redo_stack if operation == "undo" else undo_stack
+            if not source_stack:
+                raise FeatureHistoryNavigationUnavailable(
+                    "NO_UNDO" if operation == "undo" else "NO_REDO"
+                )
+            target_revision = source_stack.pop()
+            destination_stack.append(current_revision)
+
+            # The target is immutable. load() validates the complete revision
+            # hash chain before its snapshot is copied into the new head.
+            target = self.load(history_id, revision=target_revision)
+            history = target.history
+            snapshot_json = _canonical_json(history.to_dict())
+            now = datetime.now(UTC).isoformat()
+            revision = current_revision + 1
+            parent_sha256 = str(head[1])
+            digest = _revision_digest(
+                history_id, revision, parent_sha256, snapshot_json
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (history_id, revision, parent_sha256, snapshot_json, digest, now),
+            )
+            connection.execute(
+                """
+                UPDATE feature_history_heads
+                SET revision = ?, content_sha256 = ?
+                WHERE history_id = ?
+                """,
+                (revision, digest, history_id),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (history_id, revision, operation, current_revision, target_revision),
+            )
+            self._write_navigation_stacks(
+                connection, history_id, undo_stack, redo_stack
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        return FeatureHistoryRevision(
+            history_id, revision, parent_sha256, digest, now, history,
+            operation, current_revision, target_revision,
+        )
+
+    def create_branch(
+        self,
+        root_history_id: str,
+        branch_history_id: str,
+        branch_name: str,
+        *,
+        fork_revision: int | None = None,
+    ) -> FeatureHistoryBranch:
+        """Fork an immutable root revision into a new independent history chain."""
+        if not isinstance(root_history_id, str) or not _HISTORY_ID.fullmatch(root_history_id):
+            raise ValueError("root_history_id must be a stable history identifier")
+        if not isinstance(branch_history_id, str) or not _HISTORY_ID.fullmatch(branch_history_id):
+            raise ValueError("branch_history_id must be a stable history identifier")
+        if branch_history_id == root_history_id:
+            raise ValueError("branch_history_id must differ from root_history_id")
+        if not isinstance(branch_name, str) or not _BRANCH_NAME.fullmatch(branch_name) or len(branch_name) > 64:
+            raise ValueError("branch_name must be a lowercase stable name of at most 64 characters")
+        if fork_revision is not None and (
+            isinstance(fork_revision, bool) or not isinstance(fork_revision, int) or fork_revision < 1
+        ):
+            raise ValueError("fork_revision must be a positive integer")
+        source = self.load(root_history_id, revision=fork_revision)
+        branch_history = FeatureHistory(
+            branch_history_id, source.history.nodes, source.history.output_feature_ids,
+            source.history.suppressed_feature_ids, source.history.document_version,
+        )
+        snapshot_json = _canonical_json(branch_history.to_dict())
+        now = datetime.now(UTC).isoformat()
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_branches WHERE branch_history_id = ?",
+                (root_history_id,),
+            ).fetchone():
+                raise ValueError("branching from another branch is not supported")
+            root_row = connection.execute(
+                "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = ?",
+                (root_history_id, source.revision),
+            ).fetchone()
+            if root_row is None or str(root_row[0]) != source.content_sha256:
+                raise FeatureHistoryStoreIntegrityError("fork source revision changed or is missing")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_heads WHERE history_id = ?",
+                (branch_history_id,),
+            ).fetchone():
+                raise ValueError("branch_history_id already exists")
+            if connection.execute(
+                "SELECT 1 FROM feature_history_branches WHERE root_history_id = ? AND branch_name = ?",
+                (root_history_id, branch_name),
+            ).fetchone():
+                raise ValueError("branch_name already exists for this root history")
+            digest = _revision_digest(branch_history_id, 1, None, snapshot_json)
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, 1, NULL, ?, ?, ?)
+                """,
+                (branch_history_id, snapshot_json, digest, now),
+            )
+            connection.execute(
+                "INSERT INTO feature_history_heads (history_id, revision, content_sha256) VALUES (?, 1, ?)",
+                (branch_history_id, digest),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_navigation
+                  (history_id, undo_stack_json, redo_stack_json, updated_at)
+                VALUES (?, '[]', '[]', ?)
+                """,
+                (branch_history_id, now),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, 1, 'create', NULL, NULL)
+                """,
+                (branch_history_id,),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_branches
+                  (branch_history_id, root_history_id, branch_name, fork_revision, fork_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (branch_history_id, root_history_id, branch_name, source.revision, source.content_sha256, now),
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        return FeatureHistoryBranch(
+            branch_history_id, root_history_id, branch_name, source.revision, source.content_sha256, now
+        )
+
+    def merge_branch(
+        self,
+        source_branch_history_id: str,
+        target_history_id: str,
+        *,
+        expected_source_revision: int,
+        expected_target_revision: int,
+    ) -> FeatureHistoryRevision:
+        """Three-way merge a branch into its root or a sibling branch atomically."""
+        for label, value in (
+            ("source_branch_history_id", source_branch_history_id),
+            ("target_history_id", target_history_id),
+        ):
+            if not isinstance(value, str) or not _HISTORY_ID.fullmatch(value):
+                raise ValueError(f"{label} must be a stable history identifier")
+        for label, value in (
+            ("expected_source_revision", expected_source_revision),
+            ("expected_target_revision", expected_target_revision),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+        if source_branch_history_id == target_history_id:
+            raise ValueError("source and target histories must differ")
+
+        source = self.load(source_branch_history_id)
+        target = self.load(target_history_id)
+        if source.revision != expected_source_revision:
+            raise FeatureHistoryRevisionConflict(
+                source_branch_history_id, expected_source_revision, source.revision
+            )
+        if target.revision != expected_target_revision:
+            raise FeatureHistoryRevisionConflict(
+                target_history_id, expected_target_revision, target.revision
+            )
+        branch = self.get_branch(source_branch_history_id)
+        try:
+            target_branch = self.get_branch(target_history_id)
+        except KeyError:
+            target_branch = None
+        if target_branch is None:
+            if target_history_id != branch.root_history_id:
+                raise ValueError("merge target must be the branch root or a sibling branch")
+        elif (
+            target_branch.root_history_id != branch.root_history_id
+            or target_branch.fork_revision != branch.fork_revision
+            or target_branch.fork_sha256 != branch.fork_sha256
+        ):
+            raise ValueError("source and target branches must share the exact fork base")
+
+        base = self.load(branch.root_history_id, revision=branch.fork_revision)
+        if base.content_sha256 != branch.fork_sha256:
+            raise FeatureHistoryStoreIntegrityError("branch fork base digest does not match origin metadata")
+        analysis = merge_feature_histories(base.history, source.history, target.history)
+        if not analysis.successful or analysis.merged_history is None:
+            raise FeatureHistoryMergeConflictError(analysis)
+
+        now = datetime.now(UTC).isoformat()
+        snapshot_json = _canonical_json(analysis.merged_history.to_dict())
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            source_head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (source_branch_history_id,),
+            ).fetchone()
+            target_head = connection.execute(
+                "SELECT revision, content_sha256 FROM feature_history_heads WHERE history_id = ?",
+                (target_history_id,),
+            ).fetchone()
+            if source_head is None or int(source_head[0]) != expected_source_revision:
+                current = int(source_head[0]) if source_head else 0
+                raise FeatureHistoryRevisionConflict(
+                    source_branch_history_id, expected_source_revision, current
+                )
+            if target_head is None or int(target_head[0]) != expected_target_revision:
+                current = int(target_head[0]) if target_head else 0
+                raise FeatureHistoryRevisionConflict(target_history_id, expected_target_revision, current)
+            source_digest = str(source_head[1])
+            target_digest = str(target_head[1])
+            if source_digest != source.content_sha256 or target_digest != target.content_sha256:
+                raise FeatureHistoryStoreIntegrityError("merge source or target head digest changed")
+            origin = connection.execute(
+                """
+                SELECT root_history_id, fork_revision, fork_sha256
+                FROM feature_history_branches WHERE branch_history_id = ?
+                """,
+                (source_branch_history_id,),
+            ).fetchone()
+            if origin is None or (
+                str(origin[0]), int(origin[1]), str(origin[2])
+            ) != (branch.root_history_id, branch.fork_revision, branch.fork_sha256):
+                raise FeatureHistoryStoreIntegrityError("source branch origin metadata changed")
+            if target_branch is not None:
+                target_origin = connection.execute(
+                    """
+                    SELECT root_history_id, fork_revision, fork_sha256
+                    FROM feature_history_branches WHERE branch_history_id = ?
+                    """,
+                    (target_history_id,),
+                ).fetchone()
+                if target_origin is None or (
+                    str(target_origin[0]), int(target_origin[1]), str(target_origin[2])
+                ) != (branch.root_history_id, branch.fork_revision, branch.fork_sha256):
+                    raise FeatureHistoryStoreIntegrityError("target branch origin metadata changed")
+            base_row = connection.execute(
+                "SELECT content_sha256 FROM feature_history_revisions WHERE history_id = ? AND revision = ?",
+                (branch.root_history_id, branch.fork_revision),
+            ).fetchone()
+            if base_row is None or str(base_row[0]) != branch.fork_sha256:
+                raise FeatureHistoryStoreIntegrityError("merge base revision is missing or has changed")
+
+            undo_stack, _redo_stack = self._read_navigation_stacks(
+                connection, target_history_id, expected_target_revision
+            )
+            undo_stack.append(expected_target_revision)
+            revision = expected_target_revision + 1
+            digest = _revision_digest(
+                target_history_id, revision, target_digest, snapshot_json
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revisions
+                  (history_id, revision, parent_sha256, snapshot_json, content_sha256, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (target_history_id, revision, target_digest, snapshot_json, digest, now),
+            )
+            connection.execute(
+                """
+                UPDATE feature_history_heads
+                SET revision = ?, content_sha256 = ?
+                WHERE history_id = ?
+                """,
+                (revision, digest, target_history_id),
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_revision_actions
+                  (history_id, revision, operation, source_revision, target_revision)
+                VALUES (?, ?, 'edit', ?, NULL)
+                """,
+                (target_history_id, revision, expected_target_revision),
+            )
+            self._write_navigation_stacks(
+                connection, target_history_id, undo_stack, []
+            )
+            connection.execute(
+                """
+                INSERT INTO feature_history_merge_actions
+                  (target_history_id, target_revision, source_history_id, source_revision,
+                   source_sha256, root_history_id, fork_revision, fork_sha256, algorithm_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    target_history_id, revision, source_branch_history_id,
+                    expected_source_revision, source_digest, branch.root_history_id,
+                    branch.fork_revision, branch.fork_sha256, "feature-history-merge-v1",
+                ),
+            )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
+        finally:
+            connection.close()
+        provenance = FeatureHistoryMergeProvenance(
+            source_branch_history_id, expected_source_revision, source_digest,
+            branch.root_history_id, branch.fork_revision, branch.fork_sha256,
+            "feature-history-merge-v1",
+        )
+        return FeatureHistoryRevision(
+            target_history_id, revision, target_digest, digest, now,
+            analysis.merged_history, "merge", expected_target_revision, None, provenance,
+        )
+
+    def get_branch(self, branch_history_id: str) -> FeatureHistoryBranch:
+        if not isinstance(branch_history_id, str) or not _HISTORY_ID.fullmatch(branch_history_id):
+            raise ValueError("branch_history_id must be a stable history identifier")
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                """
+                SELECT branch_history_id, root_history_id, branch_name,
+                       fork_revision, fork_sha256, created_at
+                FROM feature_history_branches WHERE branch_history_id = ?
+                """,
+                (branch_history_id,),
+            ).fetchone()
+        if row is None:
+            raise KeyError(branch_history_id)
+        return FeatureHistoryBranch(
+            str(row[0]), str(row[1]), str(row[2]), int(row[3]), str(row[4]), str(row[5])
+        )
+
+    def list_branches(self, root_history_id: str) -> tuple[FeatureHistoryBranch, ...]:
+        if not isinstance(root_history_id, str) or not _HISTORY_ID.fullmatch(root_history_id):
+            raise ValueError("root_history_id must be a stable history identifier")
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                """
+                SELECT branch_history_id, root_history_id, branch_name,
+                       fork_revision, fork_sha256, created_at
+                FROM feature_history_branches
+                WHERE root_history_id = ? ORDER BY branch_name, branch_history_id
+                """,
+                (root_history_id,),
+            ).fetchall()
+        return tuple(
+            FeatureHistoryBranch(
+                str(row[0]), str(row[1]), str(row[2]), int(row[3]), str(row[4]), str(row[5])
+            )
+            for row in rows
+        )
+
+    def list_revisions(self, history_id: str) -> tuple[int, ...]:
+        """Return immutable revision numbers currently stored for a history."""
+        if not isinstance(history_id, str) or not _HISTORY_ID.fullmatch(history_id):
+            raise ValueError("history_id must be a stable lowercase identifier")
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                "SELECT revision FROM feature_history_revisions "
+                "WHERE history_id = ? ORDER BY revision",
+                (history_id,),
+            ).fetchall()
+        return tuple(int(row[0]) for row in rows)

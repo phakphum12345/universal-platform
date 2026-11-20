@@ -1,0 +1,1563 @@
+> **LIVE PR STATUS CORRECTION — 2026-11-20:** PRs #258, #260, #261 and #262 are MERGED; exact post-merge checks on #262 merge SHA `a799dc9289bbb674c81bd60cf8d6f4325c9a64b7` all PASS (`python-tests`, `windows-process-supervisor`, `workflow-sanity`). PRs #259 and #263–#268 remain OPEN (7 open PRs total). PR #259 exact-head checks all PASS and it has no formal review submissions or inline review threads; this audit PR is ready for merge after this correction. PRs #263–#266 and #268 have prior exact-head CI PASS evidence but remain Draft and must be revalidated after any base/head changes and merged in dependency order. PR #267 remains FAIL because `repository-quality` failed; do not mark it ready or merge until lint/security gates pass. No PR is authorized for promotion to `main`. SKIPPED remains distinct from PASS. Historical snapshots below are retained for traceability and must not be interpreted as live status.
+
+# Implementation Status — UEIC Foundation
+
+> **LIVE RECONCILIATION — 2026-11-20:** Development branch `docs/phase-0-complete-requirements` is at `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` is `96e75010716226037893155b9fd4b13410fb0d6f`; development is 878 commits ahead / 0 behind. Both branches report `protected=false`, required status-check enforcement is off and no repository rulesets exist. PR inventory #1–#266: 239 merged, 18 closed without merge, 9 open (#258–#266). Exact-head CI PASS: #258 (1,160 passed / 4 skipped), #259 prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` (1,150 / 4 skipped; all checks PASS; latest docs refresh requires exact-head revalidation), #260 (1,166 / 4 skipped), #261, #262, #263 (1,179 / 5 skipped) and #264 (1,185 / 5 skipped; Windows WorkerIPC/ModuleRuntime integration 70 passed). PR #265 liveness adapters exact-head CI PASS: Python 1,194 passed / 6 skipped; Windows process reconciliation 2 passed / 8 skipped and other Windows jobs PASS. PR #266 allocator startup reconciliation: CI QUEUED. All nine PRs remain unmerged; the latest review query returned no formal review submissions or unresolved threads. WP-09G-A is integrated via #257; WP-09G-B is verified on #258/#260 but not integrated/accepted; WP-09G-C is a CI-verified candidate through #264 but not integrated; WP-09G-D is IN PROGRESS (#265/#266); WP-09G-E remains NOT IMPLEMENTED. CAD, Mechanics, Physics, Hardware/Drivers, Interchange and platform UI remain PARTIAL. Overall status: **INCOMPLETE**. The current workflow still lacks repository-wide lint/type-check/dependency-security gates. See [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](../engineering/TECHNICAL_DEBT.md).
+> **Historical traceability baseline (post-PR #113):** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a historical integration reference; the associated historical test count was **732 passed** and is not a current test count. The historical audit records bounded runtime controls only: the Process Supervisor is not an OS sandbox, and in-memory resource/quota state is not durable or distributed. Current runtime/security maturity remains PARTIAL / INCOMPLETE.
+>
+> **Current verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` on `docs/phase-0-complete-requirements` (PR #240 merged 2026-11-12). The default `main` branch remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+>
+> **Latest verified slices:** PR #235–#240 add policy-gated trusted in-process dispatch, a bounded Physics adapter, host-configured in-memory quota reservations, bounded output-schema enforcement, grant/revoke draining, and POSIX process-supervisor lifecycle cleanup. Post-merge workflow runs on each exact merge SHA passed `python-tests` and `workflow-sanity`; see the current reconciliation section and Work Package Status. PR #241 is OPEN and unmerged; its Windows CI passed but does not implement Job Objects.
+>
+> **Overall status:** INCOMPLETE. CAD Boolean remains PARTIAL; Physics remains PARTIAL; Module Runtime, hardware/driver integration, API/orchestration, security and repository-wide acceptance remain incomplete. Historical audit entries below are retained as historical evidence, not current branch-state claims.
+
+## Current CAD/B-rep status — post-PR #117 and #118
+
+- PR #117 adds `BRepSolid` v1.0: a single connected closed shell of triangular planar faces, canonical edges/oriented uses, exact-rational validation, two-face edge incidence, opposite edge directions, connected face adjacency, Euler/genus checks and positive signed volume. It bridges to/from validated triangle meshes. It does not support n-gons, face inner loops, multiple shells, shell healing or arbitrary self-intersection proof.
+- PR #118 adds exact-grid Boolean UNION, INTERSECTION, first-minus-rest DIFFERENCE and odd/even SYMMETRIC_DIFFERENCE for 2–16 axis-aligned box B-reps, capped at 32,768 grid cells. Output components are face-connected closed shells and pass mesh/B-rep validation. Point/edge contacts remain separate; enclosed cavities and arbitrary/rotated/curved solids fail closed.
+- PR #118 merge SHA: `0b7e9b4a649a8b3dcf4512cd5172640979115ed4`; exact post-merge workflow #42282428283 passed `workflow-sanity` and `python-tests`, **755 tests in 2.83s**. No review submissions or unresolved review threads were returned for PR #117/#118. PR #116 had one owner-authored COMMENTED review and no inline threads.
+- The broader platform remains PARTIAL. The post-PR #118 audit records CAD, EDA, physics and runtime/security gates. Main remains unchanged; no promotion performed.
+
+## Implemented in the merged baseline
+
+- Typed SI-backed quantities and dimensional checks for a deliberately limited unit registry.
+- Evidence/provenance records with FACT / ASSUMPTION / SIMULATION / UNKNOWN distinctions and PASS / FAIL / SKIPPED / UNKNOWN statuses.
+- Fail-closed safety gate that rejects physical execution actions.
+- Small dense linear solver with partial pivoting and residual calculation.
+- Bounded Levenberg–Marquardt solver for scalar nonlinear equality residuals, with forward finite differences as the default, opt-in central differences and validated analytic Jacobian callbacks; residual scaling, per-equation tolerances, optional projected variable bounds, explicit CONVERGED / NOT_CONVERGED semantics and per-constraint PASS/FAIL.
+- Jacobian result diagnostics: selected derivative strategy, scalar residual callback evaluations, Jacobian builds and analytic Jacobian callback evaluations.
+- Threshold-dependent numerical Jacobian rank diagnostics using modified Gram–Schmidt with column pivoting; reports rank, maximum rank, threshold, matrix shape and FULL_RANK / RANK_DEFICIENT / INDETERMINATE. This is an estimate, not a proof.
+- Optional variable scaling in normalized LM coordinates, recorded in results; residual acceptance remains in original units. A column-norm ratio flags scale disparity but is not a matrix condition number.
+- Versioned JSON-compatible solver result snapshots via `NonlinearSolveResult.to_dict()`; not-computed rank/scale diagnostics are represented as null.
+- Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
+- Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
+- Straight-sided polygon profile extrusion with optional through-hole loops, strict topology validation, net area/perimeter, SI volume/surface area including inner walls, deterministic backward-compatible v1.0 snapshots and public package exports (PR #52 merged).
+- Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
+- Versioned normalized mechanism schema v1.2: stable-ID links, eight joint kinds, frame/geometry references, explicit placements and generalized-coordinate/joint parameterization records. Joint schema capability remains SCHEMA_ONLY; no general solver support is implied.
+- Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
+- Coordinate-frame forest with one parent per child, cycle rejection, inverse traversal and path resolution.
+- Tree-only forward kinematics for FIXED, REVOLUTE and PRISMATIC joints with explicit placements, topology/frame validation and joint-limit enforcement.
+- Narrow analytic planar two-link (2R) inverse kinematics for elbow-up and elbow-down branches, with workspace, joint-limit, finite-input and forward-reconstruction residual checks.
+- Narrow planar four-link/four-revolute (4R) loop closure by circle intersection, left/right branches, reachability checks and closure residual validation.
+- Planar Kutzbach/Gruebler mobility estimate; a nominal count, not a proof of actual mobility.
+- Linear algebra simulation adapter with declared limitations and evidence.
+- Versioned module request/response envelopes.
+- Starter mechanics, DC electrical calculations, linear thermal expansion and traceable material property records (initial equations only).
+
+## PR #27 — Joint/Link normalization (implementation)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/27
+- Adds `mechanism_model.py` with versioned `MechanismModel`, `LinkModel`, `JointModel`, `FrameReference`, `GeometryReference` and structural validation.
+- Schema joint kinds: FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL. Stable IDs, dangling references, frame-parent cycles, axis normalization, scalar limits and selected radian/metre conventions are validated.
+- Joint nominal DOF is bookkeeping only. All normalized joint records report `SCHEMA_ONLY`; the existing planar 4R adapter remains unchanged and is not generalized by this PR.
+- Exact tested PR head: `320962c80551d5e68d2e392166a7bd6b46b3326c`.
+- GitHub Actions run #210 (run ID `42149832552`): `workflow-sanity` PASS; `python-tests` PASS, **172 passed in 0.37s**. The documentation-only marker was SKIPPED, not PASS.
+- Squash merge commit: `2d99717da12974434d71c686dc18dff48271d617`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+
+## PR #24 — Mechanism constraint adapter contract (design only)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/24
+- Base: `docs/phase-0-complete-requirements` at `8084ccf9375245b7e7eaa1812628703292746c67`.
+- Tested PR head: `ef4330d1e7aa424df8cd58f4ff46ba572beaf975`.
+- GitHub Actions run #170 (run ID `42146444943`): `workflow-sanity` PASS; `python-tests` PASS, **141 passed in 0.32s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `7aead53ac5af9dd3a82999c823a413db0e2f4ead`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds a proposed mechanism-to-solver contract covering immutable snapshots, deterministic IDs/order, units/frames/topology/ground validation, residual mapping, branch/gauge/redundancy handling and acceptance tests.
+- **No general mechanism adapter implementation is claimed.** Existing assembly contracts, tree kinematics and planar four-bar utility remain narrow capabilities.
+
+## PR #23 — Versioned nonlinear solver result schema
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/23
+- Base: `docs/phase-0-complete-requirements` at `b561247ff933ea3d5d9fa6c32d4224341e5f2be1`.
+- Tested PR head: `207d38d9959764756c703625e13d4122b82e0151`.
+- GitHub Actions run #159 (run ID `42146051451`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **141 passed in 0.23s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `870a3f634d7a7fbd47e838f85aff4dc2f1b76162`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds `NonlinearSolveResult.to_dict()` with schema version 1.0, ordered variables/residuals, status, iteration and objective data, derivative/evaluation diagnostics, rank/scale metadata, limitations and explicit nulls for diagnostics not computed.
+- This is a Python result snapshot, not a full evidence ledger, signed record or cross-language API.
+
+## PR #22 — Nonlinear solver reliability regression matrix
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/22
+- Base: `docs/phase-0-complete-requirements` at `4ed0fcd094606f21fdc704ed5e19fc1cda594e1e`.
+- Initial tested head `9a4e6520553dc1ab0bfe54c780340a1c428ee0d3`: run #146 failed (138 passed, 1 failed). The failure showed the test's step tolerance was too loose for the requested original-unit residual tolerance.
+- Corrected tested head: `265a7420edbb21da977dd357affaec61fa63f701`.
+- GitHub Actions run #147 (run ID `42145747842`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **139 passed in 0.18s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `1a3f05b5f99fa330cf0fd79e64f7ff3934211265`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds a dedicated deterministic reliability suite for consistent/inconsistent overdetermined systems, active lower/upper bounds, finite-difference step sensitivity, analytic/central agreement and original-unit residual acceptance.
+
+## PR #21 — Variable scaling and Jacobian scale-disparity indicator
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/21
+- Base: `docs/phase-0-complete-requirements` at `4f4865474adb76f59a78c6cf85725b3081d48f16`.
+- Tested PR head: `8f5c1ad54e42dd40f585c7860e37a6ac37b9dc78`.
+- GitHub Actions run #142 (run ID `42145350391`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **130 passed in 0.21s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `0ce6774aac48d822ef4a0d373ada36af6e3e2d3c`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Adds optional positive finite variable scales, normalized LM coordinates, scale metadata, and a column-norm ratio indicator. The indicator is not a formal condition number and does not identify every near-dependent system.
+- Residual acceptance and per-constraint PASS/FAIL remain evaluated in original residual units.
+
+## PR #20 — Jacobian rank and system-shape diagnostics
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/20
+- Base: `docs/phase-0-complete-requirements` at `0e2f45f6a2f151c55b0e05e882467def9659095e`.
+- Tested PR head: `43dbe1cb76eff112b6c4ea4bd348cd72f596da69`.
+- GitHub Actions run #131 (run ID `42144874541`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **127 passed in 0.28s**. The documentation-only marker was SKIPPED, not PASS.
+- Merge commit: `6651b5985391679daba15abb6bdf2f78b9ff894b`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- The rank estimator is threshold-dependent modified Gram–Schmidt with column pivoting over the scaled Jacobian. It reports system shape separately from estimated rank and does not prove exact mathematical rank, uniqueness, identifiability or physical feasibility.
+
+## PR #19 — Jacobian strategies and evaluation diagnostics
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/19
+- Base: `docs/phase-0-complete-requirements` at `23ca284ca95be223d4a426c344a48bc21afc1953`.
+- Tested PR head: `db18dc115a55a2ba2aa648e7665e2d111a52e572`.
+- GitHub Actions run #118 (run ID `42144312008`): `workflow-sanity` PASS; `python-tests` PASS. The Python job ran `python -m pytest -q`: **120 passed in 0.31s**. The documentation-only marker was SKIPPED, not PASS.
+- The PR job checked out synthetic merge candidate `5e246963da9a4722c121e5224b8a179aef48dfe2` for its test run.
+- Merge commit: `9676bdb00f3ffb1c8a2b0929fd27481b47368d43`; integration branch comparison reports identical at this SHA.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+- Added forward (default), central and analytic Jacobian strategies, analytic shape/finiteness/error validation, residual-scale normalization, and evaluation counters.
+- No rank/conditioning proof, global convergence, uniqueness or physical-feasibility guarantee is provided.
+
+## PR #16 — Bounded nonlinear equality-constraint solver
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/16
+- Base: docs/phase-0-complete-requirements at 4a5bf5b2a63c0192dbb5f2ab60b4e3f62df74a44.
+- Tested PR head: 26730dba8ea3199e9576fa071a7207ed6c59c38d.
+- Merge commit: 77dd2de9b49773fe24324cb9732b7db5e2623ecf.
+- [PR Actions run #98](https://github.com/phakphum12345/universal-platform/actions/runs/42140506796): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Push run #97](https://github.com/phakphum12345/universal-platform/actions/runs/42140488356) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Post-merge [push run #99](https://github.com/phakphum12345/universal-platform/actions/runs/42140562726) on merge SHA 77dd2de9b49773fe24324cb9732b7db5e2623ecf: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Tests cover scalar and coupled nonlinear systems, an overdetermined consistent system, bounds, unsatisfied stationary points, zero-iteration convergence, malformed inputs and callback errors.
+- Limitations: local small dense equality least squares only; no global guarantee, exact/sparse Jacobian, robust rank/conditioning analysis, inequalities/contact, complementarity, continuation, branch enumeration, gauge fixing or automatic dimensional analysis.
+
+## PR #14 — Planar four-bar loop closure
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/14
+- Base: docs/phase-0-complete-requirements at c384492b058ec9dee3599feb60bb7475de298181.
+- Tested PR head: 31e104bf476aaccb751dac2329ab6d16455650b0.
+- Merge commit: c33ef005896b71aa2ff0721efb87245781526ca7.
+- [PR Actions run #90](https://github.com/phakphum12345/universal-platform/actions/runs/42137524286): workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- [Push run #89](https://github.com/phakphum12345/universal-platform/actions/runs/42137510261) on the same tested head: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+- Post-merge [push run #91](https://github.com/phakphum12345/universal-platform/actions/runs/42137584363) on merge SHA c33ef005896b71aa2ff0721efb87245781526ca7: workflow-sanity PASS; python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+
+## PR #12 — Planar two-link inverse kinematics
+
+- PR #12 merged at 0379c8613c7668a56b681a91d01882c66f1c812c; tested PR head e5f8511b14cd72ecb930ffd08ccb7f916cb71056.
+- [PR run #82](https://github.com/phakphum12345/universal-platform/actions/runs/42136840495) and [push run #81](https://github.com/phakphum12345/universal-platform/actions/runs/42136834146): workflow-sanity and python-tests PASS.
+- [Post-merge run #83](https://github.com/phakphum12345/universal-platform/actions/runs/42136914390): workflow-sanity and python-tests PASS.
+- Documentation-only markers were SKIPPED, not PASS. Initial run #80 failure (83 passed, 1 faulty limit-test expectation) is retained in PR #13 evidence reconciliation.
+
+## PR #13 — Evidence reconciliation
+
+- PR #13 merged at c384492b058ec9dee3599feb60bb7475de298181.
+- Tested PR head 757d036e190a426cb3b9a6615b13d73dd0e6f31c.
+- [PR run #86](https://github.com/phakphum12345/universal-platform/actions/runs/42137072600) and [push run #85](https://github.com/phakphum12345/universal-platform/actions/runs/42137057985): workflow-sanity and python-tests PASS.
+- Post-merge [push run #87](https://github.com/phakphum12345/universal-platform/actions/runs/42137139200): workflow-sanity and python-tests PASS. Documentation-only marker SKIPPED, not PASS.
+
+## Historical evidence
+
+- PR #10 merged at 8db7010872d69635963a982f4f09ec3cda0913a8; [run #72](https://github.com/phakphum12345/universal-platform/actions/runs/42092868218) passed workflow-sanity and python-tests.
+- PR #11 merged at 06334b68e7ce084e99df70a7651face34d3a3ec0.
+- Post-merge push evidence for PR #8–#11 was not returned by the earlier status interface; those historical post-merge statuses remain UNKNOWN, not PASS.
+- PR #1 post-merge [run #19](https://github.com/phakphum12345/universal-platform/actions/runs/42086568425) passed on merge SHA 647956be574ffc0055d2613be5a7a4781d660542.
+- PR #4 [run #34](https://github.com/phakphum12345/universal-platform/actions/runs/42090211506), PR #6 [run #44](https://github.com/phakphum12345/universal-platform/actions/runs/42090605011), PR #8 [run #57](https://github.com/phakphum12345/universal-platform/actions/runs/42091837580), and PR #9 [run #68](https://github.com/phakphum12345/universal-platform/actions/runs/42092666100) passed on their exact PR heads.
+
+## Explicitly not implemented or not verified
+
+- General inverse kinematics for arbitrary chains, 3D robots or redundant mechanisms.
+- General mechanism-level closed-loop solving, multi-loop coupling, inequality/contact/complementarity, robust rank/conditioning analysis, continuation, branch enumeration, automatic gauge fixing, full mobility/over-constraint analysis and singularity classification. PR #16 supplies a local equality least-squares numerical core, not a general mechanism solver.
+- Dynamics, acceleration, torque, friction, backlash, compliance, collision, contact, tolerance stack-up and singularity conditioning analysis.
+- General symbolic mathematics, nonlinear/multiphysics solvers, FEA, CFD, FEM meshing or convergence studies.
+- B-rep/parametric CAD kernel, STEP/STL/3MF import/export, Boolean operations, sketch constraints or manufacturing drawings.
+- Coordinate-frame unit conversion, uncertainty propagation, frame inference or dynamic localization.
+- Universal hardware driver generation; EFI/Kext candidate code is not a generic driver compiler.
+- Datasheet ingestion, schematic/PCB parsing, circuit simulation or hardware runtime.
+- Production UI, API server, database, agent orchestration, plugin runtime or packaging.
+- Qualified engineering certification, regulatory compliance, fabrication or physical operation.
+
+## Scope interpretation
+
+Passing tests validate only the code and contracts present at the exact tested SHA. They do not validate the broader proposed UEIC, CAD, CAE, hardware or manufacturing capabilities. Each later change requires fresh tests and evidence.
+
+
+## PR #25 — Stable-ID planar four-bar model adapter (implementation)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/25
+- Base: `docs/phase-0-complete-requirements` at `68b4d0dc12e36b7cfdea4c24666d77b067164bc8`.
+- Corrected tested PR head: `f3f4b2031ccad797fad3a803f77c43e5f14d95e8`.
+- GitHub Actions run #188 (run ID `42148672902`) on exact PR head `7bf230bb73040565a1a143dd2846349d8220e4f4`: `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **155 passed in 0.26s**. The documentation-only marker was SKIPPED, not PASS.
+- Earlier run #181 failed due an escaped-newline syntax error in package exports; run #183 then exposed a test fixture using unsupported `dm`. Both were corrected; only run #185 is the current exact-head passing evidence.
+- Adds `PlanarFourBarModelSnapshot`, `PlanarFourBarAdapterResult` and `solve_planar_four_bar_model`. Length quantities are dimension-checked and normalized to SI metres; branch and stable model/link/joint IDs are explicit; result mapping and JSON snapshot are deterministic.
+- **Scope remains one planar four-link/four-revolute loop.** This is not a general mechanism-to-solver adapter, arbitrary assembly graph solver, multi-loop/3D solver or physical feasibility certification.
+- - Merge commit: `6198529d0e816898ad84e20efa153d54c6e0c61d`. Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+
+
+## PR #26 — Complete stable-ID planar four-bar residual mapping
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/26
+- Base: `docs/phase-0-complete-requirements` at `5e989e0ab96ada23aec0bce85f0075fbb43d591c`.
+- Tested PR head: `839691467dfe9fc2bc9b55baab1a9580ee8f9201`.
+- GitHub Actions run #193 (run ID `42148977388`): `workflow-sanity` PASS; `python-tests` PASS; `python -m pytest -q`: **156 passed in 0.35s**. Documentation-only marker SKIPPED, not PASS.
+- Adds explicit ground, input-crank, coupler and output-rocker length residuals mapped to stable link IDs; checks the mapped residual set against the declared SI tolerance; rejects boolean input angles.
+- Merge commit: `129a5f7867147b32d5582695b68d365db2b0c497`.
+- Post-merge workflow/status lookup returned no runs or status entries; post-merge CI remains **UNKNOWN**, not PASS.
+
+
+## PR #28 — General mechanism loop topology and explicit closure residual bridge
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/28
+- Base integration branch: `docs/phase-0-complete-requirements` at `6e57ff1ae1c33560f0bc9d1a2fec46ef4fd3404f`.
+- Adds deterministic spanning-forest and fundamental-cycle analysis over normalized stable-ID links and joints. Reports connected components, tree edges, loop-closing edges and ordered cycle paths; handles disconnected components, isolated links and parallel joints.
+- Adds caller-supplied scalar residual records associated with every loop-closing edge and bridges them to the existing nonlinear equality solver. Each closing edge must be covered; residual IDs, tolerance and scale flow into the existing solver.
+- Status semantics: CONVERGED only when supplied residuals pass; UNDERCONSTRAINED only when the solver diagnostics explicitly show an underdetermined Jacobian with estimated rank below variable count; otherwise UNKNOWN. SINGULAR and UNREACHABLE are not inferred from local solver failure.
+- Corrected tested code head: `5318f93d1964e81e3dfc11c7a11fd0061e0d47b2`; PR run #218 (run ID `42150595977`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.41s**.
+- Final tested PR head including evidence documentation: `ebd545ef4a47770b13878d5261966c50a5807939`; PR run #220 (run ID `42150727013`): `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.35s**. Documentation-only markers were SKIPPED, not PASS.
+- Initial push run #216 (run ID `42150470866`) failed at the first test head `a4e41c9ce33586bb15e74d5a5dc664169706ac9e` (179 passed, 2 failed). Both were test-fixture expectation defects; corrected on the exact tested head above. The earlier failure is retained as evidence, not overwritten.
+- Squash merge commit: `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`.
+- Post-merge push run #221 (run ID `42150851188`) on exact merge SHA `0b1370460dd37afc685d5b7f2ec64cdeb77659b8`: `workflow-sanity` PASS; `python-tests` PASS, **181 passed in 0.40s**. Documentation-only marker SKIPPED, not PASS.
+- Explicit limits: normalized JointModel does not contain enough complete placement/coordinate/geometry information to generate general joint equations. This PR provides topology and an explicit residual bridge, not automatic arbitrary-mechanism or spatial geometry solving.
+
+
+## PR #29 — Nominal and local mechanism mobility diagnostics
+
+- Adds explicit PLANAR and SPATIAL nominal mobility formulations over normalized stable-ID mechanism models. The caller must identify the grounded link; nominal counts use free rigid-body coordinates minus ideal lower-pair constraint counts derived from each joint's declared nominal relative DOF.
+- Adds a caller-supplied constraint Jacobian contract with named constraints, the complete free-body generalized-coordinate set for the selected ground link, a configuration ID and a source/provenance label. Local mobility is estimated as coordinate count minus the numerical Jacobian rank at that configuration.
+- Reports redundant Jacobian rows separately from negative nominal DOF. These are distinct diagnostics; redundant rows alone do not prove physical overconstraint.
+- Singularity status remains UNKNOWN unless the caller supplies a regular-configuration reference rank. A lower rank is reported only as POSSIBLE_SINGULARITY, not a proof.
+- Rank uses the existing threshold-dependent modified Gram–Schmidt estimator; results retain rank method and threshold. Caller is responsible for consistent units/scaling and geometric Jacobian derivation.
+- The normalized JointModel schema still does not provide complete placements/parameterizations to generate geometric joint equations automatically. Higher pairs, automatic Jacobian construction, dynamics, contact, physical feasibility and certification remain out of scope.
+- PR #29 final tested PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (run ID `42152768589`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.45s**. Documentation-only marker SKIPPED, not PASS. Earlier code head `ce2f1dd7e46279f58a6d6572efebe0c62e1c98ba` passed run #231 (196 tests in 0.23s); preceding revisions and their test counts are retained in the PR body.
+- Squash merge commit: `a20e83314abb735448c6ebebf755b8b50cf7635e`. Post-merge push run #234 (run ID `42152843277`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **196 passed in 0.32s**. Documentation-only marker SKIPPED, not PASS.
+
+
+## PR #30 — Integrated mechanism kinematics pipeline
+
+- Adds one versioned orchestration result that runs normalized-model loop topology/position closure, PR #29 local mobility diagnostics, then velocity and acceleration equality solves.
+- Position uses the existing explicit loop-closing residual callback contract. Mobility uses a caller-supplied configuration-specific constraint Jacobian whose stable constraint/coordinate ordering is checked against the position input.
+- Velocity solves J*qdot + b_v = 0; acceleration solves J*qddot + b_a = 0. The time-derivative bias vectors and their provenance labels are caller-supplied; the pipeline does not synthesize derivatives from missing joint placements.
+- Derivative outputs report UNIQUE / NON_UNIQUE / NOT_ESTABLISHED from the Jacobian rank and solve status; rank-deficient results are not presented as unique.
+- Configuration IDs, branch IDs, prior configuration, continuation status, model revision, Jacobian source and bias sources are preserved in the versioned result snapshot. Same-branch continuation seeds from the prior solved coordinates; branch changes use the new caller-supplied seed and are explicit.
+- Regression fixtures cover one planar 4R loop, two independent loops, branch continuity/switch, invalid cross-revision continuation and deterministic result/provenance serialization.
+- Explicit limits: no automatic geometric joint equation/Jacobian generation, branch discovery, symbolic differentiation, dynamics, forces, collision/contact, physical feasibility or certification.
+- PR #30 validation evidence pending exact final head CI.
+
+
+- PR #30 initial push run #237 (run ID `42153434281`) on head `bd3eb302a64854218fdca8d0c83b4bdf94283f6e`: `workflow-sanity` PASS; `python-tests` FAIL (202 passed, 1 failed). The log identifies a test-fixture defect: the test accessed `MechanismKinematicsInput.__dict__`, but the dataclass uses slots. Production code was not implicated by this failure; the fixture is corrected with `dataclasses.replace` in the next head.
+
+- PR #30 final tested PR head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (run ID `42153688904`) on that exact head: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.42s**. Initial run #237 on `bd3eb302a64854218fdca8d0c83b4bdf94283f6e` failed only in a slotted-dataclass test fixture (202 passed, 1 failed); corrected with `dataclasses.replace`.
+- Squash merge commit: `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`. Post-merge push run #243 (run ID `42153753500`) on that exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS, **203 passed in 0.51s**. Documentation-only marker SKIPPED, not PASS.
+
+## PR #29 — Nominal and local mechanism mobility diagnostics
+
+- Adds separate PLANAR/SPATIAL nominal mobility estimates and configuration-specific local mobility from caller-supplied constraint Jacobians.
+- Separates redundant rows, negative nominal DOF and possible singularity; singularity remains UNKNOWN without a regular-rank reference.
+- Final PR head `4034e47557c2154c122e96cb348666d6d32dad78`; run #233 (`42152768589`): workflow-sanity PASS; python-tests PASS, 196 passed.
+- Merge `a20e83314abb735448c6ebebf755b8b50cf7635e`; post-merge run #234 (`42152843277`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 196 passed.
+
+## PR #30 — Integrated mechanism kinematics pipeline
+
+- Connects normalized topology, explicit loop residuals, mobility diagnostics, velocity and acceleration equality solves.
+- Position residuals, constraint Jacobian and derivative bias vectors remain caller-supplied; the pipeline does not generate them from geometry.
+- Final tested PR head `4a7edd3865f9cbd02bcea753bf5c036150380e07`; run #242 (`42153688904`): workflow-sanity PASS; python-tests PASS, 203 passed.
+- Merge `b670f0c8f4d60f1c6006d1c836c1d2ff4cb728bb`; post-merge run #243 (`42153753500`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 203 passed.
+
+## PR #31 — Joint and geometry placement contracts
+
+- Adds schema v1.1 `JointFramePlacement` and `GeometryPlacement` records, reusing the existing `RigidTransform` convention.
+- Joint placement maps parent link body frame → joint frame → child link body frame. Geometry placement maps a geometry-local frame into the declared geometry reference frame.
+- Placement translations are metres; no implicit unit conversion or placement inference occurs.
+- Legacy schema v1.0 topology-only models remain valid; placement records require schema v1.1.
+- Missing placement IDs are reported as coverage gaps rather than assumed identity.
+- Regression tests cover valid placement chains, missing coverage, legacy compatibility, schema rejection, duplicate/dangling IDs, frame endpoint/ownership mismatch, units and deterministic snapshots.
+- Branch `feat/joint-geometry-placement-contract`; base SHA `213b07e1ea362bf3fe6b460d5495bd505b2232e4`; tested PR head `1807a623c11655c2d80662cb0a75ca093a3e39f7`. Push run #247 (`42155058023`) and PR run #248 (`42155131491`) on that exact head: workflow-sanity PASS; python-tests PASS, 212 passed (0.40s / 0.43s). Squash merge `26c8d15dcf0e97e1dca1f13cc5da702e758b96d9`; post-merge run #249 (`42155225252`) on exact merge SHA: workflow-sanity PASS; python-tests PASS, 212 passed in 0.50s. Documentation-only marker SKIPPED, not PASS.
+- Explicit non-goals: CAD inference, automatic joint residual equations, automatic Jacobians, time-derivative bias generation, general spatial solving, dynamics or physical validation.
+
+
+## PR #32 — Generalized coordinates and joint parameterization
+
+- Adds schema v1.2 GeneralizedCoordinate and JointCoordinateParameterization records with stable IDs, ordered mappings, explicit rotational/rad units and translational/m units, joint-frame axes, finite coordinate limits and positive numerical scales.
+- Validates coordinate ownership, duplicate/dangling/orphan references, family-specific coordinate count and kind, axis alignment, universal-axis non-parallelism, planar basis handedness, helical pitch and explicit spherical Euler convention.
+- Existing schema v1.0/v1.1 topology and placement records remain readable. New coordinate records require v1.2; legacy scalar fields are not silently migrated.
+- Missing parameterization coverage is reported for non-fixed joints. No automatic solver-variable generation, geometric residual/Jacobian generation or physical feasibility is claimed.
+- PR branch: feat/generalized-coordinate-joint-parameterization; base SHA: 844c5187a7b6a61d4f38ac66ed8826fc18bef3d5.
+- Initial exact PR head `07ae6ba0c0acceb7891b9deb5de953ab72b94fe9` passed pull_request run #255 (ID `42157210760`): `workflow-sanity` PASS; `python-tests` PASS; **225 passed in 0.54s**. The documentation-only marker was SKIPPED. The PR head is mergeable, with no review submissions or unresolved review threads at this inspection. Final documentation-head validation and post-merge evidence remain pending.
+
+
+## PR #33 — Automatic joint constraint generation (merged)
+
+- Adds deterministic six-component pose-consistency residual definitions for each normalized joint: translation x/y/z in metres and rotation-log x/y/z in radians.
+- Uses explicit parent/joint/child placements, caller-supplied body-to-world rigid poses and exact generalized-coordinate values. Generates expected joint motion for FIXED, REVOLUTE, PRISMATIC, CYLINDRICAL, HELICAL, SPHERICAL, PLANAR and UNIVERSAL families.
+- Fails closed for missing joint placements, missing non-fixed parameterizations, incomplete pose/coordinate coverage, invalid units/frames and invalid tolerances.
+- Does not create solver variables, Jacobians, branch selection, dynamics, contact/collision or physical feasibility. Six pose residual components are kinematic consistency checks; they are not six independent mobility constraints in every formulation.
+- PR branch: feat/automatic-joint-constraint-generation; base SHA: b658fa385851ccc3eeb1e598e1b587fea8e6266e.
+- Initial PR head `6c25ec2ffdd368605dc90ff67b29bc4abeaeea8b`: run #263 (`42158183347`) exposed a fixture mismatch (237 passed, 1 failed); the PRISMATIC fixture declared a Z joint axis while its coordinate used X. Production validation correctly rejected it. Fixture corrected in `be3b27627d0c71a2b3d232da93f7e37cd2729798`; run #265 (`42158275371`) passed 238 tests.
+- Expanded test head `e701a149592778ae8aab036d79baf49091a03012`: run #267 (`42158394515`) exposed an extrinsic Euler composition-order defect (240 passed, 1 failed). Corrected implementation in `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff` and added explicit regression coverage.
+- Corrected code head `0ac3c4be51b1f5940e5d530fcbe4e9394dcc66ff`: push run #268 (`42158471339`) and PR run #269 (`42158477297`) both passed workflow-sanity and python-tests; 241 passed (0.60s / 0.35s). Documentation-only marker SKIPPED. Final documentation-head and post-merge evidence pending.
+
+
+## PR #34 — Automatic joint constraint Jacobian (merged)
+
+- Adds deterministic finite-difference Jacobian construction for generated joint residuals with columns for stable-ID generalized coordinates and body-pose tangent variables.
+- Translation pose variables use world-frame metres; rotation variables use world-frame left perturbations at fixed body origins in radians. Matrix entries retain the row-residual-unit / column-variable-unit convention.
+- Supports forward and central finite differences, coordinate characteristic scales, bound-aware one-sided fallback and BOUND_LOCKED columns for coordinates fixed at both bounds.
+- Does not claim symbolic/exact derivatives, solver convergence, rank proof or physical validation. Jacobian rank remains a separate numerical diagnostic.
+- PR branch: feat/automatic-joint-constraint-jacobian; base SHA: 74a5fed138d9dc2bdf543da9263397c095de7514.
+- Exact PR head `c0a69866ceaf318b5e05ae4689ba018085e6363f`: push run #276 (`42159087591`) and PR run #277 (`42159114452`) both passed workflow-sanity and python-tests; **248 passed** (0.51s / 0.35s). Documentation-only marker SKIPPED. Mergeability/review/thread inspection and post-merge evidence pending.
+
+
+## PR #35 — Geometry-aware loop-closure evaluation (merged)
+
+- Connects deterministic fundamental-cycle topology with automatic six-component joint pose-consistency residuals.
+- Evaluates and retains every joint residual, then groups the six residuals associated with each loop-closing joint; spanning-tree failures remain visible and prevent an overall PASS.
+- Requires explicit placements, complete generalized-coordinate parameterization, body-to-world poses, finite in-limit coordinate values and SI tolerances.
+- Reports PASS/FAIL only for the supplied configuration. It does not search for a configuration or claim global reachability, physical feasibility or certification.
+- Base integration SHA: `d8523bffa58a0c7a5ed8a34433c939d70c225d42`.
+- Exact PR head `9c5b5f43aa6af44da59f7b33cfa5db3448fd4d44`: run #283 (ID `42161855276`) passed `workflow-sanity` and `python-tests`; **253 passed in 0.35s**. Documentation-only marker SKIPPED.
+- Squash merge commit: `223740381b81fc06a292eb90ba0653b27cbe8e7a`.
+- Post-merge run #284 (ID `42161983634`) on the exact merge SHA passed `workflow-sanity` and `python-tests`; **253 passed in 0.65s**.
+
+
+## PR #36 — Geometric loop coordinate solver (merged)
+
+- Adds bounded local nonlinear fitting of generalized-coordinate values against generated six-component joint residuals while body poses remain fixed caller inputs.
+- Includes every joint residual, including spanning-tree joints; normalizes residual rows by their declared tolerances and forwards coordinate bounds and characteristic scales.
+- Returns CONVERGED only when the solver and final geometric evaluation both pass; local failure remains NOT_CONVERGED and is not interpreted as UNREACHABLE.
+- Does not solve body poses, discover branches, prove global reachability or physical feasibility. Exact PR-head and post-merge evidence pending.
+
+
+## PR #37 — Generated spatial Jacobian mobility (merged)
+
+- Builds on PR #33 generated joint pose-consistency residuals and PR #34 finite-difference Jacobians.
+- Selects six body-pose tangent variables per non-ground link plus every independent generalized joint coordinate; ground pose variables are excluded.
+- Computes local mobility as combined variable count minus estimated Jacobian rank and retains the nominal joint-count estimate separately.
+- The generated adapter supports SPATIAL and an explicit PLANAR formulation. PLANAR requires a plane-to-world frame, validates coplanarity/axes and projects to three pose variables per non-ground link; PR #56 exact-head and post-merge CI pass.
+- Singularity status remains UNKNOWN unless a regular-configuration reference rank is supplied; rank is numerical and tolerance-dependent.
+- Base integration SHA: `775ee8bbd9169b9d2def3c1abdc6d01e52487013`.
+- Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3`: push run #293 (`42163424217`) and PR run #294 (`42163431321`) passed `workflow-sanity` and `python-tests`; **265 passed** on both (0.56s / 0.41s). Documentation-only marker SKIPPED.
+- Squash merge commit: `41d81818385dd82497840ce93ce5aac60e3216da`.
+- Post-merge run #295 (`42163519632`) on the exact merge SHA passed both checks; **265 passed in 0.78s**.
+
+
+## PR #38 — Cross-discipline engineering reference validation (merged)
+
+- Adds a versioned JSON registry of independently derived reference cases with stable IDs, operation names, explicit inputs, expected outputs, tolerances and reference equations.
+- Exercises dimensional conversion, mechanics, DC electrical, thermal expansion, analytic geometry, rigid transforms, linear algebra, static algebraic simulation, planar inverse kinematics, four-bar closure, material records, assembly metadata, constraints and the physical-execution safety gate.
+- The pack validates implemented analytical contracts only; illustrative material values are not certified allowables, and the static solver is not FEA.
+
+
+- Exact PR head: `bfe0857bb1844c2f022dfcdc2890853ad8570d1f`.
+- PR run #297 (ID `42164123611`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
+- Squash merge: `587bd503dad3f6d4f66c99fe08e39e20a65c5265`.
+- Post-merge run #298 (ID `42164204886`) on exact merge SHA: workflow-sanity PASS; python-tests PASS; 285 passed in 0.81s.
+- Documentation/evidence commit: `b9aba3d82396494c005accf948fa9e992473044d`; run #299 (ID `42164335487`): workflow-sanity PASS; python-tests PASS; 285 passed in 0.82s.
+
+
+## PR #39 — Offline module metadata registry (merged)
+
+- Base integration branch: `docs/phase-0-complete-requirements`, exact base SHA `22c71b610b3af4e2707389f0b62e039135ef76a0`.
+- Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`.
+- PR run #311 (ID `42167103639`): `workflow-sanity` PASS; `python-tests` PASS; **308 passed in 0.57s**. Documentation-only marker SKIPPED.
+- Squash merge commit: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
+- Post-merge run #312 (ID `42167199845`) on the exact merge SHA: `workflow-sanity` PASS; `python-tests` PASS; **308 passed in 0.85s**.
+- Scope: immutable module manifests/operations, metadata-only registry, deterministic snapshots and dependency ordering.
+- Boundary: no dynamic loading/invocation, sandboxing, permission enforcement, physical control, firmware writes or external writes.
+- Metadata-only scope; runtime loading/invocation, sandboxing and permission enforcement remain NOT IMPLEMENTED.
+
+
+## PR #40 — Module registry evidence reconciliation (merged documentation)
+
+- Base integration SHA: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`.
+- Exact PR head: `4216c89464d7941d4f4bb893f98d9bac750363bf`.
+- PR run #315 (ID `42167437979`): workflow-sanity PASS; python-tests PASS; **308 passed in 0.82s**.
+- Squash merge: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Post-merge run #316 (ID `42167521401`) on exact merge SHA: workflow-sanity PASS; python-tests PASS; **308 passed in 0.72s**.
+- Documentation reconciliation only; no runtime capability was added.
+
+
+## PR #41 — Validated module request/response envelopes (merged)
+
+- Base integration SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Adds immutable, JSON-compatible ModuleRequest/ModuleResponse envelopes with identifier/schema validation, finite resource limits, explicit operational statuses, and deterministic snapshots.
+- Final PR head: `f669efefd7d96c9ef6041af0d9095111638ee789`; PR run #319 (`42168026105`): both jobs PASS; 338 passed in 0.94s.
+- Squash merge: `a9053b02312d1319fa13f0079465fb3fc92afafd`; post-merge run #320 (`42168116830`): both jobs PASS; 338 passed in 0.81s.
+- Boundary: data contracts only; no module execution, permission enforcement or runtime plugin loading.
+
+
+## PR #41 — Validated module request/response envelopes (merged)
+
+- Base integration SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Final PR head `f669efefd7d96c9ef6041af0d9095111638ee789`; run #319 (`42168026105`): workflow-sanity PASS; python-tests PASS; **338 passed in 0.94s**.
+- Squash merge `a9053b02312d1319fa13f0079465fb3fc92afafd`; post-merge run #320 (`42168116830`) on exact merge SHA: both jobs PASS; **338 passed in 0.81s**.
+- Runtime invocation, permission enforcement, sandboxing, typed unit/frame maps and cancellation remain NOT IMPLEMENTED.
+
+
+## PR #43 — Versioned coordinate-frame exchange (merged)
+
+- Base integration SHA: `5781f3bd017b5e12f55e463934f7e34a933c6dc3`.
+- Adds versioned deterministic serialization for RigidTransform and FrameGraph, explicit length units, strict schema validation and round-trip tests.
+- FrameGraph requires one length unit for all transforms; mixed-unit frame graphs remain unsupported and require explicit conversion before composition.
+- Final PR head: `0a1460f3910ca00f385dd52f58cd06f5f52ddee8`; PR run #327 (`42169448334`): both jobs PASS; 366 passed in 0.56s.
+- Squash merge: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; post-merge run #328 (`42169547658`): both jobs PASS; 366 passed in 0.92s.
+
+
+## PR #43 — Versioned coordinate-frame exchange (merged)
+
+- Base integration SHA: `5781f3bd017b5e12f55e463934f7e34a933c6dc3`.
+- Final PR head `0a1460f3910ca00f385dd52f58cd06f5f52ddee8`; run #327 (`42169448334`): workflow-sanity PASS; python-tests PASS; **366 passed in 0.56s**.
+- Squash merge `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; post-merge run #328 (`42169547658`) on exact merge SHA: both jobs PASS; **366 passed in 0.92s**.
+- Scope: RigidTransform/FrameGraph v1.0 JSON snapshots, explicit length units and deterministic serialization.
+- Limitation: one common length unit per graph; no implicit mixed-unit conversion.
+
+
+## PR #44 — Versioned Quantity exchange (merged)
+
+- Base integration SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
+- Adds Quantity v1.0 JSON snapshots with SI value, five-exponent dimension and source-unit lineage; strict schema and round-trip tests.
+- Final PR head: `130f37216afbcc753e2311bdee114b2e5a0289f2`; PR run #331 (`42169954337`): both jobs PASS; 377 passed in 0.71s.
+- Squash merge: `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`): both jobs PASS; 377 passed in 0.85s.
+
+
+## PR #44 — Versioned Quantity exchange (merged)
+
+- Base integration SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
+- Final PR head `130f37216afbcc753e2311bdee114b2e5a0289f2`; run #331 (`42169954337`): workflow-sanity PASS; python-tests PASS; **377 passed in 0.71s**.
+- Squash merge `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`) on exact merge SHA: both jobs PASS; **377 passed in 0.85s**.
+- Scope: Quantity v1.0 serialization with SI value, dimensional signature and source-unit lineage.
+
+
+## PR #45 — Frame-bound spatial values (merged)
+
+- Base integration SHA: `40edecde06b966327ea09d84d911e8959f698b71`.
+- Adds immutable FramedPoint3 and FramedVector3 records, v1.0 schemas and FrameGraph transformation helpers.
+- Point transforms apply rotation and translation; vector transforms apply rotation only.
+- Final PR head: `73d009e0f0e8c82f205a0c686da9190ec377a6e5`; PR run #335 (`42170469268`): both jobs PASS; 387 passed in 0.71s.
+- Squash merge: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`; post-merge run #336 (`42170545630`): both jobs PASS; 387 passed in 0.72s.
+
+
+## PR #45 — Frame-bound spatial values (merged)
+
+- Base integration SHA: `40edecde06b966327ea09d84d911e8959f698b71`.
+- Final PR head `73d009e0f0e8c82f205a0c686da9190ec377a6e5`; run #335 (`42170469268`): workflow-sanity PASS; python-tests PASS; **387 passed in 0.71s**.
+- Squash merge `59b47c6730a0ab9f5d9512733e400483ecdb3eec`; post-merge run #336 (`42170545630`) on exact merge SHA: both jobs PASS; **387 passed in 0.72s**.
+- Scope: frame-bound spatial points and displacement vectors with explicit frame and length-unit semantics.
+
+
+## PR #46 — Hardware schematic connectivity model (merged)
+
+- Base integration SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
+- Adds a normalized, offline SchematicModel for components, pins, electrical pin types, nets and terminal references; strict schema and topology validation.
+- Does not render schematics, perform electrical rule checking, simulate circuits or map components to drivers.
+- Final PR head: `2975a54d5d12e1bead98457e8ad89cd8620ae39e`; PR run #341 (`42171427481`): both jobs PASS; 395 passed in 0.51s.
+- Squash merge: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; post-merge run #342 (`42171498370`): both jobs PASS; 395 passed in 0.53s.
+
+
+## PR #46 — Hardware schematic connectivity model (merged)
+
+- Base integration SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
+- Final PR head `2975a54d5d12e1bead98457e8ad89cd8620ae39e`; run #341 (`42171427481`): workflow-sanity PASS; python-tests PASS; **395 passed in 0.51s**.
+- Squash merge `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`; post-merge run #342 (`42171498370`) on exact merge SHA: both jobs PASS; **395 passed in 0.53s**.
+- Scope: normalized component/pin/net connectivity metadata; no EDA rendering, ERC or circuit simulation.
+
+
+## PR #47 — Hardware driver interface bindings (merged)
+
+- Base integration SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Adds driver/protocol/signal declarations and explicit schematic-pin bindings with endpoint and direction compatibility checks.
+- Optional metadata validation against ModuleRegistry; no driver loading, bus configuration, firmware writes or hardware actuation.
+- Final PR head: `d10f83804bc95e9896cdbf457fb30194b8e395d3`; PR run #345 (`42171976796`): both jobs PASS; 403 passed in 1.01s.
+- Squash merge: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; post-merge run #346 (`42172082271`): both jobs PASS; 403 passed.
+
+
+## PR #47 — Hardware driver interface bindings (merged)
+
+- Base integration SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Final PR head `d10f83804bc95e9896cdbf457fb30194b8e395d3`; run #345 (`42171976796`): workflow-sanity PASS; python-tests PASS; **403 passed in 1.01s**.
+- Squash merge `e2a66b4425e971c58fb88b14cf6fb3479f4df935`; post-merge run #346 (`42172082271`) on exact merge SHA: both jobs PASS; **403 passed**.
+- Scope: driver interface/protocol/signal declarations and metadata-only schematic pin bindings.
+
+
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
+
+- Base integration SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
+- Adds versioned Box/Cylinder primitive solids, SI volume/surface-area calculations, frame-aware AABBs and deterministic model serialization.
+- Does not implement B-rep, mesh export, Boolean operations, feature history, CAD kernel integration or manufacturability validation.
+- Final PR head: `fda9e42f9a57a35e302516ea1454f1277d73f5bd`; PR run #349 (`42172938440`): both jobs PASS; 412 passed in 1.07s.
+- Squash merge: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; post-merge run #350 (`42173099340`): both jobs PASS; 412 passed in 0.62s.
+
+
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
+
+- Base integration SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
+- Final PR head `fda9e42f9a57a35e302516ea1454f1277d73f5bd`; run #349 (`42172938440`): workflow-sanity PASS; python-tests PASS; **412 passed in 1.07s**.
+- Squash merge `8c4d5a4277a63e71c10492595bd8431ec684cbe6`; post-merge run #350 (`42173099340`) on exact merge SHA: both jobs PASS; **412 passed in 0.62s**.
+- Scope: Box/Cylinder analytic primitives, SI properties and frame-aware bounds.
+
+
+## PR #49 — Profile extrusion primitive (merged)
+
+- Base integration SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
+- Final PR head: `38a800d033ebbba19e1120c8cd3a47ade4088526`; run #356 (`42178039043`): workflow-sanity PASS; python-tests PASS; **416 passed in 1.06s**.
+- Squash merge: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; post-merge run #381 (`42186896757`): both jobs PASS; **416 passed in 0.84s**.
+- Scope: simple polygon profile extrusion with analytic properties and transformed bounds; no curved sketches, Boolean features, B-rep or mesh output.
+
+
+## PR #52 — Through-hole profile integration and public exports (merged)
+
+- Base integration SHA: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`.
+- Final PR head: `bf093db34c7a7900d3d0924bccadfb40c33a30f0`; PR run #384 (`42191597715`): workflow-sanity PASS; python-tests PASS; **425 passed in 0.78s**.
+- Squash merge: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; post-merge run #385 (`42191666816`) on the exact merge SHA: both jobs PASS; **425 passed in 0.87s**.
+- Adds optional through-hole loops, strict inner-loop topology, net area/perimeter, SI volume/surface area including inner walls, backward-compatible optional serialization and JSON Schema support.
+- Fixes missing package-level imports for `Vec2` and `ExtrudedProfileSolid`; regression tests now import both from `universal_platform.engineering`.
+- Reviews: 0; unresolved threads: 0; mergeability clean before merge.
+- Limitations: straight-sided analytic extrusion only; no curved sketches, Boolean kernel, B-rep, mesh or physical/manufacturing validation.
+
+
+## PR #54 — Spatial joint reference validation (merged)
+
+- Base integration SHA: `1db066915c4993e544b386c0311e332874ef4aed`.
+- Final PR head: `3da8c733895baab939548e0ba2e81670ca0c6359`; run #404 (`42193562931`): workflow-sanity PASS; python-tests PASS; **452 passed in 1.35s**.
+- Squash merge: `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 (`42193654653`) on exact merge SHA: both jobs PASS; **452 passed in 1.33s**.
+- Run #403 (`42193476702`) initially failed eight test assertions because the test expected the reduced mobility Jacobian width rather than the full generated Jacobian with six pose columns per link. The expectation was corrected; no code or test gates were weakened. The corrected exact head passed.
+- Scope: all eight joint families have deterministic six-row residual, Jacobian component/sign/pitch, local mobility/rank and ground-reversal reference coverage; nontrivial joint-frame placement composition is tested.
+- Limitations: one-joint local references only; no general global solver, dynamics or physical validation. PLANAR analysis is a local estimate and depends on finite-difference step, scaling and rank tolerance.
+
+
+## PR #53 — Documentation index restoration and evidence reconciliation (merged)
+
+- Base SHA: `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`.
+- Final head: `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`; run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
+- Merge: `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
+- Restores `DOCUMENTATION_INDEX.md`, reconciles PR #49/#52 evidence and documents the integration-vs-main branch boundary.
+
+
+## PR #56 — Explicit planar plane-frame mobility (merged)
+
+- PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.
+- Scope: explicit plane-to-world `RigidTransform`; body-origin, body-axis, joint-anchor and generalized-coordinate-axis coplanarity validation; deterministic projection to two in-plane translations and one plane-normal rotation per non-ground link.
+- Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. CYLINDRICAL, HELICAL, SPHERICAL and UNIVERSAL fail closed in the PLANAR formulation.
+- Numerical stability: geometric-mobility default central finite-difference step is `1e-5` to reduce round-off amplification from composed frames; callers may explicitly supply another positive step. Rank tolerance was not relaxed.
+- Limitations: local mobility only; not a global mobility proof, general closed-loop configuration solver, dynamics, collision/contact, physical feasibility, certification or machine control.
+
+
+## PR #59 — Versioned schematic layout and deterministic SVG renderer (merged)
+
+- Integration base: `docs/phase-0-complete-requirements` at `977f42bbcb0deedfbe2f013fbdf75bf99cfc4b84`.
+- Implementation commit: `6785cd685b9fb879ffea69eedcc04a56a2290f11`; branch: `feat/schematic-layout-svg-renderer`.
+- Scope: immutable `SchematicLayout` v1.0 with explicit millimetre page coordinates, stable IDs, symbol definitions (LINE/POLYLINE/RECTANGLE/CIRCLE), pin anchors, component placement/rotation, explicit net routes and strict JSON Schema.
+- Renderer: pure-Python deterministic SVG; validates component/symbol/pin references, page bounds and route endpoints; reports incomplete net connectivity separately and never labels an incomplete route as rendered.
+- Tests at implementation commit `6785cd6`: run `42201375975`, `workflow-sanity` PASS, `python-tests` PASS; **477 passed in 2.00s**. PR-triggered checks on the documentation-updated candidate must be recorded separately before merge.
+- PR #59: https://github.com/phakphum12345/universal-platform/pull/59; review submissions 0 and unresolved threads 0 at initial review.
+- Limitations: no automatic placement/autorouting, EDA import/export, ERC, SPICE/circuit simulation, power analysis, manufacturing validation, certification, physical validation or hardware actuation. SVG is a drawing artifact, not electrical proof.
+
+
+## PR #59 — Versioned schematic layout and deterministic SVG renderer (merged)
+
+- Base integration SHA: `977f42bbcb0deedfbe2f013fbdf75bf99cfc4b84`.
+- Final PR head: `70003c5ec985fe487471bd68996cfb60e501f7a7`; PR push run #42203791191 and PR run #42203797877 passed both required jobs.
+- Merge commit: `2fd7b3144ed38491f11c6dfefa8bb793f1a2cc21`; post-merge run #42205768788 passed `workflow-sanity` and `python-tests`.
+- Scope: SchematicLayout v1.0, explicit page units, symbols, placements, pin anchors, routes and deterministic offline SVG with incomplete-net reporting.
+- Limitations: no automatic placement/routing, EDA exchange, ERC (tracked separately by PR #60), circuit simulation, power analysis or physical verification.
+
+
+## PR #60 — Static electrical rule checking (merged)
+
+- Adds pure offline ERC over validated SchematicModel v1.0; versioned result schema and ruleset v1.0.
+- Six rules cover unconnected pins, multiple push-pull outputs, multiple power outputs, power inputs without a declared source, power/signal-driver mixing and open-drain/collector source visibility.
+- Results include canonical input SHA-256, stable finding IDs, severity, object references, evidence, recommendations and limitations. Warnings produce FAIL; PASS means only no findings under this ruleset.
+- Exact PR-head run #42206594529 and push run #42206646922 passed both jobs with **485 tests**; merge `e641ca19b4f28bb2e2077cf475b371125ebf237a`; post-merge run #42206719188 passed both jobs with **485 tests**. No electrical standards, voltage/current/thermal/timing verification, passive pull-up inference, simulation, physical validation or hardware actuation is claimed.
+
+
+## PR #61 — Convex 2D profile Boolean operations (MERGED)
+
+- Merge commit: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; base: `docs/phase-0-complete-requirements`.
+- Exact PR head: `29e846f513f489196ff742ed464c983a8a771225`; both PR and push workflows passed both required checks; **496 passed**.
+- Exact post-merge run #42217655332 passed `workflow-sanity` and `python-tests`; **496 passed in 1.19s**.
+- Implements convex-loop UNION/INTERSECTION/DIFFERENCE with deterministic convex-cell decomposition, strict v1.0 result snapshots and area accounting.
+- Limitations: concave loops, holes, arcs, exact arithmetic, general planar arrangements, region dissolution, 3D B-rep and mesh Booleans are not implemented.
+
+## PR #62 — General planar region topology contract (DESIGN CANDIDATE)
+
+- Branch: `docs/cad-general-planar-topology-contract`; base SHA: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`.
+- Adds `docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md` defining CAD-neutral regions with outer boundaries and holes, explicit frames/units, topology invariants, contact semantics, numerical robustness tiers, result/evidence requirements and kernel decision gate.
+- Design only: no general planar Boolean implementation, precision policy selection, kernel selection or third-party dependency is claimed.
+- Next gate: select and document a precision policy and independent adversarial reference corpus before implementation.
+
+
+## PR #62 — General planar region topology contract (MERGED; DESIGN ONLY)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/62
+- Base SHA: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; exact head SHA: `d03928bbe3472fae4f5890f6a9f481c0049b7f35`.
+- Merge commit / current integration HEAD: `213b1b52ef78ae3297a88892b4cc0c6539159160`.
+- Exact PR-head runs #42217964997 (pull_request) and #42217937596 (push): both `workflow-sanity` and `python-tests` PASS; **496 passed**.
+- Exact post-merge run #42218707816 on the merge SHA: both jobs PASS; **496 passed in 1.08s**.
+- Adds `docs/design-3d/CAD_GENERAL_PLANAR_TOPOLOGY_CONTRACT.md`; defines a CAD-neutral region/hole topology and numerical/kernel decision gate.
+- Documentation/design only. No general polygon Boolean implementation, precision policy selection, geometry kernel selection, or third-party dependency is claimed.
+- Current working tree is UNKNOWN because no local checkout was inspected. Default branch `main` remains at `96e75010716226037893155b9fd4b13410fb0d6f`; integration has not been merged to main.
+
+
+## PR #64 — Deterministic primitive triangle mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/64
+- Base SHA: `342c3c43ae6b4561da42a4839f042054f3198a4d`; exact PR head SHA: `8fe9db48cd07a66ea39d61e386ee8f362b968104`.
+- Merge commit / integration HEAD: `f0bfd8ad9958af9bfe678e923d52726b12eee73a`.
+- Exact PR-head run #42219983207 and push run #42219977049: both required jobs PASS; **506 passed**.
+- Exact post-merge run #42220119818 on the merge SHA: both jobs PASS; **506 passed in 1.93s**.
+- Adds `TriangleMesh` v1.0, deterministic BoxSolid/CylinderSolid tessellation, source SHA-256 provenance, explicit local frame/unit, cylinder chordal tolerance, structural edge/winding validation, signed volume and surface area.
+- Explicit limitations: no extruded-profile or hole meshing, arbitrary triangle self-intersection detection/repair, B-rep, 3D Boolean, STEP/STL/3MF exchange or manufacturing validation.
+
+
+## PR #66 — Straight extruded-profile triangle mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/66
+- Base SHA: `51e8227e2be50caccebce7ee307eaabb4d74292b`; exact corrected PR head SHA: `1179fb69114bc76b3155d0c3e6edf50223050846`.
+- Merge commit / integration HEAD: `1ead537afa34d2637fdb08f91b2d2bb823d411a0`.
+- Exact PR workflow run #42221102000 and push run #42221092727: both required jobs PASS; **511 passed**.
+- Exact post-merge run #42221247498 on the merge SHA: both jobs PASS; **511 passed in 1.20s**.
+- Adds deterministic ear-clipped cap triangulation and outward side walls for straight-edged, hole-free concave/convex `ExtrudedProfileSolid`; retains source SHA-256, local frame and unit.
+- The initial head `48b3124f89a3e97dc9ce529d811aa0ee2503107b` failed the CW profile orientation reference; the final head corrected side-wall winding to normalized CCW traversal and passed all tests.
+- Limitations: no profile holes or arcs, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean or neutral CAD interchange.
+
+
+## PR #68 — Polygonal through-hole extrusion mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/68
+- Base SHA: `f9d8f51b01fb41afec311b8b72ffd0e9231c631b`; exact corrected PR head SHA: `da5c8a292dacf8c300fcb48b9e92b506f1172bd8`.
+- Merge commit / integration HEAD: `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b`.
+- Exact PR workflow run #42222216690 and push run #42222207986: both required jobs PASS; **514 passed**.
+- Exact post-merge run #42222360177 on the merge SHA: both jobs PASS; **514 passed in 1.53s**.
+- Adds deterministic visible-bridge selection and ear clipping for straight polygonal extrusion regions with one or more strictly-contained holes; inner walls use CW hole boundaries to face the void.
+- First tested head had two inner-wall winding/volume failures; final exact head corrected orientation and added reversed-hole-winding regression coverage.
+- Limitations: curved outer/hole boundaries, arbitrary mesh self-intersection/repair, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.
+
+
+## PR #70 — Circular-arc profile triangle mesh (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/70
+- Base SHA: `c1056671b7ad8a8ca1415a449d830db0057f5034`; exact corrected PR head: `0e7d7233069e2fafb8850a15d1f1e1539bf6c883`.
+- Merge commit: `98440851b0b75216ea89013d9d2eea07b42c4416`.
+- Exact PR workflow run #42223197118 and push run #42223188816 passed both required jobs with 515 tests; exact post-merge run #42223460020 passed both jobs with **515 tests in 2.01s**.
+- Adds deterministic circular-arc boundary tessellation for extruded profiles and polygonal holes under explicit positive chordal tolerance; stores tolerance in TriangleMesh v1.0 and preserves source geometry digest/frame/unit.
+- Limits: non-circular curves/splines, general geometric self-intersection detection/repair, B-rep, 3D Boolean and neutral CAD interchange remain NOT IMPLEMENTED.
+
+## PR #71 — Circular-arc through-hole reference coverage (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/71
+- Base SHA: `98440851b0b75216ea89013d9d2eea07b42c4416`; exact PR head: `d94d9c3b974e3ceea70ddf4a8a1b18da92b8c845`.
+- Merge commit / integration HEAD: `8aba562a1df6c0691c855f95ef16a9ba94089556`.
+- Exact PR workflow run #42225768304 passed both jobs with **516 tests in 1.74s**; exact post-merge run #42225830931 passed both jobs with **516 tests in 1.45s**.
+- Adds a curved polygonal-hole reference validating watertightness, manifold edge incidence, winding, positive volume, chordal-area bound, endpoint retention, deterministic output and strict snapshot round trip.
+- Test-only change; production API/schema unchanged. This closes the reference-coverage gap for the hole-arc path.
+
+
+
+## PR #73 — Binary STL interchange contract (DESIGN ONLY)
+
+- Branch: `docs/stl-interchange-contract`; base integration SHA: `6cdfffc8d9fffadb7162977c77efd54445bb9471`.
+- Adds `docs/design-3d/STL_INTERCHANGE_CONTRACT.md` defining deterministic binary STL export and a mandatory sidecar manifest with frame, unit, source provenance, chordal tolerance, payload digest, counts and float32 quantization error.
+- First implementation slice is export-only with an independent test-only reader; arbitrary external STL import and external CAD application reopen are not implemented.
+- No STL exporter, manifest schema, STEP/3MF support, external toolchain selection or third-party dependency is claimed.
+
+
+## PR #73 — Binary STL interchange contract (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/73
+- Exact PR head: `39f3325260baa084d8e817554a9c9fd1702922c0`; base: `6cdfffc8d9fffadb7162977c77efd54445bb9471`.
+- Merge commit / integration HEAD: `24f0b7083d95fb5582e26f4614a227250e0a2de0`.
+- Exact PR workflow #42226759918 and push workflow #42226749519 passed both jobs with 516 tests; post-merge run #42226889599 passed both jobs with **516 tests in 1.11s**.
+- Adds a design contract only. STL export/import, schema and external CAD reopen are not implemented.
+
+## PR #74 — Deterministic binary STL export (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/74
+- Base SHA: `24f0b7083d95fb5582e26f4614a227250e0a2de0`; exact PR head: `e7491d976177a51933f62e5eefcab90d11dcc19f`.
+- Merge commit / integration HEAD: `1503266c18c5ed74c5756391c033437b05ae6f13`.
+- Exact PR run #42227530004: both jobs PASS, 523 tests in 1.61s; push run #42227459289: both jobs PASS, 523 tests in 1.12s; post-merge run #42227796004: both jobs PASS, **523 tests in 1.31s**.
+- Adds pure-Python binary STL export and strict sidecar metadata, public API exports, source-specific tolerance rules, binary32 quantization checks, caller-approved frame/unit validation and independent test-only facet reader.
+- Limitations: no arbitrary STL import, ASCII STL, external CAD reopen, STEP/3MF, B-rep or mesh repair.
+
+## PR #75 — Independent STL geometric reopen references (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/75
+- Base SHA: `1503266c18c5ed74c5756391c033437b05ae6f13`; exact PR head: `0d17638b6c361abfed7d0501576b0bc7de277809`.
+- Merge commit / integration HEAD: `a8a7e6b28650a90665a465e7373d8ad6582f7832`.
+- Exact PR workflow #42228344477 passed both jobs with 524 tests in 2.09s; exact post-merge run #42228462537 passed both jobs with **524 tests in 2.20s**.
+- Adds independent facet-record bounding-box and signed-volume comparison, coordinate-error-derived tolerance and non-finite/normal corruption tests.
+- This is test-only; production STL API/schema is unchanged.
+
+## PR #76 — Mesh geometric topology analysis contract (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/76
+- Exact PR head: `526a2cb0632154e52596e3322a107ee8dddc4d4d`; merge commit / integration HEAD: `ff486f8ae4569ca8122f0294f55d18b21b32d10c`.
+- Exact PR run #42229095708 passed both required jobs with 524 tests in 2.25s; exact post-merge run #42229207672 passed both jobs with **524 tests in 1.60s**.
+- Design contract only; no topology-analysis implementation was introduced by #76.
+
+## PR #77 — Mesh geometric topology analysis implementation (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/77
+- Exact PR head: `66593ebb6658f0e0fc43d17f90b6c8360e5969d2`; merge commit / integration HEAD: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- Exact PR workflow #42230501005 and push workflow #42230490785 passed both jobs with 533 tests in 2.08s; exact post-merge run #42230654227 passed both jobs with **533 tests in 1.98s**.
+- Adds additive MeshTopologyAnalysis v1.0 and analyze_mesh_topology, strict schema, provenance/digests, edge-connected components, vertex-link manifoldness, duplicate/near-coincident groups and unused-vertex diagnostics.
+- No self-intersection claim; self_intersection_status remains UNKNOWN.
+
+## PR #78 — Triangle-mesh self-intersection contract (DESIGN ONLY)
+
+- Branch: `docs/mesh-triangle-intersection-contract`; base SHA: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- Adds a separate contract for triangle-pair classification, conservative broad-phase candidate generation, exact represented-input predicates, adjacency exclusions, resource limits and independent reference tests.
+- No implementation or self-intersection PASS is claimed.
+
+
+## PR #78 — Triangle-mesh self-intersection contract (MERGED; DESIGN ONLY)
+
+- Integration branch HEAD: `502d49baf58e43938d2746859e10817badd43f6e`; PR #77 predecessor: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- Exact PR head: `08f6aade1d928b9d2e2d7a065aa448ef9065bed1`; PR #78 base SHA: `20e34933087a7276d0acc08e0d17b872c3973949`.
+- PR workflow #42231152061: workflow-sanity PASS; python-tests PASS; PR evidence reports 533 tests passed. Documentation-only marker SKIPPED.
+- Reviews: 0; unresolved review threads: 0.
+- Adds only the separate MeshIntersectionAnalysis design contract. No self-intersection implementation or geometric PASS is claimed. `MeshTopologyAnalysis v1.0` remains backward compatible and self-intersection remains UNKNOWN.
+- Post-merge CI on integration HEAD `502d49baf58e43938d2746859e10817badd43f6e`: UNKNOWN; no status entries or workflow runs were returned.
+- Full capability gaps and next work packages: [Repository Audit 2026-11-06](../audit/REPOSITORY_AUDIT_2026-11-06.md).
+
+
+## PR #80 — Exact triangle-mesh intersection analysis (MERGED)
+
+- Base integration SHA: `f0d52ecf8dee44c4984badf3fb0e902f3f47b57f`.
+- Exact PR head: `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181`; merge SHA / integration HEAD: `cb91c7c49406fd02324be6b30d5570e821b4d503`.
+- PR workflow #42238370626: workflow-sanity PASS; python-tests PASS; **550 passed in 2.63s**. Push workflow #42238360081 passed both jobs. Documentation-only marker step SKIPPED.
+- Reviews: 0; unresolved review threads: 0.
+- Adds `MeshIntersectionAnalysis v1.0`, `analyze_mesh_intersections`, schema, exact rational narrow-phase predicates over binary64 inputs, deterministic conservative sweep, stable pair classifications, strict provenance-bound snapshots and resource-limit UNKNOWN behavior.
+- Structural validation is a precondition. Input mesh is not mutated. No welding, snapping, repair, B-rep, Boolean, collision, manufacturing, physical or certification claim is made.
+- `MeshTopologyAnalysis v1.0` remains backward compatible and keeps `self_intersection_status=UNKNOWN`; the new intersection result is independent.
+- Post-merge CI for `cb91c7c49406fd02324be6b30d5570e821b4d503`: UNKNOWN; no run/status evidence was returned.
+- Next work is general planar-region Boolean topology after a precision-policy decision and independent adversarial references. Full gaps: [post-PR #80 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md).
+
+
+## PR #82 — PlanarRegion v1 input model (IN REVIEW; not yet implemented on integration)
+
+- Base integration SHA: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`.
+- Candidate branch: `feat/planar-region-model-v1`; exact candidate head will be recorded after PR creation.
+- Adds separate PlanarRegion v1.0 input model, exact rational represented-binary64 boundary predicates, strict hole checks, canonical orientation/start point, explicit frame/unit, canonical digest, schema and tests.
+- Does not implement Boolean operations and does not change convex ProfileLoop v1.0.
+- Status remains IN REVIEW until exact-head CI, merge and post-merge checks are verified.
+
+
+## PR #82 — PlanarRegion v1.0 input model (MERGED)
+
+- Base integration SHA: `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; exact PR head: `a2df003b7dfe66c6ccaf605cfb8ee83d0780668e`; merge SHA / integration HEAD: `114bf8dd84831d7d4080922ed7069cadda380ba3`.
+- PR workflow #42240159979 and push workflow #42240149518 passed both required jobs; 563 tests in 1.54s on the PR head.
+- Post-merge workflow #42240292055 passed workflow-sanity and python-tests; 563 tests in 2.47s.
+- Adds PlanarRegion v1.0, exact represented-binary64 rational predicates, canonical winding/start, strict simple boundary and hole validation, explicit frame/unit, digest, schema and 2,048-edge bound.
+- No Boolean operation is implemented. ProfileLoop/ProfileBooleanResult v1.0 remain convex-only.
+- Next work: exact planar-region Boolean arrangement with multi-component/hole support, independent references, deterministic graph traversal and output rounding/error bounds.
+
+
+## PR #84 — Pairwise PlanarRegion Boolean engine (MERGED)
+
+- Integration HEAD / merge SHA: `1b75e2dab5b64d2d089e410bba02187d28772193`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Exact PR head `999235de2627f948a6fba8c4c9a038cea7cf8857`; PR workflow #42250468895 passed workflow-sanity and python-tests, **580 passed in 2.14s**.
+- Exact post-merge workflow #42250583756 on the merge SHA passed both jobs, **580 passed in 2.96s**.
+- New API: `PlanarRegionBooleanOperation`, `PlanarRegionBooleanResult`, `boolean_planar_regions`; pairwise operations UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE. Supports multiple output components and holes, exact rational arrangement decisions over represented binary64 inputs, deterministic cycles, output rounding-error metrics and strict snapshot validation.
+- Limits: 256 total input boundary edges / 32,640 pair checks; same frame/unit required; point-touching or branching output fails closed. No implicit conversion, snapping, quantization or repair. Existing convex ProfileLoop v1.0 contract unchanged.
+- Still not implemented: general region-set aggregation, robust point-contact traversal, arcs/splines, parametric sketch constraints, feature history, B-rep/3D Booleans, STEP/3MF round-trip, physical/manufacturing validation. No local working-tree test is claimed.
+
+
+## PR #86–#88 — Planar Boolean to 3D solid pipeline (MERGED)
+
+- PR #86 expanded exact/analytic reference coverage; corrected PR-head and post-merge CI passed 592 tests.
+- PR #87 added multi-region set Boolean operations with one rational arrangement; PR/push and post-merge CI passed 600 tests.
+- PR #88 added `extrude_planar_region`, preserving source ID/SHA, frame/unit and holes; PR/push and post-merge CI passed 607 tests. Full Boolean → extrusion → triangle mesh path validates as closed, watertight and consistently oriented.
+- Current integration HEAD: `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+- Limits remain: 256-edge Boolean bound; point-touching/branching output fails closed; straight-edged PlanarRegion extrusion only; no B-rep, 3D Boolean, feature history, sketch constraints, STEP/3MF or manufacturing claims.
+
+
+## PR #90 — Parametric Sketch Constraint Foundation (MERGED)
+
+- Integration merge SHA: `e2d631b49910e3d7f05fea6337742fd87385fb81`.
+- Exact PR-head workflow #42260796531: workflow-sanity PASS; python-tests PASS, 618 tests.
+- Post-merge workflow #42260977543: workflow-sanity PASS; python-tests PASS, 618 tests.
+- Implemented immutable ParametricSketch v1.0 with explicit frame and registered length unit, points, straight segments, unique IDs and reference validation.
+- Implemented eight constraints: HORIZONTAL, VERTICAL, COINCIDENT, DISTANCE, HORIZONTAL_DISTANCE, VERTICAL_DISTANCE, FIX_X, FIX_Y. Delegates to existing bounded nonlinear solver and exposes solver result/rank diagnostics.
+- Limitations: points/lines only; no angle/tangent/equal/radius/symmetry constraints, arcs/splines, auto-inference, interactive drag solver, closed-loop region conversion, feature history or regeneration.
+- Main remains unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 241 ahead / 0 behind at the PR #90 merge baseline. Local working tree remains UNKNOWN.
+- Contract: [Parametric Sketch Constraint Contract](../design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## PR #92–#93 — Sketch-to-region and feature regeneration (MERGED)
+
+- PR #92 merge SHA `ecc5b7acebdfd48ccf07e64c53f169caf268193a`; exact-head/push and post-merge CI passed 627 tests.
+- PR #92 converts converged closed straight-edge sketch loops to canonical PlanarRegion records, including disjoint components, holes and nested islands. Open/branching/duplicate/self-intersecting/touching topology fails closed.
+- PR #93 merge SHA `0983de4c8839070e2a27cd7b8e704f975d176abf`; exact-head run #42263173745 and post-merge #42263296016 passed both required jobs, 636 tests.
+- FeatureHistory v1.0 provides a deterministic DAG, strict snapshots, topological ordering, allow-listed SKETCH_PROFILE / PLANAR_BOOLEAN / EXTRUSION / MESH evaluators, per-feature SHA-256, and all-or-nothing failure behavior.
+- Verified end-to-end: parametric sketch → region → extrusion → watertight mesh; and two sketches → planar UNION → extrusion → watertight mesh.
+- Limitations: no persistent document store, incremental recompute, suppression/rollback/branch editing, GUI, arc/spline sketch conversion, B-rep, 3D Boolean or STEP/3MF. Main remains unchanged; no local working-tree claim.
+- Contract: [Feature History and Regeneration](../design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md).
+
+
+## PR #95 — Planar Boolean Point-Contact Topology (MERGED)
+
+- Merge SHA: `2eea0bdc9226c8ec3b3d5458e3902ee01b8314f0`.
+- Exact PR-head #42264798640 and post-merge #42264923364 passed both required jobs, 639 tests.
+- Exact-rational planar rotation-system pairing preserves point-touching material components as separate simple regions; edge-adjacent rectangles still merge.
+- Four-way point-contact and two-component point-contact references pass. Ambiguous branching, invalid hole contact and repeated-vertex cycles remain fail-closed.
+- This closes the prior blanket point-touch limitation only for the tested deterministic cases; it does not implement general B-rep or 3D Boolean.
+
+
+## PR #97 — 3MF Core Mesh Interchange (MERGED)
+
+- Merge SHA: `9b415f7c6be0f537feb67cbe86a911dc0ef5f662`.
+- Exact PR-head #42265918058 and post-merge #42266044427 passed both required jobs, 650 tests.
+- Added deterministic 3MF Core one-object mesh export/import for validated watertight triangle solids; preserves solid/frame IDs, unit and source geometry digest; imported mesh kind is `IMPORTED_3MF`.
+- Parser validates OPC parts/relationship/content type, paths, duplicate entries, compression/size bounds, XML DTD/entities, model structure, units and triangle indices.
+- Full 3MF feature support and STEP import/export remain OPEN. No B-rep or manufacturing/certification claim.
+- Contract: [3MF Core Mesh Interchange](../engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
+
+
+## Current Runtime, Physics and CAD integration status — 2026-11-07
+
+### Runtime — PARTIAL (PR #107 and #113 merged)
+- Resource registry/lifecycle, unit-bearing snapshots, bounded log parsing/redaction and configured-root file ingestion.
+- Recovery coordinator with fail-closed quarantine and evidence-before-resume when an evidence sink is configured.
+- Trusted-worker allow-listed process supervisor; this is not an OS/container security sandbox.
+- Policy-gated adapter discovery and in-process runtime route replacement while asleep.
+- In-memory logical quotas/expiring leases; local resource metrics; threshold health monitor with HEALTHY/SUSPECT/UNKNOWN.
+- Recovery JSONL evidence has local cross-process file locking, bounded store size and an unkeyed SHA-256 chain. It is not signed, remote or tamper-proof against full-file rewrite.
+- Remaining: OS/container sandbox, OS-enforced quotas, Windows Job Object containment, checkpoint/restore/heartbeat/restart, durable/distributed leases, signed remote evidence, approval/permission integration and production hardening.
+
+### Physics — PARTIAL (PR #110 merged)
+- Central typed/versioned solver registry with license/dependency gates and provenance.
+- Built-ins: axial stress, ideal lumped DC Ohm's law/power and linear thermal expansion.
+- Remaining: fluids, electromagnetics, general thermodynamics/dynamics, nonlinear materials, FEA/CFD, numerical/simulation adapters, cross-solver reference validation, convergence and uncertainty.
+
+### CAD / 3D — PARTIAL
+- STEP AP214 faceted-BREP single connected triangle-shell interchange (PR #99); not a general B-rep kernel.
+- ParametricSketch v1.0: eight initial point/line constraint families; no arcs/splines or uniqueness/global convergence guarantee.
+- FeatureHistory v1.0: deterministic allow-listed DAG for sketch profile, planar Boolean, extrusion and mesh. Incremental in-memory regeneration reuses unchanged artifacts using canonical parameter/input-digest/solver-option signatures and invalidates affected descendants. No persistent documents or durable/cross-process cache.
+- Remaining: ambiguous branching Boolean topology, broader sketch solver, persistent revisioned feature documents and durable cache, general B-rep/3D Boolean, full STEP/AP242 and 3MF assemblies, CAD generator UI/API/persistence.
+
+### Hardware / EDA — PARTIAL
+- Schematic connectivity, deterministic SVG rendering, static ERC and metadata-only driver interface/pin binding exist.
+- Remaining: native EDA interchange, datasheet-backed constraints, BOM/footprint reconciliation and circuit simulation.
+
+### Recent exact evidence
+- PR #99 exact-head/post-merge: 664 tests.
+- PR #107 exact-head: 697; post-merge: 717.
+- PR #110 exact integration-based head: 672; later post-merge suite includes it.
+- PR #113 exact-head/post-merge: 732 tests.
+- All listed required jobs passed; skipped documentation-only steps are not counted as passes.
+
+See [post-PR #113 Repository Audit](../audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
+
+
+## Feature History durable source-document store — implementation branch
+
+- Branch: `feat/cad-feature-history-durable-revisions-v1`; base integration SHA: `1ca38ecf0ebe6703ada8aab96e10d9e4cbf1c308`.
+- Adds `SQLiteFeatureHistoryStore` using the Python standard library; no paid service or external database dependency.
+- Immutable document revisions, expected-revision compare-and-swap, SQLite write transactions, SHA-256 parent chain, strict snapshot round-trip and tamper/head-pointer detection are implemented in source.
+- Test coverage added for reopen durability, append-only revisions, stale and concurrent writers, tampering, missing links, invalid identifiers and unsupported database modes.
+- This branch has not yet passed exact-head CI or been merged. Its source-document store does not persist/rehydrate `FeatureArtifact.value`; durable computed-artifact cache remains OPEN.
+- Local working-tree state cannot be inferred from GitHub API; no claim is made about any developer workstation.
+
+
+## Latest integration — post-PR #124
+
+- Integration HEAD: `a17a6359b4689fedbbcfbec769704a0322e027da`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`, integration 322 ahead / 0 behind.
+- PR #124 adds SQLite source-document revisions for FeatureHistory. Exact PR-head checks passed 780 tests; post-merge workflow #42336306301 on the exact integration SHA passed both `workflow-sanity` and `python-tests`, 780 tests in 4.34s.
+- Durable FeatureArtifact/geometry/solver cache and rehydration remain OPEN; the SQLite store persists source DAG documents only.
+- PR #125 merged signed directed ANGLE between two existing segment IDs and schema v1.1 with legacy v1.0 snapshot reads. Exact PR-head and post-merge CI passed 785 tests.
+- Local workstation working-tree state remains UNKNOWN from remote repository inspection.
+
+
+## Latest integration — post-PR #125
+
+- Integration HEAD: `2befee9e3ed3c3dbd24add4b3c6b6b0e4b7069e9`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 334 ahead / 0 behind.
+- PR #125 added signed directed ANGLE between two stable segment IDs and ParametricSketch schema v1.1 with v1.0 snapshot compatibility. Exact PR-head and post-merge CI both passed 785 tests; post-merge workflow #42336694017 passed both required jobs.
+- Next implementation branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`, based on the exact integration SHA above. It adds circular arc references, positive RADIUS constraints, endpoint TANGENT constraints, and explicit fail-closed behavior in the straight-line region converter. Exact-head CI is pending.
+- The arc implementation is not a curved-profile CAD kernel: arc tessellation, curved planar regions, curved Boolean operations and B-rep conversion remain OPEN.
+- Local workstation working-tree state remains UNKNOWN from remote repository inspection.
+
+
+## Circular sketch geometry increment — merged PR #126
+
+- Branch: `feat/cad-parametric-sketch-arcs-tangent-radius-v1`; merged at `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd`.
+- Adds `SketchArc` with stable center/start/end point references and clockwise metadata; requires one positive `RADIUS` constraint per arc.
+- Adds a two-endpoint radial equality for RADIUS and a normalized orthogonality residual for TANGENT at a shared segment/arc endpoint.
+- Extends ParametricSketch to v1.2 while retaining v1.0/v1.1 snapshot reads.
+- Straight-line sketch-to-region conversion rejects arc-containing sketches; curved-loop conversion is not implemented.
+- Exact PR-head CI and post-merge CI both passed 791 tests. Curved-loop conversion remains OPEN.
+
+
+## Current CAD sketch baseline — post-PR #126
+
+- Integration HEAD: `5d8e8a4430aa991aac6ef9d70d0bcf6c575f4acd`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration 368 ahead / 0 behind.
+- PR #126 merged ParametricSketch schema v1.2, circular arc references, positive RADIUS equations and endpoint TANGENT constraints. Exact PR-head and post-merge CI passed 791 tests.
+- The straight-line `sketch_to_planar_regions` converter fails closed on arc-containing sketches. Curved-loop tessellation, curved PlanarRegion construction, curved Boolean and curved B-rep remain OPEN.
+- Durable source FeatureHistory revisions are implemented by PR #124; durable computed-artifact serialization/rehydration remains OPEN.
+
+
+## Curved sketch-to-region conversion — merged PR #128
+
+- PR #128 merged into `docs/phase-0-complete-requirements` at `30deb5290e4a84b8ce86848dcac21309d0b1ad95`; exact PR head `5c2690760d77639c0db5795f0c8571c52944c6d9`.
+- Adds deterministic circular-arc tessellation to `sketch_to_planar_regions` with explicit `chord_error` in the sketch length unit (default 0.01), mixed line/arc cycle reconstruction, and bounded total tessellation of 2,048 boundary edges.
+- Retains frame/unit identity, source sketch SHA-256, nested-loop/hole/island classification, and fail-closed PlanarRegion validation.
+- Exact PR-head workflow #42374789822 initially exposed two regressions; both were corrected before merge. Final exact PR-head workflow #42374789822 passed both required jobs with 801 tests in 5.34s. (The initial run #42374729768 failed and is not acceptance evidence.)
+- Exact post-merge push workflow #42374839944 on the merge SHA passed workflow-sanity and python-tests: **801 passed in 3.32s**.
+- Approximation only: each circular arc is represented by line segments with a sagitta bound. Predicates validate the represented binary64 polygon, not exact analytic curved geometry. Arc-to-arc tangency, curved Boolean, curved B-rep, splines and manufacturing validation remain OPEN.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion was performed.
+- Remote GitHub inspection does not establish any developer workstation working-tree state.
+
+
+## Durable FeatureArtifact serialization and local cache — merged PRs #131/#132
+
+- PR #131 adds strict, version-checked `SketchRegionConversionResult.from_dict` and `FeatureArtifact.from_dict` reconstruction for SKETCH_PROFILE, PLANAR_BOOLEAN, EXTRUSION and MESH. Payload SHA-256 is verified; mesh validation is recomputed and compared rather than trusted from stored JSON. Exact-head and post-merge CI passed 807 tests.
+- PR #132 adds `SQLiteFeatureArtifactCache`, a standard-library-only local SQLite cache keyed by history ID, feature ID and exact computation signature. Canonical snapshots and record-envelope SHA-256 are checked on every load; conflicting content for an existing immutable key fails closed.
+- `regenerate_feature_history(..., artifact_cache=...)` can reuse persisted artifacts across process/store reopen. Feature evaluator algorithm versions are included in computation signatures to invalidate stale cache records after algorithm changes.
+- Cache writes are idempotent and append-only at the application/database-trigger layer; WAL, FULL synchronous mode and explicit filesystem paths are used.
+- Exact PR-head #132 and exact post-merge workflow #42375907153 passed both required jobs; **812 tests passed in 5.54s** on `f2cac75f7d4594ccb3a1ff70e56faa4ebe32f523`.
+- Integrity SHA-256 is unkeyed: it detects accidental/partial corruption but is not a signature against an attacker who can rewrite the entire database. Distributed cache, eviction/retention, replication, encryption-at-rest and backup automation remain OPEN.
+- Source FeatureHistory revisions remain a separate SQLite store (PR #124); a combined reopen test that loads a durable source revision and reuses the artifact cache is the next acceptance increment.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## Durable FeatureHistory + FeatureArtifact fresh-process acceptance — merged PR #134
+
+- PR #134 adds a subprocess acceptance test that persists a FeatureHistory revision through `SQLiteFeatureHistoryStore`, populates `SQLiteFeatureArtifactCache`, starts a separate Python interpreter, reopens both databases, loads the exact source revision and calls `regenerate_feature_history` with the reopened cache.
+- The child process reuses `profile`, `extrusion` and `mesh` with zero recomputation; all artifact content digests match the first run and the final mesh remains watertight and consistently oriented.
+- Exact PR-head and exact post-merge workflow #42376427587 passed both required jobs; **813 tests passed in 4.49s** on `e4a1add528e4fd77c88df96d428ff629e2f4b655`.
+- This proves local single-machine cross-process persistence for the bounded workflow. It does not prove distributed storage, signed tamper evidence, backup/restore operations, or production CAD authoring UI/API.
+- Next: CAD generator API/UI and revisioned authoring workflow; keep cache retention/backup and suppression/branch history as separate requirements.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator application service — merged PR #136
+
+- Adds transport-neutral `CADGeneratorService` over the durable `SQLiteFeatureHistoryStore` and `SQLiteFeatureArtifactCache`.
+- Supports typed FeatureHistory save, strict JSON snapshot save, immutable revision list/read and regeneration of an explicitly selected revision.
+- `CADGeneratorRun` returns source revision metadata/digest, execution status, artifacts, content/computation digests, reused/recomputed IDs and limitations.
+- Exports `CADGeneratorService`, `CADGeneratorRun`, `SQLiteFeatureArtifactCache` and `FeatureArtifactCacheIntegrityError` through `universal_platform.engineering`.
+- Service is in-process and transport-neutral: no HTTP listener, network bind, default database path, dynamic code, shell, firmware or physical-device operation.
+- Exact PR-head and post-merge workflow #42376951014 passed both required jobs; **817 tests passed in 5.66s** on `ab0006c1ead3e6848f90e30c804d38a3029218f3`.
+- Next: separate HTTP/CLI/UI transport contract with authentication, authorization, request limits, loopback-only defaults and no public/SSH exposure. No listener is enabled by PR #136.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator loopback HTTP API — merged PR #138
+
+- Adds an explicit-start local HTTP adapter over `CADGeneratorService`; importing the module does not open a socket.
+- Routes: authenticated health, immutable FeatureHistory save, revision list/read and explicit-revision regeneration.
+- Security controls: IPv4 bind restricted to `127.0.0.1`, loopback peer/Host/Origin checks, 32-byte-minimum bearer token, no CORS, strict JSON and duplicate-key rejection, finite numbers, bounded body size (default 1 MiB, max 16 MiB), request socket timeout (default 5 seconds, max 30 seconds), and GET/POST allow-list.
+- Adds explicit SQLite audit storage with append-only event sequence and SHA-256 previous-event chain. Credentials and model request bodies are not recorded. Hash chain is not a keyed signature and cannot resist a local attacker rewriting the full database.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **822 passed in 4.90s** on `25e11f1dbf33c6fac38965efd16e1d25795cd227`.
+- Exact post-merge CI: workflow #42380918862; both required jobs PASS; **822 passed in 6.95s** on `674b6a52c725b6e3f4b4e083b602aab3a138104e`.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion occurred. Local workstation working-tree state remains UNKNOWN.
+- Remaining API hardening: rate limiting, TLS/remote authentication (only if remote service is separately authorized), browser session controls and external audit witness are not implemented.
+- Next: same-origin local CAD authoring UI served by this loopback service; no remote browser access.
+
+
+## Local CAD Generator FeatureHistory workbench — merged PR #140
+
+- Serves packaged HTML/CSS/JS from the same-origin loopback HTTP server; static assets are available without a bearer token only to the validated local origin so the user can enter the token.
+- API operations still require bearer authentication. The token remains in page memory and is not persisted in localStorage, cookies, URL or request body.
+- UI supports FeatureHistory JSON editing/paste, immutable revision save, revision list, exact revision load and regeneration with provenance/validation display.
+- Security: restrictive CSP, no external resources, no CORS, no HTML rendering of API responses, credentials omitted, static asset packaging in setuptools.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **823 passed in 7.99s** on `04d67f9302263ed7514daf8f1012c183a05ada21`.
+- Exact post-merge CI: workflow #42381936401; both required jobs PASS; **823 passed in 8.08s** on `f3abe346a259f2f3f3ed767889dba32be6a284b9`.
+- Capability boundary: this is a local JSON/revision workbench, not a graphical sketch editor, interactive 2D constraint editor, CAD viewport or visual solid modeller.
+- Next: bounded polygon sketch editor with explicit coordinates/constraints and an inspectable extrusion/mesh preview, then extend to arcs and broader visual authoring only after geometry validation.
+- Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
+
+
+## Visual polygon sketch editor — merged PR #142
+
+- Adds a bounded SVG polygon canvas to the same-origin local CAD workbench: click-to-add, exact numeric coordinate entry, undo/clear, and extrusion height.
+- Adds `build_polygon_extrusion_history` and authenticated `POST /v1/templates/polygon-extrusion`; generates a strict FeatureHistory with ParametricSketch v1.2, closed straight segments, explicit FIX_X/FIX_Y constraints, extrusion and mesh output.
+- Builder validates history ID, 3–64 finite unique vertices, duplicate adjacent/closing vertices, non-zero signed area, positive finite height and length unit. Geometry self-intersection and watertightness remain verified by the regeneration pipeline.
+- Canvas bounds: X 0–26 mm, Y 0–15 mm. Straight edges only; no arcs, splines, holes, automatic constraints, drag solver or 3D viewport.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS; **832 passed in 9.43s** on `ce1dc61066bebace97f4da9acf9bb249bd0db86f`.
+- Exact post-merge CI: workflow #42382710626; both required jobs PASS; **832 passed in 7.91s** on `18179f1d2d5f51fcf9d06f971fbc922f3e0cd5c7`.
+- Next: 3D mesh preview with source revision/artifact provenance and explicit mesh validation status. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator mesh preview — PR #144
+
+- PR #144 merged into docs/phase-0-complete-requirements at exact merge/integration SHA da5b34182396c485760aa1940ab2623d52d89cbc.
+- The local workbench renders the exact MESH FeatureArtifact vertex and triangle arrays as a static isometric SVG. It displays source revision, vertex/triangle counts, content/computation SHA-256 and backend valid, watertight and consistently_oriented flags, including validation issues.
+- Browser-side preview limits: 10,000 vertices and 5,000 triangles. Full artifact JSON remains available in the operation result. Invalid indices/non-finite coordinates prevent rendering; backend validation remains authoritative.
+- Exact PR-head run #42383293137: workflow-sanity PASS and python-tests PASS. Exact post-merge run #42383384086 on the merge SHA: both required jobs PASS. Test-count detail was not captured; do not infer a count from the job status.
+- Capability remains PARTIAL: no orbit/pan/zoom, selection, sectioning, B-rep editing, assembly viewport or general CAD kernel. Main remains 96e75010716226037893155b9fd4b13410fb0d6f and is unchanged. Local workstation working-tree state remains UNKNOWN.
+
+
+## CAD Generator interactive mesh viewport — PR #146
+
+- PR #146 merged into `docs/phase-0-complete-requirements` at exact merge/integration SHA `1813cb931876305391eeabe748741be189d5f27b`; parent/base SHA `1fde8904f7e398ff21d6003d30180917eafc4ae3`.
+- Exact PR head `c7c15c9a007a705ef67f650d693f1794c0f104a3`; workflow #42385362330: workflow-sanity PASS and python-tests PASS.
+- Exact post-merge workflow #42386519328 on `1813cb931876305391eeabe748741be189d5f27b`: workflow-sanity PASS; python-tests PASS; **832 passed in 9.09s**.
+- Adds bounded client-side orbit, pan, zoom and reset controls over the returned triangle mesh. Zoom is clamped to 0.5×–4×; pitch and pan are bounded. Camera state is ephemeral and does not alter source history or backend artifacts.
+- Preview caps: 10,000 vertices and 5,000 triangles. Malformed/non-finite vertices and malformed triangle indices prevent preview rendering. Backend validation remains authoritative.
+- Capability status: PARTIAL — interactive triangle-mesh viewing exists; feature-tree editing, selection, measurement, sectioning, B-rep editing, assemblies and general CAD-kernel operations remain OPEN.
+- Repository inventory at this SHA: 339 tree entries, 109 Markdown, 163 Python, 24 JSON files and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`; local working tree and branch protection are UNKNOWN.
+
+
+## CAD Generator triangle selection and measurement — PR #148
+
+- PR #148 merged at exact integration SHA `1fb9bc97c22bf0464e154f6963583edb9385d657`; base SHA `fa59974b40d929c5d1ced34e71554ca1cf4f4975`; exact PR head `43461346e32e1c5146c5beeab79340d7fbc387df`.
+- Exact PR-head workflow #42391405409: both required jobs PASS; **832 passed in 8.59s**.
+- Exact post-merge workflow #42391470608 on `1fb9bc97c22bf0464e154f6963583edb9385d657`: both required jobs PASS; **832 passed in 7.59s**.
+- Adds pointer/keyboard triangle-facet selection, highlight/clear, area via cross-product magnitude and centroid via vertex average. Values use mesh `length_unit` and `frame_id`.
+- UI state is ephemeral and display-only; no source revision, artifact, API or audit mutation. Non-finite measurement values are not displayed.
+- Capability is PARTIAL: triangle facet inspection only; B-rep face/edge selection, sketch dimensions, sectioning, face editing and general CAD kernel remain OPEN. Browser E2E interaction testing is not part of the current workflow.
+- Repository inventory: 340 entries, 110 Markdown, 163 Python, 24 JSON and 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+
+
+## CAD Generator FeatureHistory tree inspector — PR #150
+
+- PR #150 merged at exact integration SHA `da16967de5f387f4e98d9642134626982644d479`; base SHA `b59160677cf36438f38a37735d2708a57e6d92e4`; exact PR head `2958c270eebbbba884b59ed06714946622adeb67`.
+- Exact PR-head workflow #42392209579: workflow-sanity PASS including Node.js syntax check; python-tests PASS; **833 passed in 9.15s**.
+- Exact post-merge workflow #42392264691 on `da16967de5f387f4e98d9642134626982644d479`: both jobs PASS; **833 passed in 8.73s**.
+- Adds bounded (500-node) read-only FeatureHistory tree preview in deterministic topological dependency order, safe text-only DOM rendering, selected-node inspection and malformed/cycle fail-closed behavior.
+- This does not edit or regenerate FeatureHistory. Backend immutable add/replace/remove operations are implemented by PR #152; revision-safe service and loopback API editing are implemented by PR #154. Interactive browser controls, feature suppression, undo/redo and recompute propagation remain OPEN.
+- Inventory: 341 entries, 111 Markdown, 163 Python, 24 JSON, 84 Python test files. Main remains `96e75010716226037893155b9fd4b13410fb0d6f`.
+
+
+## CAD FeatureHistory immutable editing — PR #152
+
+- PR #152 merged into `docs/phase-0-complete-requirements` at exact merge SHA `1a8338ae17eb783a374a36400999ead796f9a79d`; base SHA `fabb8a9dd797e15f739fba172c016b7ec9a3d66a`; exact PR head `3c2469a43e48d5ac2fb7e546242d9a450dff1a87`.
+- Exact PR-head workflow #42396387520: workflow-sanity PASS including JavaScript syntax check; python-tests PASS; **840 passed in 9.23s**.
+- Exact post-merge workflow #42396453320 on the merge SHA: both jobs PASS; **840 passed in 8.71s**.
+- Adds immutable add/replace/remove helpers with strict FeatureHistory reconstruction, stable-ID replacement, downstream dependency protection and explicit cascade deletion.
+- No interactive GUI/API editing, suppression, undo/redo, graph branching/merging or recompute UI is claimed.
+
+
+## CAD FeatureHistory revision-safe edit API — PR #154
+
+- PR #154 merged at exact integration SHA `7046de5cff4a7a575de44de189bbb4fedcbdba58`; base SHA `6eed0a43089607013d8c7a840e1213264db9be93`; exact PR head `d243fdee6e9fc04925eaf435b4b1e4a4cfb27ae3`.
+- Exact PR-head workflow #42397413655: workflow-sanity PASS including JavaScript syntax check; python-tests PASS; **843 passed in 9.34s**.
+- Exact post-merge workflow #42397474889 on the merge SHA: both jobs PASS; **843 passed in 7.14s**.
+- Adds revision-checked service and HTTP edit operations for add/replace/remove. SQLite compare-and-swap protects against stale writes; HTTP 409 reports revision conflicts.
+- Browser edit controls and browser E2E remain open; overall CAD and repository status remain PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #156
+
+- Integration baseline: `10404099ccaa85cef24adedffa7bce789abd691e` on `docs/phase-0-complete-requirements`.
+- PR #156 adds local FeatureHistory browser controls for selected-feature parameter replacement, add/remove, explicit cascade confirmation and current-head revision gating.
+- Exact PR head `265ca3907e05f958fbae48f48398fbbae8d70ea2`: workflow #42407785969 — workflow-sanity PASS; python-tests PASS; 843 passed in 9.40s.
+- Exact post-merge SHA `10404099ccaa85cef24adedffa7bce789abd691e`: workflow #42407835073 — workflow-sanity PASS; python-tests PASS; 843 passed in 9.76s.
+- The documentation-only marker step was SKIPPED and is not counted as a pass.
+- WP-03 remains PARTIAL. Browser E2E, feature suppression, reordering, undo/redo, B-rep editing and broader CAD/kernel capabilities remain open.
+- Repository-wide completion remains INCOMPLETE; see `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md`.
+
+
+## PR #158 — Real-browser FeatureHistory editor coverage (MERGED)
+
+- PR: https://github.com/phakphum12345/universal-platform/pull/158
+- Exact PR head: `9aa96157eb6e5ebbf324aa6614178ffd8af17495`; base before merge: `b3f499b7c9234890b278285741945f094d7e9b8a`.
+- Squash merge SHA on `docs/phase-0-complete-requirements`: `9d899f70a97372f689ba07a8e90b479bf14494b4`.
+- Exact PR-head CI: `chromium-e2e` PASS (4 browser tests); `python-tests` PASS (843 tests); `workflow-sanity` PASS. Duplicate Engineering Core workflow run also passed; its documentation-only marker step was SKIPPED and is not counted as a pass.
+- Exact post-merge CI on the merge SHA: `chromium-e2e` PASS (4 browser tests; run `42438295044`); `python-tests` PASS (843 tests; run `42438295110`); `workflow-sanity` PASS. All three check-runs completed successfully.
+- Browser coverage exercises startup/no uncaught page errors, revision-based edit gating, parameter replacement, add/remove with explicit cascade confirmation, stale-writer HTTP 409 handling, and text-only rendering.
+- The test workflow uses local loopback services, test-only in-memory credentials and open-source Playwright/Chromium; no paid browser service or production deployment is introduced.
+- WP-03 remains PARTIAL: feature suppression, reordering semantics, undo/redo, branching/merging, expression parameters, B-rep editing, face/edge/vertex selection and general geometry recomputation remain open.
+- Integration head at audit: `9d899f70a97372f689ba07a8e90b479bf14494b4`; main remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 403 commits ahead and 0 behind. No main promotion.
+- Repository-wide completion remains INCOMPLETE. Branch protection, local working-tree state and full security/dependency audit remain UNKNOWN where the connected API did not provide evidence.
+
+
+## PR #160 — Documentation status reconciliation (MERGED)
+
+- PR #160 merged to `docs/phase-0-complete-requirements` at exact merge SHA `6f4ebf774d163cb95bd580fcc36c73ebe5ceb17a`.
+- Exact PR head `f0734ceb7a2651468392abbfc34758bc5c879912`: `workflow-sanity` PASS and `python-tests` PASS. One earlier test attempt failed because a historical baseline SHA used by a documentation regression test had been removed; the historical traceability entry was restored and the final exact head passed.
+- Exact post-merge workflow run `42438814910` on the merge SHA: `workflow-sanity` PASS; `python-tests` PASS. The documentation-only marker was SKIPPED, not counted as a pass.
+- Updates align the implementation baseline and work-package register with PR #158 browser E2E evidence; CAD-EDIT-004 is PASS, while overall WP-03 and repository completion remain PARTIAL / INCOMPLETE.
+- No source behavior changed; no main merge or deployment.
+
+
+## PR #161 — PR #160 post-merge documentation audit (MERGED)
+
+- PR #161 merged at exact integration SHA `35f06a304090176eb6d10697d6da67b53b1ec9ba`.
+- Exact PR-head CI on `d8bd1dd803de9a45686839876e91710e6a5bdce1`: workflow-sanity PASS; python-tests PASS.
+- Exact post-merge workflow `42438919113` on the merge SHA: workflow-sanity PASS; python-tests PASS. The documentation-only marker was SKIPPED and is not counted as a pass.
+- Documentation index, implementation baseline and work-package evidence are now aligned with PR #160; no source behavior changed.
+
+
+## PR #162 — FeatureHistory suppression contract (MERGED)
+
+- PR #162 merged at exact integration SHA `a952fd927e5b6a0fa7fd9701343c2bffb52091e1`.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS.
+- Post-merge CI on the merge SHA: workflow-sanity PASS; python-tests PASS.
+- Added a design contract for v1.0/v1.1 compatibility, immutable revision digests, cascade/unsuppress semantics, regeneration and cache behavior. It does not itself implement suppression.
+
+## PR #163 — FeatureHistory suppression backend core (OPEN)
+
+- Backend implementation scope: strict v1.0/v1.1 source serialization, explicit migration, immutable suppress/unsuppress operations, dependency/output invariants, regeneration skip/report behavior and cache preservation.
+- Service/API/workbench integration and suppression-specific browser E2E remain open and are not claimed complete.
+- Exact-head CI must pass on the final PR SHA before merge; PR is not merged at this audit.
+
+
+## PR #163 — FeatureHistory suppression backend core (MERGED)
+
+- Exact PR head: `53b12fd72f98f1040f59e112edda9b881f1eb287`.
+- Exact PR-head CI: workflow-sanity PASS; python-tests PASS (**851 passed in 8.59s**); Chromium E2E PASS (**4 passed in 5.39s**).
+- Merge SHA: `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`.
+- Exact post-merge CI: engineering workflow #42439562896 — workflow-sanity PASS and python-tests PASS (**851 passed in 10.02s**); Chromium workflow #42439562884 — PASS (**4 passed in 5.47s**).
+- Scope merged: FeatureHistory v1.1 suppression set with v1.0 round-trip compatibility and immutable digest preservation, explicit migration, immutable suppress/unsuppress edits, explicit cascade and dependency/output invariants, regeneration skip/report behavior, JSON Schema and public exports.
+- Not yet implemented: revision-safe service/API mutation routes, workbench controls, cascade confirmation UI and suppression-specific browser interaction tests. Overall WP-03 remains PARTIAL.
+
+
+## PR #165 — Revision-safe suppression service/API (MERGED)
+
+- Exact PR head: `241c033be084f892e85266373363929707c63d6a`.
+- Exact PR-head CI: 854 Python tests PASS; 4 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS; 4 Chromium E2E tests PASS.
+- Added authenticated loopback `suppress`/`unsuppress` service and HTTP operations with strict request fields and expected-revision compare-and-swap.
+
+## PR #166 — Suppression workbench and browser E2E (MERGED)
+
+- Exact PR head: `e313482497835954a6aa20c2fba62736480efbdf`.
+- Exact PR-head CI: 854 Python tests PASS; 5 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `34148fc359076567eaa4b931304f61f536a41779`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440679828); 5 Chromium E2E tests PASS (workflow #42440679848).
+- Workbench displays suppressed nodes without deletion, gates unsuppression on active dependencies and requires explicit checkbox plus browser confirmation for cascade.
+- FeatureHistory suppression is now end-to-end implemented and verified. Broader CAD editing (undo/redo, branching/merging, reorder), generalized B-rep and overall repository completion remain open.
+
+
+## PR #167 — Suppression completion documentation (MERGED)
+
+- Exact PR head: `a18ae2bf08d72844d0038a882787c1a59e2013dd`.
+- Exact PR-head CI: 854 Python tests PASS; workflow-sanity PASS.
+- Merge SHA: `d71fc36b29f4e1b1056c738294c1529e823be671`.
+- Exact post-merge CI: workflow-sanity PASS; 854 Python tests PASS (workflow #42440952865).
+- Documentation and traceability now mark FeatureHistory suppression R-016 as end-to-end PASS across PRs #163, #165 and #166.
+- Overall repository remains INCOMPLETE; next CAD work is the undo/redo design contract and subsequent implementation.
+
+
+## PR #168 — FeatureHistory Undo/Redo contract (MERGED)
+
+- Exact merge SHA: `6c5f77168cca1947bf79678696613ef1ef9c84ea`.
+- Design only: persistent SQLite stacks, append-only restore revisions, redo invalidation after new edits, atomic compare-and-swap and audit requirements.
+- PR-head and post-merge workflow-sanity/python-tests passed; no runtime behavior was changed by the contract PR.
+
+## PR #169 — Persistent Undo/Redo store (OPEN)
+
+- Implements additive navigation/action metadata tables, legacy backfill, persistent stacks, atomic append-only Undo/Redo revisions, expected-revision checks and fail-closed state validation.
+- Exact-head CI: 860 Python tests PASS; workflow-sanity PASS.
+- Store layer only. Service/API navigation routes, workbench controls and browser E2E remain open.
+- No PR merge performed at this status snapshot.
+
+
+## PR #169 — Persistent FeatureHistory Undo/Redo store (MERGED)
+
+- Exact PR head: `23b1c7f50cc55a4b7782a1e2f991ee10acc8501d`.
+- Exact PR-head CI: 860 Python tests PASS; workflow-sanity PASS.
+- Merge SHA: `93744335f3e50a07dde2f78a18f9a307308b73ef`.
+- Exact post-merge CI: workflow-sanity PASS; 860 Python tests PASS (workflow #42441684849).
+- Store-level Undo/Redo now persists stacks, initializes legacy histories, appends restore revisions and invalidates Redo after new edits. No prior revision is rewritten or deleted.
+
+## PR #170 — Undo/Redo service/API (OPEN)
+
+- Adds service navigation-state access, strict HTTP GET navigation and POST undo/redo routes.
+- Empty stacks return NO_UNDO/NO_REDO; stale expected revisions return REVISION_CONFLICT.
+- Exact-head CI is pending for the current PR head. Workbench controls and Chromium navigation E2E remain separate.
+
+
+## PR #170 — Undo/Redo service/API (MERGED)
+
+- Exact PR head: `e3db1fe6556c9b9d4ac6e742d9b51a95c357815f`.
+- Exact PR-head CI: 865 Python tests PASS; 5 Chromium E2E tests PASS; workflow-sanity PASS.
+- Merge SHA: `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`.
+- Exact post-merge CI: 865 Python tests PASS; workflow-sanity PASS; Chromium E2E 4 PASS / 1 ERROR because the browser fixture attempted to load a revision before its option was attached, causing a transient revision=0 request.
+- API routes are merged: GET navigation, POST undo and POST redo; strict expected-revision and audit boundaries remain enforced.
+
+## PR #171 — Undo/Redo workbench (OPEN)
+
+- Adds current-head gated Undo/Redo buttons, persistent navigation-state refresh and post-action revision reload.
+- Guards empty or invalid revision selection before Load/Regenerate.
+- Updates Chromium fixture to wait for the saved revision option; adds reload persistence and Redo invalidation coverage.
+- Exact-head and post-merge CI are pending. Do not claim Undo/Redo end-to-end complete yet.
+
+
+## PR #171 — Undo/Redo workbench and browser race fix (OPEN)
+
+- Adds persistent navigation-state reads, Undo/Redo controls, current-head gating and server-driven refresh after every restore.
+- Tracks the actually loaded revision separately from the selected dropdown value; historical snapshots remain read-only even if the user changes the selection back to the head without loading it.
+- Rejects empty/non-positive revision selection before Load or Regenerate.
+- Chromium fixture waits for the revision option to be attached before loading; adds reload persistence, redo invalidation after a new edit and historical read-only coverage.
+- Exact-head CI pending. The previous PR #170 post-merge browser error remains a known failure until this PR passes post-merge.
+
+
+## Current integration update — PR #171 MERGED
+
+- PR #171: https://github.com/phakphum12345/universal-platform/pull/171
+- Exact PR head: `b053f203d6156aa8dcf7265e513d20c854623eba`; merge SHA: `21bee045ea4d06aa07c7130f9123afaa64372638`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (865 tests); Chromium E2E PASS (6 tests).
+- Undo/Redo workbench uses server-persisted navigation state, requires the actually loaded current head for mutations, keeps historical revisions read-only, and refreshes revision/navigation state after restore actions.
+- Browser coverage includes multi-step Undo/Redo, reload persistence, historical read-only gating, redo invalidation after a new edit and revision-option readiness.
+- Bounded FeatureHistory Undo/Redo is PASS across PRs #168–#171. The overall CAD editor and repository remain PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #174 MERGED
+
+- PR #174: https://github.com/phakphum12345/universal-platform/pull/174
+- Exact PR head: `14df81bffdf991133b5c3b5fcbee089ba7d409c3`; merge SHA: `3d7504ec64433e90aedf6c11ef760cf66b801390`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (870 tests); Chromium E2E PASS (7 tests).
+- Workbench presents stored topological FeatureHistory order and provides Move Up/Move Down controls only when the adjacent swap preserves dependency order.
+- Reorder appends an immutable revision through expected-revision safety; dependency edges and deterministic execution order remain unchanged. Historical revisions remain read-only.
+- The overall CAD editor and repository remain PARTIAL / INCOMPLETE; graph branch/merge, recompute propagation and generalized CAD geometry remain open.
+
+
+## Next FeatureHistory work package — branch and merge contract
+
+- Added [FeatureHistory Branch and Merge Contract](../design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) defining isolated branch history identities, exact fork provenance, conservative three-way merge semantics, conflict reporting and atomic append-only target merges.
+- This is design evidence only. Branch metadata storage, branch creation, merge analysis, transactional merge, service/API, workbench and browser acceptance remain NOT IMPLEMENTED / OPEN.
+- The current per-history revision chain and Undo/Redo behavior remain unchanged until the additive schema and transactional implementation pass migration and regression tests.
+
+
+## Current integration update — PR #176 MERGED
+
+- PR #176: https://github.com/phakphum12345/universal-platform/pull/176
+- Exact PR head: `aa4a24c71242c861fdff387475e711d3e22756c6`; merge SHA: `2bc96a79c9c341dc896da980c1117d37928023ba`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (875 tests); Chromium E2E PASS (7 tests).
+- Adds additive SQLite schema v2 branch-origin metadata while preserving the v1 revision digest envelope and existing revision hashes.
+- Store supports atomic fork from a verified root head or historical revision into a new history ID, exact base digest provenance, branch metadata lookup/listing, and rejection of nested forks/duplicate IDs/names/invalid inputs.
+- CADGeneratorService exposes the transport-neutral `fork_history` method. No HTTP route or workbench UI for branch operations is claimed yet.
+- Branch creation is PASS as a bounded store/service slice; three-way merge, conflict analysis, merge API/UI and browser workflow remain OPEN. Overall repository remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #177 MERGED
+
+- PR #177: https://github.com/phakphum12345/universal-platform/pull/177
+- Exact PR head: `0dcba4786caba9aeb1b8c8eb6c28c878b7ce0f3a`; merge SHA: `c1d291e3d48a6757642400303dd035a7491bd9ff`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (882 tests). Chromium E2E was SKIPPED / not triggered because the change is a pure analyzer with no API/UI modifications.
+- Adds `merge_feature_histories(base, source, target)`, typed conflict/result records, stable-ID three-way node merge, delete-vs-edit detection, output/suppression membership merge and conservative deterministic presentation-order merge.
+- Analyzer is pure and does not mutate histories, write revisions or resolve conflicts. Store-level transactional merge, merge provenance, API, workbench and browser flow remain OPEN.
+- FeatureHistory branch/fork and pure merge analysis are PASS as separate bounded slices; full branch/merge requirement remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PR #178 MERGED
+
+- PR #178: https://github.com/phakphum12345/universal-platform/pull/178
+- Exact PR head: `1f4c2bf1112e29af6b017a9aad051ccd32c3f67c`; merge SHA: `cc58f90d56fc7b8102b4f79a04706836da7b756f`.
+- PR state: CLOSED / MERGED; reviews: 0; inline review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; python-tests PASS (886); Chromium E2E PASS (7).
+- Adds additive SQLite schema v3 merge provenance, keeping the existing revision digest envelope v1 and prior revision hashes intact.
+- `SQLiteFeatureHistoryStore.merge_branch` performs three-way analysis, validates exact common fork ancestry, rechecks expected source/target heads under BEGIN IMMEDIATE, appends one immutable target revision and atomically updates target navigation stacks plus merge provenance.
+- `FeatureHistoryRevision` exposes source branch, source revision/digest, root base and merge algorithm provenance; `CADGeneratorService.merge_history_branch` exposes the store operation.
+- Conflicts and stale source/target heads leave both histories and navigation state unchanged. Source branch is never modified.
+- Store/service branch merge is PASS. Strict HTTP routes, workbench controls and branch/merge browser acceptance remain OPEN; repository remains PARTIAL / INCOMPLETE.
+
+
+## Current integration update — PRs #179–#180 MERGED
+
+### PR #179 — strict branch/fork/merge API
+- Exact PR head: `431ddc298601320f38e3f7bde74633b4c7c655c2`; merge SHA: `01d9afaeb9a7f9c3eecee7659d966bdcbae55983`.
+- Added authenticated loopback GET branch listing, POST fork, POST merge, strict request validation, structured HTTP 409 conflict payloads and merge provenance in revision inspection.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (889); Chromium E2E PASS (7).
+
+### PR #180 — branch/merge workbench
+- Exact PR head: `4513b0d8d310a37db002edd467e315800f4e589e`; merge SHA: `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`.
+- Added branch listing, fork from a loaded immutable revision, current-target-head merge gating, source head discovery, provenance display and text-only conflict reporting.
+- Chromium acceptance covers fork → edit → merge into root and conflict reporting without changing either head.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (889); Chromium E2E PASS (9).
+
+**FeatureHistory branch/fork/merge status:** PASS for this bounded end-to-end workflow. The overall CAD vertical slice and repository remain PARTIAL / INCOMPLETE; recompute propagation, general CAD kernel/Boolean capabilities, physics/hardware/runtime integration and other roadmap requirements remain OPEN.
+
+
+## Current integration update — PR #181 MERGED
+
+- PR #181: https://github.com/phakphum12345/universal-platform/pull/181
+- Exact PR head: `70be8fb3c091fd391d994da01c0fb6b4cb912dfd`; merge SHA: `ea9dfc13503c5d41739804e0ab5b68fe87e74d1b`.
+- PR state: CLOSED / MERGED; reviews: 0; unresolved review threads: 0.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python tests PASS (892). Chromium E2E was SKIPPED / not triggered because the change is a geometry model/schema implementation with no API/UI modifications.
+- Faceted BRep schema/profile v2.0 supports polygonal planar face loops and explicit inner loops; exact represented-binary64 rational predicates validate planarity, simplicity, strict containment, non-touching and orientation.
+- Euler characteristic/genus account for face holes. The new square through-hole reference is one valid connected closed genus-1 shell with volume 12.
+- v1.0 triangular snapshots remain importable. Mesh conversion intentionally remains triangular/no-hole only and rejects unsupported geometry.
+- Single-shell polygonal BRep with face holes is PASS. Multi-shell outer-shell plus disjoint-cavity aggregation is PASS for its bounded profile (PR #184). General 3D Boolean and general CAD kernel remain OPEN; repository remains INCOMPLETE.
+
+
+## B-rep mesh triangulation — PR #182 PASS
+
+- Base integration SHA: `1b67f0ae56b0d9fb2a86dc1bb0fbfe5b1a3bfa34`.
+- Exact PR head: `c4c1a5c642096f2c030982c567fe308cb2df07e4`.
+- Merge SHA / current integration HEAD: `9c84d4d94030c0e3084d7a288064491d8160a71f`.
+- Scope: deterministic triangulation of polygonal n-gon faces and one or more inner loops in `triangle_mesh_from_brep`.
+- Reuses the existing profile-region bridge-and-ear-clipping implementation; no third-party dependency or new geometric vertices.
+- Preserves source vertex order/positions, outer-loop orientation, solid ID, frame, unit and source geometry digest.
+- Requires the complete mesh to pass valid, watertight and consistently-oriented validation.
+- Resource bounds: 10,000 boundary vertices per face and 200,000 triangles per solid.
+- Contract: `docs/design-3d/FACETED_BREP_MESH_TRIANGULATION_CONTRACT.md`.
+- Tests: `tests/test_faceted_brep.py` covers polygonal prism and holed-shell conversion, deterministic output, identity preservation and round-trip genus/volume.
+- Exact PR-head CI: workflow #42459969975; workflow-sanity PASS; Python 894 PASS (14.43s).
+- Post-merge CI: workflow #42460044330; workflow-sanity PASS; Python 894 PASS (14.56s).
+- Chromium E2E: SKIPPED/not triggered (no UI change); not counted as PASS.
+- Status: PASS for the bounded single-shell polygonal/holed B-rep mesh adapter. Whole-repository completion remains INCOMPLETE.
+
+
+## B-rep multi-shell solid and cavity composition — PR #184 PASS
+
+- Exact PR head: `850e521cd3499ede4e8a00a5cb1698cee32347d0`.
+- Merge SHA / current integration HEAD: `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`.
+- PR workflow #42461224579: workflow-sanity PASS; Python 902 PASS (15.63s).
+- Push workflow #42461220462: workflow-sanity PASS; Python 902 PASS (15.53s).
+- Post-merge workflow #42461294867: workflow-sanity PASS; Python 902 PASS (14.17s).
+- Supports one outer shell and zero or more strictly-contained, disjoint, non-nested cavity shells. Cavity winding is reversed only in aggregate mesh conversion; combined output must be watertight, consistently oriented and positive-volume.
+- Browser E2E was not triggered because no browser UI changed; not counted as PASS.
+- Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR184.md`.
+- Nested cavity islands, arbitrary 3D Boolean, curved surfaces and multi-shell STEP/AP242 remain OPEN.
+
+
+## Multi-shell cavity reference expansion — PR #186 PASS
+
+- Exact PR head: `4d8f253078ccfc202e275db9494c25d7f0174227`.
+- Merge SHA / current integration HEAD: `7b02337fb6bfe678ba950135c913b910c6e5fd40`.
+- Exact PR-head workflow #42461621856: workflow-sanity PASS; Python 904 PASS (14.52s).
+- Post-merge workflow #42461678728: workflow-sanity PASS; Python 904 PASS (14.44s).
+- Added rotated 45-degree box cavity and concave L-prism cavity references. Their expected net material volumes are 992 and 986 respectively.
+- No separate push-event run was returned for the exact PR head; record UNKNOWN/not PASS. Browser E2E not triggered because no UI changed.
+- Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md`.
+
+
+## Multi-shell fail-closed regression coverage — PR #188 PASS
+
+- Exact PR head: `de8403ce210a4d283d4163401338cf0370c811de`.
+- Merge SHA / current integration HEAD: `3e51a20339ddf5d9a4bcecbe94ef8160eb9fae2f`.
+- Exact PR-head workflow #42461990534: workflow-sanity PASS; Python 906 PASS (15.32s).
+- Post-merge workflow #42462067390: workflow-sanity PASS; Python 906 PASS (16.06s).
+- Adds explicit rejection of a cavity touching the outer boundary and failure injection proving an intersection-analysis `UNKNOWN` result rejects the aggregate.
+- No separate push-event run was returned for the PR head; record UNKNOWN/not PASS. Browser E2E not triggered because no UI changed.
+- Contract: `docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md`.
+
+
+## Multi-shell fail-closed tests and documentation audit — PR #189 PASS
+
+- PR #188 exact head: `de8403ce210a4d283d4163401338cf0370c811de`; PR-head Python 906 PASS; post-merge Python 906 PASS.
+- PR #189 exact head: `2afd572d0b0d05cf57ca55c2fe1ca3d82ef45f63`.
+- PR #189 push workflow #42462189154: workflow-sanity PASS; Python 906 PASS (14.87s).
+- PR #189 PR workflow #42462199774: workflow-sanity PASS; Python 906 PASS (15.28s).
+- PR #189 post-merge workflow #42462267653: workflow-sanity PASS; Python 906 PASS (16.26s).
+- PR #188 rejects cavity/outer boundary contact and injected intersection-analysis UNKNOWN. Browser E2E not triggered because no UI changed.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md`.
+
+
+## Axis-aligned multi-shell Boolean — PR #191 PASS
+
+- Exact PR head: `9e069f85e840147d541491a7b424bfd7eef8de1c`.
+- Merge SHA / current integration HEAD: `20e03675ec1000bd2bbcfaf251df4790305f2c0c`.
+- Exact-head push workflow #42462848667: workflow-sanity PASS; Python 914 PASS (32.41s).
+- Exact-head PR workflow #42462853863: workflow-sanity PASS; Python 914 PASS (20.87s).
+- Post-merge workflow #42462960964: workflow-sanity PASS; Python 914 PASS (29.65s).
+- Supports exact axis-aligned box outer/cavity components, 2–16 inputs and a 32,768-cell grid ceiling. Output reconstructs multi-shell components with cavities.
+- Browser E2E was not triggered because no browser UI changed; not counted as PASS.
+- Arbitrary faceted/rotated/curved Boolean inputs and general 3D Boolean remain OPEN.
+- Contract: `docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md`.
+- Audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md`.
+
+
+## Arbitrary faceted B-rep Boolean — planned, not implemented
+
+- Design baseline: integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec`.
+- Contract: `docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md`.
+- Pre-implementation audit: `docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md`.
+- Existing axis-aligned single-shell and multi-shell Boolean adapters remain limited to box components.
+- Existing exact-rational mesh intersection analysis is reusable as a predicate/candidate-generation foundation, but does not split triangles or assemble Boolean boundary fragments.
+- Gate A remains PLANNED: exact transverse triangle-pair events and deterministic triangle-fragment splitting. No arbitrary-faceted Boolean implementation is claimed.
+- Coplanar overlap, tangency, contact branching, nested material islands and general curved surfaces remain OPEN.
+
+
+## Exact transverse triangle intersection segment — PR #195
+
+- PR #195 exact head: `1bcfa0ceb1aab8839ec7ee5e06ae8ffe0ecc6e9e`; merge SHA: `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`.
+- Adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` with exact rational endpoints, canonical triangle/endpoint order, strict endpoint validation and fail-closed unsupported classifications.
+- Tests: `tests/test_triangle_intersection_events.py`; exact-head workflow #42468475501: workflow-sanity PASS; Python 921 PASS (21.16s).
+- Earlier run found six invalid fixtures using unsupported source kind `TEST`; fixtures were corrected to `BOX` and the updated exact head passed.
+- Post-merge workflow/status on merge SHA: UNKNOWN (no associated run or combined status returned). Do not count as PASS.
+- Explicit limit: no triangle fragment splitting, material classification, Boolean operation or shell assembly. General faceted Boolean remains PARTIAL/INCOMPLETE.
+
+
+## Exact triangle fragment splitting by intersecting plane — PR #197
+
+- PR #197 exact head: `49029f71f161afe2d3ba787c66eb21bd2127c02d`; merge SHA: `f31ca0135cafc17c1489d88f62c09be1c18cc97e`.
+- Adds `TriangleFragment` and `split_triangle_by_intersecting_plane` for one source triangle and one properly intersecting cutter plane.
+- Uses exact-rational half-plane clipping, deterministic triangulation, source-winding preservation and exact area conservation; maximum three output triangles per single-plane split.
+- Tests in `tests/test_triangle_intersection_events.py`; exact-head workflow #42468939670: workflow-sanity PASS; Python 925 PASS (31.98s).
+- Earlier test run exposed an incorrect expected positive/negative fragment distribution; the expectation was corrected and the updated exact head passed.
+- Post-merge workflow/status on `f31ca0135cafc17c1489d88f62c09be1c18cc97e`: UNKNOWN; no associated run/status returned.
+- Explicit limit: no multi-plane full-mesh arrangement, global edge pairing, material classification or Boolean shell assembly.
+
+
+## Exact multi-plane per-source-triangle arrangement — PR #199
+
+- PR #199 merged to `docs/phase-0-complete-requirements` at `bc5f2a1bffb632ef1440ea9740e69f89cf50737e`; exact PR head `6e4508fdf0f6f3a0a6498f916f13c2970f204523`.
+- Adds `RationalPlane`, `RationalTriangleFragment` and `arrange_triangles_by_planes` in `triangle_fragment_arrangement.py`, exported through `engineering`.
+- Applies ordered exact-rational planes without float round-tripping; records POSITIVE / NEGATIVE / COPLANAR provenance, preserves winding and verifies exact area conservation for each strict split.
+- Fail-closed limits cover fragment count and rational numerator/denominator bit length.
+- Exact PR-head workflow #42470843529: workflow-sanity PASS; Python tests PASS. Documentation marker SKIPPED, not counted as PASS.
+- Post-merge CI/status: UNKNOWN; no associated run or combined status returned.
+- PASS for the bounded per-source-triangle primitive at PR head. Global mesh arrangement, independent coverage oracle, material classification and Boolean shell assembly remain OPEN; arbitrary faceted Boolean remains PARTIAL/INCOMPLETE.
+
+
+## Current arbitrary faceted Boolean implementation — post-PR #212 (2026-11-08)
+
+**Integration branch:** `docs/phase-0-complete-requirements`  
+**Pinned integration SHA:** `d1289efdb71a1172beb88665baf09b4620f0cdc5`  
+**Main SHA:** `96e75010716226037893155b9fd4b13410fb0d6f` (unchanged)
+
+### Merged bounded implementation slices
+
+- PR #200 — global exact-rational vertex identity, face/edge incidence and adjacency; merge `ee4c7420d230616270be3513f9ef2b4e530761a6`.
+- PR #201 — exact global T-junction diagnostics with a fail-closed topology scan budget; merge `504dc12e6e6bbfcb2a4932a0b5ec3a6af5eefd9b`.
+- PR #202 — exact edge-incidence subdivision at registered global vertices; merge `17406635f623011dfff51e24fbfa9ed16ef3ce69`.
+- PR #203 — independent exact 2D coverage oracle for containment, overlap, duplicate fragments and area; merge `5670d17ee7dc059c11d44ada0a7e9da2b3bbd9d1`.
+- PR #204 — fail-closed exact point-vs-mesh INSIDE / OUTSIDE / BOUNDARY / UNKNOWN classification; merge `29f41a2be5c2c9699c8a18e17732edf63bd2dbc6`.
+- PR #205 — Boolean boundary selection for UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE; merge `6238085aebebba2199ac5170061c0cec0f4aed85`.
+- PR #206 — connected shell assembly, orientation, exact volume, cavity ownership and B-rep/multi-shell validation; merge `9c1834ee79b90d559fd5075560c0677124e18290`.
+- PR #207 — public exports and CADGeneratorService Boolean orchestration; merge `f77e3cf7ba413c97d32c3a800e07938d50bd7ce8`.
+- PR #208 — audit/documentation reconciliation; merge `60919a663e7a81f0105d5aebf477400479c5f4e6`.
+- PR #209 — conforming facet triangulation for global T-junctions; merge `5da14bcbaa4265fcb6b965462c0ceeeb3a266cf7`.
+- PR #210 — automatic bounded multi-mesh supporting-plane arrangement and non-coplanar intersecting-box Boolean execution; merge `954f17b6add03e294a8707be03ff37b03827e57a`.
+- PR #211 — coplanar positive-area overlay, two-sided material classification and overlapping-box UNION fixture with exact volume 12; merge `bde93ccf2a3fe3bec90ec36afe724df40ed9c505`.
+- PR #212 — exact 3D coplanarity validation in the coverage oracle, rejecting off-plane fragments that share a valid 2D projection; merge `7fd78fa40886694bd46cfb6a61f60c3f716033f2`.
+
+### Verified end-to-end reference cases
+
+- Non-coplanar intersecting-box UNION via `CADGeneratorService.execute_faceted_boolean`: exact expected volume `15`.
+- Coplanar-overlapping-box UNION via the same service: exact expected volume `12`.
+- PR #203–#210 merge SHAs have workflow-sanity and Python post-merge check runs with success conclusions; PR #207 and #210 also have Chromium E2E success on their merge SHAs.
+- PR #211 exact-head Python/workflow-sanity checks PASS.
+- PR #212 exact-head and post-merge Python/workflow-sanity checks PASS.
+
+### Explicit current limitations
+
+- Point/edge-only coplanar contact, arbitrary tangencies, branching and unsupported degenerate topology fail closed.
+- B-rep output remains binary64; exact rational shell coordinates that cannot round-trip losslessly are rejected rather than rounded.
+- Nested positive material islands and generalized shell-parent semantics are unsupported.
+- The automatic arrangement is bounded to the implemented supporting-plane and coplanar positive-area overlay strategy; the reference corpus is not a proof for all arbitrary faceted solids.
+- The CAD Boolean path is in-process/offline. It does not expose a general Boolean HTTP/browser authoring endpoint.
+- Browser E2E is not applicable to kernel-only changes when its path filters do not match; missing/untriggered E2E is not PASS.
+
+**Capability status:** bounded faceted Boolean execution is implemented for the named fixtures. General arbitrary-faceted B-rep Boolean remains **PARTIAL / INCOMPLETE**. Overall Universal Platform remains **INCOMPLETE** pending repository-wide requirements and adversarial validation.
+
+### Follow-up resource validation — PR #213 merged
+
+PR #213 merged at `d1289efdb71a1172beb88665baf09b4620f0cdc5` (exact PR head `093db080ebbb2a04431bd6254c889ceb53d8afed`). It validates direct plane types, applies rational numerator/denominator bit ceilings to cutter-plane coordinates, and bounds the standalone exact coverage oracle. Exact PR-head workflow-sanity and Python tests PASS. Post-merge workflow #42485255693 on the exact merge SHA passed workflow-sanity and Python tests. PR #213 is PASS for exact-head and post-merge required checks.
+
+
+## Coplanar contact isolation — PR #215 (2026-11-08)
+
+- PR #215 merged to the integration branch at `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`; exact PR head `171583c852994aba3f61f712d48deabd0aab7cca`.
+- The arrangement no longer treats a supporting plane as globally "safe" merely because any triangle pair on that plane has positive-area overlap.
+- Exact point/segment contacts are retained as 2D rational geometry and accepted only when the complete contact is covered by the union of positive-area overlap polygons on that same plane.
+- Unrelated edge/point contacts on an otherwise active overlap plane now fail closed.
+- Regression fixtures cover exact segment-coverage intervals and disconnected multi-component meshes where unrelated overlap previously masked edge-only contact.
+- Exact PR-head workflow-sanity PASS and Python tests PASS. Post-merge workflow-sanity and Python tests PASS on exact merge SHA `1ce59cab30ccfa18d8a8d72022706ffd9d9cec0b`.
+
+**Current bounded Boolean status:** PRs #200–#215 implement global arrangement, coverage certification, classification, boundary selection, shell assembly, CADGeneratorService execution, coplanar positive-area overlay and isolated-contact rejection for the tested cases. General arbitrary-faceted B-rep Boolean remains PARTIAL / INCOMPLETE.
+
+
+## Repository checkpoint — post-PR #226 (2026-11-09)
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Verified branch HEAD: `6a0894334bbc594a14f30a6edbb45238282c4b92` (PR #226 merge).
+- Open PR inventory at this checkpoint: 0.
+- PR #226 exact head `29dafc03d09303c2f55d10113b6d6b9a72c913a1`; the recorded PR workflow had `python-tests` and `workflow-sanity` PASS. A doc-only not-applicable step was SKIPPED, not PASS; browser E2E was not triggered for this Python/docs-only change. Post-merge workflow evidence must be checked independently before claiming it PASS.
+- PR #226 strengthens exact coplanar contact geometry validation and adversarial tests. It does not complete the general Boolean kernel.
+- Current Boolean pipeline remains PARTIAL. The exact rational multi-shell output path is implemented in PR #225; independent coverage and material/selection/shell stages exist. A single invocation-wide resource ledger across arrangement, classification, boundary selection and shell assembly remains outstanding.
+- Next engineering slice: audit every stage's resource dimensions and counter semantics, then implement shared cross-stage accounting with deterministic fail-closed exhaustion and no partial result. Preserve current per-stage hard ceilings as upper bounds.
+- Hardware scope baseline: see [Hardware Intelligence & Diagnostics Roadmap](../hardware/HARDWARE_INTELLIGENCE_DIAGNOSTICS_ROADMAP.md). Areas HW-01–HW-10 are core roadmap; HW-11–HW-16 are long-term. This scope decision does not change the current implementation maturity: schematic metadata/rendering and static ERC exist; driver metadata contracts exist; live device drivers, sensor reads, PCB DRC, and circuit simulation are not established.
+- This file contains historical audit entries above; the dated checkpoint here supersedes earlier stale “latest audit” headers. Do not interpret historical counts/SHA values as current.
+
+
+## Module Runtime and Physics bridge — PR #236 candidate (2026-11-10)
+
+- PR #235 adds initial policy-gated in-process handler dispatch. Post-merge workflow run `42811038227` on merge SHA `95253414616c992c606c0e73d69c48c30df4cd36`: `workflow-sanity` PASS; `python-tests` PASS. A skipped documentation-only marker is not counted as a pass.
+- PR #236 candidate adds an explicit adapter from `ModuleRequest` to the existing `PhysicsSolverRegistry` for axial stress, ideal DC Ohm's law/power, and linear thermal expansion. It preserves Quantity snapshots and EvidenceRecord output, requires a host-side permission grant, applies an explicit license allow-list, and accepts only the bounded built-in solver inputs.
+- Candidate files: `src/universal_platform/engineering/physics_module_adapter.py`, `tests/test_physics_module_adapter.py`, and `docs/architecture/PHYSICS_MODULE_RUNTIME_BRIDGE.md`.
+- Status: IN_PROGRESS until exact-head CI and post-merge checks pass. This is trusted in-process execution, not OS sandboxing or arbitrary plugin loading.
+
+
+## Current integration reconciliation — 2026-11-12 (post-PR #240)
+
+This section supersedes earlier "latest" headers in this file. Historical checkpoints remain historical and are not current branch-state claims.
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Exact integration HEAD: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Exact `main` HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged and not targeted.
+- Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
+- Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
+- PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
+- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
+- Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
+- No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
+
+| PR | Exact head SHA | Exact merge SHA | Post-merge run |
+|---|---|---|---|
+| #235 | `d5674ba2a1b3f172357aad69f208883d1586755e` | `95253414616c992c606c0e73d69c48c30df4cd36` | [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) |
+| #236 | `92c0827ef39d575bd5c8ff940c6395de6d75b900` | `4853f297e988603e30069859e6b1486283fcf00f` | [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) |
+| #237 | `c22b37f1db0b1adfce4a71d18cd715bea358cae0` | `2801c8b990af564a6655203f8cfc9a52db70dce3` | [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) |
+| #238 | `2e2e833237f681381876e0fffb73a00a78dd69e1` | `564130639fc02aa8ce856b0d8ea33c0f0b1a7237` | [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) |
+| #239 | `98d4f86772cc69765335320d34b56e0391d31e7e` | `53167ffeb6efb829640363a33dffe08edd788e90` | [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) |
+| #240 | `17923b36201bbc1129eceabbfd98e24386c8fd8c` | `c3d9800ebb46caff38bf18c13142e218ee2c6c63` | [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) |
+
+### Runtime maturity boundary
+
+- ModuleRuntime now performs host-grant-gated invocation of explicitly registered trusted Python handlers; request-supplied permissions do not grant authority.
+- The runtime enforces a deliberately bounded output-schema subset and releases in-memory resource leases in a `finally` path.
+- The Physics bridge exposes three bounded analytical solvers: axial stress, ideal DC Ohm's law/power, and linear thermal expansion.
+- Resource reservation is host-configured, in-memory, process-local admission control. It does not enforce actual CPU, RAM, I/O, network or wall-clock consumption.
+- The process supervisor is a separate allow-listed trusted-worker facility. POSIX process-group cleanup is covered by tests; Windows currently terminates only the direct child.
+- ModuleRuntime does not route invocations through the process supervisor. Worker protocol integration, host-owned deadlines, cancellation/worker races, lease release after worker termination, durable recovery and OS-enforced isolation remain open.
+- None of these facilities is a sandbox. Do not execute untrusted plugin code.
+
+### Next dependency-ready work
+
+1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
+3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
+4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
+5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
+6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+
+## WP-15 — Modern Unified Control Center UI
+
+Status: PLANNED. The scope, information architecture, settings governance, delivery sequence and acceptance gates are documented in [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md). No implementation or UI acceptance is claimed. The first implementation step is a source-backed inventory of existing UI routes, components, APIs and tests; no replacement shell should be built before that inventory.
+
+## Current execution checkpoint — 2026-11-19
+
+This section supersedes the 2026-11-12 runtime checkpoint for current PR state. Earlier exact-SHA evidence remains historical and is not reused as evidence for newer commits.
+
+- Exact Development Branch HEAD at PR #246 base: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge). Latest verified merged runtime increment: PR #244, exact head `8832ad015df3540add0fb015d3429930d20d1518`, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head workflow #43283027429 passed the recorded required jobs. A workflow run on the exact merge SHA was not found in this audit; post-merge integration CI is UNKNOWN.
+- PR #243, `docs/wp-09-windows-job-object-contract`, remains OPEN at exact head `18f3bb4ad11fc74d47c69747ab36b4bd382a8382`. Its exact-head run #44552533763 completed successfully for workflow-sanity, Python tests and Windows process supervisor; the documentation-only marker step was SKIPPED. Formal review submissions and unresolved threads were empty. Its process/thread-handle ownership and descendant/pipe acceptance refinements remain useful beyond PR #244's implementation; preserve these contract changes while reconciling stale status edits.
+- PR #245, `feat/wp-09d-versioned-worker-ipc`, remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`. Exact-head run #44562681272 passed workflow-sanity, Windows process supervisor and Python (1,096 passed, 4 skipped). It is VERIFIED on the PR branch, not integrated; formal review submissions and unresolved threads were empty, so review outcome remains UNKNOWN.
+- PR #245 adds a bounded version 1.0 length-prefixed UTF-8 JSON framing primitive and focused tests. It is transport-only: it does not launch a worker, dispatch ModuleRuntime calls, authorize requests, correlate cancellation with active work, or bind resource leases to process termination.
+- PR #245 documentation newline escaping was corrected in `DOCUMENTATION_INDEX.md`, `docs/execution/WORK_PACKAGE_STATUS.md`, `docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md` and `docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md`. Added tests cover partial reads/writes, truncated bodies, invalid message-type types, non-finite exponent overflow, JSON nesting limits and encoder/decoder consistency. These changes are verified by exact-head run #44562681272.
+- Overall WP-09 remains PARTIAL. Next implementation gate is ModuleRuntime dispatch through supervised worker processes, followed by host-owned deadlines/cancellation, lease retention until confirmed worker-tree termination, durable recovery and separate OS-isolation acceptance.
+- Repository-wide acceptance remains INCOMPLETE. See [Master Completion Matrix](../../MASTER_COMPLETION_MATRIX.md) for the cross-domain execution queue and acceptance boundaries.
+
+## Current execution checkpoint — 2026-11-20 (supersedes the 2026-11-19 checkpoint)
+
+- Development Branch baseline at PR #254 base: `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`. `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; no main-branch change is included.
+- PR #243 Windows Job Object contract refinements, PR #244 Windows Job Object implementation, PR #245 versioned WorkerFrame protocol, PR #246 completion matrix, PR #247 WP-15A UI inventory, PR #248 bounded worker stdin, and PR #252 one-shot WorkerIPCClient are merged.
+- PR #244, #245, #247 and #248 merge-SHA check runs were verified PASS for workflow-sanity, Python tests and Windows supervisor where applicable.
+- PR #252 exact head `2e7e2af5189bf5169fdfc5e047952f325778807a` passed run #44595003293: workflow-sanity PASS, Windows process-supervisor PASS, Python 1,125 passed / 4 skipped. On merge SHA `25a546e57b4ffc67bf3fa2df59fc305e4750a44d`, workflow-sanity and Windows checks passed; post-merge Python, workflow-sanity and Windows supervisor checks subsequently completed PASS on the exact merge SHA.
+- PR #251 is the canonical WP-15B navigation/user-journey draft, exact-head run #44591801429 passed all required jobs, and the PR remains DRAFT pending owner acceptance. No navigation, persona, entrypoint, responsive, accessibility or journey decision is approved by CI.
+- PR #254 adds ModuleRuntime worker dispatch, versioned input schema validation, host permission gating, cancellation mapping, lease quarantine and fail-closed lease retention if quarantine metadata writing fails. Exact-head CI is pending on the live PR head; implementation is authored but not VERIFIED or INTEGRATED.
+- WP-09 remains PARTIAL. Durable lease/job recovery is still open: the existing RecoveryCoordinator and JSONL recovery evidence store persist recovery evidence but do not persist/reconcile ResourceAllocator worker leases or restore active worker state after host restart. OS privilege/filesystem/network isolation and actual CPU/memory/I/O enforcement are also not accepted.
+- Repository-wide acceptance remains INCOMPLETE. See [Master Completion Matrix](../../MASTER_COMPLETION_MATRIX.md) for the dependency queue and explicit acceptance boundaries.
+
+## Authoritative runtime checkpoint — 2026-11-20 (after PR #254 merge)
+
+- PR #254 merged into the Development Branch at f2ee9045c6316b2ff9026ea5196fedf1232f71a3.
+- Exact-head run #44606596004: Python 1,142 passed / 4 skipped; Windows process-supervisor PASS; workflow-sanity PASS.
+- Exact merge-SHA post-merge run #44607892946: Python 1,142 passed / 4 skipped; Windows process-supervisor PASS; workflow-sanity PASS.
+- WP-09F is IMPLEMENTED / VERIFIED / INTEGRATED: host-configured WorkerIPCClient dispatch, versioned input/output schemas, host permission admission, immutable WorkerInvocationHandle cancellation, confirmed process-tree cleanup before lease release, and fail-closed lease quarantine.
+- WP-09G is DESIGN SPECIFIED / NOT IMPLEMENTED / NOT ACCEPTED. The current ResourceAllocator and quarantine state are process-local. JsonlRecoveryEvidenceStore is recovery-outcome evidence, not a durable live worker lease ledger.
+- The Durable Worker Lease Recovery Contract defines WP-09G-A through WP-09G-E. OS sandboxing and actual CPU/memory/I/O enforcement remain separate acceptance gates.
+- Repository-wide acceptance remains INCOMPLETE; main remains unchanged.

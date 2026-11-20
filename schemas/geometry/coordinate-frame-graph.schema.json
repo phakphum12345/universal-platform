@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Coordinate Frame Graph Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "frames", "transforms"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frames": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "transforms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rigidTransform" }
+    }
+  },
+  "$defs": {
+    "rigidTransform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "from_frame", "to_frame", "rotation", "translation"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "from_frame": { "type": "string", "minLength": 1 },
+        "to_frame": { "type": "string", "minLength": 1 },
+        "rotation": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": { "type": "number" }
+          }
+        },
+        "translation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y", "z", "unit"],
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" },
+            "unit": { "enum": ["m", "mm", "cm", "km", "in"] }
+          }
+        }
+      }
+    }
+  }
+}

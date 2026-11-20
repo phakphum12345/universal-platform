@@ -1,0 +1,296 @@
+# Engineering Intelligence and 3D Design Project Plan
+
+**Planning status:** PROPOSED for owner review  
+**Scope direction:** CONFIRMED by owner  
+**Current integration baseline:** PR #56 planar plane-frame mobility merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`; post-merge run #461 (`42197156442`) passed workflow-sanity and python-tests, 462 tests. PR #49/#52 provide the integrated profile CAD slice; PR #54 closes the eight-family spatial joint reference coverage gap.
+
+## 1. Objective
+Specify a reusable multidisciplinary engineering core and 3D design/tool-generation system. UEIC is the shared middle layer. Existing Driver Generation is treated as an existing capability to locate and reuse; this project must not create a duplicate driver generator.
+
+## 2. Scope
+- Multidisciplinary knowledge modules and domain registry.
+- Physics and first-principles models.
+- Mathematics, units, uncertainty and provenance.
+- Solver/model adapter contracts.
+- Cross-domain constraint planning and verification.
+- Parametric 3D design and existing-model analysis.
+- Tool, fixture and mechanism generation.
+- Assembly, joints, kinematics and motion envelopes.
+- Structural/civil, mechanical, thermal, fluid and electronic design support.
+- Simulation and model validation.
+- CAD-to-manufacturing preparation.
+- Safety, review and evidence governance.
+
+## 3. Explicit exclusions for the initial phase
+No physical device control, GPIO writes, live bus transactions, register writes, power switching, actuator/motor operation, firmware flashing, machine operation, production release, automatic purchasing or deployment. No duplicate driver-generation implementation. No automatic integration of separate projects.
+
+## 4. Work phases and gates
+### Phase 0 — Requirements and documentation baseline
+Deliver scope, requirements, architecture, module catalogue, data/API contracts, safety policy, acceptance criteria, traceability, decision register and open questions. Documentation is a specification, not implementation evidence.
+
+### Phase 1 — Repository and capability inventory
+Inspect existing code/docs, especially Driver Generation, calculation engine, device intelligence, simulation, CAD-related work and adapters. Record exact paths, SHA, tests and actual maturity.
+**Current result:** Universal Platform has a merged initial Python engineering foundation and 66-blob recursive tree at the baseline SHA. The initial engineering slice is verified by PR #1 checks and post-merge run #19. Broader capabilities remain not implemented or unverified. The external Driver Generation canonical source remains UNKNOWN; the inspected EFI/OpenCore candidate is not a universal driver generator.
+Gate: complete source inventory; canonical Driver Generation location or explicit owner acceptance of UNKNOWN; reuse/extension/create decisions.
+
+### Phase 2 — Architecture and technology decision
+Compare candidate CAD kernels, file formats, solvers, simulation tools and data stores using license, cost, offline support, platform support, interoperability and validation evidence. PR #39 introduces the first metadata-only module manifest/registry foundation; runtime loading, invocation and isolation remain separate work.
+Gate: architecture decision records approved. No vendor/tool selected by assumption.
+
+### Phase 3 — Minimal vertical-slice design
+Choose one representative workflow, define test dataset, requirements, interfaces, expected outputs and verification method.
+Gate: owner approves acceptance tests and safety boundary.
+
+### Phase 4 — Core implementation
+Extend only approved UEIC contracts, module registry, units/provenance, solver adapters and evidence records. Isolate components and add tests.
+Gate: tests and security review pass.
+
+### Phase 5 — 3D design integration
+Integrate a selected CAD tool/kernel, parametric geometry, assemblies and export validation. Do not imply full simulation support unless independently proven.
+Gate: repeatable model build and export tests.
+
+### Phase 6 — Multidisciplinary analysis
+Add validated physics/material/mechanical/electrical/thermal modules incrementally. Validate each against reference cases.
+Gate: per-module evidence and expert review where required.
+
+### Phase 7 — Tool generation and manufacturing preparation
+Add tooling templates, DFM checks, drawings, BOM and process planning.
+Gate: human design review; no automatic fabrication.
+
+### Phase 8 — Controlled release
+Only after owner authorization, security review, evidence completeness, documentation and rollback planning. Physical operation remains a separately governed future decision.
+
+## 5. Required deliverables before broader implementation
+- Approved scope and requirements baseline.
+- Repository capability inventory and reuse map.
+- Engineering master file plan.
+- Vertical-slice specification and owner-selected use case.
+- UEIC architecture, module contracts and schemas.
+- Discipline/model reference cases and failure taxonomy.
+- CAD/3D interchange and simulation architecture.
+- Data/API schemas and evidence model.
+- Safety/hazard and approval policy.
+- Technology comparison and decision records.
+- Traceability matrix and unresolved decision list.
+
+## 6. Documentation completion rule
+Every requirement maps to an architecture owner, document, acceptance criterion, evidence plan and status. Documentation completeness is not implementation readiness. Owner decisions remain OPEN until explicitly resolved.
+
+## 7. Current status
+Initial engineering-core implementation: PASS at the merged baseline SHA.  
+Repository capability inventory: PARTIAL; the initial tree is enumerated, but external candidate runtime/license/security audit remains open.  
+Canonical generic Driver Generation source: UNKNOWN.  
+CAD kernel / solver / schema / database decisions: OPEN.  
+Vertical slice selection: OPEN.  
+Full UEIC/3D implementation: NOT IMPLEMENTED / NOT VERIFIED.
+
+
+## PR #32 — Generalized coordinate foundation
+
+Implemented and merged as PR #32 at `e6a6a4c58fb43ad9a837e4f38558cb53ab6eb598`. Exact PR head `c2b768b8f3a75a010614c1cd8a874b63f32f7ca0` passed run #257 (225 tests); post-merge run #258 on the exact merge SHA passed (225 tests). The v1.2 extension defines independent coordinate records, ordered joint mappings, explicit units/axes/bounds/scales, family-specific validation and legacy compatibility. This remains a structural parameterization layer; automatic joint constraint equations and Jacobian generation remain subsequent dependency steps.
+
+
+## PR #33 — Automatic joint constraint generation
+
+PR #33 merged at `62c71e4ca1f60eff5b496305429e6d141a81d268`. Final PR head `68fb6a6d0c268b67786183211734a66db0a4b27c` passed push run #270 and PR run #271 (241 tests each); post-merge run #272 on the exact merge SHA passed 241 tests. The implementation adds deterministic six-component pose-consistency residuals per joint using explicit body poses, joint placements and generalized coordinates. It covers all eight declared joint families and rejects missing placement/parameterization inputs. Automatic Jacobian generation and solver integration remain separate follow-on work.
+
+
+## PR #34 — Automatic constraint Jacobian
+
+PR #34 merged at `b8ff9e505005261bddfe246f29dd2a21d744a174`. Final PR head `405be03046009f286536b8aa66be973c40c64fad` passed push run #278 and PR run #279 (248 tests each); post-merge run #280 on the exact merge SHA passed 248 tests. The implementation adds a numerical Jacobian for generated joint residuals with deterministic stable-ID columns for generalized coordinates and body poses. Forward/central finite differences, characteristic coordinate scales, physical row/column units and bound-aware one-sided differences are represented explicitly. Exact symbolic derivatives and solver convergence claims remain out of scope.
+
+
+## PR #35 — Geometry-aware loop-closure evaluation
+
+Connects deterministic graph topology with generated geometric joint residuals to evaluate caller-supplied configurations. All joint residuals are retained, each fundamental cycle's closing-edge residuals are grouped, and any failed represented joint relation prevents an overall PASS. This is evaluation-only; nonlinear configuration search and solver coupling remain separate follow-on work.
+
+
+PR #35 is merged at `223740381b81fc06a292eb90ba0653b27cbe8e7a`. Exact PR head `9c5b5f43aa6af44da59f7b33cfa5db3448fd4d44` passed run #283 (`42161855276`) with 253 tests; post-merge run #284 (`42161983634`) on the exact merge SHA passed 253 tests. The implemented scope is geometric evaluation of supplied configurations only.
+
+
+## PR #36 — Geometric loop coordinate fitting
+
+Adds a bounded local solver adapter that adjusts only generalized-coordinate values against all generated joint pose-consistency residuals while body poses are held fixed. It forwards explicit coordinate bounds and scales, normalizes residuals by declared tolerances, and preserves NOT_CONVERGED for failed local solves. This is not a general body-pose configuration solver.
+
+
+PR #36 merged at `d7b740fc98d396c130f1c17b3c6487b30b599c2c`. Exact PR head `d00bd6e5631fa4a0101f1c4d5a7c9e1f811cd2f1` passed push run #288 (`42162588094`) and PR run #289 (`42162600490`), 258 tests each. Post-merge run #290 (`42162667016`) on the exact merge SHA passed 258 tests. The scope remains local generalized-coordinate fitting for fixed body poses.
+
+
+## PR #37 — Generated spatial Jacobian mobility
+
+Integrates generated joint residuals and their finite-difference Jacobian into local spatial mobility diagnostics. The combined local variable set includes six pose-tangent components per non-ground link plus all independent joint coordinates. The ground pose is removed; nominal mobility and local rank-based mobility remain separate. This initial adapter rejects PLANAR because the repository has no explicit plane-frame contract yet.
+
+
+PR #37 merged at `41d81818385dd82497840ce93ce5aac60e3216da`. Exact PR head `64927a329dcaa2f53f59f2b05d3b0e59619471d3` passed push run #293 (`42163424217`) and PR run #294 (`42163431321`), 265 tests each. Post-merge run #295 (`42163519632`) on the exact merge SHA passed 265 tests. The adapter supports SPATIAL and explicit plane-frame PLANAR mobility (PR #56); PLANAR rejects unsupported joint families and out-of-plane geometry.
+
+
+## PR #38 — Cross-discipline reference validation pack
+
+Introduces versioned, executable reference cases that validate implemented engineering primitives against independent closed-form results. Cases include stable IDs, operation identifiers, explicit input units, expected outputs, numerical tolerances and formula/source notes. The pack does not promote illustrative material inputs to design allowables or algebraic simulation to FEA.
+
+
+PR #38 merged at `587bd503dad3f6d4f66c99fe08e39e20a65c5265`. Exact PR-head run #297 (`42164123611`) and post-merge run #298 (`42164204886`) passed 285 tests each.
+
+
+## PR #39 — Offline module metadata registry (merged)
+
+- Branch: `feat/module-manifest-registry`.
+- Base integration SHA: `22c71b610b3af4e2707389f0b62e039135ef76a0`.
+- Final PR head: `4c07fb980afa19a36f3696d5ceed7eb35105fcc3`; PR run #311 (`42167103639`) passed workflow-sanity and python-tests; 308 passed in 0.57s; documentation-only marker SKIPPED.
+- Squash merge: `cd552e5fa96fa21ab21a437b0103b3a195542dbc`; post-merge run #312 (`42167199845`) passed both jobs; 308 passed in 0.85s.
+- Scope: immutable module manifests, operation declarations, explicit version/license/maturity/permissions, deterministic registry snapshots and dependency validation.
+- Boundary: metadata only; no dynamic loading, invocation, process isolation, permission enforcement or external/physical writes.
+- Status: MERGED; metadata registry only, not a plugin runtime.
+
+
+## PR #40 — Module registry evidence reconciliation
+
+- Exact PR head `4216c89464d7941d4f4bb893f98d9bac750363bf`; run #315 (`42167437979`): 308 tests PASS.
+- Merge `818a1150fe2536c53371a878b5f1cbf5524bed7d`; post-merge run #316 (`42167521401`): 308 tests PASS.
+
+## PR #41 — Validated module request/response envelopes (merged)
+
+- Base SHA: `818a1150fe2536c53371a878b5f1cbf5524bed7d`.
+- Validates immutable request/response envelopes, JSON payloads, identifiers, schema versions, resource limits, status semantics and deterministic serialization.
+- Final PR head `f669efefd7d96c9ef6041af0d9095111638ee789`; PR run #319 (`42168026105`): 338 tests PASS.
+- Merge `a9053b02312d1319fa13f0079465fb3fc92afafd`; post-merge run #320 (`42168116830`): 338 tests PASS.
+- Does not execute operations or enforce declared permissions.
+
+
+## PR #42 — Provenance and evidence gate (merged)
+
+- Base SHA: `a9053b02312d1319fa13f0079465fb3fc92afafd`.
+- Validates source references, immutable evidence records, SHA-256 lineage, timestamps and JSON-safe metadata.
+- Adds a conservative aggregate gate: FAIL takes precedence, then UNKNOWN, then SKIPPED; only all-PASS evidence can produce PASS. An empty evidence set is UNKNOWN.
+- Final PR head `f9f55bc81f1d61d35489dabe330477199f8b910b`; run #323 (`42168703901`): 357 tests PASS.
+- Merge `5781f3bd017b5e12f55e463934f7e34a933c6dc3`; post-merge run #324 (`42168808102`): 357 tests PASS.
+
+
+## PR #43 — Versioned coordinate-frame exchange (merged)
+
+- Base SHA: `5781f3bd017b5e12f55e463934f7e34a933c6dc3`.
+- RigidTransform and FrameGraph v1.0 snapshots include stable frame IDs, explicit length units and deterministic edge ordering.
+- Same-unit graph invariant is enforced; cross-unit conversion is not implicit.
+- Final PR head `0a1460f3910ca00f385dd52f58cd06f5f52ddee8`; run #327 (`42169448334`): 366 tests PASS.
+- Merge `a3884853fa039d27f0427d2ab6198fffb8e00bc8`; post-merge run #328 (`42169547658`): 366 tests PASS.
+
+
+## PR #44 — Versioned Quantity exchange (merged)
+
+- Base SHA: `a3884853fa039d27f0427d2ab6198fffb8e00bc8`.
+- Quantity v1.0 snapshots carry SI value, five dimension exponents and source-unit lineage; JSON Schema and strict round-trip validation are added.
+- Final PR head `130f37216afbcc753e2311bdee114b2e5a0289f2`; run #331 (`42169954337`): 377 tests PASS.
+- Merge `40edecde06b966327ea09d84d911e8959f698b71`; post-merge run #332 (`42170030517`): 377 tests PASS.
+
+
+## PR #45 — Frame-bound spatial values (merged)
+
+- Base SHA: `40edecde06b966327ea09d84d911e8959f698b71`.
+- Introduces frame-bound points/vectors and safe FrameGraph conversion. Points receive translation; vectors do not.
+- FrameGraph unit equality is required; no implicit unit conversion. Exact-SHA CI pending.
+
+
+## PR #46 — Hardware schematic connectivity model (merged)
+
+- Base SHA: `59b47c6730a0ab9f5d9512733e400483ecdb3eec`.
+- Adds a versioned normalized component/pin/net graph and deterministic connectivity validation.
+- Rendering, electrical rule checking, circuit simulation and driver binding are separate future work. Exact-SHA CI pending.
+
+
+## PR #47 — Hardware driver interface bindings (merged)
+
+- Base SHA: `9b9308eb3dac378866b2ff08e9d901e6bd6ab5fb`.
+- Declares protocols/signals and validates schematic pin bindings against driver interfaces and optional module operation metadata.
+- No driver code execution, device communication or actuation. Exact-SHA CI pending.
+
+
+## PR #48 — CAD-neutral analytic primitive geometry (merged)
+
+- Base SHA: `e2a66b4425e971c58fb88b14cf6fb3479f4df935`.
+- Implements Box/Cylinder solid metadata, analytic quantities and frame-aware bounds.
+- This is not a CAD kernel or manufacturing validation. Exact-SHA CI pending.
+
+
+## PR #49 — Profile extrusion primitive (merged)
+
+- Base SHA: `8c4d5a4277a63e71c10492595bd8431ec684cbe6`.
+- Final head `38a800d033ebbba19e1120c8cd3a47ade4088526`; run `42178039043`: workflow-sanity PASS; python-tests PASS, 416 passed in 1.06s.
+- Merge `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; post-merge run `42186896757`: both jobs PASS, 416 passed in 0.84s.
+- Adds validated simple polygon extrusion, analytic properties and frame-aware bounds. Curved sketches, Boolean operations and CAD-kernel output remain future work.
+
+
+## PR #52 — Through-hole profile integration and public exports (merged)
+
+- Base integration SHA: `bfc3e6585106c73b29297cbda2ab9ec9d50340db`.
+- Final PR head `bf093db34c7a7900d3d0924bccadfb40c33a30f0`; run #384 (`42191597715`): workflow-sanity PASS; python-tests PASS, 425 passed in 0.78s.
+- Squash merge `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; post-merge run #385 (`42191666816`) on exact merge SHA: both jobs PASS, 425 passed in 0.87s.
+- Adds validated optional hole loops, net area/perimeter, inner-wall surface area, backward-compatible snapshots, JSON Schema support and public `Vec2`/`ExtrudedProfileSolid` exports.
+- No B-rep, mesh, Boolean kernel, physical validation or manufacturing readiness is implied.
+
+
+## PR #54 — Spatial Joint Reference Validation (merged)
+
+- Base integration SHA: `1db066915c4993e544b386c0311e332874ef4aed` (PR #53 documentation reconciliation merge; post-merge run #402 / `42192465566`: 425 tests PASS).
+- Final head: `3da8c733895baab939548e0ba2e81670ca0c6359`; run #404 / `42193562931`: both jobs PASS, 452 tests in 1.35s.
+- Merge: `22bbf1714224095cfd652d6887130d26facef087`; post-merge run #405 / `42193654653`: both jobs PASS, 452 tests in 1.33s.
+- Adds `SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md`, a versioned eight-family fixture, all-family Jacobian and local-mobility references, ground-link reversal, and nontrivial joint-frame placement composition.
+- Run #403 / `42193476702` initially failed eight test assertions due to a full-vs-reduced Jacobian width expectation; corrected on the final head without weakening tests.
+- This is a local reference suite, not proof of arbitrary mechanism feasibility or physical correctness.
+
+
+## PR #53 — Documentation index restoration and evidence reconciliation (merged)
+
+- Base SHA `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; final head `e9ef961e750aaa270c1f6d32d31d7c7763ab90f3`.
+- PR run #401 (`42192288446`): both jobs PASS, 425 tests in 0.96s.
+- Merge `1db066915c4993e544b386c0311e332874ef4aed`; post-merge run #402 (`42192465566`): both jobs PASS, 425 tests in 0.83s.
+- Restores the documentation index to the integration branch and reconciles the CAD implementation status and exact evidence.
+
+
+## PR #56 — Explicit planar plane-frame mobility (merged)
+
+- PR #56 merged at `8335515b31a89efc4cacb70cf9c2e3aeb4ae16d4`. Exact PR head `8b76f89687c4685c66fee5f8bc9cd045bd589abe`; run #459 (`42197011073`) passed `workflow-sanity` and `python-tests` with 462 tests. Exact post-merge run #461 (`42197156442`) on the merge SHA passed both jobs with 462 tests.
+- Base integration SHA: `263a53c0862276a33e735c616d33d24d89b09f74`; merge target: `docs/phase-0-complete-requirements`.
+- Contract: `PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md`. Caller supplies a plane-to-world RigidTransform; body origins/local +Z, joint anchors and coordinate axes are checked for coplanarity and direction.
+- Generated world-frame Jacobian is projected into two in-plane translations and one plane-normal rotation per non-ground link while preserving generalized-coordinate columns.
+- Supported 2D joint kinds: FIXED, REVOLUTE, PRISMATIC and PLANAR. Other families fail closed.
+- Default geometric-mobility finite-difference step is 1e-5 to reduce round-off amplification in composed frames; explicit caller overrides remain supported. Rank tolerance was not relaxed.
+- Tests cover canonical and rotated/translated plane references, ground reversal and invalid out-of-plane conditions.
+
+
+## PR #62 — General planar region topology contract (merged; design only)
+
+- Base SHA: `5f1612ec40a4e6d0f89ee7b419e5add02120f5dc`; exact head SHA: `d03928bbe3472fae4f5890f6a9f481c0049b7f35`.
+- Merge commit: `213b1b52ef78ae3297a88892b4cc0c6539159160`.
+- Exact PR and push runs #42217964997 / #42217937596 passed both jobs with 496 tests; post-merge run #42218707816 on the exact merge SHA passed both jobs with 496 tests in 1.08s.
+- Contract covers general planar region identity, outer/hole boundary invariants, explicit frames/units, point/edge contacts, deterministic result/evidence expectations, numerical robustness tiers and replaceable-kernel decision gate.
+- No general polygon Boolean engine, precision policy, CAD kernel, or third-party runtime dependency is implemented or selected.
+
+
+## PR #64 — Deterministic primitive triangle mesh (merged)
+
+- Base SHA: `342c3c43ae6b4561da42a4839f042054f3198a4d`; exact PR head `8fe9db48cd07a66ea39d61e386ee8f362b968104`.
+- Merge SHA: `f0bfd8ad9958af9bfe678e923d52726b12eee73a`.
+- PR run #42219983207 and push run #42219977049 passed both jobs with 506 tests; post-merge run #42220119818 on exact merge SHA passed both jobs with 506 tests in 1.93s.
+- BoxSolid exact tessellation: 8 vertices / 12 triangles; CylinderSolid deterministic polygonal surface under explicit radial chordal tolerance.
+- Structural checks cover face indices, degenerate triangles, boundary/nonmanifold edges, consistent winding and positive signed volume.
+- Limitations: no extruded-profile/hole meshing, general self-intersection detection/repair, B-rep, 3D Boolean or neutral CAD interchange.
+
+
+## PR #66 — Straight extruded-profile triangle mesh (merged)
+
+- Base SHA: `51e8227e2be50caccebce7ee307eaabb4d74292b`; exact corrected head `1179fb69114bc76b3155d0c3e6edf50223050846`.
+- Merge SHA: `1ead537afa34d2637fdb08f91b2d2bb823d411a0`.
+- PR run #42221102000 and push run #42221092727 passed both jobs with 511 tests; post-merge run #42221247498 on the exact merge SHA passed both jobs with 511 tests in 1.20s.
+- Adds deterministic ear-clipped caps and outward side walls for straight-edged, hole-free concave/convex extruded profiles.
+- Initial CW side-wall winding failure was fixed on the final tested head; regression remains in the suite.
+- Profile holes/arcs, mesh repair, B-rep, 3D Boolean and neutral interchange remain out of scope.
+
+
+## PR #68 — Polygonal through-hole extrusion mesh (merged)
+
+- Base SHA: `f9d8f51b01fb41afec311b8b72ffd0e9231c631b`; exact corrected head `da5c8a292dacf8c300fcb48b9e92b506f1172bd8`.
+- Merge SHA: `6ec9ba1367c22c0a14d293e57ed2d538ebfc654b`.
+- PR run #42222216690 and push run #42222207986 passed both jobs with 514 tests; post-merge run #42222360177 on exact merge SHA passed both jobs with 514 tests in 1.53s.
+- Adds deterministic bridge/ear-clipping caps and void-facing side walls for one or more straight polygonal holes.
+- Initial hole-wall winding/volume defect was fixed on the final exact head and covered by reversed-hole-winding regression.
+- Curved profile boundaries, general mesh repair/self-intersection, B-rep, 3D Boolean and neutral CAD interchange remain unsupported.

@@ -1,0 +1,400 @@
+import os
+import subprocess
+import sys
+import threading
+import time
+
+import pytest
+
+from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec
+
+
+@pytest.fixture
+def supervisor(tmp_path):
+    return PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_output_bytes=64,
+    )
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process-group behavior")
+def test_supervisor_terminates_descendants_that_close_all_pipes(tmp_path):
+    marker = tmp_path / "descendant-survived"
+    child_code = (
+        "import time; from pathlib import Path; time.sleep(0.6); "
+        f"Path({str(marker)!r}).write_text('survived', encoding='utf-8')"
+    )
+    parent_code = (
+        "import subprocess, sys; "
+        "subprocess.Popen([sys.executable, '-c', "
+        f"{child_code!r}], stdin=subprocess.DEVNULL, "
+        "stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)"
+    )
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_output_bytes=64,
+    )
+    result = instance.run(WorkerSpec(
+        "detached-pipes-child", sys.executable, ("-c", parent_code),
+        working_directory=".", timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert instance.active_worker_ids == ()
+
+
+def test_supervisor_runs_allowlisted_python_without_shell(supervisor, tmp_path):
+    result = supervisor.run(WorkerSpec(
+        "worker-a", sys.executable, ("-c", "print('worker-ok')"),
+        working_directory=".", environment={}, timeout_seconds=3,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "worker-ok"
+    assert not result.timed_out and not result.cancelled
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_cancellation_during_process_start_is_not_lost(supervisor, monkeypatch):
+    starting = threading.Event()
+    continue_start = threading.Event()
+    original_popen = subprocess.Popen
+
+    def delayed_popen(*args, **kwargs):
+        starting.set()
+        assert continue_start.wait(timeout=3)
+        return original_popen(*args, **kwargs)
+
+    monkeypatch.setattr("universal_platform.runtime.supervisor.subprocess.Popen", delayed_popen)
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "cancel-during-start", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        timeout_seconds=10,
+        terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    assert starting.wait(timeout=3)
+    assert supervisor.cancel("cancel-during-start", grace_seconds=0.1)
+    continue_start.set()
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_sends_bounded_stdin_and_closes_pipe(supervisor):
+    payload = b'{"protocol_version":"1.0","message_type":"REQUEST"}'
+    result = supervisor.run(WorkerSpec(
+        "stdin-echo", sys.executable,
+        ("-c", "import sys; sys.stdout.buffer.write(sys.stdin.buffer.read())"),
+        stdin_data=payload,
+        timeout_seconds=3,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.encode("utf-8") == payload
+    assert not result.timed_out
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_rejects_stdin_payload_over_configured_limit(tmp_path):
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_input_bytes=3,
+    )
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        instance.run(WorkerSpec("oversized-input", sys.executable, stdin_data=b"four"))
+
+
+def test_supervisor_uses_actual_buffer_size_for_bytes_subclass(tmp_path):
+    class LyingBytes(bytes):
+        def __len__(self):
+            return 0
+
+    instance = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_input_bytes=3,
+    )
+    payload = LyingBytes(b"four")
+    assert len(payload) == 0
+    assert memoryview(payload).nbytes == 4
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        instance.run(WorkerSpec("lying-input-size", sys.executable, stdin_data=payload))
+    assert instance.active_worker_ids == ()
+
+
+def test_supervisor_timeout_unblocks_writer_when_worker_does_not_read_stdin(supervisor):
+    result = supervisor.run(WorkerSpec(
+        "blocked-stdin-timeout", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        stdin_data=b"x" * 1_000_000,
+        timeout_seconds=0.1,
+        terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_cancellation_unblocks_writer_when_worker_does_not_read_stdin(supervisor):
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "blocked-stdin-cancel", sys.executable,
+        ("-c", "import time; time.sleep(30)"),
+        stdin_data=b"x" * 1_000_000,
+        timeout_seconds=10,
+        terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "blocked-stdin-cancel" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "blocked-stdin-cancel" in supervisor.active_worker_ids
+    assert supervisor.cancel("blocked-stdin-cancel", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_reports_early_worker_stdin_close(supervisor):
+    with pytest.raises(RuntimeError, match="stdin write failed"):
+        supervisor.run(WorkerSpec(
+            "early-stdin-close", sys.executable,
+            ("-c", "pass"),
+            stdin_data=b"x" * 1_000_000,
+            timeout_seconds=3,
+        ))
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_rejects_unlisted_executable(supervisor, tmp_path):
+    other = tmp_path / "not-allowed"
+    other.write_text("not executable", encoding="utf-8")
+    with pytest.raises(PermissionError, match="allow-listed"):
+        supervisor.run(WorkerSpec("bad", str(other)))
+
+
+def test_supervisor_rejects_working_directory_escape(supervisor, tmp_path):
+    outside = tmp_path.parent / "outside"
+    outside.mkdir()
+    with pytest.raises(PermissionError, match="beneath"):
+        supervisor.run(WorkerSpec("escape", sys.executable, ("-c", "pass"), ".."))
+
+
+def test_supervisor_bounds_captured_output(supervisor):
+    result = supervisor.run(WorkerSpec(
+        "noisy", sys.executable, ("-c", "print('x' * 1000)"),
+        timeout_seconds=3,
+    ))
+    assert result.exit_code == 0
+    assert len(result.stdout.encode("utf-8")) <= 64
+    assert result.output_truncated
+
+
+def test_supervisor_terminates_timed_out_worker(supervisor):
+    result = supervisor.run(WorkerSpec(
+        "timeout", sys.executable, ("-c", "import time; time.sleep(5)"),
+        timeout_seconds=0.1, terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert "timeout" not in supervisor.active_worker_ids
+
+
+def test_supervisor_supports_external_cancellation(supervisor):
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "cancel-me", sys.executable, ("-c", "import time; time.sleep(5)"),
+        timeout_seconds=10, terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "cancel-me" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "cancel-me" in supervisor.active_worker_ids
+    assert supervisor.cancel("cancel-me", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
+
+
+def test_supervisor_rejects_invalid_limits(tmp_path):
+    with pytest.raises(ValueError, match="max_output_bytes"):
+        PythonProcessSupervisor(working_root=tmp_path, allowed_executables=(sys.executable,), max_output_bytes=0)
+    with pytest.raises(ValueError, match="max_input_bytes"):
+        PythonProcessSupervisor(working_root=tmp_path, allowed_executables=(sys.executable,), max_input_bytes=0)
+    with pytest.raises(ValueError, match="timeout_seconds"):
+        WorkerSpec("invalid", sys.executable, timeout_seconds=0)
+
+
+def test_worker_spec_rejects_nonfinite_limits_and_invalid_environment():
+    with pytest.raises(ValueError, match="finite and positive"):
+        WorkerSpec("nan-timeout", sys.executable, timeout_seconds=float("nan"))
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        WorkerSpec("infinite-grace", sys.executable, terminate_grace_seconds=float("inf"))
+    with pytest.raises(ValueError, match="NUL-free"):
+        WorkerSpec("nul-env", sys.executable, environment={"VALUE": "bad" + chr(0) + "value"})
+    with pytest.raises(ValueError, match="string values"):
+        WorkerSpec("bad-env-type", sys.executable, environment={"VALUE": 123})
+    with pytest.raises(ValueError, match="immutable tuple"):
+        WorkerSpec("mutable-args", sys.executable, arguments=["-c", "pass"])
+    with pytest.raises(ValueError, match="environment must be a mapping"):
+        WorkerSpec("bad-env-container", sys.executable, environment=[])
+    with pytest.raises(ValueError, match="NUL-free"):
+        WorkerSpec("bad-path", sys.executable + chr(0), arguments=())
+    with pytest.raises(ValueError, match="stdin_data must be bytes"):
+        WorkerSpec("bad-stdin", sys.executable, stdin_data="not bytes")
+
+
+def test_process_group_probe_ignores_zombie_only_groups(tmp_path):
+    from universal_platform.runtime.supervisor import PythonProcessSupervisor
+
+    zombie = tmp_path / "100"
+    zombie.mkdir()
+    (zombie / "stat").write_text("100 (worker child) Z 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is False
+
+    live = tmp_path / "101"
+    live.mkdir()
+    (live / "stat").write_text("101 (worker child) S 1 77 0 0 0", encoding="ascii")
+    assert PythonProcessSupervisor._linux_process_group_has_live_members(77, tmp_path) is True
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process groups are required for descendant cleanup")
+def test_supervisor_cleans_descendants_that_keep_pipes_open_after_parent_exits(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "print('parent-exit')"
+    )
+    started = time.monotonic()
+    result = supervisor.run(WorkerSpec(
+        "orphan-pipe-holder", sys.executable, ("-c", parent),
+        timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "parent-exit"
+    assert time.monotonic() - started < 3
+    assert supervisor.active_worker_ids == ()
+
+
+def test_supervisor_rejects_duplicate_worker_id_without_spawning_second_process(supervisor):
+    results = []
+    first = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "same-id", sys.executable, ("-c", "import time; time.sleep(0.3)"),
+        timeout_seconds=3,
+    ))))
+    first.start()
+    deadline = time.monotonic() + 3
+    while "same-id" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "same-id" in supervisor.active_worker_ids
+    with pytest.raises(RuntimeError, match="already running"):
+        supervisor.run(WorkerSpec("same-id", sys.executable, ("-c", "print('duplicate')")))
+    first.join(timeout=3)
+    assert not first.is_alive()
+    assert len(results) == 1
+    assert results[0].exit_code == 0
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_supervisor_terminates_descendants_after_parent_exits(supervisor, tmp_path):
+    marker = tmp_path / "descendant-survived.txt"
+    grandchild = (
+        "import time; from pathlib import Path; "
+        f"time.sleep(0.6); Path({str(marker)!r}).write_text('survived')"
+    )
+    child = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {grandchild!r}])"
+    )
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "print('parent-exit')"
+    )
+    started = time.monotonic()
+    result = supervisor.run(WorkerSpec(
+        "windows-descendant", sys.executable, ("-c", parent),
+        timeout_seconds=3, terminate_grace_seconds=0.1,
+    ))
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "parent-exit"
+    assert time.monotonic() - started < 3
+    time.sleep(0.8)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_assignment_failure_never_resumes_worker(supervisor, tmp_path, monkeypatch):
+    from universal_platform.runtime import windows_job
+
+    marker = tmp_path / "worker-ran.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
+
+    def reject_assignment(self, process):
+        raise RuntimeError("injected Job Object assignment failure")
+
+    monkeypatch.setattr(windows_job.WindowsJob, "assign_suspended", reject_assignment)
+    with pytest.raises(RuntimeError, match="assignment failure"):
+        supervisor.run(WorkerSpec(
+            "assignment-failure", sys.executable, ("-c", code),
+            timeout_seconds=3,
+        ))
+    time.sleep(0.2)
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_timeout_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    result = supervisor.run(WorkerSpec(
+        "windows-timeout-tree", sys.executable, ("-c", parent),
+        timeout_seconds=0.2, terminate_grace_seconds=0.1,
+    ))
+    assert result.timed_out
+    assert result.exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object containment requires Windows")
+def test_windows_cancellation_terminates_worker_descendants(supervisor):
+    child = "import time; time.sleep(30)"
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+        "time.sleep(30)"
+    )
+    results = []
+    thread = threading.Thread(target=lambda: results.append(supervisor.run(WorkerSpec(
+        "windows-cancel-tree", sys.executable, ("-c", parent),
+        timeout_seconds=10, terminate_grace_seconds=0.1,
+    ))))
+    thread.start()
+    deadline = time.monotonic() + 3
+    while "windows-cancel-tree" not in supervisor.active_worker_ids and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert "windows-cancel-tree" in supervisor.active_worker_ids
+    assert supervisor.cancel("windows-cancel-tree", grace_seconds=0.1)
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert results[0].exit_code is not None
+    assert supervisor.active_worker_ids == ()

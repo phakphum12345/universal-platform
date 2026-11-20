@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FeatureHistoryRevision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "history_id",
+    "revision",
+    "parent_sha256",
+    "content_sha256",
+    "created_at",
+    "snapshot"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "history_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    },
+    "revision": { "type": "integer", "minimum": 1 },
+    "parent_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      ]
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "snapshot": { "$ref": "feature-history.schema.json" }
+  }
+}

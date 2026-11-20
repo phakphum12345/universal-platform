@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SchematicLayout",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "layout_id",
+    "page_width_mm",
+    "page_height_mm",
+    "symbols",
+    "component_placements",
+    "net_routes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "layout_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    },
+    "page_width_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "page_height_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/symbolDefinition"
+      }
+    },
+    "component_placements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/componentPlacement"
+      }
+    },
+    "net_routes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/netRoute"
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x_mm",
+        "y_mm"
+      ],
+      "properties": {
+        "x_mm": {
+          "type": "number"
+        },
+        "y_mm": {
+          "type": "number"
+        }
+      }
+    },
+    "pinRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id",
+        "pin_id"
+      ],
+      "properties": {
+        "component_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "pin_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        }
+      }
+    },
+    "symbolPin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "local_position"
+      ],
+      "properties": {
+        "number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "local_position": {
+          "$ref": "#/$defs/point"
+        }
+      }
+    },
+    "symbolGraphic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphic_id",
+            "kind",
+            "points"
+          ],
+          "properties": {
+            "graphic_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+            },
+            "kind": {
+              "const": "LINE"
+            },
+            "points": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphic_id",
+            "kind",
+            "points"
+          ],
+          "properties": {
+            "graphic_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+            },
+            "kind": {
+              "const": "POLYLINE"
+            },
+            "points": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphic_id",
+            "kind",
+            "points"
+          ],
+          "properties": {
+            "graphic_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+            },
+            "kind": {
+              "const": "RECTANGLE"
+            },
+            "points": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphic_id",
+            "kind",
+            "points",
+            "radius_mm"
+          ],
+          "properties": {
+            "graphic_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+            },
+            "kind": {
+              "const": "CIRCLE"
+            },
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            },
+            "radius_mm": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "symbolDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol_id",
+        "width_mm",
+        "height_mm",
+        "pins",
+        "graphics"
+      ],
+      "properties": {
+        "symbol_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "width_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "pins": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/symbolPin"
+          }
+        },
+        "graphics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/symbolGraphic"
+          }
+        }
+      }
+    },
+    "componentPlacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id",
+        "x_mm",
+        "y_mm",
+        "rotation_rad"
+      ],
+      "properties": {
+        "component_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "x_mm": {
+          "type": "number"
+        },
+        "y_mm": {
+          "type": "number"
+        },
+        "rotation_rad": {
+          "type": "number"
+        }
+      }
+    },
+    "netRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_id",
+        "net_id",
+        "start_pin",
+        "end_pin",
+        "waypoints"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "net_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+        },
+        "start_pin": {
+          "$ref": "#/$defs/pinRef"
+        },
+        "end_pin": {
+          "$ref": "#/$defs/pinRef"
+        },
+        "waypoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/point"
+          }
+        }
+      }
+    }
+  }
+}

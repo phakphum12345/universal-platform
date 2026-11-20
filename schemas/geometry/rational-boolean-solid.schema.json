@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://universal-platform.invalid/schemas/geometry/rational-boolean-solid.schema.json",
+  "title": "Rational Boolean Solid V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "result_id", "frame_id", "length_unit", "components", "source_provenance", "resource_counters", "exact_net_volume", "result_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "profile": {"const": "RATIONAL_BOOLEAN_SOLID_V1"},
+    "result_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+    "frame_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "length_unit": {"type": "string", "minLength": 1, "maxLength": 64},
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["component_id", "outer_shell", "cavity_shells", "exact_net_volume"],
+        "properties": {
+          "component_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+          "outer_shell": {"$ref": "#/$defs/outerShell"},
+          "cavity_shells": {"type": "array", "items": {"$ref": "#/$defs/cavityShell"}},
+          "exact_net_volume": {"$ref": "#/$defs/rational"}
+        }
+      }
+    },
+    "source_provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "source_sha256"],
+        "properties": {
+          "source_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+          "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "resource_counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_count", "shell_count", "inter_shell_pair_checks", "aggregate_rational_bits", "containment_ray_checks", "vertex_count", "triangle_count"],
+      "properties": {
+        "component_count": {"type": "integer", "minimum": 1},
+        "shell_count": {"type": "integer", "minimum": 1},
+        "inter_shell_pair_checks": {"type": "integer", "minimum": 0, "maximum": 5000000},
+        "aggregate_rational_bits": {"type": "integer", "minimum": 0, "maximum": 64000000},
+        "containment_ray_checks": {"type": "integer", "minimum": 0, "maximum": 5000000},
+        "vertex_count": {"type": "integer", "minimum": 4},
+        "triangle_count": {"type": "integer", "minimum": 4}
+      }
+    },
+    "exact_net_volume": {"$ref": "#/$defs/rational"},
+    "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "rational": {
+      "type": "array",
+      "prefixItems": [{"type": "string", "pattern": "^(?:0|-?[1-9][0-9]*)$"}, {"type": "string", "pattern": "^[1-9][0-9]*$"}],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "outerShell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shell_id", "role", "parent_outer_shell_id", "solid"],
+      "properties": {
+        "shell_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+        "role": {"const": "OUTER"},
+        "parent_outer_shell_id": {"type": "null"},
+        "solid": {"$ref": "rational-faceted-solid.schema.json"}
+      }
+    },
+    "cavityShell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shell_id", "role", "parent_outer_shell_id", "solid"],
+      "properties": {
+        "shell_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+        "role": {"const": "CAVITY"},
+        "parent_outer_shell_id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"},
+        "solid": {"$ref": "rational-faceted-solid.schema.json"}
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PlanarRegionExtrusionResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm_version",
+    "source_region_id",
+    "source_region_sha256",
+    "solid"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "algorithm_version": {
+      "const": "planar-region-straight-extrusion-v1"
+    },
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_region_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "solid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "solid_id",
+        "frame_id",
+        "profile",
+        "height",
+        "unit"
+      ],
+      "properties": {
+        "kind": {
+          "const": "EXTRUDED_PROFILE"
+        },
+        "solid_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "primitive-geometry.schema.json#/$defs/profilePoint"
+          }
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "holes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "$ref": "primitive-geometry.schema.json#/$defs/profilePoint"
+            }
+          }
+        }
+      }
+    }
+  }
+}

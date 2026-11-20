@@ -1,0 +1,300 @@
+# CAD Generator Loopback HTTP API Contract v1.0
+
+**Status:** Local HTTP API merged in PR #138; same-origin FeatureHistory workbench in PR #140; bounded polygon sketch editor in PR #142; exact-head and post-merge CI PASS (832 tests).  
+**Implementation:** `engineering/cad_generator_http_api.py`.  
+**Dependency:** `CADGeneratorService`, explicit `SQLiteCADAPIAuditLog`, caller-supplied bearer token.  
+**Transport:** HTTP over IPv4 loopback only; no public listener, TLS endpoint, CORS permission or remote access.
+
+## 1. Startup and authority
+
+Importing the module opens no socket. A caller must explicitly create the server and call `serve_forever()`. The only accepted bind host is exactly `127.0.0.1`; wildcard, LAN, IPv6-any and public binds are rejected. Port 0 is the default and asks the OS for a dynamic available port. A caller may select a fixed port only when explicitly requested.
+
+The server is single-threaded and handles one request at a time. It does not launch subprocesses, run user code, load plugins, call external networks, operate hardware, flash firmware, release manufacturing or deploy software.
+
+The local API is not a remote service. Do not use port forwarding, SSH tunnels, reverse proxies, container publishing or firewall rules to expose it. A future remote transport requires a separate security review and explicit authorization.
+
+## 2. Construction
+
+```python
+from secrets import token_urlsafe
+from universal_platform.engineering import (
+    CADGeneratorService,
+    SQLiteCADAPIAuditLog,
+    create_cad_generator_http_server,
+)
+
+token = token_urlsafe(32)  # keep secret; do not log or persist in source control
+audit = SQLiteCADAPIAuditLog("data/cad-api-audit.sqlite3")
+server = create_cad_generator_http_server(
+    generator_service,
+    audit_log=audit,
+    bearer_token=token,
+    host="127.0.0.1",
+    port=0,
+)
+print(server.server_port)  # OS-selected local port
+server.serve_forever()     # explicit start; no implicit listener
+```
+
+The history store, artifact cache and audit database paths are separate explicit filesystem inputs. No default global data path or port is created by the API.
+
+The bearer token must contain at least 32 UTF-8 bytes. Send it only in `Authorization: Bearer <token>`; query-string tokens, cookies and Basic authentication are not accepted. Keep it out of logs and client-visible URLs.
+
+## 3. Common request controls
+
+- IPv4 loopback peer address must be exactly `127.0.0.1`.
+- `Host` must match `127.0.0.1:<bound-port>`.
+- If `Origin` is present, it must match the same local origin; no CORS headers are emitted.
+- Every route requires a valid bearer token, including health.
+- JSON requests require `Content-Type: application/json`, a valid `Content-Length`, strict UTF-8 JSON, unique object keys and finite numbers.
+- Default body limit is 1 MiB; configurable maximum is 16 MiB.
+- Per-connection socket timeout defaults to 5 seconds and is bounded to 30 seconds.
+- Only GET and POST are supported. Responses set `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` and `Connection: close`.
+- Errors use a structured `error.code` / `error.message` response and a generated `request_id`.
+
+No rate limiting, TLS, browser session management or remote authentication is claimed in this local-only version. A local process with access to the bearer token and database files remains inside the local trust boundary.
+
+## 4. Routes
+
+All routes require authorization.
+
+### `GET /health`
+
+Returns service readiness and API version. It does not expose file paths, database content or secrets.
+
+### `POST /v1/histories`
+
+Request fields are exactly:
+
+```json
+{
+  "expected_revision": 0,
+  "history": {
+    "history_id": "history.example"
+  }
+}
+```
+
+The complete `history` object must satisfy `FeatureHistory.from_dict`. The API identifier subset is lowercase letters, digits, dot, underscore and hyphen. `expected_revision=0` creates a new history; subsequent writes must supply the current revision number. This is append-only optimistic concurrency, not overwrite.
+
+Returns HTTP 201 with history ID, revision number, parent digest, content digest and creation timestamp.
+
+### `POST /v1/histories/{history_id}/edit`
+
+Appends one revision after applying exactly one allow-listed graph operation. The body uses strict operation-specific fields:
+
+- Add: `expected_revision`, `operation: "add"`, `feature`, optional `make_output`.
+- Replace: `expected_revision`, `operation: "replace"`, `feature_id`, `feature`.
+- Remove: `expected_revision`, `operation: "remove"`, `feature_id`, optional `cascade`.
+- Suppress: `expected_revision`, `operation: "suppress"`, `feature_id`, optional `cascade`.
+- Unsuppress: `expected_revision`, `operation: "unsuppress"`, `feature_id` (no cascade field).
+- Undo/Redo: `POST /v1/histories/{id}/undo` and `/redo`, exact body `expected_revision` only.
+- Navigation: `GET /v1/histories/{id}/navigation`, no query parameters; returns current revision, availability flags and stack depths.
+
+A feature snapshot contains exactly `feature_id`, `kind`, `input_feature_ids` and `parameters`. The complete candidate graph is reconstructed through FeatureHistory validation. Replacement preserves stable feature IDs. Removal refuses dependent nodes unless cascade is explicitly true; output invariants still apply. Suppression retains source nodes and writes a FeatureHistory v1.1 revision; active dependents require explicit cascade, and at least one output must remain active. Unsuppression restores only the selected feature and is rejected while any direct dependency remains suppressed. The expected-revision compare-and-swap applies to all operations.
+
+Returns HTTP 201 with the new immutable revision envelope. A stale expected revision returns HTTP 409 / `REVISION_CONFLICT`. Invalid operation fields or graph changes return HTTP 400. The endpoint never executes user code, plugins, shell commands or physical device actions.
+
+### `GET /v1/histories/{history_id}/revisions`
+
+Returns the ordered immutable revision numbers.
+
+### `GET /v1/histories/{history_id}?revision={n}`
+
+Returns the exact revision envelope and source FeatureHistory snapshot. Omitting `revision` selects the current head.
+
+### `POST /v1/histories/{history_id}/regenerate`
+
+Request body is an empty JSON object or `{"revision": 1}`. Omission selects the current head. An explicit revision never falls back to a different revision.
+
+Returns the `CADGeneratorRun` provenance envelope. HTTP 200 means regeneration succeeded; HTTP 422 means the selected revision failed regeneration and the body contains its bounded failure result.
+
+There are no DELETE, PUT, PATCH, arbitrary file, shell, plugin, firmware or physical-device routes.
+
+## 5. Error mapping
+
+| HTTP | Code | Meaning |
+|---:|---|---|
+| 400 | `INVALID_REQUEST`, `INVALID_JSON`, `INVALID_FIELDS`, `INVALID_REVISION` | Invalid input or model |
+| 401 | `UNAUTHORIZED` | Missing or invalid bearer token |
+| 403 | `LOCAL_ONLY` | Peer, Host or Origin is outside the local origin |
+| 404 | `NOT_FOUND` | Unknown route/history/revision |
+| 405 | `METHOD_NOT_ALLOWED` | Method is not GET or POST |
+| 409 | `REVISION_CONFLICT` | Expected revision is stale |
+| 411 / 413 / 415 | `LENGTH_REQUIRED` / `REQUEST_TOO_LARGE` / `UNSUPPORTED_MEDIA_TYPE` | Request transport validation failed |
+| 422 | Regeneration result | Engineering regeneration did not succeed |
+| 500 | `STORAGE_INTEGRITY_ERROR` / `INTERNAL_ERROR` | Stored data integrity or unexpected internal failure |
+| 503 | `AUDIT_UNAVAILABLE` | Audit could not be recorded; request is not dispatched if the start record fails |
+
+Unexpected exceptions are not returned with stack traces or internal file paths.
+
+## 6. Audit evidence
+
+Every handled request appends a `REQUEST_RECEIVED` record before dispatch and a `REQUEST_COMPLETED` record after dispatch. If the initial record cannot be written, the operation is not executed. Completion-record failure returns 503 and leaves the received event as evidence that the operation may have started.
+
+Audit rows contain request ID, timestamp, method, path without query, peer address, event type, status and outcome. They never contain request bodies, Authorization headers, bearer tokens or model payloads. The local SQLite audit log uses an append-only sequence and SHA-256 previous-event chain; `verify()` checks the chain.
+
+This hash chain detects accidental/tampered records when the attacker cannot rewrite the entire database consistently. It is not a keyed signature, remote witness, tamper-proof ledger or protection against a local attacker who can rewrite the complete file.
+
+## 7. Acceptance criteria
+
+- [x] Explicit startup only; import has no network side effects.
+- [x] Reject every non-loopback bind and enforce loopback peer/Host/Origin.
+- [x] Require a high-entropy bearer token for all routes.
+- [x] Dynamic port by default; bounded body size and request timeout.
+- [x] Strict JSON parsing, route allow-list and structured errors.
+- [x] Append-only local audit chain with integrity verification.
+- [x] Save, read, list and regenerate an exact FeatureHistory revision.
+- [x] Suppress/unsuppress HTTP operations implemented by PR #165 at merge `038193589e7b4ca22fb0a41ef6f61e54fd8d2938`; exact PR-head and post-merge CI passed 854 Python tests, 4 Chromium E2E tests and workflow-sanity.
+- [x] Exact PR-head CI and post-merge CI pass: 822 tests on each exact SHA.
+- [ ] Production-grade rate limiting, TLS, remote authentication, browser session controls and external audit witness remain out of scope.
+
+
+## 8. Same-origin local authoring interface — PR #140
+
+The local server also serves a small static FeatureHistory workflow UI:
+
+- `GET /` — local HTML application shell.
+- `GET /static/cad_generator.css` — packaged stylesheet.
+- `GET /static/cad_generator.js` — packaged application logic.
+
+Static UI assets are intentionally available without a bearer token so a local user can open the page and enter the token. They are still restricted by loopback peer, Host and same-origin checks, and are written to the audit log. Every engineering API operation continues to require the bearer token. No CORS headers are emitted.
+
+The UI supports connecting to the local API, editing/pasting a complete `FeatureHistory.to_dict()` JSON snapshot, appending a revision with optimistic concurrency, listing revisions, loading an exact revision and regenerating the selected revision. It displays the returned provenance and validation JSON.
+
+The bearer token is held only in page memory and is cleared when the page is refreshed or the token field changes. It is not stored in localStorage, cookies, browser URL or request body. The UI uses same-origin `fetch`, `credentials: omit`, no external resources, a restrictive Content-Security-Policy and text-only rendering for API results.
+
+**Capability boundary:** this is a local FeatureHistory JSON/revision workbench, not a graphical sketch editor, CAD viewport, feature tree drag-and-drop editor, or visual solid modeller. It does not generate arbitrary CAD geometry outside the allow-listed FeatureHistory operations. Those visual authoring capabilities remain OPEN.
+
+
+## 9. Bounded polygon sketch authoring — PR #142
+
+The same-origin workbench adds a bounded 2D polygon canvas and a template endpoint:
+
+### `POST /v1/templates/polygon-extrusion`
+
+Request fields:
+
+- `history_id` — stable lowercase history identifier.
+- `points` — ordered array of `[x, y]` coordinate pairs.
+- `height` — finite positive extrusion height.
+- `length_unit` — optional length unit; defaults to `mm`.
+
+The builder accepts 3–64 unique finite vertices, rejects adjacent/repeated closing vertices and zero signed area, and creates a strict FeatureHistory with a v1.2 ParametricSketch, closed straight segments, explicit FIX_X/FIX_Y constraints, one extrusion and one mesh output. The resulting snapshot is returned to the UI; it is not saved automatically. The user reviews the generated JSON, then explicitly saves a revision and requests regeneration.
+
+The canvas supports mouse/touch click-to-add and exact numeric coordinate entry within X 0–26 mm and Y 0–15 mm, undo-last and clear. The extrusion height is entered separately. The service still performs geometry/mesh validation during regeneration; the canvas does not certify a profile as valid.
+
+**Capability boundary:** only a bounded straight-edge polygon template is generated. The editor does not yet support arcs, splines, automatic constraints, dimensions/relations beyond fixed coordinates, negative or out-of-range coordinates, holes, Boolean feature authoring, a 3D viewport, drag-based constraint solving or a general CAD kernel. Self-intersection must be rejected by the normal geometry pipeline, not inferred from the drawing alone.
+
+
+## 10. Isometric mesh preview — PR #144
+
+After successful regeneration, the local UI locates the `MESH` FeatureArtifact in the response and renders its triangle mesh as an isometric SVG preview.
+
+- Uses the exact mesh vertex and triangle arrays from the returned artifact; no geometry is reconstructed from the sketch.
+- Shows source revision, vertex/triangle counts, artifact content SHA-256 and computation SHA-256.
+- Displays explicit `valid`, `watertight` and `consistently_oriented` validation flags from the backend report.
+- Uses a painter-sorted static isometric projection. The preview is capped at 10,000 vertices and 5,000 triangles to bound browser work; full artifact JSON remains available in the operation result.
+- Malformed indices or non-finite coordinates prevent rendering; the preview does not change the backend validation result.
+
+**Capability boundary:** this is a bounded interactive triangle-mesh viewer, not a full CAD viewport. It supports pointer-drag orbit (yaw/pitch), Shift-drag or middle-button pan, wheel/button zoom and reset-to-default camera. Zoom is clamped to 0.5×–4×; pitch and pan are bounded. These controls only change the client-side projection and never mutate source FeatureHistory or backend artifacts. There is no face/edge selection, sectioning, B-rep editing, dimensioning, assembly view, persistence of camera state or general CAD-kernel operation. Backend validation remains authoritative; a rendered mesh is not engineering certification.
+
+
+## 11. Interactive mesh camera controls — PR #146
+
+The local mesh preview adds a client-side camera over the exact returned triangle mesh:
+
+- Drag with the primary pointer to orbit using yaw and pitch; pitch is clamped to avoid a pole singularity.
+- Hold Shift while dragging, or use the middle mouse button, to pan within bounded screen offsets.
+- Use the wheel or Zoom in/Zoom out controls to scale between 0.5× and 4×.
+- Reset view restores the deterministic default camera.
+- Controls are disabled until a bounded, structurally valid mesh artifact is loaded. Malformed/non-finite vertices or invalid triangle indices fail closed for preview rendering.
+- Rendering remains capped at 10,000 vertices and 5,000 triangles. Camera state is ephemeral and is not written to FeatureHistory, SQLite, the API or the audit log.
+- The SVG viewport exposes labelled controls and pointer interactions; touch-action is limited to the viewport so drag gestures do not scroll the page while manipulating the model.
+
+This increment does not implement selection, highlighting, measurement, clipping/section planes, B-rep editing, assembly navigation or browser-driven geometry mutation. It does not change backend validation or certify geometry.
+
+
+## 12. Triangle selection and inspection — PR #148
+
+The mesh preview supports selecting an individual rendered triangle facet by pointer click or keyboard activation (Enter/Space). The selected facet is highlighted and can be cleared without changing the source revision, FeatureArtifact, mesh payload or audit log.
+
+For the selected triangle, the client computes:
+
+- Triangle area from one half of the magnitude of the cross product of its two edge vectors, reported in the square of the mesh `length_unit`.
+- Triangle centroid as the arithmetic mean of its three vertices, reported in the mesh `length_unit` and `frame_id`.
+- Non-finite measurement results are rejected from display; the server-returned mesh and validation report remain authoritative.
+
+Pointer drags used for orbit/pan are not treated as selection clicks. Selection and measurement are ephemeral UI state and are not persisted or sent to the API.
+
+**Capability boundary:** this selects a triangle facet in the rendered mesh, not a topological B-rep face or sketch entity. It does not provide edge/vertex selection, persistent selections, dimension constraints, sectioning, face editing, assembly selection or general CAD modelling. The preview caps and fail-closed mesh guards from PR #146 remain unchanged.
+
+
+## 13. Read-only FeatureHistory tree explorer — PR #150
+
+The local workbench renders a bounded read-only structural preview from the JSON snapshot currently in the FeatureHistory editor:
+
+- Parses the snapshot without evaluating code or using HTML injection; feature IDs, kinds, input references and parameter objects are rendered with text-only DOM APIs.
+- Computes a deterministic topological display order from `input_feature_ids`; missing/self dependencies, duplicate node/output IDs, malformed node shapes and cycles prevent tree rendering.
+- Limits the preview to 500 nodes to bound browser work. Oversized or malformed snapshots remain editable as JSON, but no tree is displayed until corrected.
+- Selecting a node displays its ID, kind, dependencies and parameters. Output nodes are labelled. The preview refreshes when the JSON is edited, generated or loaded.
+- This is a read-only view. It does not mutate the FeatureHistory snapshot, save revisions, regenerate geometry or change server validation.
+- CI runs `node --check` against the packaged browser script when that source file exists, without adding a runtime dependency.
+
+**Capability boundary:** this is a dependency-ordered tree inspector, not a graphical DAG editor or feature-editing system. Parameter editing, feature suppression/deletion, recompute propagation, visual dependency edges and browser-driven regeneration remain OPEN. Presentation reordering is implemented by PRs #173–#174; branch/fork/merge is implemented at the store/service layer by PRs #176–#178. The backend FeatureHistory constructor and regeneration pipeline remain authoritative.
+
+
+## Undo/Redo API implementation status
+
+PR #170 merged the strict navigation endpoint and append-only Undo/Redo HTTP operations at `2afbb2585e541ad7ccefe7a3755742c3b1b85d9d`, mapping empty stacks to `NO_UNDO`/`NO_REDO` and stale heads to `REVISION_CONFLICT`. Exact PR-head CI passed 865 Python tests and 5 Chromium E2E tests; post-merge Python and workflow-sanity passed, while Chromium E2E had 4 PASS / 1 fixture timing ERROR. PR #171 addresses revision-option readiness and adds the workbench controls/browser acceptance.
+
+
+## FeatureHistory branch/fork/merge API — PR #179
+
+All routes below remain on the existing IPv4 loopback-only, bearer-authenticated, append-only-audited HTTP boundary. No remote bind is permitted.
+
+### List branches
+
+`GET /v1/histories/{root_history_id}/branches`
+
+Returns `root_history_id` and a deterministic `branches` array. Each branch item includes branch history ID, root history ID, branch name, exact fork revision/digest and creation timestamp.
+
+### Fork a branch
+
+`POST /v1/histories/{root_history_id}/branches`
+
+Request fields:
+- Required: `branch_history_id`, `branch_name`.
+- Optional: `fork_revision` (positive integer; omitted selects the current root head).
+- Unknown fields are rejected.
+
+Returns HTTP 201 and the exact fork provenance. The source root is not modified.
+
+### Merge a branch
+
+`POST /v1/histories/{target_history_id}/merge`
+
+Request fields:
+- `source_branch_history_id`
+- `expected_source_revision` (positive integer)
+- `expected_target_revision` (positive integer)
+
+Returns HTTP 201 with the appended target revision, `operation=merge` and merge provenance. The target must be the source branch's exact root or a sibling with the same fork base.
+
+Conflicts return HTTP 409 / `MERGE_CONFLICT` with structured conflict categories. Stale source/target revisions return HTTP 409 / `REVISION_CONFLICT`. Invalid fields, IDs and revisions are rejected before mutation. Failed merges leave all heads and navigation state unchanged.
+
+### Revision inspection
+
+`GET /v1/histories/{history_id}?revision={n}` now includes `operation` and nullable `merge_provenance`, so merge source/base provenance can be inspected on the immutable target revision.
+
+**Remaining boundary:** the workbench does not yet expose branch list/fork/merge controls or interactive conflict review. Chromium branch/merge acceptance remains OPEN until those UI controls are implemented.
+
+
+## Workbench branch/merge implementation status — PR #180
+
+- PR #180 merged at `6be2e6ee1fc18f4d1bfebb8ad76639aed11e4aed`; exact PR head `4513b0d8d310a37db002edd467e315800f4e589e`.
+- The local workbench lists root branches, forks the currently loaded immutable revision, gates merge on the loaded current target head, fetches the source head and calls the strict merge API.
+- Successful merge reloads the new immutable target revision and displays provenance. Conflicts are rendered through text-only DOM operations with stable categories; no automatic side selection or HTML injection.
+- Chromium acceptance covers successful fork → branch edit → root merge and a divergent-edit conflict with both heads unchanged.
+- Exact PR-head and post-merge CI: workflow-sanity PASS; Python 889 PASS; Chromium 9 PASS.
+- **Status:** PASS for the bounded browser branch/merge workflow. Nested forks and advanced conflict resolution remain out of scope.

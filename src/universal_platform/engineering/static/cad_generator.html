@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Universal Platform · CAD Generator</title>
+  <link rel="stylesheet" href="/static/cad_generator.css">
+  <script src="/static/cad_generator.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">UNIVERSAL PLATFORM / ENGINEERING</div>
+      <h1>CAD Generator</h1>
+      <p class="lede">Local FeatureHistory authoring, revision storage and geometry regeneration.</p>
+      <p class="local-only"><span aria-hidden="true">●</span> Local-only interface · API bound to 127.0.0.1</p>
+    </header>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">01 / CONNECTION</div><h2 id="connection-heading">Connect to local API</h2></div>
+        <span id="connection-state" class="state" role="status">Not connected</span>
+      </div>
+      <label for="token">Local bearer token</label>
+      <div class="inline">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the token supplied by the local service">
+        <button id="connect" class="primary">Connect</button>
+      </div>
+      <p class="hint">The token stays in this page's memory only. It is not written to local storage, cookies or the URL. Refreshing the page clears it.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="sketch-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">02 / 2D PROFILE</div><h2 id="sketch-heading">Polygon sketch editor</h2></div>
+        <span id="profile-state" class="state">0 vertices</span>
+      </div>
+      <p class="hint">Click the grid or enter coordinates to add vertices. Coordinates use millimetres; the editor is bounded to X 0–26 mm and Y 0–15 mm. The closing edge is generated automatically.</p>
+      <svg id="profile-canvas" class="sketch-canvas" viewBox="0 0 600 360" role="application" aria-label="2D polygon sketch canvas. Click to add profile vertices.">
+        <defs>
+          <pattern id="sketch-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" class="grid-line"></path>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="600" height="360" class="grid-background"></rect>
+        <rect x="40" y="20" width="520" height="300" fill="url(#sketch-grid)"></rect>
+        <line x1="40" y1="320" x2="560" y2="320" class="axis-line"></line>
+        <line x1="40" y1="20" x2="40" y2="320" class="axis-line"></line>
+        <text x="565" y="324" class="axis-label">X · mm</text>
+        <text x="14" y="17" class="axis-label">Y · mm</text>
+        <g id="profile-geometry"></g>
+      </svg>
+      <div class="two-column sketch-inputs">
+        <div>
+          <label for="sketch-x">X coordinate (mm)</label>
+          <input id="sketch-x" type="number" min="0" max="26" step="0.1" value="0">
+        </div>
+        <div>
+          <label for="sketch-y">Y coordinate (mm)</label>
+          <input id="sketch-y" type="number" min="0" max="15" step="0.1" value="0">
+        </div>
+      </div>
+      <div class="two-column sketch-inputs">
+        <div>
+          <label for="extrusion-height">Extrusion height (mm)</label>
+          <input id="extrusion-height" type="number" min="0.01" step="0.1" value="4">
+        </div>
+        <div class="actions sketch-actions">
+          <button id="add-point">Add point</button>
+          <button id="undo-point">Undo point</button>
+          <button id="clear-profile" class="quiet">Clear profile</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="generate-profile" class="primary" disabled>Generate FeatureHistory JSON</button>
+      </div>
+      <p class="hint">The template creates a closed straight-edge sketch with fixed X/Y constraints, then an extrusion and mesh feature. Self-intersection and solid validity are checked by the regeneration pipeline, not assumed by the drawing canvas.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="history-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">03 / SOURCE DOCUMENT</div><h2 id="history-heading">FeatureHistory</h2></div>
+        <span id="revision-state" class="state">No revision loaded</span>
+      </div>
+      <div class="two-column">
+        <div>
+          <label for="history-id">History ID</label>
+          <input id="history-id" value="history.example" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="expected-revision">Expected current revision</label>
+          <input id="expected-revision" type="number" min="0" step="1" value="0">
+        </div>
+      </div>
+      <label for="snapshot">FeatureHistory JSON snapshot</label>
+      <textarea id="snapshot" rows="16" spellcheck="false" autocomplete="off" placeholder='Paste a complete FeatureHistory.to_dict() JSON snapshot here. Required fields: schema_version, history_id, nodes, output_feature_ids.'></textarea>
+      <div class="feature-tree-panel" aria-labelledby="feature-tree-heading">
+        <div class="section-heading">
+          <h3 id="feature-tree-heading">Feature tree preview</h3>
+          <span id="feature-tree-state" class="state" role="status" aria-live="polite">No FeatureHistory snapshot.</span>
+        </div>
+        <div class="feature-tree-layout">
+          <ol id="feature-tree" class="feature-tree-list" aria-label="Feature nodes"></ol>
+          <div class="feature-inspector-panel">
+            <h4>Selected feature</h4>
+            <pre id="feature-inspector" class="feature-inspector">Select a feature to inspect its inputs and parameters.</pre>
+          </div>
+        </div>
+        <div class="feature-edit-controls">
+          <h4>Edit selected feature</h4>
+          <label for="feature-edit-parameters">Parameters JSON</label>
+          <textarea id="feature-edit-parameters" rows="5" spellcheck="false" autocomplete="off" disabled>{}</textarea>
+          <div class="actions">
+            <button id="feature-apply-edit" disabled>Apply parameter edit</button>
+            <button id="feature-remove" class="quiet" disabled>Remove selected feature</button>
+          </div>
+          <div class="actions">
+            <button id="feature-suppress" class="quiet" disabled>Suppress selected feature</button>
+            <button id="feature-unsuppress" class="quiet" disabled>Unsuppress selected feature</button>
+          </div>
+          <label class="checkbox-label" for="feature-suppress-cascade">
+            <input id="feature-suppress-cascade" type="checkbox" disabled>
+            Confirm cascade suppression of all dependent features
+          </label>
+          <h4>Add feature</h4>
+          <div class="two-column">
+            <div>
+              <label for="feature-add-id">New feature ID</label>
+              <input id="feature-add-id" autocomplete="off" spellcheck="false" placeholder="feature.new">
+            </div>
+            <div>
+              <label for="feature-add-kind">Feature kind</label>
+              <select id="feature-add-kind">
+                <option value="SKETCH_PROFILE">SKETCH_PROFILE</option>
+                <option value="PLANAR_BOOLEAN">PLANAR_BOOLEAN</option>
+                <option value="EXTRUSION">EXTRUSION</option>
+                <option value="MESH">MESH</option>
+              </select>
+            </div>
+          </div>
+          <label for="feature-add-inputs">Input feature IDs (comma-separated)</label>
+          <input id="feature-add-inputs" autocomplete="off" spellcheck="false" placeholder="profile.base, profile.other">
+          <label for="feature-add-parameters">New feature parameters JSON</label>
+          <textarea id="feature-add-parameters" rows="5" spellcheck="false" autocomplete="off">{}</textarea>
+          <label class="checkbox-label" for="feature-add-output">
+            <input id="feature-add-output" type="checkbox">
+            Also make this feature a history output
+          </label>
+          <div class="actions">
+            <button id="feature-add" disabled>Add feature</button>
+          </div>
+          <label class="checkbox-label" for="feature-remove-cascade">
+            <input id="feature-remove-cascade" type="checkbox">
+            Confirm cascade removal of all dependent features
+          </label>
+          <p class="hint">Edits append a new immutable revision. Editing is limited to the current head revision; stale writes are rejected. Cascade removal is explicit and may remove downstream features. Suppression keeps source nodes and requires explicit confirmation before cascading to dependent features.</p>
+        </div>
+        <p class="hint">Feature tree order is deterministic dependency order. Geometry regeneration remains a separate operation.</p>
+      </div>
+      <div class="actions">
+        <button id="save" class="primary" disabled>Save new revision</button>
+        <button id="list" disabled>Refresh revisions</button>
+      </div>
+      <p class="hint">Saving appends an immutable revision. Use the current head revision as the expected revision; stale writes are rejected instead of overwriting existing history.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="revision-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">04 / REVISION & REGENERATION</div><h2 id="revision-heading">Inspect and regenerate</h2></div>
+      </div>
+      <div class="inline revision-controls">
+        <div class="grow">
+          <label for="revision">Source revision</label>
+          <select id="revision" disabled><option value="">No revisions</option></select>
+        </div>
+        <button id="load" disabled>Load revision</button>
+        <button id="undo" disabled>Undo</button>
+        <button id="redo" disabled>Redo</button>
+        <button id="regenerate" class="primary" disabled>Regenerate</button>
+      </div>
+      <p id="navigation-state" class="hint">Undo/Redo unavailable until a current revision is loaded.</p>
+      <p class="hint">Regeneration always targets the selected immutable source revision and returns its provenance, artifact digests and validation results.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="branch-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">05 / BRANCH & MERGE</div><h2 id="branch-heading">FeatureHistory branches</h2></div>
+        <span id="branch-state" class="state" role="status" aria-live="polite">Connect to list branches.</span>
+      </div>
+      <p class="hint">Fork the selected immutable revision into an isolated history. Merge a branch into the current root history only after loading its latest head. Conflicts are reported; no side is chosen automatically.</p>
+      <div class="two-column">
+        <div>
+          <label for="branch-history-id">New branch history ID</label>
+          <input id="branch-history-id" autocomplete="off" spellcheck="false" placeholder="history.example.experiment">
+        </div>
+        <div>
+          <label for="branch-name">Branch name</label>
+          <input id="branch-name" autocomplete="off" spellcheck="false" placeholder="experiment">
+        </div>
+      </div>
+      <div class="actions">
+        <button id="branch-create" disabled>Fork selected revision</button>
+        <button id="branch-refresh" class="quiet" disabled>Refresh branches</button>
+      </div>
+      <label for="branch-source">Source branch to merge into this history</label>
+      <select id="branch-source" disabled><option value="">No branches</option></select>
+      <div class="actions">
+        <button id="branch-merge" class="primary" disabled>Merge selected branch</button>
+      </div>
+      <p id="branch-conflicts" class="branch-conflicts" role="status" aria-live="polite">No merge conflicts reported.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="mesh-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">05 / GENERATED GEOMETRY</div><h2 id="mesh-heading">Isometric mesh preview</h2></div>
+        <span id="mesh-state" class="state">No mesh preview</span>
+      </div>
+      <div class="mesh-controls" role="group" aria-label="Mesh viewport controls">
+        <button id="mesh-zoom-in" type="button" disabled aria-label="Zoom in">Zoom in</button>
+        <button id="mesh-zoom-out" type="button" disabled aria-label="Zoom out">Zoom out</button>
+        <button id="mesh-reset-view" type="button" disabled>Reset view</button>
+        <button id="mesh-clear-selection" type="button" disabled>Clear selection</button>
+      </div>
+      <svg id="mesh-preview" class="mesh-preview" viewBox="0 0 640 420" role="group" aria-label="Interactive generated mesh viewport">
+        <defs>
+          <pattern id="mesh-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M 24 0 L 0 0 0 24" class="grid-line"></path>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="640" height="420" class="grid-background"></rect>
+        <rect x="20" y="20" width="600" height="380" fill="url(#mesh-grid)"></rect>
+        <g id="mesh-faces"></g>
+      </svg>
+      <p id="mesh-validation" class="hint">Run regeneration for a source revision to display its generated mesh and validation report.</p>
+      <p id="mesh-details" class="mesh-details">No mesh artifact loaded.</p>
+      <p id="mesh-selection" class="mesh-details" role="status" aria-live="polite">Select a triangle to inspect its area and centroid.</p>
+      <p class="hint">Drag to orbit; hold Shift while dragging (or use the middle mouse button) to pan. Use the wheel or Zoom buttons to zoom. Select a triangle to inspect its area and centroid in the mesh coordinate frame; selection is a display-only triangle facet, not a B-rep face. Camera and selection state do not mutate backend geometry. Rendering is capped at 10,000 vertices and 5,000 triangles.</p>
+    </section>
+
+    <section class="panel result-panel" aria-labelledby="result-heading">
+      <div class="section-heading">
+        <div><div class="eyebrow">06 / EVIDENCE</div><h2 id="result-heading">Operation result</h2></div>
+        <button id="clear-result" class="quiet">Clear</button>
+      </div>
+      <div id="status-message" class="status-message" role="status" aria-live="polite">Enter your local bearer token and connect to begin.</div>
+      <pre id="result" class="result" aria-label="API response">No operation has been run.</pre>
+    </section>
+
+    <footer>
+      <span>Universal Platform · CAD Generator API v1.0</span>
+      <span>Loopback only · No remote access · No physical device control</span>
+    </footer>
+  </main>
+</body>
+</html>

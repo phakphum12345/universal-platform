@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "universal-platform"
+version = "0.1.0"
+description = "Evidence-driven, local-first multidisciplinary engineering core"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Universal Platform Contributors" }]
+dependencies = []
+
+[project.scripts]
+up-geometry = "universal_platform.engineering.geometry_batch:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+quality = ["ruff>=0.11,<1", "pip-audit>=2.8,<3"]
+browser = ["playwright>=1.55"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"universal_platform.engineering" = ["static/*.html", "static/*.css", "static/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

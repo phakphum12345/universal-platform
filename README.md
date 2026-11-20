@@ -1,32 +1,374 @@
+> **LIVE STATUS — 2026-11-21:** The current main-integration evidence is recorded in [Repository Audit 2026-11-21](docs/audit/REPOSITORY_AUDIT_2026-11-21_MAIN_INTEGRATION.md). PR #271 is OPEN and not merged; its exact head is `67bdc6411dd2e705684b0f15378ae5ed907636a2`, base `main` was `96e75010716226037893155b9fd4b13410fb0d6f`, and the latest PR-triggered Python engineering-core test job was still IN_PROGRESS at audit time. The owner has authorized merging completed, verified work into `main`, but this does not waive CI, diff, ancestry, security, or post-merge checks. Historical status snapshots below are retained for traceability and are not current status. SKIPPED and UNKNOWN are never PASS.
+
 # Universal Platform
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status
-- Stage: Documentation and requirements consolidation
-- Implementation: Not started
-- Branch: main
-- Principles: Local-first, cost-aware, evidence-driven, modular, secure
-- Hardware boundary: Analysis and simulation only; no physical control
+## Current status — 2026-11-20
+
+- Overall lifecycle: **INCOMPLETE**. This is an active development repository, not a release-accepted universal platform.
+- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`. Development is 878 commits ahead / 0 behind; main is an ancestor.
+- GitHub reports `main` and development as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Branch protection remains an owner/admin governance action.
+- Current PR inventory #1–#266: **239 merged, 18 closed without merge, 9 open (#258–#266)**. All nine are unmerged; no PR in the current runtime dependency chain has post-merge evidence.
+- PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS.
+- PR #259: audit/documentation refresh branch; the prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed (Python 1,150 passed / 4 skipped, Windows and workflow sanity PASS). This live documentation update advances the branch again; validate its new exact head before treating the PR as PASS. Historical README compatibility anchors are not current test counts.
+- PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS. It depends on #258.
+- PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable Linux/Windows process identity snapshot foundation. Depends on #260.
+- PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable process identity binding and journal replay. Depends on #261.
+- PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Linux start gate and Windows suspended-process/Job Object hand-off. Python 1,179 passed / 5 skipped; Windows process supervisor 22 passed / 5 skipped; Windows journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
+- PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; WorkerIPC/ModuleRuntime binds OS identity before worker payload execution. Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
+- PR #265 @ `088db6ad3178ac02321012a50fb319f5996d2d52`: Draft process-liveness adapters; exact-head Python 1,194 passed / 6 skipped, Windows supervisor 22 passed / 5 skipped, journal 20 passed / 1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped, workflow sanity PASS.
+- PR #266: Draft durable allocator startup reconciliation; current exact-head CI is QUEUED. It depends on #265.
+- PR #258–#266 have no formal review submissions or unresolved review threads at the latest GitHub review query. Mergeability is reported clean/true; that is not approval.
+- WP-09G-A is integrated via #257. WP-09G-B is verified on #258/#260 but not integrated. WP-09G-C candidate implementation passes CI through #264 but remains unmerged. WP-09G-D is in progress (#265/#266); WP-09G-E operator recovery remains open.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. CI currently lacks repository-wide lint/type-check/dependency-security gates. Local working-tree state is UNKNOWN to this GitHub-only audit.
+- No PR has been merged in this execution. No merge to `main`, deployment or paid infrastructure is implied.
+- Use the [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) as the current evidence set.
+
+## Initial implementation (active development)
+
+
+The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
+
+Current modules include:
+- SI-backed quantities with dimensional checks (limited initial unit registry).
+- Evidence and provenance contracts with explicit evidence kinds and statuses.
+- A fail-closed safety gate for offline engineering workflows.
+- A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
+- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
+- Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 merged).
+- Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
+- Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
+- Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
+- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged), deterministic offline SVG layout renderer (PR #59), and conservative static ERC v1.0 candidate (PR #60); no circuit simulation or physical verification.
+- Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
+- Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
+- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 merged at `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; final head `38a800d033ebbba19e1120c8cd3a47ade4088526`, run #356 / `42178039043` PASS, 416 tests; post-merge run #381 / `42186896757` PASS, 416 tests).
+- A small dense linear solver with partial pivoting and residual checks.
+- Scalar constraint evaluation with explicit UNKNOWN handling.
+- Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.
+- Normalized mechanism schema v1.2 with stable generalized-coordinate IDs and explicit per-joint coordinate ordering, units, axes, bounds and scales; missing parameterization coverage remains visible.
+- Automatic six-component joint pose-consistency residual generation from explicit body poses, placements and generalized coordinates for all eight declared joint families; this is not a general dynamics solver.
+- Finite-difference constraint Jacobian generation over generalized coordinates and body-pose tangent variables, with stable variable/row ordering and bound-aware one-sided fallback; this is not a symbolic or analytic derivative engine.
+- Geometry-aware loop-closure evaluation that combines deterministic fundamental cycles with generated joint residuals, retaining closing-edge and spanning-tree evidence for caller-supplied configurations; this is not a configuration-search solver.
+- Bounded local generalized-coordinate fitting against fixed caller-supplied body poses, using every generated joint residual, declared coordinate bounds/scales and the offline nonlinear equality solver; this is not a general body-pose configuration solver.
+- Spatial local mobility analysis from generated finite-difference joint Jacobians, combining non-ground body-pose tangent variables with independent joint coordinates. PR #56 adds explicit plane-frame projection for PLANAR mobility; it is integrated with exact-head and post-merge CI PASS.
+- Versioned cross-discipline reference validation pack for dimensional quantities, mechanics, DC electrical, thermal expansion, analytic geometry/transforms, linear solve, static algebraic simulation, planar inverse kinematics, four-bar closure, materials, assembly, constraints and safety-boundary checks.
+- Rigid coordinate transforms and a validated coordinate-frame forest with path resolution.
+- A limited rooted-tree forward-kinematics adapter for fixed, revolute and prismatic joints (not a general constraint solver).
+- An analytic planar two-link (2R) inverse-kinematics adapter with up/down elbow branches and residual validation (not general 3D IK).
+- A planar four-bar (4R) loop-closure utility based on circle intersections, plus a stable-ID, unit-aware model snapshot adapter and Kutzbach planar mobility estimate (not a general closed-loop constraint solver).
+- A new general-purpose nonlinear equality-constraint solver is introduced as a bounded, local Levenberg–Marquardt numerical core; see [Nonlinear Constraint Solver Contract](docs/engineering/NONLINEAR_CONSTRAINT_SOLVER_CONTRACT.md) for exact scope and limitations.
+- A transparent linear-system simulation example with limitations and evidence.
+- Starter mechanics (axial stress/strain and factor of safety), DC electrical calculations, linear thermal expansion and validated material-property records.
+- Versioned module request/response envelopes.
+
+Install and run the initial tests:
+
+    python -m pip install -e ".[dev]"
+    python -m pytest -q
+
+This remains an incremental engineering foundation, not a completed universal platform. Narrow capabilities now include planar Boolean topology, bounded parametric sketch/feature regeneration, faceted triangular B-rep, axis-aligned box 3D Booleans, binary STL export, bounded STEP AP214 and single-object 3MF Core interchange, schematic rendering/static ERC, and three registered analytical physics solvers. These do not establish a general CAD kernel, full EDA suite, multiphysics solver, secure OS sandbox, or complete platform UI/runtime. See [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [post-PR #118 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR118.md).
 
 ## Core goals
 - Learn from authorized documentation, source code, APIs, datasheets, and datasets.
 - Understand applications, software, systems, dependencies, and architecture.
-- Support computing, mathematics, science, software, hardware, electronics, and engineering.
-- Analyze ICs/chips, boards, sensors, and modules.
-- Calculate, design, simulate, test, and verify.
+- Support computing, mathematics, science, software, hardware, electronics, communications, and engineering.
+- Analyze ICs/chips, boards, sensors, modules, schematics and device compatibility.
+- Coordinate multiple scientific and engineering disciplines through the Universal Engineering Intelligence Core (UEIC).
+- Calculate, design, simulate, test, verify, and prepare manufacturing artifacts.
+- Design static parts, tools, fixtures, structures, machines and moving mechanisms in 3D.
 - Create new applications and adapt existing systems when authorized.
 - Identify capability gaps and propose controlled self-improvements.
 
-## Documents
+## Documentation map
+- [Documentation Index](DOCUMENTATION_INDEX.md)
+### Product and planning
 - [Vision](VISION.md)
 - [Master Blueprint](MASTER_BLUEPRINT.md)
-- [Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md)
 - [Roadmap](ROADMAP.md)
-- [Decision Register](docs/decisions/DECISION_REGISTER.md)
 - [Contributing](CONTRIBUTING.md)
+- [Domain Catalogue](docs/DOMAIN_CATALOGUE.md)
+- [Engineering and 3D Project Plan](docs/roadmap/ENGINEERING_AND_3D_PHASE_PLAN.md)
+- [Phase 2 Numerical Reliability Plan](docs/roadmap/PHASE_2_NUMERICAL_RELIABILITY_PLAN.md)
+- [Engineering Master File Plan](docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md)
+- [Engineering Vertical Slice Specification](docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md)
+- [Engineering Technology Decisions](docs/decisions/ENGINEERING_TECHNOLOGY_DECISIONS.md)
+- [Repository Capability Inventory](docs/audit/REPOSITORY_CAPABILITY_INVENTORY.md)
+- [Post-PR-1 Baseline Audit](docs/audit/POST_PR1_BASELINE_AUDIT.md)
 
-## Safety
-No claim of success without evidence. Untrusted code must be isolated. Privileged actions, production changes, deployment, and self-modification require explicit human approval.
+### Requirements and decisions
+- [Universal Requirements](docs/requirements/UNIVERSAL_REQUIREMENTS.md)
+- [Decision Register](docs/decisions/DECISION_REGISTER.md)
+- [Requirements Traceability Matrix](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md)
+- [Engineering and 3D Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md)
 
-This repository currently contains documentation and proposals, not implemented capabilities.
+### Architecture and intelligence
+- [Platform Architecture](docs/architecture/PLATFORM_ARCHITECTURE.md)
+- [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md)
+- [System Intelligence](docs/architecture/SYSTEM_INTELLIGENCE.md)
+- [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md)
+- [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md)
+
+### Engineering intelligence
+- [Universal Engineering Intelligence Core](docs/engineering/UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE.md)
+- [Geometry Batch Validation CLI](docs/engineering/GEOMETRY_BATCH_VALIDATION.md)
+- [Multidisciplinary Knowledge Modules](docs/engineering/MULTIDISCIPLINARY_KNOWLEDGE_MODULES.md)
+- [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md)
+- [Universal Calculation Engine](docs/engineering/UNIVERSAL_CALCULATION_ENGINE.md)
+- [Solver and Model Contract](docs/engineering/ENGINEERING_SOLVER_AND_MODEL_CONTRACT.md)
+- [Units, Uncertainty and Provenance](docs/engineering/ENGINEERING_UNITS_UNCERTAINTY_AND_PROVENANCE.md)
+- [Cross-Domain Constraint Solving](docs/engineering/CROSS_DOMAIN_CONSTRAINT_SOLVING.md)
+
+### 3D design and manufacturing
+- [3D Design Intelligence](docs/design-3d/3D_DESIGN_INTELLIGENCE.md)
+- [3D Tool Generation](docs/design-3d/3D_TOOL_GENERATION_ENGINE.md)
+- [3D Assembly and Kinematics](docs/design-3d/3D_ASSEMBLY_AND_KINEMATICS.md)
+- [Generalized Coordinate and Joint Parameterization](docs/design-3d/GENERALIZED_COORDINATE_AND_JOINT_PARAMETERIZATION_CONTRACT.md)
+- [Spatial Joint Reference Validation](docs/design-3d/SPATIAL_JOINT_REFERENCE_VALIDATION_CONTRACT.md)
+- [Planar Plane-Frame Mobility](docs/design-3d/PLANAR_PLANE_FRAME_MOBILITY_CONTRACT.md)
+- [Assembly Tree Forward-Kinematics Contract](docs/design-3d/ASSEMBLY_TREE_FORWARD_KINEMATICS_CONTRACT.md)
+- [Planar Two-Link Inverse-Kinematics Contract](docs/design-3d/PLANAR_TWO_LINK_INVERSE_KINEMATICS_CONTRACT.md)
+- [Planar Four-Bar Loop-Closure Contract](docs/design-3d/PLANAR_FOUR_BAR_LOOP_CLOSURE_CONTRACT.md)
+- [Nonlinear Constraint Solver Contract](docs/engineering/NONLINEAR_CONSTRAINT_SOLVER_CONTRACT.md)
+- [3D Engineering Simulation](docs/design-3d/3D_ENGINEERING_SIMULATION.md)
+- [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md)
+- [CAD to Manufacturing](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md)
+- [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md)
+- [2D Convex Profile Boolean Topology](docs/design-3d/CAD_2D_BOOLEAN_TOPOLOGY_CONTRACT.md)
+- [Faceted B-rep Topology](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md)
+- [Faceted B-rep Multi-Shell Solid](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md)
+- [Axis-Aligned Faceted B-rep Boolean](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md)
+
+### Hardware, laboratories, governance
+- [Device Intelligence](docs/hardware/DEVICE_INTELLIGENCE.md)
+- [Schematic Intelligence](docs/hardware/SCHEMATIC_INTELLIGENCE.md)
+- [Hardware-to-Software Mapping](docs/hardware/HARDWARE_TO_SOFTWARE_MAPPING.md)
+- [Driver Architecture Intelligence](docs/hardware/DRIVER_ARCHITECTURE_INTELLIGENCE.md)
+- [Driver Refactoring Engine](docs/hardware/DRIVER_REFACTORING_ENGINE.md)
+- [Schematic/Driver Traceability](docs/hardware/SCHEMATIC_DRIVER_TRACEABILITY.md)
+- [Hardware Schematic Netlist Contract](docs/hardware/HARDWARE_SCHEMATIC_NETLIST_CONTRACT.md)
+- [Electrical Rule Checking Contract](docs/hardware/ELECTRICAL_RULE_CHECKING_CONTRACT.md)
+- [Hardware Design Verification](docs/hardware/HARDWARE_DESIGN_VERIFICATION.md)
+- [Virtual Lab and Simulation](docs/laboratories/VIRTUAL_LAB_AND_SIMULATION.md)
+- [Engineering Safety and Approval](docs/governance/ENGINEERING_SAFETY_AND_APPROVAL.md)
+
+### Integration and evolution
+- [Project Integration Policy](docs/integration/PROJECT_INTEGRATION.md)
+- [Platform Self-Evolution](docs/evolution/PLATFORM_SELF_EVOLUTION.md)
+
+## Safety and evidence
+No claim of success without evidence. Untrusted code must be isolated. Privileged actions, production changes, deployment, physical device control, and self-modification require explicit human approval. Initial device scope is analysis and simulation only.
+
+Documentation and proposals do not mean capabilities are implemented. Evidence statuses must distinguish PASS, FAIL, SKIPPED, and UNKNOWN, with exact versions and reproducible checks where applicable. A completed solver run is not automatically an engineering PASS.
+
+
+### CAD-neutral geometry
+
+- CAD-neutral geometry now includes analytic Box/Cylinder and profile extrusion; PlanarRegion set Booleans with bounded point-contact handling (PR #95); deterministic mesh generation and self-intersection analysis; binary STL export; bounded STEP AP214 faceted triangle-shell import/export (PR #99); and bounded single-object 3MF Core import/export (PR #97). PR #117 adds a validated single-shell triangular faceted B-rep topology model and mesh bridge. PR #118 adds exact-grid UNION/INTERSECTION/DIFFERENCE/XOR for 2–16 axis-aligned box B-reps with a 32,768-cell ceiling. This is not a general B-rep kernel: PR #181 adds polygonal faces and inner loops; PR #182 implements their triangle-mesh bridge. PR #184 adds a bounded aggregate for one outer shell plus disjoint, strictly-contained cavities; exact-head and post-merge Python suites passed 902 tests. Nested material islands, arbitrary faceted 3D Boolean, rotated/curved general arrangements, full STEP/AP242 and 3MF assemblies remain open. See the [Faceted B-rep Topology Contract](docs/design-3d/FACETED_BREP_TOPOLOGY_CONTRACT.md) and [Axis-Aligned B-rep Boolean Contract](docs/design-3d/AXIS_ALIGNED_BREP_BOOLEAN_CONTRACT.md).
+- Through-hole loops, net-area/perimeter calculations, inner-wall surface area and backward-compatible optional serialization are integrated by PR #52 at `1d1628175dafca3f5d4d3d6b5cf01e241ec75afa`; exact head run #384 / `42191597715` and post-merge run #385 / `42191666816` both PASS, 425 tests each.
+- Eight-family spatial-joint reference suite (residuals, Jacobian, spatial mobility/rank, ground reversal and nontrivial placements) is integrated by PR #54 at `22bbf1714224095cfd652d6887130d26facef087`; exact head run #404 / `42193562931` and post-merge run #405 / `42193654653` both PASS, 452 tests each.
+
+
+## Current verified integration baseline (2026-11-06)
+
+The integration branch is at `502d49baf58e43938d2746859e10817badd43f6e` after PR #78. PR #78 adds the triangle-mesh self-intersection design contract only; it does not implement the algorithm. Its exact PR-head workflow passed both required jobs (533 tests reported by the PR evidence), while post-merge CI for the integration SHA remains UNKNOWN. The full current audit and remaining capability gaps are recorded in [Repository Audit 2026-11-06](docs/audit/REPOSITORY_AUDIT_2026-11-06.md).
+
+
+## Current verified integration baseline (post-PR #80)
+
+Integration branch HEAD: `cb91c7c49406fd02324be6b30d5570e821b4d503`. PR #80 implements additive exact-rational triangle-mesh intersection analysis; exact PR workflow #42238370626 passed both required jobs with 550 tests, and push workflow #42238360081 passed both jobs. Post-merge CI for the integration SHA remains UNKNOWN. See [post-PR #80 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR80.md). This does not mean the entire platform is complete.
+
+
+## Current verified integration baseline (post-PR #81)
+
+Integration HEAD `1eceffbbdabd0d40f508a26dd14f99b70bc3dd53`; post-merge workflow #42239244546 passed workflow-sanity and python-tests with 550 tests in 1.97s. Recursive tree: 199 files, 92 Markdown, 90 Python, 13 schemas and 48 test files. PR #82 is the next candidate increment for a separate exact-predicate PlanarRegion input model; it does not yet implement general planar Boolean operations. See [post-PR #81 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR81.md).
+
+
+## Current verified integration baseline (post-PR #82)
+
+Integration HEAD `114bf8dd84831d7d4080922ed7069cadda380ba3`. PR #82 PlanarRegion v1.0 is merged; PR-head and push CI passed 563 tests, and post-merge workflow #42240292055 passed both required jobs with 563 tests in 2.47s. Current tree: 204 files, 94 Markdown, 92 Python, 14 schemas and 49 test files. General planar Boolean operations remain unimplemented. See [post-PR #82 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR82.md).
+
+
+## Current verified integration baseline (post-PR #84)
+
+Integration HEAD: `1b75e2dab5b64d2d089e410bba02187d28772193`. PR #84 adds a bounded pairwise exact-rational PlanarRegion Boolean API for UNION, INTERSECTION, DIFFERENCE and SYMMETRIC_DIFFERENCE, including disconnected components and holes. Exact PR-head workflow #42250468895 passed both required jobs with **580 tests in 2.14s**; exact post-merge workflow #42250583756 passed both required jobs with **580 tests in 2.96s**. The integration branch is 235 commits ahead and 0 behind `main` (`96e75010716226037893155b9fd4b13410fb0d6f`). Tree: 208 files, 95 Markdown, 94 Python, 15 JSON schemas and 48 test files. Point-touching/branching outputs fail closed; this is not a general CAD/B-rep kernel. See [post-PR #84 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR84.md).
+
+
+## Current verified integration baseline (post-PR #88)
+
+Integration HEAD `bd9379617f1bc88772137a6e9886e33cb0bed3cb`; `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`; integration is 239 ahead / 0 behind. PRs #84–#88 are merged into integration only. The CAD vertical slice now supports pairwise and multi-region PlanarRegion Booleans, extrusion to an analytic solid, and validated watertight triangle meshing. PR #88 exact-head and push CI passed 607 tests each; post-merge workflow #42252619167 passed both required jobs with 607 tests. Tree: 216 files, 96 Markdown, 99 Python, 17 schemas, 51 test files. B-rep/3D Boolean, feature history, sketch constraints and STEP/3MF remain open. See [post-PR #88 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-06_POST_PR88.md).
+
+
+## Parametric sketch foundation (PR #90)
+
+The integration branch now includes versioned 2D `ParametricSketch` records, straight segments and eight initial constraints (horizontal, vertical, coincident, distance, horizontal/vertical distance, fixed X/Y). The adapter reuses the bounded nonlinear solver and reports its convergence and rank diagnostics. PR #90 merge SHA `e2d631b49910e3d7f05fea6337742fd87385fb81`; exact-head run #42260796531 and post-merge run #42260977543 both passed 618 tests. This is a bounded point/line sketch foundation, not a complete interactive CAD sketcher. See [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## Parametric CAD pipeline: sketch → region → feature history → mesh
+
+The integration branch now supports a bounded end-to-end parametric pipeline: 2D point/line sketches with eight geometric/dimensional constraints; conversion of converged closed loops into canonical planar regions with holes and nested islands; a deterministic feature DAG with allow-listed regeneration for sketch profiles, planar Boolean, extrusion and watertight mesh validation. PR #90 (618 tests), #91 docs (620), #92 (627) and #93 (636) passed their recorded CI gates; PR #93 post-merge run #42263296016 passed both jobs with 636 tests. See [Feature History and Regeneration Contract](docs/design-3d/FEATURE_HISTORY_REGENERATION_CONTRACT.md) and [Parametric Sketch Constraint Contract](docs/design-3d/PARAMETRIC_SKETCH_CONSTRAINTS_CONTRACT.md).
+
+
+## Planar Boolean point-contact topology (PR #95)
+
+Point-touching but otherwise disjoint material components now remain separate canonical PlanarRegion outputs using an exact-rational planar rotation-system boundary pairing rule. Edge-adjacent boundaries still dissolve into a single region. Ambiguous branching, unbalanced incidence and invalid hole topology still fail closed. PR #95 exact-head and post-merge CI both passed 639 tests. See [CAD Boolean Point-Contact Topology Contract](docs/design-3d/CAD_BOOLEAN_POINT_CONTACT_CONTRACT.md).
+
+
+## 3MF Core mesh interchange (PR #97)
+
+The integration branch now exports and imports a bounded single-object 3MF Core profile for validated watertight triangle meshes. It preserves source geometry digest, solid/frame IDs and supported units, uses deterministic ZIP/XML output, and rejects unsafe or unsupported package structures. PR #97 exact-head and post-merge CI both passed 650 tests. This does not implement full 3MF assemblies/extensions or STEP. See [3MF Core Mesh Interchange Contract](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md).
+
+
+## Runtime resource and recovery (integrated foundation)
+
+PR #107 integrates the bounded runtime foundation: resource registry, bounded logs, recovery lifecycle/evidence, trusted-worker process supervision, adapter catalog, in-memory quotas/leases and local metrics. PR #113 adds in-process adapter routing, local cross-process evidence locking with an unkeyed SHA-256 hash chain, and threshold-based health monitoring. Exact PR #113 head and post-merge CI passed 732 tests. These are partial runtime primitives, not a production self-healing platform or security sandbox. See [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) and [post-PR #113 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR113.md).
+
+
+## CAD Generator local API (PR #138)
+
+The revision-aware `CADGeneratorService` now has a local HTTP adapter with explicit startup, IPv4 loopback-only binding, dynamic port by default, bearer authentication, strict JSON/body/time limits, immutable revision save/read/list and exact-revision regeneration. A local SQLite audit log records request lifecycle metadata in a SHA-256 hash chain without storing credentials or model bodies.
+
+The HTTP adapter is not a public or remote service. Do not expose it through LAN binding, SSH/port forwarding, reverse proxies or firewall rules. TLS, rate limiting, browser session management and remote access are not implemented. The API contract and current verification evidence are linked in [Documentation Index](DOCUMENTATION_INDEX.md).
+
+
+## Local CAD Generator workbench (PR #140)
+
+The loopback API now serves a same-origin responsive workbench for entering a bearer token, pasting/editing FeatureHistory JSON, appending immutable revisions, listing and loading revisions, and regenerating an exact revision. The token is held in page memory only. The UI uses restrictive CSP, no external resources and no CORS. This is a JSON/revision workbench, not yet a graphical sketch editor or CAD viewport. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
+
+
+## Visual polygon sketch editor (PR #142)
+
+The local CAD workbench now includes a bounded 2D SVG polygon editor with click-to-add, numeric coordinates, undo/clear and extrusion-height input. An authenticated template endpoint builds a strict fixed-coordinate ParametricSketch → Extrusion → Mesh FeatureHistory; the user reviews the JSON, saves an immutable revision, then regenerates to run geometry and watertight-mesh validation. The initial editor is limited to straight-edge polygons, 3–64 vertices and X 0–26 mm / Y 0–15 mm. It is not yet a general sketcher or 3D viewport.
+
+
+## Source-linked isometric mesh preview — PR #144
+
+The workbench now renders a bounded static isometric SVG from the exact MESH FeatureArtifact returned by regeneration. It displays source revision, vertex/triangle counts, content and computation SHA-256 digests, and backend validation flags (valid, watertight, consistently_oriented). Preview limits are 10,000 vertices and 5,000 triangles; the full artifact remains in the operation result. This is not an interactive viewport or CAD certification. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #144 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR144.md).
+
+
+## Interactive mesh viewport — PR #146
+
+The local CAD workbench now supports bounded client-side orbit, pan, zoom and reset controls over the exact source-linked MESH FeatureArtifact. Camera state is ephemeral and does not mutate FeatureHistory or backend geometry. Rendering is limited to 10,000 vertices and 5,000 triangles; malformed vertices and triangle indices fail closed for preview rendering. Backend mesh validation remains authoritative. This is an interactive triangle-mesh viewer, not a general CAD viewport: selection, measurement, sectioning, B-rep editing and assembly navigation remain open. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #146 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR146.md).
+
+
+## Mesh triangle selection and measurement — PR #148
+
+The local CAD workbench now supports selecting an individual rendered triangle facet by pointer click or keyboard activation, highlighting it, clearing the selection and reporting its area and centroid. Measurements use the mesh's declared length unit and frame. The interaction is display-only and does not mutate the source history or generated artifact. This is triangle-facet inspection, not B-rep face selection or general CAD measurement. CI: exact PR-head run #42391405409 passed 832 tests; exact post-merge run #42391470608 passed 832 tests. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #148 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR148.md).
+
+
+## FeatureHistory tree inspector — PR #150
+
+The local CAD workbench now provides a bounded, read-only FeatureHistory tree preview. It orders nodes deterministically by dependencies, reports malformed/cyclic graph structures without rendering them, caps the preview at 500 nodes, and lets users inspect a selected feature's ID, kind, inputs and parameters. It refreshes from edited, generated or loaded JSON and does not mutate source history. CI validates the browser script with `node --check`. Backend immutable add/replace/remove graph operations were added by PR #152 and revision-safe service/loopback API editing by PR #154; the browser tree remains read-only and does not yet expose editing controls. See [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #150 audit](docs/audit/REPOSITORY_AUDIT_2026-11-07_POST_PR150.md).
+
+
+## FeatureHistory immutable edit operations — PR #152
+
+The engineering core now provides immutable add, replace and remove operations for FeatureHistory DAG documents. Replacement preserves stable feature IDs; deletion refuses to orphan downstream features unless cascade removal is explicitly requested; the output invariant is preserved. The operations return a newly validated document and do not mutate stored revisions. PR #152 exact head `3c2469a43e48d5ac2fb7e546242d9a450dff1a87`: workflow #42396387520 passed workflow-sanity and python-tests (**840 passed in 9.23s**). Exact post-merge workflow #42396453320 on `1a8338ae17eb783a374a36400999ead796f9a79d`: both jobs passed (**840 passed in 8.71s**). This is a backend editing primitive, not yet an interactive editor, suppression/undo system or API mutation workflow. See [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md) and [post-PR #152 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR152.md).
+
+
+## Revision-safe FeatureHistory edit API — PR #154
+
+The CAD Generator service now applies add/replace/remove operations to the caller's expected source revision and appends a new immutable revision using SQLite compare-and-swap. The loopback API exposes `POST /v1/histories/{history_id}/edit`; stale revisions return HTTP 409. The route remains loopback-only, bearer-authenticated and audit-logged, and executes no user code. Exact PR-head workflow #42397413655 passed both jobs with **843 tests in 9.34s**; exact post-merge workflow #42397474889 on `7046de5cff4a7a575de44de189bbb4fedcbdba58` passed both jobs with **843 tests in 7.14s**. The browser tree remains read-only; interactive editing controls and browser E2E remain open. See [CAD Generator HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) and [post-PR #154 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR154.md).
+
+
+## Interactive FeatureHistory editing controls — PR #156
+
+The local CAD workbench now exposes bounded FeatureHistory editing controls through the revision-safe loopback API: replace the selected feature's parameters, add a feature from the existing allow-list, and remove a feature with explicit cascade confirmation when needed. Edits append immutable revisions; historical revisions remain read-only and stale writes are rejected. The editor uses text-only DOM rendering and does not execute user code. The browser E2E interaction suite is still open and is not claimed as verified. PR #156 exact head `265ca3907e05f958fbae48f48398fbbae8d70ea2` passed workflow-sanity and python-tests (**843 passed in 9.40s**); exact post-merge SHA `10404099ccaa85cef24adedffa7bce789abd691e` passed both jobs (**843 passed in 9.76s**). See [FeatureHistory Editing Contract](docs/design-3d/FEATURE_HISTORY_EDITING_CONTRACT.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), and [post-PR #156 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR156.md).
+
+
+## Polygonal B-rep mesh triangulation — PR #182 PASS
+
+PR #182 merged to the integration branch at `9c84d4d94030c0e3084d7a288064491d8160a71f` (exact PR head `c4c1a5c642096f2c030982c567fe308cb2df07e4`). It adds deterministic n-gon and multiple-inner-loop triangulation, preserves legacy triangle order and source identity/frame/unit/digest, and requires valid/watertight/consistently-oriented mesh validation. Exact PR-head Python 894 PASS; post-merge Python 894 PASS. Multiple shells and general 3D Boolean remain OPEN.
+
+
+## CAD multi-shell solids
+
+PR #184 merged at `db7ce54efe3d9334b87b3902a14b089b6ce67ebd`. The bounded multi-shell adapter composes one validated polygonal outer shell with strictly-contained, disjoint, non-nested cavity shells. Exact-head and post-merge Python tests passed 902 tests; browser E2E was not triggered because no UI changed. See the [multi-shell solid contract](docs/design-3d/FACETED_BREP_MULTISHELL_SOLID_CONTRACT.md). This is not general 3D Boolean or multi-shell neutral-format interchange.
+
+
+## Multi-shell cavity reference coverage
+
+PR #186 adds a rotated 45-degree box cavity and a concave L-prism cavity reference. Exact PR-head and post-merge workflows pass **904 tests**. A separate push-event run was not returned for the exact PR head; it is not counted as PASS. See the [post-PR #186 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR186.md).
+
+
+Multi-shell fail-closed coverage now explicitly rejects touching cavity boundaries and injected `UNKNOWN` intersection results. PR #188 exact-head and post-merge workflows passed 906 Python tests. A separate push-event run for the exact PR head was not returned; it is not counted as PASS. See the [post-PR #188 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR188.md).
+
+
+The multi-shell contract now explicitly records touching-boundary and UNKNOWN-intersection fail-closed tests. PR #188 and post-merge CI passed 906 tests; PR #189 synchronized the audit and status records with exact-SHA evidence. See the [post-PR #189 repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR189.md).
+
+
+## Axis-aligned multi-shell Boolean — PR #191 PASS
+
+PR #191 merged at `20e03675ec1000bd2bbcfaf251df4790305f2c0c`. Exact PR-head and post-merge workflows passed workflow-sanity and 914 Python tests. The adapter accepts only axis-aligned box outer/cavity components, with a 32,768-cell ceiling; arbitrary faceted, rotated and curved Boolean inputs remain OPEN. Browser E2E was not triggered because no browser UI changed. See the [multi-shell Boolean contract](docs/design-3d/AXIS_ALIGNED_MULTISHELL_BREP_BOOLEAN_CONTRACT.md) and [post-PR #191 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR191.md).
+
+- [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) — staged future kernel; planned, not implemented.
+- [Pre-PR #192 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_PRE_PR192.md)
+
+
+## Exact transverse triangle intersection segment — PR #195
+
+PR #195 adds a bounded exact-rational event primitive for proper transverse triangle-pair crossings. It returns deterministic segment endpoints and rejects coplanar/contact cases outside the supported profile. Exact PR-head workflow #42468475501 passed workflow-sanity and 921 Python tests (21.16s). Post-merge CI on merge SHA `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b` is UNKNOWN because no associated run/status was returned. Triangle splitting, material classification and Boolean boundary assembly remain OPEN. See the [arbitrary faceted Boolean contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) and [post-PR #195 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR195.md).
+
+
+## Exact single-plane triangle fragment splitting — PR #197
+
+PR #197 adds exact-rational clipping of one source triangle by one properly intersecting cutter plane, deterministic triangulation of both sides, source-winding preservation and exact area-conservation checks. Exact PR-head workflow #42468939670 passed workflow-sanity and 925 Python tests (31.98s). Post-merge CI on merge SHA `f31ca0135cafc17c1489d88f62c09be1c18cc97e` remains UNKNOWN because no associated run/status was returned. Full-mesh arrangement, global edge pairing, material classification and Boolean assembly remain OPEN. See the [arbitrary faceted Boolean contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md) and [post-PR #197 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR197.md).
+
+
+## Exact multi-plane triangle arrangement — PR #199
+
+PR #199 adds a bounded exact-rational arrangement primitive that applies ordered planes to individual source triangles without converting rational fragment coordinates to floating point. It preserves winding and per-plane side provenance, verifies exact area conservation, and fails closed on fragment-count or rational-bit limits. Exact PR-head CI passed workflow-sanity and Python tests; the documentation marker was SKIPPED and is not counted as PASS. Post-merge CI/status on `bc5f2a1bffb632ef1440ea9740e69f89cf50737e` is UNKNOWN. This does not yet provide global mesh adjacency, independent coverage certification, inside/outside classification or Boolean shell assembly. See the [Arbitrary Faceted B-rep Boolean Contract](docs/design-3d/ARBITRARY_FACETED_BREP_BOOLEAN_CONTRACT.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), and [post-PR #199 audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR199.md).
+
+
+## Latest integration checkpoint — 2026-11-12
+
+## Current integration reconciliation — 2026-11-12 (post-PR #240)
+
+This section supersedes earlier "latest" headers in this file. Historical checkpoints remain historical and are not current branch-state claims.
+
+- Integration branch: `docs/phase-0-complete-requirements`.
+- Exact integration HEAD: `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge).
+- Exact `main` HEAD: `96e75010716226037893155b9fd4b13410fb0d6f`; unchanged and not targeted.
+- Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
+- Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
+- PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
+- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
+- Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
+- No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
+
+| PR | Exact head SHA | Exact merge SHA | Post-merge run |
+|---|---|---|---|
+| #235 | `d5674ba2a1b3f172357aad69f208883d1586755e` | `95253414616c992c606c0e73d69c48c30df4cd36` | [42835668819](https://github.com/phakphum12345/universal-platform/actions/runs/42835668819) |
+| #236 | `92c0827ef39d575bd5c8ff940c6395de6d75b900` | `4853f297e988603e30069859e6b1486283fcf00f` | [42879990889](https://github.com/phakphum12345/universal-platform/actions/runs/42879990889) |
+| #237 | `c22b37f1db0b1adfce4a71d18cd715bea358cae0` | `2801c8b990af564a6655203f8cfc9a52db70dce3` | [43031735312](https://github.com/phakphum12345/universal-platform/actions/runs/43031735312) |
+| #238 | `2e2e833237f681381876e0fffb73a00a78dd69e1` | `564130639fc02aa8ce856b0d8ea33c0f0b1a7237` | [43136866268](https://github.com/phakphum12345/universal-platform/actions/runs/43136866268) |
+| #239 | `98d4f86772cc69765335320d34b56e0391d31e7e` | `53167ffeb6efb829640363a33dffe08edd788e90` | [43138398688](https://github.com/phakphum12345/universal-platform/actions/runs/43138398688) |
+| #240 | `17923b36201bbc1129eceabbfd98e24386c8fd8c` | `c3d9800ebb46caff38bf18c13142e218ee2c6c63` | [43168374709](https://github.com/phakphum12345/universal-platform/actions/runs/43168374709) |
+
+### Runtime maturity boundary
+
+- ModuleRuntime now performs host-grant-gated invocation of explicitly registered trusted Python handlers; request-supplied permissions do not grant authority.
+- The runtime enforces a deliberately bounded output-schema subset and releases in-memory resource leases in a `finally` path.
+- The Physics bridge exposes three bounded analytical solvers: axial stress, ideal DC Ohm's law/power, and linear thermal expansion.
+- Resource reservation is host-configured, in-memory, process-local admission control. It does not enforce actual CPU, RAM, I/O, network or wall-clock consumption.
+- The process supervisor is a separate allow-listed trusted-worker facility. POSIX process-group cleanup is covered by tests; Windows currently terminates only the direct child.
+- ModuleRuntime does not route invocations through the process supervisor. Worker protocol integration, host-owned deadlines, cancellation/worker races, lease release after worker termination, durable recovery and OS-enforced isolation remain open.
+- None of these facilities is a sandbox. Do not execute untrusted plugin code.
+
+### Next dependency-ready work
+
+1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
+3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
+4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
+5. Add platform-specific OS isolation and security acceptance only after threat model, permissions and resource controls are explicit.
+6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
+
+
+## Planned UI modernization
+
+WP-15 defines a Modern Unified Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, audit and settings. It is PLANNED only; see [the WP-15 specification](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). Existing UI and API surfaces must be inventoried before implementation or replacement.
+
+Historical documentation compatibility anchor: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a pinned reference required by the post-PR #113 audit regression test. It is a historical baseline, not the current branch HEAD. The historical post-PR #113 test snapshot recorded `732 passed`; this is retained as historical evidence, not a claim about the current test suite.
