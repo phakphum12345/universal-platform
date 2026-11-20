@@ -159,6 +159,8 @@ class ProcessIdentityInspector:
             )
 
         unknown_entries = 0
+        leader_pid_reused = False
+        group_member_seen = False
         try:
             entries = tuple(self._proc_root.iterdir())
         except OSError as error:
@@ -189,18 +191,26 @@ class ProcessIdentityInspector:
                         identity, ProcessLiveness.PRESENT, method,
                         details=("leader-pid-and-starttime-match",),
                     )
-                # The PID was reused. Do not mistake the new leader for the
-                # old worker merely because it has the same numeric group IDs.
+                # The PID was reused. Do not mistake the new leader or any
+                # newly-created group with the same numeric IDs for this worker.
+                leader_pid_reused = True
                 continue
             if (
                 process_group_id == identity.process_group_id
                 and session_id == identity.session_id
             ):
-                return self._evidence(
-                    identity, ProcessLiveness.PRESENT, method,
-                    details=("original-process-group-has-live-member",),
-                )
+                group_member_seen = True
 
+        if leader_pid_reused and group_member_seen:
+            return self._evidence(
+                identity, ProcessLiveness.UNKNOWN, method,
+                reason="leader PID was reused while matching group IDs remain; refusing ambiguous attribution",
+            )
+        if group_member_seen:
+            return self._evidence(
+                identity, ProcessLiveness.PRESENT, method,
+                details=("original-process-group-has-live-member",),
+            )
         if unknown_entries:
             return self._evidence(
                 identity, ProcessLiveness.UNKNOWN, method,
