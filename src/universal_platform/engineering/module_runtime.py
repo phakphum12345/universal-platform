@@ -24,6 +24,9 @@ from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from ..runtime.resources.models import ResourceMetric
 
 
+_PROCESS_HOST_INSTANCE_ID = uuid4().hex
+
+
 class ResourceLeasePort(Protocol):
     """Minimal lease surface consumed by ModuleRuntime."""
 
@@ -207,7 +210,7 @@ class ModuleRuntime:
             raise InvalidModelError("process_identity_inspector must provide inspect(identity)")
         self._registry = registry
         self._resource_allocator = resource_allocator
-        self._host_instance_id = host_instance_id or uuid4().hex
+        self._host_instance_id = host_instance_id or _PROCESS_HOST_INSTANCE_ID
         self._process_identity_inspector = process_identity_inspector or ProcessIdentityInspector()
         reconcile_startup = getattr(resource_allocator, "reconcile_startup", None)
         if (
