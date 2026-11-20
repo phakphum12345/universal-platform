@@ -435,7 +435,15 @@ class ModuleRuntime:
             )
             warnings = (
                 (
-                    "Host quota reservation acquired for this invocation; it is not an OS resource limit.",
+                    "Durable worker identity lease acquired; it is not an OS resource limit.",
+                    "The supervised worker identity is persisted before its payload is allowed to execute.",
+                )
+                if lease is not None
+                and supports_durable_worker_identity
+                and worker_handle is not None
+                and not getattr(lease, "allocations", ())
+                else (
+                    "Host quota and durable worker identity reservation acquired; it is not an OS resource limit.",
                     "The supervised worker identity is persisted before its payload is allowed to execute.",
                 )
                 if lease is not None and supports_durable_worker_identity and worker_handle is not None
