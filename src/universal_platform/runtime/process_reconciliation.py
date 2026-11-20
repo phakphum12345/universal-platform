@@ -71,6 +71,34 @@ def _linux_stat_fields(path: Path) -> tuple[str, int, int, int]:
     return state, process_group_id, session_id, start_ticks
 
 
+@dataclass(frozen=True, slots=True)
+class WorkerReconciliationResult:
+    lease_id: str
+    status: ProcessLiveness
+    action: str
+    reason: str | None = None
+    evidence: ProcessLivenessEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.lease_id, str) or not self.lease_id.strip():
+            raise ValueError("lease_id must be a non-empty string")
+        if not isinstance(self.status, ProcessLiveness):
+            raise ValueError("status must be a ProcessLiveness")
+        if self.action not in {"retained", "released", "quarantined", "retained_quarantine"}:
+            raise ValueError("unsupported worker reconciliation action")
+        if self.evidence is not None and not isinstance(self.evidence, ProcessLivenessEvidence):
+            raise ValueError("evidence must be ProcessLivenessEvidence or None")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "lease_id": self.lease_id,
+            "status": self.status.value,
+            "action": self.action,
+            "reason": self.reason,
+            "evidence": self.evidence.to_dict() if self.evidence is not None else None,
+        }
+
+
 class ProcessIdentityInspector:
     """Inspect exact worker identity without ever degrading to PID-only matching."""
 
@@ -260,4 +288,5 @@ __all__ = [
     "ProcessIdentityInspector",
     "ProcessLiveness",
     "ProcessLivenessEvidence",
+    "WorkerReconciliationResult",
 ]
