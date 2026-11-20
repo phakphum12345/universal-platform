@@ -112,6 +112,7 @@ This remains an incremental engineering foundation, not a completed universal pl
 
 ### Engineering intelligence
 - [Universal Engineering Intelligence Core](docs/engineering/UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE.md)
+- [Geometry Batch Validation CLI](docs/engineering/GEOMETRY_BATCH_VALIDATION.md)
 - [Multidisciplinary Knowledge Modules](docs/engineering/MULTIDISCIPLINARY_KNOWLEDGE_MODULES.md)
 - [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md)
 - [Universal Calculation Engine](docs/engineering/UNIVERSAL_CALCULATION_ENGINE.md)
