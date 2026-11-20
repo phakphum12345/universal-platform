@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 import sys
 from types import SimpleNamespace
 
@@ -27,7 +26,7 @@ def test_linux_process_identity_captures_creation_and_process_tree_tokens():
     assert identity.to_dict()["worker_id"] == "worker-test"
 
 
-@pytest.mark.skipif(os.name != "posix" or not Path("/proc").is_dir(), reason="Linux procfs identity")
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs identity")
 def test_linux_process_identity_uses_starttime_after_parenthesized_comm(tmp_path):
     proc_root = tmp_path
     process_dir = proc_root / "123"
@@ -53,7 +52,7 @@ def test_linux_process_identity_uses_starttime_after_parenthesized_comm(tmp_path
     assert identity.host_boot_id == "boot-token"
 
 
-@pytest.mark.skipif(os.name != "posix" or not Path("/proc").is_dir(), reason="Linux procfs identity")
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs identity")
 @pytest.mark.parametrize("state", ["Z", "X"])
 def test_linux_process_identity_rejects_zombie_or_dead_process(tmp_path, state):
     process_dir = tmp_path / "321"

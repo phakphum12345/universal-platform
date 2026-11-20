@@ -1,7 +1,7 @@
 """Journal-backed resource reservations with cross-process admission serialization."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -11,6 +11,7 @@ from typing import Iterable
 from uuid import uuid4
 
 from ..evidence.jsonl_journal import JsonlHashChainJournal
+from ..process_identity import ProcessIdentity
 from .models import ResourceMetric
 
 
@@ -24,6 +25,7 @@ class DurableResourceLease:
     lease_kind: str = "ordinary"
     host_instance_id: str | None = None
     worker_id: str | None = None
+    process_identity: ProcessIdentity | None = None
 
     def __post_init__(self) -> None:
         if not self.lease_id.strip() or not self.owner_id.strip():
@@ -42,6 +44,16 @@ class DurableResourceLease:
                 raise ValueError("supervised worker leases must not expire by TTL")
             if not self.host_instance_id or not self.worker_id:
                 raise ValueError("supervised worker leases require host_instance_id and worker_id")
+        if self.process_identity is not None:
+            if self.lease_kind != "supervised_worker":
+                raise ValueError("process identity is only valid for supervised worker leases")
+            if not isinstance(self.process_identity, ProcessIdentity):
+                raise ValueError("process_identity must be a ProcessIdentity")
+            if (
+                self.process_identity.host_instance_id != self.host_instance_id
+                or self.process_identity.worker_id != self.worker_id
+            ):
+                raise ValueError("process identity does not match the supervised worker lease")
         names = [item.name for item in self.allocations]
         if len(names) != len(set(names)):
             raise ValueError("lease allocation metric names must be unique")
@@ -195,6 +207,53 @@ class DurableResourceAllocator:
             worker_id=worker_id,
         )
 
+    def bind_process_identity(
+        self,
+        lease_id: str,
+        identity: ProcessIdentity,
+    ) -> DurableResourceLease:
+        """Durably bind an OS identity to its matching, non-expiring worker lease.
+
+        Repeating the exact same binding is idempotent. A different identity,
+        mismatched worker/host, unknown lease, ordinary lease, or quarantined
+        lease is rejected without changing the journal.
+        """
+        if not isinstance(lease_id, str) or not lease_id.strip():
+            raise ValueError("lease_id must be a non-empty string")
+        if not isinstance(identity, ProcessIdentity):
+            raise ValueError("identity must be a ProcessIdentity")
+        result: dict[str, DurableResourceLease] = {}
+
+        def bind(records):
+            self._validate_pool(records)
+            state, quarantined = self._replay(records)
+            lease = state.get(lease_id)
+            if lease is None:
+                raise ValueError("cannot bind process identity to an unknown lease")
+            if lease.lease_kind != "supervised_worker":
+                raise ValueError("process identity requires a supervised worker lease")
+            if lease_id in quarantined:
+                raise RuntimeError("cannot bind process identity to a quarantined lease")
+            if (
+                identity.host_instance_id != lease.host_instance_id
+                or identity.worker_id != lease.worker_id
+            ):
+                raise ValueError("process identity does not match the lease host and worker")
+            if lease.process_identity is not None:
+                if lease.process_identity != identity:
+                    raise RuntimeError("lease is already bound to a different process identity")
+                result["lease"] = lease
+                return ()
+            bound = replace(lease, process_identity=identity)
+            result["lease"] = bound
+            return (self._event("LEASE_PROCESS_BOUND", {
+                "lease_id": lease_id,
+                "process_identity": identity.to_dict(),
+            }),)
+
+        self._journal.append_transaction(bind)
+        return result["lease"]
+
     def quarantine(self, lease_id: str, reason: str) -> bool:
         if not isinstance(reason, str) or not reason.strip():
             raise ValueError("quarantine reason must be a non-empty string")
@@ -303,6 +362,9 @@ class DurableResourceAllocator:
             "lease_kind": lease.lease_kind,
             "host_instance_id": lease.host_instance_id,
             "worker_id": lease.worker_id,
+            "process_identity": (
+                lease.process_identity.to_dict() if lease.process_identity is not None else None
+            ),
         }
 
     def _validate_pool(self, records) -> None:
@@ -330,6 +392,19 @@ class DurableResourceAllocator:
                 if lease.lease_id in state:
                     raise ValueError("durable journal repeats an active lease ID")
                 state[lease.lease_id] = lease
+            elif event_type == "LEASE_PROCESS_BOUND":
+                if not isinstance(lease_id, str) or lease_id not in state:
+                    raise ValueError("durable journal binds an unknown lease identity")
+                lease = state[lease_id]
+                if lease.lease_kind != "supervised_worker" or lease.process_identity is not None:
+                    raise ValueError("durable journal contains an invalid process identity binding")
+                if lease_id in quarantined:
+                    raise ValueError("durable journal binds a quarantined worker lease")
+                try:
+                    identity = ProcessIdentity(**record["process_identity"])
+                    state[lease_id] = replace(lease, process_identity=identity)
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise ValueError("durable journal process identity binding is invalid") from exc
             elif event_type == "LEASE_QUARANTINED":
                 if not isinstance(lease_id, str) or lease_id not in state:
                     raise ValueError("durable journal quarantines an unknown lease")
@@ -365,6 +440,10 @@ class DurableResourceAllocator:
                 lease_kind=record.get("lease_kind", "ordinary"),
                 host_instance_id=record.get("host_instance_id"),
                 worker_id=record.get("worker_id"),
+                process_identity=(
+                    ProcessIdentity(**record["process_identity"])
+                    if record.get("process_identity") is not None else None
+                ),
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise ValueError("durable lease acquisition event is invalid") from exc
