@@ -161,6 +161,11 @@ class ProcessIdentityInspector:
 
     def _inspect_linux(self, identity: ProcessIdentity) -> ProcessLivenessEvidence:
         method = "linux.procfs.boot-id-starttime-pgrp-session"
+        if identity.process_group_id != identity.pid or identity.session_id != identity.pid:
+            return self._evidence(
+                identity, ProcessLiveness.UNKNOWN, method,
+                reason="worker identity is not its process-group and session leader; safe group attribution is unavailable",
+            )
         boot_path = self._proc_root / "sys/kernel/random/boot_id"
         try:
             current_boot_id = boot_path.read_text(encoding="ascii").strip()
