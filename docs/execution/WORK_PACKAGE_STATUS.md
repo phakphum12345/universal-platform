@@ -31,7 +31,7 @@
 | #256 | MERGED to development | Durable worker lease recovery design contract; merge SHA `fb47dc0a06b08bf63f1cfe318aa7a79065547b31` |
 | #257 | MERGED to development | Reusable JSONL journal; merge SHA/current HEAD `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; current-head workflow checks PASS |
 | #258 | OPEN; not merged | Head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS |
-| #259 | OPEN; not merged | Head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a`; Python 1,150 passed / 4 skipped; Windows supervisor and workflow sanity PASS |
+| #259 | OPEN; not merged | Prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed; this live documentation update advances the branch and requires fresh exact-head CI |
 | #260 | OPEN; stacked on #258 | Head `47d2ac49eab69d9dd8c260d8803a73070c25aad1`; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS |
 | #261 | OPEN Draft; stacked on #260 | Head `3e8af697ead9050dd531f27ce8bbaef358145261`; exact-head Python, Windows and workflow sanity PASS |
 | #262 | OPEN Draft; stacked on #261 | Head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`; Python 1,176 passed / 4 skipped; Windows and workflow sanity PASS |
