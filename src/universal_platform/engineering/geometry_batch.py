@@ -33,7 +33,7 @@ def _expand_inputs(inputs: Sequence[str], recursive: bool) -> list[Path]:
                     if "schemas" not in path.parts and _is_geometry_candidate(path):
                         discovered.add(path.resolve())
             elif _is_geometry_candidate(candidate):
-                discovered.add(candidate.resolve())
+                discovered.add(candidate.absolute())
     return sorted(discovered, key=lambda item: str(item).casefold())
 
 
