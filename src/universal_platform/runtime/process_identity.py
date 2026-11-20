@@ -57,10 +57,6 @@ class ProcessIdentity:
             or self.session_id is None
         ):
             raise ValueError("Linux identity requires boot, process-group and session tokens")
-        if self.platform == "linux" and (
-            self.process_group_id != self.pid or self.session_id != self.pid
-        ):
-            raise ValueError("Linux supervised worker must be its process-group and session leader")
         if self.job_object_id is not None and (
             not isinstance(self.job_object_id, str)
             or not self.job_object_id.strip()
