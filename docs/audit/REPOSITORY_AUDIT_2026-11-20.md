@@ -133,16 +133,20 @@ The worker supervisor is not a general OS security sandbox. Current code does no
 
 ## 5. Documentation reconciliation findings
 
-The development branch already contains substantial documentation; avoid creating duplicate domain specifications. The following current-state records were stale at the audit baseline:
+The development branch already contains extensive domain and historical documentation; do not create duplicate specifications. PR #259's audit/documentation branch is being refreshed with the current PR inventory and exact-head evidence through #266.
 
-- `docs/implementation/IMPLEMENTATION_STATUS.md` still identifies PR #240 as the current integration baseline and describes PR #241 as open, despite later merged runtime work.
-- `docs/execution/WORK_PACKAGE_STATUS.md` still uses the 2026-11-12 / PR #240 baseline and older WP-09 candidate states.
-- `MASTER_COMPLETION_MATRIX.md` carries a 2026-11-19 snapshot whose stated PR #246 base SHA is historical; it must identify the live #257 development HEAD and #258 PR candidate separately.
-- `ROADMAP.md` and `DOCUMENTATION_INDEX.md` mention PR #254 but do not yet reconcile PR #256/#257/#258.
-- `docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md` identifies a 2026-11-12 baseline; its row-level claims require revalidation against current source/tests before any requirement can be accepted.
-- WP-15B remains a DRAFT; WP-15C and later Control Center implementation must not be represented as started.
+Current live documentation records being synchronized:
+- `README.md`
+- `MASTER_COMPLETION_MATRIX.md`
+- `ROADMAP.md`
+- `DOCUMENTATION_INDEX.md`
+- `docs/implementation/IMPLEMENTATION_STATUS.md`
+- `docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md`
+- `docs/audit/REPOSITORY_AUDIT_2026-11-20.md`
+- `docs/engineering/TECHNICAL_DEBT.md`
+- `docs/runtime/DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md`
 
-Historical audit entries and PR evidence should remain intact. New dated reconciliations must supersede stale snapshots without deleting them.
+Historical audit entries, exact SHAs, prior test counts and closed PR dispositions remain retained. Current test counts are labelled by exact PR head; historical counts (including the post-PR #113 732-pass baseline) are not presented as current results. Documentation coverage is not implementation evidence.
 
 ## 6. Governance and CI findings
 
@@ -154,29 +158,35 @@ Historical audit entries and PR evidence should remain intact. New dated reconci
 
 ## 7. Prioritized execution sequence
 
-1. **Governance and evidence baseline:** resolve the documented-vs-live main protection mismatch; maintain separate main and development SHAs; reconcile status, work-package, roadmap and traceability records.
-2. **WP-09G-B review/integration:** review PR #258 source and test coverage; add direct cross-process allocator tests and ModuleRuntime durable-allocator integration as separate focused increments; require exact-head and post-merge evidence.
-3. **WP-09G-C:** bind immutable OS process identity to durable lease admission before worker payload execution on Windows and supported POSIX platforms.
-4. **WP-09G-D:** startup replay and process-tree liveness reconciliation; UNKNOWN must quarantine and preserve capacity.
-5. **WP-09G-E:** authenticated/audited operator recovery, crash injection, journal lifecycle/rotation and exact-platform acceptance.
-6. **WP-15B:** obtain owner acceptance of navigation and user journeys before WP-15C.
-7. **CAD / Mechanics / Physics / Hardware / Interchange:** execute dependency-ready vertical slices with independent reference cases and real API/UI integration.
-8. **Platform E2E and release:** unified workflows, security/license review, performance/resource tests, backup/restore, supported-platform matrix and final acceptance.
+1. **Complete current runtime chain:** finish #265/#266 exact-head CI and fault injection; maintain the dependency order #258 → #260 → #261 → #262 → #263 → #264 → #265 → #266. Review each exact head; do not merge any PR without the applicable explicit authorization.
+2. **WP-09G-E:** implement authenticated operator recovery with authorization, operator identity, reason, append-only audit event, audit-persistence fail-closed behavior and recovery tests. Do not clear quarantined leases through ordinary release.
+3. **Runtime security/reliability:** add repository-wide lint/type/dependency-security gates; threat-model IPC and process launch; define sandbox and OS resource enforcement boundaries; add crash-point, lock-contention, process-tree escape and journal corruption tests.
+4. **Governance:** owner/admin must configure and verify branch protection/rulesets for main and development; preserve separate integration and main promotion approvals.
+5. **WP-15B:** obtain owner acceptance of navigation and user journeys before WP-15C.
+6. **CAD / Mechanics / Physics / Hardware / Interchange:** continue dependency-ready vertical slices with independent reference cases, contract tests and real API/UI integration; keep capability boundaries explicit.
+7. **Platform E2E and release:** unified API/CLI/UI, cross-domain workflows, supported-platform matrix, security/license review, performance/resource tests, backup/restore and final acceptance.
 
 ## 8. Evidence limitations
 
 - This is a GitHub API/source-document audit, not a local working-tree audit.
 - Exact-head CI was inspected for PR #258 and the current development HEAD. Not every historical merged PR was re-run; historical PR dispositions are not a substitute for current full-suite acceptance.
 - The four skipped test names/reasons were not established by the available job-log excerpt and remain SKIPPED / UNKNOWN as to applicability.
-- No complete branch ahead/behind comparison between `main` and the development branch was performed.
+- GitHub compare was refreshed: development is 878 commits ahead / 0 behind `main`; `main` is an ancestor of the development baseline.
 - No independent specialist certification of physical engineering results is claimed.
 
 ## 9. Subsequent execution updates — 2026-11-20
 
-The initial inventory above was captured before the audit and runtime follow-up PRs were created. The current queue now contains PR #258, #259 and #260; the current PR inventory is #1–#260 with 239 merged, 18 closed without merge and 3 open.
+The audit and execution branches have continued beyond the initial #258 snapshot. Current PR inventory is #1–#266: 239 merged, 18 closed without merge, 9 open (#258–#266).
 
-- **PR #259** carries this audit, technical debt register and synchronized status/roadmap/traceability documentation. Its first head passed workflow-sanity, Windows supervisor and Python (1,150 passed / 4 skipped); the latest head is being revalidated after final baseline corrections.
-- **PR #260** is stacked on #258. It adds a runtime-checkable allocator port, durable ModuleRuntime integration, logical worker/host identity persistence, quarantine replay and a subprocess capacity-race test. Its Windows job passed: process supervisor 21 passed / 2 POSIX-only skipped; JSONL journal 20 passed / 1 Windows-only skipped; durable allocator + ModuleRuntime + multiprocess tests 14 passed / 0 skipped. Its full Python suite is pending at this update.
-- Both `main` and development have branch protection disabled; required status checks are unenforced and the repository has no rulesets. No settings were changed.
+- **PR #259** audit/docs branch exact head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a`: Python 1,150 passed / 4 skipped; Windows supervisor and workflow-sanity PASS. Historical README compatibility anchors are explicitly labelled historical.
+- **PR #260** exact head `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: Python 1,166 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
+- **PR #261** exact head `3e8af697ead9050dd531f27ce8bbaef358145261`: identity snapshot primitive; exact-head Python, Windows supervisor and workflow-sanity PASS.
+- **PR #262** exact head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: durable lease identity binding; Python 1,176 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
+- **PR #263** exact head `077edafe5c1e750be6270b28f98fd42430348a98`: Linux/Windows start gate; Python 1,179 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed; workflow-sanity PASS.
+- **PR #264** exact head `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: WorkerIPC/ModuleRuntime identity binding; Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed; workflow-sanity PASS.
+- **PR #265** exact head `088db6ad3178ac02321012a50fb319f5996d2d52`: process liveness adapters; Windows supervisor, journal, durable allocator/ModuleRuntime, WorkerIPC/ModuleRuntime, process-reconciliation (2 passed / 8 skipped) and workflow-sanity PASS; Python suite IN_PROGRESS at this update.
+- **PR #266** exact head `ed214969d9382e4dd343d24df0bd4d38d83e670b`: startup reconciliation and ModuleRuntime readiness gating; exact-head CI QUEUED at this update.
+- Latest review query for #258–#266 returned zero formal review submissions and zero unresolved inline threads. All nine are reported mergeable; none is merged.
+- Both `main` and development remain `protected=false`; required status checks are unenforced and rulesets are empty. No settings were changed.
 
-**Final audit status: INCOMPLETE.** No PR was merged, no branch was force-updated, no branch was deleted, no production deployment was performed, and no main-branch change was made.
+**Final audit status: INCOMPLETE.** No PR was merged, no branch was force-updated or deleted, no production deployment was performed, and no main-branch change was made. Local working-tree state remains UNKNOWN because this is a GitHub-only audit.
