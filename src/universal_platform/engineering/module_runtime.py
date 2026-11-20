@@ -14,13 +14,13 @@ from math import isfinite
 from threading import Condition, RLock
 from typing import Any
 
+from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
+from ..runtime.resources.models import ResourceMetric
+from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
+from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
-from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
-from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
-from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
-from ..runtime.resources.models import ResourceMetric
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 RegisteredHandler = ModuleHandler | WorkerIPCClient
@@ -272,7 +272,7 @@ class ModuleRuntime:
         client, handle = invocation
         try:
             return client.cancel(handle)
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Cancellation is a boolean control API; lease safety is enforced
             # independently by the invocation's termination result.
             return False
@@ -343,7 +343,7 @@ class ModuleRuntime:
                     )
                 try:
                     input_validation_error = _validate_module_input(request.inputs, operation)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     input_validation_error = "input schema validation failed"
                 if input_validation_error is not None:
                     return ModuleResponse(
@@ -426,7 +426,7 @@ class ModuleRuntime:
                                     lease.lease_id,
                                     "worker process-tree termination was not confirmed",
                                 )
-                            except Exception:
+                            except Exception:  # noqa: BLE001
                                 quarantine_recorded = False
                             warnings = warnings + ((
                                 "Resource lease quarantined because worker termination was not confirmed; operator inspection is required."
@@ -456,14 +456,14 @@ class ModuleRuntime:
                 else:
                     try:
                         outputs = handler(request.inputs)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         return ModuleResponse(
                             request_id=request.request_id, status="ERROR",
                             error_code="module.handler_failed", warnings=warnings,
                         )
                 try:
                     validation_error = _validate_module_output(outputs, operation)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     validation_error = "output schema validation failed"
                 if validation_error is not None:
                     return ModuleResponse(

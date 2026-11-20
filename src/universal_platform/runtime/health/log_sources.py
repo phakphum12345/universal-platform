@@ -1,7 +1,10 @@
 """Permission-bounded read-only log file source."""
 from __future__ import annotations
+
 from pathlib import Path
+
 from .log_analyzer import LogEvent, analyze_logs
+
 
 class FileLogSource:
     """Read UTF-8 logs only from a configured root directory."""

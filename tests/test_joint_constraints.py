@@ -6,9 +6,15 @@ from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.joint_constraints import generate_joint_constraints
 from universal_platform.engineering.mechanism_model import (
-    CoordinateKind, FrameReference, GeneralizedCoordinate, GeometryPlacement,
-    JointCoordinateParameterization, JointFramePlacement, JointKind, JointModel,
-    LinkModel, MechanismModel,
+    CoordinateKind,
+    FrameReference,
+    GeneralizedCoordinate,
+    JointCoordinateParameterization,
+    JointFramePlacement,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 from universal_platform.engineering.transforms import RigidTransform
 

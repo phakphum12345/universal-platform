@@ -12,12 +12,12 @@ from .monitor import (
 
 __all__ = [
     "FileLogSource",
-    "LogEvent",
-    "analyze_logs",
     "HealthFinding",
     "HealthStatus",
+    "LogEvent",
     "ResourceHealthAssessment",
     "ResourceHealthMonitor",
     "ResourceHealthRule",
     "ThresholdComparison",
+    "analyze_logs",
 ]

@@ -11,7 +11,11 @@ from universal_platform.runtime.supervisor import (
     WorkerTerminationError,
 )
 from universal_platform.runtime.worker_ipc import WorkerIPCClient, WorkerIPCError
-from universal_platform.runtime.worker_protocol import WorkerFrame, WorkerProtocolError, encode_frame
+from universal_platform.runtime.worker_protocol import (
+    WorkerFrame,
+    WorkerProtocolError,
+    encode_frame,
+)
 
 
 @pytest.fixture

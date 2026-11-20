@@ -4,10 +4,22 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.hardware.schematic import Component, Net, Pin, PinRef, SchematicModel
+from universal_platform.hardware.schematic import (
+    Component,
+    Net,
+    Pin,
+    PinRef,
+    SchematicModel,
+)
 from universal_platform.hardware.schematic_layout import (
-    ComponentPlacement, NetRoute, SchematicLayout, SchematicPoint,
-    SymbolDefinition, SymbolGraphic, SymbolGraphicKind, SymbolPin,
+    ComponentPlacement,
+    NetRoute,
+    SchematicLayout,
+    SchematicPoint,
+    SymbolDefinition,
+    SymbolGraphic,
+    SymbolGraphicKind,
+    SymbolPin,
     render_schematic_svg,
 )
 

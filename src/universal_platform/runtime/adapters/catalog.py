@@ -1,13 +1,13 @@
 """Deterministic, policy-gated runtime adapter discovery and replacement."""
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from threading import RLock
-from typing import Callable, Iterable
 
-from .base import RuntimeAdapter
 from ..resources.models import ResourceState
 from ..resources.registry import ResourceRegistry
+from .base import RuntimeAdapter
 
 
 def _version_key(value: str) -> tuple[int, ...]:
@@ -40,7 +40,7 @@ class AdapterCandidate:
         if any(not item.strip() for item in self.dependencies):
             raise ValueError("dependencies must be non-empty")
         if isinstance(self.priority, bool) or not isinstance(self.priority, int):
-            raise ValueError("priority must be an integer")
+            raise ValueError("priority must be an integer")  # noqa: TRY004
 
 
 class AdapterRegistry:

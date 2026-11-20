@@ -6,22 +6,24 @@ membership. The implementation is dependency-free and bounded.
 """
 from __future__ import annotations
 
+import itertools
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
 from json import dumps
-from typing import ClassVar, Iterable, Mapping
+from typing import ClassVar
 
 from .errors import InvalidModelError
 from .planar_boolean import (
     PlanarRegionBooleanOperation,
-    _Edge,
-    _Point,
     _add,
     _contains,
+    _Edge,
     _location,
     _loop_area2,
     _mul,
+    _Point,
     _side_samples,
     _split_pair,
     _stitch,
@@ -79,7 +81,7 @@ class PlanarRegionSetBooleanResult:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "PlanarRegionSetBooleanResult":
+    def from_dict(cls, value: Mapping[str, object]) -> PlanarRegionSetBooleanResult:
         required = {
             "schema_version", "algorithm_version", "operation", "input_region_ids",
             "input_region_sha256", "frame_id", "length_unit", "regions",
@@ -200,7 +202,7 @@ def boolean_planar_region_set(
         start, end = edge
         direction = _sub(end, start)
         ordered = sorted(values)
-        for low, high in zip(ordered, ordered[1:]):
+        for low, high in itertools.pairwise(ordered):
             if low == high:
                 continue
             a = _add(start, _mul(direction, low))

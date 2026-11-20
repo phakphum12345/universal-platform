@@ -1,7 +1,17 @@
 import json
+
 import pytest
+
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.hardware.schematic import Component, Net, Pin, PinElectricalType, PinRef, SchematicModel
+from universal_platform.hardware.schematic import (
+    Component,
+    Net,
+    Pin,
+    PinElectricalType,
+    PinRef,
+    SchematicModel,
+)
+
 
 def sample():
     r=Component("component.r1","R1","resistor.through-hole",

@@ -6,18 +6,18 @@ package parts fail closed. It is not a complete 3MF implementation.
 """
 from __future__ import annotations
 
+import re
+import stat
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
 from math import isfinite
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile, ZipInfo
-import re
-import stat
-import xml.etree.ElementTree as ET
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .mesh import TriangleMesh, MeshValidationResult, validate_triangle_mesh
+from .mesh import MeshValidationResult, TriangleMesh, validate_triangle_mesh
 
 _CORE_NS = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
 _CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
@@ -262,19 +262,19 @@ def import_3mf(content: bytes) -> ThreeMFImportResult:
     object_id = obj.attrib.get("id")
     if obj.attrib.get("type", "model") != "model":
         raise InvalidModelError("3MF object type must be model")
-    if len(list(obj)) != 1 or list(obj)[0].tag != f"{{{_CORE_NS}}}mesh":
+    if len(list(obj)) != 1 or next(iter(obj)).tag != f"{{{_CORE_NS}}}mesh":
         raise InvalidModelError("3MF object must contain exactly one mesh and no components")
     items = builds[0].findall(f"{{{_CORE_NS}}}item")
     if (len(items) != 1 or len(list(builds[0])) != 1
             or items[0].attrib != {"objectid": object_id}):
         raise InvalidModelError("3MF build must contain one untransformed item for the mesh object")
 
-    mesh_node = list(obj)[0]
+    mesh_node = next(iter(obj))
     vertices_nodes = mesh_node.findall(f"{{{_CORE_NS}}}vertices")
     triangles_nodes = mesh_node.findall(f"{{{_CORE_NS}}}triangles")
     if (len(vertices_nodes) != 1 or len(triangles_nodes) != 1
             or len(list(mesh_node)) != 2
-            or set(child.tag for child in list(mesh_node)) != {
+            or {child.tag for child in list(mesh_node)} != {
                 f"{{{_CORE_NS}}}vertices", f"{{{_CORE_NS}}}triangles"
             }):
         raise InvalidModelError("3MF mesh requires exactly one vertices and triangles element")

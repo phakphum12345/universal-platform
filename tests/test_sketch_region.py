@@ -2,8 +2,14 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.parametric_sketch import (
-    ParametricSketch, SketchConstraint, SketchConstraintKind as Kind,
-    SketchPoint, SketchSegment, solve_parametric_sketch,
+    ParametricSketch,
+    SketchConstraint,
+    SketchPoint,
+    SketchSegment,
+    solve_parametric_sketch,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 from universal_platform.engineering.sketch_region import sketch_to_planar_regions
 
@@ -108,9 +114,13 @@ def test_duplicate_undirected_segments_and_solved_result_mismatch_are_rejected()
 
 def test_unconverged_sketch_cannot_be_converted_to_manufacturable_region():
     sketch = make_sketch([[(0, 0), (2, 0), (2, 2), (0, 2)]])
-    from universal_platform.engineering.parametric_sketch import ParametricSketchSolveResult
     from universal_platform.engineering.nonlinear_solver import (
-        NonlinearConstraintResidual, NonlinearSolveResult, NonlinearSolveStatus,
+        NonlinearConstraintResidual,
+        NonlinearSolveResult,
+        NonlinearSolveStatus,
+    )
+    from universal_platform.engineering.parametric_sketch import (
+        ParametricSketchSolveResult,
     )
     invalid_solver = NonlinearSolveResult(
         NonlinearSolveStatus.NOT_CONVERGED, (), 

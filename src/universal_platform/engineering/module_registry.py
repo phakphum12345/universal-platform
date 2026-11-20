@@ -5,11 +5,11 @@ permissions to module code.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
 from types import MappingProxyType
-import re
 from typing import Any
 
 from .errors import InvalidModelError

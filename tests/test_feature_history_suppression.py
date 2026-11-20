@@ -1,12 +1,19 @@
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.feature_history import FeatureHistory, FeatureKind, FeatureNode, upgrade_feature_history
+from universal_platform.engineering.feature_history import (
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+    upgrade_feature_history,
+)
 from universal_platform.engineering.feature_history_editor import (
     suppress_feature,
     unsuppress_feature,
 )
-from universal_platform.engineering.feature_history_store import SQLiteFeatureHistoryStore
+from universal_platform.engineering.feature_history_store import (
+    SQLiteFeatureHistoryStore,
+)
 
 
 def graph():

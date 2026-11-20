@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError

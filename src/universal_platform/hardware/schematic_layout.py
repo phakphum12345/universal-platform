@@ -6,15 +6,16 @@ hardware communication.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from html import escape
 from math import cos, isfinite, sin
-import re
 from typing import Any, ClassVar
 
 from universal_platform.engineering.errors import InvalidModelError
+
 from .schematic import PinRef, SchematicModel
 
 _IDENTIFIER = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
@@ -245,7 +246,7 @@ class SchematicLayout:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "SchematicLayout":
+    def from_dict(cls, value: Mapping[str, Any]) -> SchematicLayout:
         required = {"schema_version", "layout_id", "page_width_mm", "page_height_mm", "symbols", "component_placements", "net_routes"}
         if not isinstance(value, Mapping) or set(value) != required:
             raise InvalidModelError("SchematicLayout snapshot has missing or unknown fields")
@@ -342,7 +343,7 @@ def render_schematic_svg(schematic: SchematicModel, layout: SchematicLayout) -> 
     if set(placements) != set(components):
         raise InvalidModelError("component placements must cover every schematic component exactly once")
     nets = {item.net_id: item for item in schematic.nets}
-    pin_records = {
+    {
         (component.component_id, pin.pin_id): (component, pin)
         for component in schematic.components for pin in component.pins
     }

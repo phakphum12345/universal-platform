@@ -6,9 +6,9 @@ without claiming that arbitrary mechanism configurations are reachable.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Mapping
 
 from .errors import InvalidModelError
 from .geometric_loop_closure import (
@@ -21,8 +21,8 @@ from .mechanism_model import MechanismModel
 from .nonlinear_solver import (
     NonlinearConstraint,
     NonlinearSolveResult,
-    NonlinearSolveStatus,
     NonlinearSolverOptions,
+    NonlinearSolveStatus,
     VariableBound,
     solve_nonlinear_constraints,
 )

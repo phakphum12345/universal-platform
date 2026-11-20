@@ -9,29 +9,29 @@ from universal_platform.engineering.planar_four_bar_adapter import (
     solve_planar_four_bar_model,
 )
 from universal_platform.engineering.provenance import EvidenceStatus
-from universal_platform.engineering.quantity import LENGTH, Quantity
+from universal_platform.engineering.quantity import Quantity
 
 
 def model(**overrides):
-    values = dict(
-        model_id="mechanism/demo-4r",
-        model_revision="rev-001",
-        ground_link_id="link/ground",
-        input_link_id="link/input",
-        coupler_link_id="link/coupler",
-        output_link_id="link/output",
-        input_ground_joint_id="joint/A",
-        input_coupler_joint_id="joint/B",
-        coupler_output_joint_id="joint/C",
-        output_ground_joint_id="joint/D",
-        ground_length=Quantity.of(40, "cm"),
-        input_crank_length=Quantity.of(10, "cm"),
-        coupler_length=Quantity.of(300, "mm"),
-        output_rocker_length=Quantity.of(0.3, "m"),
-        input_angle_rad=math.pi / 2,
-        branch="left",
-        tolerance=Quantity.of(1e-6, "mm"),
-    )
+    values = {
+        "model_id": "mechanism/demo-4r",
+        "model_revision": "rev-001",
+        "ground_link_id": "link/ground",
+        "input_link_id": "link/input",
+        "coupler_link_id": "link/coupler",
+        "output_link_id": "link/output",
+        "input_ground_joint_id": "joint/A",
+        "input_coupler_joint_id": "joint/B",
+        "coupler_output_joint_id": "joint/C",
+        "output_ground_joint_id": "joint/D",
+        "ground_length": Quantity.of(40, "cm"),
+        "input_crank_length": Quantity.of(10, "cm"),
+        "coupler_length": Quantity.of(300, "mm"),
+        "output_rocker_length": Quantity.of(0.3, "m"),
+        "input_angle_rad": math.pi / 2,
+        "branch": "left",
+        "tolerance": Quantity.of(1e-6, "mm"),
+    }
     values.update(overrides)
     return PlanarFourBarModelSnapshot(**values)
 

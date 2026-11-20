@@ -6,8 +6,9 @@ separate call through tessellate_extruded_profile.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from .errors import InvalidModelError
 from .planar_region import PlanarRegion
@@ -33,7 +34,7 @@ class PlanarRegionExtrusionResult:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "PlanarRegionExtrusionResult":
+    def from_dict(cls, value: Mapping[str, object]) -> PlanarRegionExtrusionResult:
         required = {"schema_version", "algorithm_version", "source_region_id", "source_region_sha256", "solid"}
         if not isinstance(value, Mapping) or set(value) != required:
             raise InvalidModelError("PlanarRegionExtrusionResult snapshot has missing or unknown fields")

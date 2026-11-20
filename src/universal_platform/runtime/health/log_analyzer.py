@@ -1,9 +1,10 @@
 """Bounded, dependency-free log parsing and secret redaction."""
 from __future__ import annotations
-from dataclasses import dataclass
+
 import hashlib
 import json
 import re
+from dataclasses import dataclass
 
 _SECRET_PATTERNS = (
  re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)\S+"),

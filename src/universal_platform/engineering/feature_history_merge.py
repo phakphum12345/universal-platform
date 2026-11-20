@@ -5,8 +5,8 @@ geometry, or resolve conflicts by choosing a side.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 import heapq
+from dataclasses import dataclass
 from itertools import combinations
 
 from .errors import InvalidModelError
@@ -86,7 +86,7 @@ def _merge_presentation_order(
     conflicts: list[FeatureHistoryMergeConflict],
 ) -> tuple[str, ...]:
     ids = set(nodes)
-    base_ids = set(node.feature_id for node in base.nodes) & ids
+    base_ids = {node.feature_id for node in base.nodes} & ids
     base_order = tuple(node.feature_id for node in base.nodes)
     source_order = tuple(node.feature_id for node in source.nodes)
     target_order = tuple(node.feature_id for node in target.nodes)
@@ -158,9 +158,8 @@ def _merge_presentation_order(
         if selected is True:
             if not has_dependency_path(right, left):
                 add_before(left, right)
-        elif selected is False:
-            if not has_dependency_path(left, right):
-                add_before(right, left)
+        elif selected is False and not has_dependency_path(left, right):
+            add_before(right, left)
 
     if conflicts:
         return ()

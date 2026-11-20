@@ -6,15 +6,15 @@ SQLite transactions provide atomic commits and cross-process optimistic locking.
 """
 from __future__ import annotations
 
-from contextlib import closing
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from hashlib import sha256
 import json
-from math import isfinite
-from pathlib import Path
 import re
 import sqlite3
+from contextlib import closing
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from hashlib import sha256
+from math import isfinite
+from pathlib import Path
 from typing import Final
 
 from .errors import InvalidModelError
@@ -310,7 +310,7 @@ class SQLiteFeatureHistoryStore:
                         history_id,
                         _canonical_json(list(range(1, int(revision)))),
                         "[]",
-                        datetime.now(timezone.utc).isoformat(),
+                        datetime.now(UTC).isoformat(),
                     ),
                 )
             connection.execute(
@@ -342,7 +342,7 @@ class SQLiteFeatureHistoryStore:
                 """,
                 (
                     history_id, _canonical_json(undo_stack), "[]",
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                 ),
             )
             return undo_stack, redo_stack
@@ -395,7 +395,7 @@ class SQLiteFeatureHistoryStore:
             """,
             (
                 history_id, _canonical_json(undo_stack), _canonical_json(redo_stack),
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
             ),
         )
 
@@ -433,7 +433,7 @@ class SQLiteFeatureHistoryStore:
         if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 0:
             raise ValueError("expected_revision must be a non-negative integer")
         snapshot_json = _canonical_json(history.to_dict())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         connection = self._connect()
         try:
             connection.execute("BEGIN IMMEDIATE")
@@ -647,7 +647,7 @@ class SQLiteFeatureHistoryStore:
             target = self.load(history_id, revision=target_revision)
             history = target.history
             snapshot_json = _canonical_json(history.to_dict())
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(UTC).isoformat()
             revision = current_revision + 1
             parent_sha256 = str(head[1])
             digest = _revision_digest(
@@ -719,7 +719,7 @@ class SQLiteFeatureHistoryStore:
             source.history.suppressed_feature_ids, source.history.document_version,
         )
         snapshot_json = _canonical_json(branch_history.to_dict())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         connection = self._connect()
         try:
             connection.execute("BEGIN IMMEDIATE")
@@ -848,7 +848,7 @@ class SQLiteFeatureHistoryStore:
         if not analysis.successful or analysis.merged_history is None:
             raise FeatureHistoryMergeConflictError(analysis)
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         snapshot_json = _canonical_json(analysis.merged_history.to_dict())
         connection = self._connect()
         try:

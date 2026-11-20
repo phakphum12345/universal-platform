@@ -1,9 +1,9 @@
 """Validated template builders for bounded CAD Generator authoring workflows."""
 from __future__ import annotations
 
-from math import isclose, isfinite
 import re
-from typing import Sequence
+from collections.abc import Sequence
+from math import isclose, isfinite
 
 from .errors import InvalidModelError
 from .feature_history import FeatureHistory, FeatureKind, FeatureNode

@@ -3,16 +3,24 @@ from hashlib import sha256
 
 import pytest
 
-from universal_platform.engineering.boolean_boundary_selection import select_boolean_boundary_fragments
+from universal_platform.engineering.boolean_boundary_selection import (
+    select_boolean_boundary_fragments,
+)
 from universal_platform.engineering.boolean_resource_budget import BooleanResourceLedger
-from universal_platform.engineering.boolean_shell_assembly import assemble_rational_boolean_solid
+from universal_platform.engineering.boolean_shell_assembly import (
+    assemble_rational_boolean_solid,
+)
 from universal_platform.engineering.brep_boolean import BRepBooleanOperation
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.faceted_boolean_arrangement import arrange_faceted_boolean_meshes
+from universal_platform.engineering.faceted_boolean_arrangement import (
+    arrange_faceted_boolean_meshes,
+)
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box
 from universal_platform.engineering.primitive_geometry import BoxSolid
-from universal_platform.engineering.triangle_fragment_arrangement import RationalTriangleFragment
+from universal_platform.engineering.triangle_fragment_arrangement import (
+    RationalTriangleFragment,
+)
 
 
 def _box(solid_id, size, offset=(0.0, 0.0, 0.0)):

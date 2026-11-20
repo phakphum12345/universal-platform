@@ -2,11 +2,17 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.mechanism_loops import (
-    LoopClosureConstraint, LoopClosureStatus, analyze_loop_topology,
+    LoopClosureConstraint,
+    LoopClosureStatus,
+    analyze_loop_topology,
     solve_mechanism_loops,
 )
 from universal_platform.engineering.mechanism_model import (
-    FrameReference, JointKind, JointModel, LinkModel, MechanismModel,
+    FrameReference,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 
 

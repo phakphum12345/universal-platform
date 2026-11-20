@@ -5,14 +5,15 @@ code, configure buses, write firmware or actuate hardware.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-import re
 from typing import Any, ClassVar
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.module_registry import ModuleRegistry
+
 from .schematic import PinElectricalType, SchematicModel
 
 _IDENTIFIER = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
@@ -211,7 +212,7 @@ class DriverBindingModel:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "DriverBindingModel":
+    def from_dict(cls, value: Mapping[str, Any]) -> DriverBindingModel:
         if not isinstance(value, Mapping) or set(value) != {"schema_version", "interfaces", "bindings"}:
             raise InvalidModelError("DriverBindingModel snapshot has missing or unknown fields")
         if value["schema_version"] != cls.SCHEMA_VERSION:

@@ -11,7 +11,7 @@ import json
 from threading import Thread
 
 import pytest
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import sync_playwright
 
 from universal_platform.engineering import (
     CADGeneratorService,
@@ -20,7 +20,11 @@ from universal_platform.engineering import (
     SQLiteFeatureHistoryStore,
     create_cad_generator_http_server,
 )
-from universal_platform.engineering.feature_history import FeatureHistory, FeatureKind, FeatureNode
+from universal_platform.engineering.feature_history import (
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+)
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchConstraint,
@@ -28,7 +32,6 @@ from universal_platform.engineering.parametric_sketch import (
     SketchPoint,
     SketchSegment,
 )
-
 
 TOKEN = "browser-e2e-token-" + ("x" * 40)
 
@@ -236,7 +239,7 @@ def test_stale_writer_conflict_is_visible_and_does_not_overwrite(workbench):
 
 
 def test_feature_parameters_are_rendered_as_text_not_html(workbench):
-    page, service, page_errors = workbench
+    page, _service, page_errors = workbench
 
     page.locator('#feature-tree button[data-feature-id="extrusion"]').click()
     payload = {

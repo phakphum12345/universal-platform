@@ -1,20 +1,22 @@
 """Exact topology checks and conservative B-rep shell assembly for Boolean boundaries."""
 from __future__ import annotations
+
+import json
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
-import json
 
-from .brep import BRepSolid, brep_from_triangle_mesh, validate_brep_solid
-from .brep_multishell import BRepMultiShellSolid, validate_brep_multishell_solid
 from .boolean_boundary_selection import BooleanBoundarySelection
-from .errors import InvalidModelError
 from .boolean_resource_budget import BooleanResourceLedger
+from .brep import brep_from_triangle_mesh, validate_brep_solid
+from .brep_multishell import BRepMultiShellSolid, validate_brep_multishell_solid
+from .errors import InvalidModelError
 from .geometry import Vec3
 from .material_classification import ExactMeshMaterialClassifier, MaterialClassification
 from .mesh import TriangleMesh, validate_triangle_mesh
 from .mesh_intersection import analyze_mesh_intersections
 from .triangle_fragment_arrangement import RationalPoint3, RationalTriangle3
+
 
 @dataclass(frozen=True, slots=True)
 class AssembledBooleanComponent:
@@ -238,13 +240,16 @@ def assemble_rational_boolean_solid(
     resource_ledger: BooleanResourceLedger | None = None,
 ):
     """Assemble exact rational outer/cavity shells without binary64 conversion."""
-    from .rational_faceted_solid import RationalFacetedSolid, _axes_overlap
-    from .rational_boolean_solid import (
-        RationalBooleanComponent, RationalBooleanShell, RationalBooleanSolid,
-    )
     from .material_classification import (
-        MaterialClassification, classify_rational_point_against_triangles,
+        MaterialClassification,
+        classify_rational_point_against_triangles,
     )
+    from .rational_boolean_solid import (
+        RationalBooleanComponent,
+        RationalBooleanShell,
+        RationalBooleanSolid,
+    )
+    from .rational_faceted_solid import RationalFacetedSolid, _axes_overlap
 
     ledger = resource_ledger or BooleanResourceLedger()
     if not isinstance(ledger, BooleanResourceLedger):

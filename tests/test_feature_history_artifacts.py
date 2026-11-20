@@ -13,16 +13,22 @@ from universal_platform.engineering.feature_history import (
     regenerate_feature_history,
 )
 from universal_platform.engineering.mesh import TriangleMesh
-from universal_platform.engineering.planar_region_extrusion import PlanarRegionExtrusionResult
-from universal_platform.engineering.planar_region_set_boolean import PlanarRegionSetBooleanResult
-from universal_platform.engineering.sketch_region import SketchRegionConversionResult
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
 )
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
+)
+from universal_platform.engineering.planar_region_extrusion import (
+    PlanarRegionExtrusionResult,
+)
+from universal_platform.engineering.planar_region_set_boolean import (
+    PlanarRegionSetBooleanResult,
+)
+from universal_platform.engineering.sketch_region import SketchRegionConversionResult
 
 
 def square_sketch(sketch_id, x0):

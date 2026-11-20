@@ -5,15 +5,15 @@ and explicitly invoke serve_forever() to start the local service.
 """
 from __future__ import annotations
 
-from contextlib import closing
-from datetime import datetime, timezone
-from hashlib import sha256
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import hmac
 import json
-from pathlib import Path
 import re
 import sqlite3
+from contextlib import closing
+from datetime import UTC, datetime
+from hashlib import sha256
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 from threading import RLock
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -22,8 +22,8 @@ from uuid import uuid4
 from .cad_generator_service import CADGeneratorService
 from .cad_generator_templates import build_polygon_extrusion_history
 from .errors import InvalidModelError
-from .feature_history import FeatureKind, FeatureNode
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
+from .feature_history import FeatureKind, FeatureNode
 from .feature_history_store import (
     FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
@@ -123,7 +123,7 @@ class SQLiteCADAPIAuditLog:
         peer: str, status: int | None = None, outcome: str | None = None,
     ) -> str:
         record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "request_id": request_id,
             "event": event,
             "method": method,
@@ -255,9 +255,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         if origin is not None and origin != f"http://{expected_host}":
             return False
-        if self.headers.get("Transfer-Encoding") is not None:
-            return False
-        return True
+        return self.headers.get("Transfer-Encoding") is None
 
     def _read_json(self) -> dict[str, Any]:
         content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
@@ -591,7 +589,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 request_id=request_id, event="REQUEST_RECEIVED",
                 method=self.command, path=path, peer=peer,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             self._send_json(503, {
                 "error": {"code": "AUDIT_UNAVAILABLE", "message": "Audit storage is unavailable"},
                 "request_id": request_id,
@@ -642,7 +640,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError):
             status, outcome = 500, "STORAGE_INTEGRITY_ERROR"
             payload = {"error": {"code": outcome, "message": "Stored engineering data failed integrity validation"}}
-        except Exception:
+        except Exception:  # noqa: BLE001
             status, outcome = 500, "INTERNAL_ERROR"
             payload = {"error": {"code": outcome, "message": "Request could not be completed"}}
 
@@ -653,7 +651,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 method=self.command, path=path, peer=peer,
                 status=status, outcome=outcome,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             status = 503
             static_asset = None
             payload = {

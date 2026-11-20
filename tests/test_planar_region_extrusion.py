@@ -4,15 +4,25 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.frame_graph import FrameGraph
-from universal_platform.engineering.mesh import tessellate_extruded_profile, validate_triangle_mesh
-from universal_platform.engineering.planar_boolean import PlanarRegionBooleanOperation as Operation
+from universal_platform.engineering.mesh import (
+    tessellate_extruded_profile,
+    validate_triangle_mesh,
+)
+from universal_platform.engineering.planar_boolean import (
+    PlanarRegionBooleanOperation as Operation,
+)
 from universal_platform.engineering.planar_region import PlanarRegion
 from universal_platform.engineering.planar_region_extrusion import (
     PlanarRegionExtrusionResult,
     extrude_planar_region,
 )
-from universal_platform.engineering.planar_region_set_boolean import boolean_planar_region_set
-from universal_platform.engineering.primitive_geometry import PrimitiveGeometryModel, Vec2
+from universal_platform.engineering.planar_region_set_boolean import (
+    boolean_planar_region_set,
+)
+from universal_platform.engineering.primitive_geometry import (
+    PrimitiveGeometryModel,
+    Vec2,
+)
 
 
 def make_region(region_id, outer, holes=(), frame="part", unit="mm"):
@@ -122,7 +132,9 @@ def test_planar_region_extrusion_rejects_wrong_input_and_invalid_height():
 
 
 def test_planar_region_extrusion_public_api_is_exported():
-    from universal_platform.engineering import PlanarRegionExtrusionResult as PublicResult
+    from universal_platform.engineering import (
+        PlanarRegionExtrusionResult as PublicResult,
+    )
     from universal_platform.engineering import extrude_planar_region as public_extrude
     assert PublicResult is PlanarRegionExtrusionResult
     assert public_extrude is extrude_planar_region

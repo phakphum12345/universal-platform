@@ -4,9 +4,12 @@ These are analytic bounding primitives, not a boundary-representation CAD kernel
 No STEP/STL/mesh export or manufacturability certification is implied.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from math import isfinite, pi
+
 from .errors import InvalidModelError
+
 
 @dataclass(frozen=True, slots=True)
 class Vec3:

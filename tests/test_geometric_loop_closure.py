@@ -1,14 +1,21 @@
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.geometric_loop_closure import (
     GeometricLoopClosureStatus,
     evaluate_geometric_loop_closure,
 )
+from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mechanism_model import (
-    CoordinateKind, FrameReference, GeneralizedCoordinate, JointCoordinateParameterization,
-    JointFramePlacement, JointKind, JointModel, LinkModel, MechanismModel,
+    CoordinateKind,
+    FrameReference,
+    GeneralizedCoordinate,
+    JointCoordinateParameterization,
+    JointFramePlacement,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 from universal_platform.engineering.transforms import RigidTransform
 

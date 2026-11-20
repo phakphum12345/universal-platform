@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Mapping, Sequence
 
 from .errors import InvalidModelError
 from .mechanism_model import MechanismModel, validate_mechanism_model
 from .nonlinear_solver import (
-    NonlinearConstraint, NonlinearSolveResult, NonlinearSolveStatus,
-    NonlinearSolverOptions, solve_nonlinear_constraints,
+    NonlinearConstraint,
+    NonlinearSolveResult,
+    NonlinearSolverOptions,
+    NonlinearSolveStatus,
+    solve_nonlinear_constraints,
 )
 
 LoopResidualFunction = Callable[[Mapping[str, float]], float]

@@ -5,12 +5,13 @@ shell commands, network access or physical device actions are executed.
 """
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
 from json import dumps, loads
-from typing import ClassVar, Mapping
-import re
+from typing import ClassVar
 
 from .errors import InvalidModelError, SolverError
 from .mesh import TriangleMesh, tessellate_extruded_profile, validate_triangle_mesh
@@ -18,7 +19,10 @@ from .nonlinear_solver import NonlinearSolverOptions
 from .parametric_sketch import ParametricSketch, solve_parametric_sketch
 from .planar_boolean import PlanarRegionBooleanOperation
 from .planar_region_extrusion import PlanarRegionExtrusionResult, extrude_planar_region
-from .planar_region_set_boolean import PlanarRegionSetBooleanResult, boolean_planar_region_set
+from .planar_region_set_boolean import (
+    PlanarRegionSetBooleanResult,
+    boolean_planar_region_set,
+)
 from .sketch_region import SketchRegionConversionResult, sketch_to_planar_regions
 
 _FEATURE_ID = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
@@ -78,7 +82,7 @@ class FeatureNode:
         kind: FeatureKind,
         input_feature_ids: tuple[str, ...] = (),
         parameters: Mapping[str, object] | None = None,
-    ) -> "FeatureNode":
+    ) -> FeatureNode:
         try:
             encoded = dumps(dict(parameters or {}), sort_keys=True, separators=(",", ":"), allow_nan=False)
         except (TypeError, ValueError) as exc:
@@ -182,7 +186,7 @@ class FeatureHistory:
         return snapshot
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "FeatureHistory":
+    def from_dict(cls, value: Mapping[str, object]) -> FeatureHistory:
         if not isinstance(value, Mapping):
             raise InvalidModelError("FeatureHistory snapshot must be an object")
         version = value.get("schema_version")
@@ -254,7 +258,7 @@ class FeatureArtifact:
         }
 
     @classmethod
-    def from_dict(cls, value: object) -> "FeatureArtifact":
+    def from_dict(cls, value: object) -> FeatureArtifact:
         required = {
             "feature_id", "kind", "content_sha256", "computation_sha256", "payload"
         }
@@ -483,7 +487,7 @@ def regenerate_feature_history(
                     completed.append(feature_id)
                     reused.append(feature_id)
                     continue
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 return FeatureRegenerationResult(
                     history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
                     feature_id, f"artifact cache load failed: {exc}", tuple(reused), tuple(recomputed),
@@ -543,7 +547,7 @@ def regenerate_feature_history(
                     saved = artifact_cache.save(history.history_id, artifact)
                     if not isinstance(saved, FeatureArtifact) or saved.to_dict() != artifact.to_dict():
                         raise InvalidModelError("artifact cache save returned a mismatched artifact")
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     return FeatureRegenerationResult(
                         history.history_id, RegenerationStatus.FAILED, tuple(completed), (),
                         feature_id, f"artifact cache save failed: {exc}", tuple(reused), tuple(recomputed),

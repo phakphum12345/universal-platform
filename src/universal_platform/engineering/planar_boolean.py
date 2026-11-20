@@ -7,13 +7,15 @@ coordinate and area rounding error. Ambiguous branching topology and bounded res
 """
 from __future__ import annotations
 
+import itertools
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
+from functools import cmp_to_key
 from hashlib import sha256
 from json import dumps
-from typing import ClassVar, Mapping
-from functools import cmp_to_key
+from typing import ClassVar
 
 from .errors import InvalidModelError
 from .planar_region import PlanarRegion, _point
@@ -204,9 +206,9 @@ def _stitch(directed: set[_Edge]) -> tuple[tuple[_Point, ...], ...]:
             raise InvalidModelError("Boolean output has unbalanced boundary incidence")
         ordered_outs = sorted(
             outs,
-            key=cmp_to_key(lambda a, b: _angle_compare(_sub(a, vertex), _sub(b, vertex))),
+            key=cmp_to_key(lambda a, b, v=vertex: _angle_compare(_sub(a, v), _sub(b, v))),
         )
-        for first, second in zip(ordered_outs, ordered_outs[1:]):
+        for first, second in itertools.pairwise(ordered_outs):
             if _angle_compare(_sub(first, vertex), _sub(second, vertex)) == 0:
                 raise InvalidModelError("Boolean output has coincident outgoing branches")
         used_outgoing: set[_Point] = set()
@@ -305,7 +307,7 @@ class PlanarRegionBooleanResult:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "PlanarRegionBooleanResult":
+    def from_dict(cls, value: Mapping[str, object]) -> PlanarRegionBooleanResult:
         required = {
             "schema_version", "algorithm_version", "operation", "first_region_id",
             "second_region_id", "first_region_sha256", "second_region_sha256",
@@ -406,7 +408,7 @@ def boolean_planar_regions(
         start, end = edge
         direction = _sub(end, start)
         ordered = sorted(values)
-        for low, high in zip(ordered, ordered[1:]):
+        for low, high in itertools.pairwise(ordered):
             if low == high:
                 continue
             a = _add(start, _mul(direction, low))

@@ -1,11 +1,11 @@
 """Thread-safe quota allocator with expiring or explicitly released resource leases."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from math import isfinite
 from threading import RLock
-from typing import Iterable
 from uuid import uuid4
 
 from .models import ResourceMetric
@@ -71,7 +71,7 @@ class ResourceAllocator:
             or ttl_seconds <= 0
         ):
             raise ValueError("ttl_seconds must be finite and positive, or None")
-        captured = now or datetime.now(timezone.utc)
+        captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         amounts = tuple(requested)
@@ -134,7 +134,7 @@ class ResourceAllocator:
             return self._leases.pop(lease_id, None) is not None
 
     def active_leases(self, *, now: datetime | None = None) -> tuple[ResourceLease, ...]:
-        captured = now or datetime.now(timezone.utc)
+        captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         with self._lock:
@@ -142,7 +142,7 @@ class ResourceAllocator:
             return tuple(self._leases[key] for key in sorted(self._leases))
 
     def available(self, *, now: datetime | None = None) -> tuple[ResourceMetric, ...]:
-        captured = now or datetime.now(timezone.utc)
+        captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         with self._lock:

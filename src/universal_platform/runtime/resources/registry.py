@@ -1,6 +1,8 @@
 """Thread-safe registry with guarded lifecycle and resource snapshots."""
 from __future__ import annotations
+
 from threading import RLock
+
 from .models import ResourceRecord, ResourceSnapshot, ResourceState
 
 _ALLOWED = {

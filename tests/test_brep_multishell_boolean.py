@@ -14,7 +14,11 @@ from universal_platform.engineering import (
 from universal_platform.engineering.brep import brep_from_triangle_mesh
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.mesh import TriangleMesh, tessellate_box, validate_triangle_mesh
+from universal_platform.engineering.mesh import (
+    TriangleMesh,
+    tessellate_box,
+    validate_triangle_mesh,
+)
 from universal_platform.engineering.primitive_geometry import BoxSolid
 
 
@@ -189,6 +193,8 @@ def test_multishell_boolean_enforces_input_limit_and_public_schema_contract():
     assert set(result.to_dict()) == set(schema["required"])
     from universal_platform.engineering import (
         BRepMultiShellBooleanResult as PublicResult,
+    )
+    from universal_platform.engineering import (
         boolean_axis_aligned_multishell_solids as public_boolean,
     )
     assert PublicResult is BRepMultiShellBooleanResult

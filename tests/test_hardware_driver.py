@@ -1,12 +1,26 @@
 import json
+
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
-from universal_platform.hardware.schematic import Component, Net, Pin, PinElectricalType, PinRef, SchematicModel
+from universal_platform.engineering.module_registry import (
+    ModuleManifest,
+    ModuleOperation,
+    ModuleRegistry,
+)
 from universal_platform.hardware.driver import (
-    DriverBinding, DriverBindingModel, DriverInterface, DriverProtocol,
-    DriverSignal, DriverSignalDirection,
+    DriverBinding,
+    DriverBindingModel,
+    DriverInterface,
+    DriverProtocol,
+    DriverSignal,
+    DriverSignalDirection,
+)
+from universal_platform.hardware.schematic import (
+    Component,
+    Pin,
+    PinElectricalType,
+    SchematicModel,
 )
 
 
@@ -51,7 +65,7 @@ def test_driver_binding_v1_round_trip_and_validation_against_schematic():
 
 
 def test_driver_binding_requires_known_driver_and_signal():
-    schematic, driver, model = fixture_models()
+    schematic, driver, _model = fixture_models()
     unknown_driver = DriverBinding("binding.x", "component.u1", "u1.rx", "driver.missing", "signal.tx")
     with pytest.raises(InvalidModelError, match="unknown driver"):
         DriverBindingModel((driver,), (unknown_driver,)).validate_against(schematic)
@@ -76,14 +90,14 @@ def test_driver_binding_rejects_unknown_pins_multiple_bindings_and_no_connect():
 
 
 def test_driver_binding_checks_pin_and_signal_direction_compatibility():
-    schematic, driver, model = fixture_models()
+    schematic, driver, _model = fixture_models()
     wrong = DriverBinding("binding.wrong", "component.u1", "u1.rx", "driver.uart0", "signal.rx")
     with pytest.raises(InvalidModelError, match="incompatible"):
         DriverBindingModel((driver,), (wrong,)).validate_against(schematic)
 
 
 def test_driver_binding_checks_module_operation_when_registry_is_supplied():
-    schematic, driver, model = fixture_models()
+    schematic, _driver, model = fixture_models()
     model.validate_against(schematic, registry())
     with pytest.raises(InvalidModelError, match="unknown module"):
         DriverBindingModel(

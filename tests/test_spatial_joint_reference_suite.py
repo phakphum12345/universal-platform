@@ -1,14 +1,21 @@
 import json
 from dataclasses import replace
+from math import cos, isfinite, sin
 from pathlib import Path
-from math import cos, sin, isfinite
 
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.joint_constraints import generate_joint_constraints
-from universal_platform.engineering.joint_jacobian import build_joint_constraint_jacobian
+from universal_platform.engineering.joint_jacobian import (
+    build_joint_constraint_jacobian,
+)
+from universal_platform.engineering.mechanism_mobility import (
+    MobilityFormulation,
+    SingularityStatus,
+    analyze_geometric_mechanism_mobility,
+)
 from universal_platform.engineering.mechanism_model import (
     CoordinateKind,
     FrameReference,
@@ -20,13 +27,7 @@ from universal_platform.engineering.mechanism_model import (
     LinkModel,
     MechanismModel,
 )
-from universal_platform.engineering.mechanism_mobility import (
-    MobilityFormulation,
-    SingularityStatus,
-    analyze_geometric_mechanism_mobility,
-)
 from universal_platform.engineering.transforms import RigidTransform
-
 
 FIXTURE = Path(__file__).parent / "fixtures" / "spatial_joint_reference_cases.json"
 

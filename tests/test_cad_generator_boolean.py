@@ -2,13 +2,13 @@ from fractions import Fraction
 from hashlib import sha256
 
 from universal_platform.engineering import (
+    BoxSolid,
     BRepBooleanOperation,
     CADGeneratorService,
     RationalTriangleFragment,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
     TriangleMesh,
-    BoxSolid,
     tessellate_box,
 )
 from universal_platform.engineering.geometry import Vec3

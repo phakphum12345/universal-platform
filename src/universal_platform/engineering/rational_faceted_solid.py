@@ -7,13 +7,14 @@ containment semantics have an independently verified implementation.
 """
 from __future__ import annotations
 
+import json
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
 from itertools import combinations
-import json
-import re
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 
@@ -339,7 +340,7 @@ class RationalFacetedSolid:
     @classmethod
     def from_dict(cls, value: Mapping[str, Any], *,
                   max_coordinate_bits: int = 4096,
-                  max_pairwise_checks: int = _MAX_PAIR_CHECKS) -> "RationalFacetedSolid":
+                  max_pairwise_checks: int = _MAX_PAIR_CHECKS) -> RationalFacetedSolid:
         if not isinstance(value, Mapping) or set(value) != _FIELDS:
             raise InvalidModelError("RationalFacetedSolid snapshot has missing or unknown fields")
         _validate_resource_limits(max_coordinate_bits, max_pairwise_checks)

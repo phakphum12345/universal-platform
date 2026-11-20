@@ -1,10 +1,14 @@
 import json
+
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.primitive_geometry import Vec2
 from universal_platform.engineering.profile_boolean import (
-    ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles,
+    ProfileBooleanOperation,
+    ProfileBooleanResult,
+    ProfileLoop,
+    boolean_profiles,
 )
 
 
@@ -121,12 +125,19 @@ def test_profile_boolean_result_schema_declares_strict_v1_contract():
 
 
 def test_public_profile_boolean_exports_are_canonical():
-    from universal_platform.engineering import ProfileBooleanOperation as PublicOperation
+    from universal_platform.engineering import (
+        ProfileBooleanOperation as PublicOperation,
+    )
     from universal_platform.engineering import ProfileBooleanResult as PublicResult
     from universal_platform.engineering import ProfileLoop as PublicLoop
-    from universal_platform.engineering import boolean_profiles as public_boolean_profiles
+    from universal_platform.engineering import (
+        boolean_profiles as public_boolean_profiles,
+    )
     from universal_platform.engineering.profile_boolean import (
-        ProfileBooleanOperation, ProfileBooleanResult, ProfileLoop, boolean_profiles,
+        ProfileBooleanOperation,
+        ProfileBooleanResult,
+        ProfileLoop,
+        boolean_profiles,
     )
     assert PublicOperation is ProfileBooleanOperation
     assert PublicResult is ProfileBooleanResult

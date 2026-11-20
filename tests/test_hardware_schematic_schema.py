@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 def test_hardware_schematic_schema_is_versioned_and_strict():
     path=Path(__file__).parents[1]/"schemas"/"hardware"/"schematic.schema.json"
     schema=json.loads(path.read_text(encoding="utf-8"))

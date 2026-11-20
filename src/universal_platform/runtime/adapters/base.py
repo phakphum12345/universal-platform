@@ -1,7 +1,11 @@
 """Protocols for runtime adapters and isolated repair executors."""
 from __future__ import annotations
-from typing import Protocol, Sequence
+
+from collections.abc import Sequence
+from typing import Protocol
+
 from ..health.log_analyzer import LogEvent
+
 
 class RuntimeAdapter(Protocol):
     adapter_id: str

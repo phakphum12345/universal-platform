@@ -6,8 +6,8 @@ from universal_platform.engineering.nonlinear_solver import (
     JacobianMethod,
     JacobianRankStatus,
     NonlinearConstraint,
-    NonlinearSolveStatus,
     NonlinearSolverOptions,
+    NonlinearSolveStatus,
     VariableBound,
     solve_nonlinear_constraints,
 )

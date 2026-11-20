@@ -5,12 +5,13 @@ This model validates boundaries and holes; it does not perform Booleans.
 """
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
 from json import dumps
-from typing import Any, ClassVar, Mapping
-import re
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .primitive_geometry import Vec2
@@ -205,7 +206,7 @@ class PlanarRegion:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "PlanarRegion":
+    def from_dict(cls, value: Mapping[str, Any]) -> PlanarRegion:
         if not isinstance(value, Mapping) or set(value) != _FIELDS:
             raise InvalidModelError("PlanarRegion snapshot has missing or unknown fields")
         if value["schema_version"] != cls.SCHEMA_VERSION:

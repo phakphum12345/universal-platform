@@ -6,11 +6,19 @@ import pytest
 
 from universal_platform.engineering.contracts import ModuleRequest
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.module_registry import ModuleManifest, ModuleOperation, ModuleRegistry
+from universal_platform.engineering.module_registry import (
+    ModuleManifest,
+    ModuleOperation,
+    ModuleRegistry,
+)
 from universal_platform.engineering.module_runtime import ModuleRuntime
-from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
 from universal_platform.runtime.resources.allocator import ResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
+from universal_platform.runtime.supervisor import (
+    PythonProcessSupervisor,
+    WorkerSpec,
+    WorkerTerminationError,
+)
 from universal_platform.runtime.worker_ipc import WorkerIPCClient
 
 
@@ -37,10 +45,10 @@ def setup_runtime(required=("engineering.calculate",)):
 
 
 def request(**changes):
-    values = dict(
-        module_id="org.example.calc", operation="calculate.sum",
-        inputs={"values": [2, 3]}, permissions=(),
-    )
+    values = {
+        "module_id": "org.example.calc", "operation": "calculate.sum",
+        "inputs": {"values": [2, 3]}, "permissions": (),
+    }
     values.update(changes)
     return ModuleRequest(**values)
 
@@ -128,8 +136,6 @@ def test_runtime_does_not_accept_non_contract_requests():
         runtime.invoke({"module_id": "org.example.calc"})
 
 
-from universal_platform.runtime.resources.allocator import ResourceAllocator
-from universal_platform.runtime.resources.models import ResourceMetric
 
 
 def make_runtime_with_allocator(capacity=2):
@@ -205,7 +211,7 @@ def test_runtime_rejects_unknown_host_resource_metric():
     assert allocator.active_leases() == ()
 
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 def test_runtime_lease_remains_reserved_until_long_handler_returns():
@@ -214,7 +220,7 @@ def test_runtime_lease_remains_reserved_until_long_handler_returns():
     observed = []
 
     def long_running_handler(_):
-        future = datetime.now(timezone.utc) + timedelta(days=30)
+        future = datetime.now(UTC) + timedelta(days=30)
         active = allocator.active_leases(now=future)
         observed.extend(active)
         assert len(active) == 1

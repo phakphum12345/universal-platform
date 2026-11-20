@@ -1,15 +1,14 @@
 """Reusable bounded JSONL append journal with cross-process locking and hash chaining."""
 from __future__ import annotations
 
-from collections.abc import Mapping
-from contextlib import contextmanager
 import hashlib
 import json
 import os
-from pathlib import Path
 import stat
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
+from pathlib import Path
 from threading import Lock
-from typing import Iterator
 from uuid import uuid4
 
 
@@ -54,7 +53,7 @@ class JsonlHashChainJournal:
         ):
             raise ValueError("max_store_bytes must be an integer at least max_record_bytes")
         if not isinstance(allow_legacy_prefix, bool):
-            raise ValueError("allow_legacy_prefix must be a boolean")
+            raise ValueError("allow_legacy_prefix must be a boolean")  # noqa: TRY004
         self.path = self.root / filename
         self.lock_path = self.root / f"{filename}.lock"
         self.max_record_bytes = max_record_bytes
@@ -261,7 +260,7 @@ class JsonlHashChainJournal:
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise ValueError("journal contains invalid JSON") from exc
             if not isinstance(envelope, dict):
-                raise ValueError("journal record must be a JSON object")
+                raise ValueError("journal record must be a JSON object")  # noqa: TRY004
             present = self._CHAIN_FIELDS.intersection(envelope)
             if not present:
                 if not self.allow_legacy_prefix or chain_started:
@@ -278,7 +277,7 @@ class JsonlHashChainJournal:
             claimed_sequence = envelope.get("sequence")
             claimed_previous = envelope.get("previous_hash")
             if isinstance(claimed_sequence, bool) or not isinstance(claimed_sequence, int):
-                raise ValueError("journal sequence must be an integer")
+                raise ValueError("journal sequence must be an integer")  # noqa: TRY004
             if claimed_sequence != sequence + 1 or claimed_previous != previous_hash:
                 raise ValueError("journal sequence or previous hash mismatch")
             actual_hash = hashlib.sha256(self._canonical_json(envelope)).hexdigest()

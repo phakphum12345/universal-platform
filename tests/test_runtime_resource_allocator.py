@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -44,7 +44,7 @@ def test_allocator_rejects_overcommit_unknown_metrics_and_unit_mismatch():
 
 def test_expired_lease_is_reclaimed_using_injected_aware_timestamp():
     allocator = make_allocator()
-    now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 7, tzinfo=UTC)
     lease = allocator.allocate(
         "worker-a", (ResourceMetric("cpu.cores", 4, "cores"),),
         ttl_seconds=5, now=now,
@@ -96,7 +96,7 @@ def test_allocator_rejects_empty_or_duplicate_capacity_and_requests():
 
 def test_allocator_supports_explicit_release_only_lease():
     allocator = ResourceAllocator((ResourceMetric("cpu.cores", 1, "cores"),))
-    now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 7, tzinfo=UTC)
     lease = allocator.allocate(
         "runtime-invocation",
         (ResourceMetric("cpu.cores", 1, "cores"),),
@@ -112,7 +112,7 @@ def test_allocator_supports_explicit_release_only_lease():
 
 def test_quarantined_lease_is_retained_until_explicit_force_release():
     allocator = ResourceAllocator((ResourceMetric("cpu.cores", 2, "cores"),))
-    now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 7, tzinfo=UTC)
     lease = allocator.allocate(
         "worker-unconfirmed",
         (ResourceMetric("cpu.cores", 1, "cores"),),

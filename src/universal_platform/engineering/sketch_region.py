@@ -14,14 +14,18 @@ from typing import ClassVar
 
 from .errors import InvalidModelError
 from .parametric_sketch import (
-    ParametricSketch, ParametricSketchSolveResult, SketchArc, SketchSegment,
+    ParametricSketch,
+    ParametricSketchSolveResult,
+    SketchArc,
 )
 from .planar_region import (
-    MAX_PLANAR_BOUNDARY_EDGES, PlanarRegion, _loops_intersect,
-    _point_location, _signed_area2,
+    MAX_PLANAR_BOUNDARY_EDGES,
+    PlanarRegion,
+    _loops_intersect,
+    _point_location,
+    _signed_area2,
 )
 from .primitive_geometry import Vec2
-
 
 DEFAULT_ARC_CHORD_ERROR = 0.01
 
@@ -45,7 +49,7 @@ class SketchRegionConversionResult:
         }
 
     @classmethod
-    def from_dict(cls, value: object) -> "SketchRegionConversionResult":
+    def from_dict(cls, value: object) -> SketchRegionConversionResult:
         required = {
             "schema_version", "algorithm_version", "source_sketch_id",
             "source_sketch_sha256", "regions",

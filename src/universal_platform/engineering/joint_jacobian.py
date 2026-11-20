@@ -6,14 +6,17 @@ estimates, not symbolic or exact analytic derivatives.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
-from typing import Mapping
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .joint_constraints import GeneratedJointConstraintSet, _matmul, _rotation_about_axis
-from .mechanism_model import CoordinateKind
+from .joint_constraints import (
+    GeneratedJointConstraintSet,
+    _matmul,
+    _rotation_about_axis,
+)
 from .nonlinear_solver import JacobianMethod
 from .transforms import RigidTransform
 

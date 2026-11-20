@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from math import cos, pi
 from pathlib import Path
-import json
 
 import pytest
 
-from universal_platform.engineering import BoxSolid, CylinderSolid, ExtrudedProfileSolid, Vec2
-from universal_platform.engineering.geometry import Vec3
+from universal_platform.engineering import (
+    BoxSolid,
+    CylinderSolid,
+    ExtrudedProfileSolid,
+    Vec2,
+)
 from universal_platform.engineering.errors import InvalidModelError
+from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import (
     TriangleMesh,
     tessellate_box,

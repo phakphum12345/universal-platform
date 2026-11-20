@@ -1,9 +1,12 @@
 """Traceable hard constraints and a fail-closed evaluation report."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from .quantity import Quantity
+
 from .provenance import SourceRef
+from .quantity import Quantity
+
 
 class ConstraintKind(str, Enum):
     MINIMUM = "MINIMUM"

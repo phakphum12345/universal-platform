@@ -1,9 +1,10 @@
 """Fail-closed recovery orchestration with optional log, evidence and adapter fallback."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Callable, Protocol
+from datetime import UTC, datetime
+from typing import Protocol
 from uuid import uuid4
 
 from ..adapters.base import RepairExecutor, RuntimeAdapter
@@ -38,7 +39,7 @@ class AdapterFallbackPolicy:
         if any(not isinstance(item, str) or not item.strip() for item in self.allowed_licenses):
             raise ValueError("allowed_licenses must contain non-empty strings")
         if not callable(self.dependency_check):
-            raise ValueError("dependency_check must be callable")
+            raise ValueError("dependency_check must be callable")  # noqa: TRY004
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,7 +131,7 @@ class RecoveryCoordinator:
                 return self._quarantine(resource_id, events, initial_state, "repair executor is not sandboxed")
             try:
                 adapter_healthy = adapter.health_check(resource_id)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 adapter_healthy = False
             if not adapter_healthy:
                 if fallback_policy is None or self._adapter_replacement is None or self._adapter_router is None:
@@ -147,7 +148,7 @@ class RecoveryCoordinator:
                     )
                     adapter = self._adapter_router.get_current(resource_id)
                     recovery_reason = f"recovery validated with fallback adapter {replacement.replacement_adapter_id}"
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     return self._rollback_and_quarantine(
                         resource_id, events, initial_state,
                         f"fallback adapter replacement failed: {type(exc).__name__}", adapter,
@@ -171,7 +172,7 @@ class RecoveryCoordinator:
             self._registry.transition(resource_id, ResourceState.ACTIVE)
             result = RecoveryResult(resource_id, ResourceState.ACTIVE, True, True, len(events), recovery_reason)
             return self._persist_result(result, events, initial_state, adapter)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return self._rollback_and_quarantine(resource_id, events, initial_state, f"recovery exception: {type(exc).__name__}", adapter)
 
     def _persist_result(
@@ -186,7 +187,7 @@ class RecoveryCoordinator:
         record = RecoveryEvidenceRecord(
             record_id=uuid4().hex,
             resource_id=result.resource_id,
-            captured_at=datetime.now(timezone.utc),
+            captured_at=datetime.now(UTC),
             event_fingerprints=tuple(event.fingerprint for event in events),
             initial_state=initial_state.value,
             final_state=result.state.value,
@@ -200,13 +201,13 @@ class RecoveryCoordinator:
                 result.resource_id, result.state, result.repaired, result.resumed,
                 result.event_count, result.reason, True,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             reason = f"evidence persistence failed: {type(exc).__name__}"
             if result.resumed:
                 try:
                     if adapter is not None:
                         adapter.rollback(result.resource_id)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     reason += "; rollback failed"
                 current = self._registry.get(result.resource_id)
                 if current.state is not ResourceState.QUARANTINED:
@@ -237,7 +238,7 @@ class RecoveryCoordinator:
     ) -> RecoveryResult:
         try:
             adapter.rollback(resource_id)
-        except Exception:
+        except Exception:  # noqa: BLE001
             reason += "; rollback failed"
         current = self._registry.get(resource_id)
         if current.state is not ResourceState.QUARANTINED:

@@ -1,10 +1,12 @@
 """Offline normalized hardware schematic/netlist data model."""
 from __future__ import annotations
+
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-import re
 from typing import Any, ClassVar
+
 from universal_platform.engineering.errors import InvalidModelError
 
 _IDENTIFIER = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
