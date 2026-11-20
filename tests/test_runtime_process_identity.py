@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -10,7 +11,7 @@ from universal_platform.runtime.process_identity import (
 )
 
 
-@pytest.mark.skipif(os.name != "posix" or not Path("/proc").is_dir(), reason="Linux procfs identity")
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs identity")
 def test_linux_process_identity_captures_creation_and_process_tree_tokens():
     identity = capture_process_identity(
         SimpleNamespace(pid=os.getpid()),
