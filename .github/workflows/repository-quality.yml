@@ -29,4 +29,5 @@ jobs:
       - name: Run Ruff static analysis
         run: python -m ruff check src tests
       - name: Audit installed Python dependencies
+        if: always()
         run: python -m pip_audit
