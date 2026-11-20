@@ -136,6 +136,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     files = _expand_inputs(args.paths, args.recursive)
     if not files:
         parser.error("no geometry JSON files found; pass explicit files or a directory containing JSON models")
+    if args.report:
+        if args.report.is_symlink():
+            parser.error("report path must not be a symbolic link")
+        report_target = args.report.resolve()
+        if report_target in {path.resolve() for path in files}:
+            parser.error("report path must not overwrite a geometry input file")
 
     results = [_validate_file(path, args.fix) for path in files]
     passed = sum(item["status"] == "PASS" for item in results)
