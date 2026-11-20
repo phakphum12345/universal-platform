@@ -8,6 +8,7 @@ termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
@@ -169,8 +170,12 @@ class ModuleRuntime:
     ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise InvalidModelError("registry must be a ModuleRegistry")
-        if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocator):
-            raise InvalidModelError("resource_allocator must be a ResourceAllocator")
+        if resource_allocator is not None:
+            has_allocator_contract = callable(getattr(resource_allocator, "allocate", None)) and callable(
+                getattr(resource_allocator, "release", None)
+            )
+            if not isinstance(resource_allocator, ResourceAllocator) and not has_allocator_contract:
+                raise InvalidModelError("resource_allocator must satisfy resource allocator contract")
         self._registry = registry
         self._resource_allocator = resource_allocator
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
@@ -277,7 +282,14 @@ class ModuleRuntime:
             # independently by the invocation's termination result.
             return False
 
-    def _reserve_resources(self, request: ModuleRequest) -> ResourceLease | None:
+    def _reserve_resources(
+        self,
+        request: ModuleRequest,
+        *,
+        lease_kind: str = "ordinary",
+        host_instance_id: str | None = None,
+        worker_id: str | None = None,
+    ) -> ResourceLease | None:
         if not request.resource_limits:
             return None
         allocator = self._resource_allocator
@@ -290,7 +302,20 @@ class ModuleRuntime:
             if capacity is None:
                 raise ValueError(f"resource metric is not host-configured: {name}")
             requested.append(ResourceMetric(name, amount, capacity.unit))
-        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
+        alloc_params = inspect.signature(allocator.allocate).parameters
+        alloc_kwargs: dict[str, object] = {"ttl_seconds": None}
+        if lease_kind == "supervised_worker":
+            if "lease_kind" in alloc_params:
+                alloc_kwargs["lease_kind"] = "supervised_worker"
+            if "host_instance_id" in alloc_params:
+                alloc_kwargs["host_instance_id"] = (
+                    host_instance_id
+                    or getattr(allocator, "host_instance_id", None)
+                    or "module-runtime-host"
+                )
+            if "worker_id" in alloc_params:
+                alloc_kwargs["worker_id"] = worker_id
+        return allocator.allocate(request.request_id, tuple(requested), **alloc_kwargs)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
@@ -370,7 +395,14 @@ class ModuleRuntime:
         lease_quarantined = False
         try:
             try:
-                lease = self._reserve_resources(request)
+                if isinstance(handler, WorkerIPCClient):
+                    lease = self._reserve_resources(
+                        request,
+                        lease_kind="supervised_worker",
+                        worker_id=worker_handle.worker_id,
+                    )
+                else:
+                    lease = self._reserve_resources(request)
             except (ValueError, RuntimeError, OverflowError):
                 return ModuleResponse(
                     request_id=request.request_id, status="REJECTED",
