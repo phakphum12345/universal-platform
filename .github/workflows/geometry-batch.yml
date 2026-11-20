@@ -33,8 +33,8 @@ permissions:
 
 jobs:
   geometry-batch:
-    name: Geometry batch · \${{ matrix.name }}
-    runs-on: \${{ matrix.os }}
+    name: Geometry batch · ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -48,7 +48,7 @@ jobs:
             shell: pwsh
     defaults:
       run:
-        shell: \${{ matrix.shell }}
+        shell: ${{ matrix.shell }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
