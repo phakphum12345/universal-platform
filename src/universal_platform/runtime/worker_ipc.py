@@ -12,8 +12,10 @@ from io import BytesIO
 import math
 import threading
 import time
+from typing import Callable
 from uuid import uuid4
 
+from .process_identity import ProcessIdentity
 from .supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
 from .worker_protocol import (
     DEFAULT_MAX_FRAME_BYTES,
@@ -131,6 +133,8 @@ class WorkerIPCClient:
         frame: WorkerFrame,
         *,
         handle: WorkerInvocationHandle | None = None,
+        on_process_started: Callable[[ProcessIdentity], object] | None = None,
+        host_instance_id: str | None = None,
     ) -> WorkerFrame:
         """Send one REQUEST using its pre-reserved identity and return one correlated RESPONSE."""
         if not isinstance(frame, WorkerFrame):
@@ -149,6 +153,18 @@ class WorkerIPCClient:
             if self._active_requests.get(frame.request_id) != handle:
                 raise WorkerIPCError("worker.request_handle_invalid", "worker handle is not the active reservation")
         worker_id = handle.worker_id
+        if on_process_started is not None:
+            if not callable(on_process_started):
+                raise WorkerIPCError("worker.identity_handoff_invalid", "process identity callback is invalid")
+            if not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id:
+                raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id is required for identity hand-off")
+            if not callable(getattr(self._supervisor, "run_with_identity", None)):
+                raise WorkerIPCError(
+                    "worker.identity_handoff_unavailable",
+                    "supervisor does not support identity-gated worker startup",
+                )
+        elif host_instance_id is not None:
+            raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id requires an identity callback")
 
         try:
             try:
@@ -166,7 +182,14 @@ class WorkerIPCClient:
                 raise WorkerIPCError("worker.request_invalid", "request could not be assigned to a worker") from error
 
             try:
-                result = self._supervisor.run(spec)
+                if on_process_started is None:
+                    result = self._supervisor.run(spec)
+                else:
+                    result = self._supervisor.run_with_identity(
+                        spec,
+                        host_instance_id=host_instance_id,
+                        on_process_started=on_process_started,
+                    )
             except WorkerTerminationError as error:
                 raise WorkerIPCError(
                     "worker.termination_unconfirmed",
@@ -175,7 +198,9 @@ class WorkerIPCClient:
                 ) from error
             except Exception as error:
                 raise WorkerIPCError(
-                    "worker.supervisor_failed",
+                    "worker.identity_handoff_failed" if on_process_started is not None else "worker.supervisor_failed",
+                    "worker process identity could not be durably recorded before payload start"
+                    if on_process_started is not None else
                     "supervised worker execution failed",
                     termination_confirmed=True,
                 ) from error
