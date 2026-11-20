@@ -10,6 +10,7 @@ import argparse
 import glob
 import json
 import os
+import stat
 import tempfile
 from pathlib import Path
 from typing import Any, Sequence
@@ -31,7 +32,7 @@ def _expand_inputs(inputs: Sequence[str], recursive: bool) -> list[Path]:
                 iterator = candidate.rglob("*.json") if recursive else candidate.glob("*.json")
                 for path in iterator:
                     if "schemas" not in path.parts and _is_geometry_candidate(path):
-                        discovered.add(path.resolve())
+                        discovered.add(path.absolute())
             elif _is_geometry_candidate(candidate):
                 discovered.add(candidate.absolute())
     return sorted(discovered, key=lambda item: str(item).casefold())
@@ -50,7 +51,9 @@ def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
         return result
 
     try:
-        original = path.read_text(encoding="utf-8")
+        original_bytes = path.read_bytes()
+        original = original_bytes.decode("utf-8")
+        original_mode = stat.S_IMODE(path.stat().st_mode)
         payload = json.loads(original)
         model = PrimitiveGeometryModel.from_dict(payload)
         result["solid_count"] = len(model.solids)
@@ -63,7 +66,7 @@ def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
                     result["status"] = "FAIL"
                     result["errors"].append(f"safe-fix backup already exists: {backup}")
                     return result
-                backup.write_text(original, encoding="utf-8")
+                backup.write_bytes(original_bytes)
                 temporary_name: str | None = None
                 try:
                     with tempfile.NamedTemporaryFile(
@@ -72,6 +75,7 @@ def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
                     ) as temporary:
                         temporary.write(canonical)
                         temporary_name = temporary.name
+                    os.chmod(temporary_name, original_mode)
                     os.replace(temporary_name, path)
                     result["changed"] = True
                 finally:
