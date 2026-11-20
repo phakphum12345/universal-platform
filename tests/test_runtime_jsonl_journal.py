@@ -128,3 +128,33 @@ def test_new_journal_creation_fsyncs_parent_directory(tmp_path, monkeypatch):
     monkeypatch.setattr(os, "fsync", track_fsync)
     JsonlHashChainJournal(tmp_path).append({"event_type": "LEASE_ACQUIRED"})
     assert synced_directories
+
+
+def test_jsonl_hash_chain_journal_transaction_serializes_check_and_append(tmp_path):
+    journal_path = tmp_path
+    from universal_platform.runtime.evidence.jsonl_journal import JsonlHashChainJournal
+    journals = tuple(JsonlHashChainJournal(journal_path, filename="transaction.jsonl") for _ in range(6))
+
+    def reserve(index):
+        appended = journals[index % len(journals)].append_transaction(
+            lambda records: (
+                ({"event_type": "RESERVED", "reservation_id": str(index)},)
+                if sum(record.get("event_type") == "RESERVED" for record in records) < 2
+                else ()
+            )
+        )
+        return bool(appended)
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        outcomes = list(pool.map(reserve, range(12)))
+
+    assert sum(outcomes) == 2
+    assert sum(record["event_type"] == "RESERVED" for record in journals[0].read_all()) == 2
+
+
+def test_jsonl_hash_chain_journal_transaction_callback_failure_appends_nothing(tmp_path):
+    from universal_platform.runtime.evidence.jsonl_journal import JsonlHashChainJournal
+    journal = JsonlHashChainJournal(tmp_path)
+    with pytest.raises(RuntimeError, match="abort"):
+        journal.append_transaction(lambda _records: (_ for _ in ()).throw(RuntimeError("abort")))
+    assert journal.verify()[0] == 0
