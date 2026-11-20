@@ -175,6 +175,26 @@ class DurableResourceAllocator:
         self._journal.append_transaction(reserve)
         return result["lease"]  # type: ignore[return-value]
 
+    def allocate_worker(
+        self,
+        owner_id: str,
+        requested: Iterable[ResourceMetric],
+        *,
+        host_instance_id: str,
+        worker_id: str,
+        now: datetime | None = None,
+    ) -> DurableResourceLease:
+        """Persist a non-expiring supervised-worker lease with its reserved identity."""
+        return self.allocate(
+            owner_id,
+            requested,
+            ttl_seconds=None,
+            now=now,
+            lease_kind="supervised_worker",
+            host_instance_id=host_instance_id,
+            worker_id=worker_id,
+        )
+
     def quarantine(self, lease_id: str, reason: str) -> bool:
         if not isinstance(reason, str) or not reason.strip():
             raise ValueError("quarantine reason must be a non-empty string")
@@ -240,6 +260,10 @@ class DurableResourceAllocator:
         self._validate_pool(records)
         state, quarantined = self._replay(records)
         return tuple((state[key], quarantined[key]) for key in sorted(quarantined) if key in state)
+
+    def capacity(self) -> tuple[ResourceMetric, ...]:
+        """Return the immutable host-configured pool capacity."""
+        return tuple(self._capacity[key] for key in sorted(self._capacity))
 
     def available(self, *, now: datetime | None = None) -> tuple[ResourceMetric, ...]:
         leases = self.active_leases(now=now)
