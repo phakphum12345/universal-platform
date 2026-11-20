@@ -33,7 +33,11 @@ class ProcessLivenessEvidence:
             raise ValueError("status must be a ProcessLiveness")
         if not isinstance(self.method, str) or not self.method.strip():
             raise ValueError("method must be a non-empty string")
-        if not isinstance(self.observed_at, datetime) or self.observed_at.tzinfo is None:
+        if (
+            not isinstance(self.observed_at, datetime)
+            or self.observed_at.tzinfo is None
+            or self.observed_at.utcoffset() is None
+        ):
             raise ValueError("observed_at must be timezone-aware")
         if self.reason is not None and not isinstance(self.reason, str):
             raise ValueError("reason must be a string or None")
@@ -84,8 +88,12 @@ class WorkerReconciliationResult:
             raise ValueError("lease_id must be a non-empty string")
         if not isinstance(self.status, ProcessLiveness):
             raise ValueError("status must be a ProcessLiveness")
-        if self.action not in {"retained", "released", "quarantined", "retained_quarantine"}:
+        if not isinstance(self.action, str) or self.action not in {
+            "retained", "released", "quarantined", "retained_quarantine"
+        }:
             raise ValueError("unsupported worker reconciliation action")
+        if self.reason is not None and not isinstance(self.reason, str):
+            raise ValueError("reason must be a string or None")
         if self.evidence is not None and not isinstance(self.evidence, ProcessLivenessEvidence):
             raise ValueError("evidence must be ProcessLivenessEvidence or None")
 
