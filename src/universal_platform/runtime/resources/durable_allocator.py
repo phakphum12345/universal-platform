@@ -535,6 +535,12 @@ class DurableResourceAllocator:
                 if event_type == "LEASE_RECOVERED_RELEASED":
                     lease = state[lease_id]
                     evidence = record.get("evidence")
+                    observed_at = None
+                    if isinstance(evidence, dict) and isinstance(evidence.get("observed_at"), str):
+                        try:
+                            observed_at = datetime.fromisoformat(evidence["observed_at"])
+                        except ValueError:
+                            observed_at = None
                     if (
                         lease.lease_kind != "supervised_worker"
                         or lease.process_identity is None
@@ -543,7 +549,9 @@ class DurableResourceAllocator:
                         or evidence.get("process_identity") != lease.process_identity.to_dict()
                         or not isinstance(evidence.get("method"), str)
                         or not evidence.get("method")
-                        or not isinstance(evidence.get("observed_at"), str)
+                        or observed_at is None
+                        or observed_at.tzinfo is None
+                        or observed_at.utcoffset() is None
                     ):
                         raise ValueError("durable journal recovered-release evidence is invalid")
                 del state[lease_id]
