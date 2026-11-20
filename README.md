@@ -4,19 +4,23 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Current status — 2026-11-20
 
-- Overall lifecycle: **INCOMPLETE**. The repository is in active incremental development, not release acceptance.
-- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e` (PR #257 merge).
-- Default `main`: `96e75010716226037893155b9fd4b13410fb0d6f`. GitHub comparison reports development is **878 commits ahead / 0 behind**; main is an ancestor of the development branch.
-- GitHub reports both `main` and `docs/phase-0-complete-requirements` as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Workflow checks run, but GitHub does not enforce them as branch protection.
-- Current PR inventory #1–#262: 239 merged, 18 closed without merge and 5 open (#258–#262). The open PRs remain unmerged.
-- PR #258 at `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: workflow-sanity, Python and Windows supervisor PASS; Python 1,160 passed / 4 skipped. Linux skips are Windows-only supervisor tests; Windows CI covers those cases.
-- PR #259 at `af7fb944f90469e217118b50ca20ad4c94e394aa`: Python, Windows supervisor and workflow-sanity PASS after the historical README compatibility corrections. No formal review submission; not merged.
-- PR #260 at `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: Python 1,166 passed / 4 skipped, Windows supervisor and workflow-sanity PASS. It depends on #258 and remains unmerged.
-- PR #261 at `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft; Python, Windows supervisor and workflow-sanity PASS. It adds immutable OS process identity snapshots, but does not yet implement a start gate or supervisor hand-off.
-- PR #262 at `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft; workflow-sanity and Windows supervisor PASS, Python suite IN_PROGRESS. It adds durable process identity binding to worker leases, but does not yet block worker payload execution until the binding is fsynced.
-- WP-09G-A is integrated via #257. WP-09G-B is verified on #258 and its ModuleRuntime integration on #260; neither is integrated/accepted. WP-09G-C is in progress across #261/#262; start-gate and callback wiring remain open. WP-09G-D/E remain open.
-- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. WP-15B remains a DRAFT pending owner acceptance; WP-15C is not started.
-- No merge to `main` or deployment is implied. Local working-tree state is UNKNOWN to this GitHub-only audit.
+- Overall lifecycle: **INCOMPLETE**. This is an active development repository, not a release-accepted universal platform.
+- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`. Development is 878 commits ahead / 0 behind; main is an ancestor.
+- GitHub reports `main` and development as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Branch protection remains an owner/admin governance action.
+- Current PR inventory #1–#266: **239 merged, 18 closed without merge, 9 open (#258–#266)**. All nine are unmerged; no PR in the current runtime dependency chain has post-merge evidence.
+- PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS.
+- PR #259 @ `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a`: exact-head CI PASS; Python 1,150 passed / 4 skipped; Windows supervisor and workflow sanity PASS. Historical README compatibility anchors are retained as historical references, not current test counts.
+- PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS. It depends on #258.
+- PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable Linux/Windows process identity snapshot foundation. Depends on #260.
+- PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable process identity binding and journal replay. Depends on #261.
+- PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Linux start gate and Windows suspended-process/Job Object hand-off. Python 1,179 passed / 5 skipped; Windows process supervisor 22 passed / 5 skipped; Windows journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
+- PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; WorkerIPC/ModuleRuntime binds OS identity before worker payload execution. Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
+- PR #265: Draft process-liveness adapters (Linux procfs and Windows named Job Object); current exact-head Python CI is IN_PROGRESS, Windows supervisor and workflow sanity PASS.
+- PR #266: Draft durable allocator startup reconciliation; current exact-head CI is QUEUED. It depends on #265.
+- PR #258–#266 have no formal review submissions or unresolved review threads at the latest GitHub review query. Mergeability is reported clean/true; that is not approval.
+- WP-09G-A is integrated via #257. WP-09G-B is verified on #258/#260 but not integrated. WP-09G-C candidate implementation passes CI through #264 but remains unmerged. WP-09G-D is in progress (#265/#266); WP-09G-E operator recovery remains open.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. CI currently lacks repository-wide lint/type-check/dependency-security gates. Local working-tree state is UNKNOWN to this GitHub-only audit.
+- No PR has been merged in this execution. No merge to `main`, deployment or paid infrastructure is implied.
 - Use the [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) as the current evidence set.
 
 ## Initial implementation (active development)
