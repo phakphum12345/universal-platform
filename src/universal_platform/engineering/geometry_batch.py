@@ -99,8 +99,10 @@ def _validate_file(path: Path, fix: bool) -> dict[str, Any]:
                     if temporary_name and os.path.exists(temporary_name):
                         os.unlink(temporary_name)
     except (OSError, UnicodeError, json.JSONDecodeError, InvalidModelError, KeyError, TypeError, ValueError) as exc:
+        result["status"] = "FAIL"
         result["errors"].append(f"{type(exc).__name__}: {exc}")
     except Exception as exc:  # Keep processing the remaining files after an unexpected per-file failure.
+        result["status"] = "FAIL"
         result["errors"].append(f"Unexpected {type(exc).__name__}: {exc}")
     return result
 
