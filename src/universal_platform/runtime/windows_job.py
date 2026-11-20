@@ -84,6 +84,8 @@ def _windows_api():
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
     kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.OpenJobObjectW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+    kernel32.OpenJobObjectW.restype = wintypes.HANDLE
     kernel32.SetInformationJobObject.argtypes = [
         wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD,
     ]
@@ -155,6 +157,38 @@ def _resume_only_suspended_primary_thread(kernel32, process_id: int) -> None:
         if thread_handle:
             kernel32.CloseHandle(thread_handle)
         kernel32.CloseHandle(snapshot)
+
+
+def query_named_job_active_processes(object_id: str) -> int | None:
+    """Return active processes in a named Job Object, or None if it no longer exists.
+
+    Access denied, query errors and malformed names raise OSError/ValueError;
+    callers must treat those outcomes as UNKNOWN rather than ABSENT.
+    """
+    if not isinstance(object_id, str) or not object_id.strip() or "\\x00" in object_id:
+        raise ValueError("object_id must be a non-empty NUL-free string")
+    kernel32 = _windows_api()
+    handle = kernel32.OpenJobObjectW(0x0004, False, object_id)  # JOB_OBJECT_QUERY
+    if not handle:
+        error = ctypes.get_last_error()
+        if error == 2:  # ERROR_FILE_NOT_FOUND: kill-on-close Job Object is gone
+            return None
+        raise OSError(error, f"OpenJobObjectW failed: {ctypes.FormatError(error).strip()}")
+    try:
+        info = _BasicAccountingInformation()
+        returned = wintypes.DWORD()
+        if not kernel32.QueryInformationJobObject(
+            handle,
+            1,
+            ctypes.byref(info),
+            ctypes.sizeof(info),
+            ctypes.byref(returned),
+        ):
+            _raise_last_error("QueryInformationJobObject(named job) failed")
+        return int(info.ActiveProcesses)
+    finally:
+        if not kernel32.CloseHandle(handle):
+            _raise_last_error("CloseHandle(named Job Object) failed")
 
 
 class WindowsJob:
