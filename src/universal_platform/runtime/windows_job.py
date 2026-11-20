@@ -198,7 +198,11 @@ class WindowsJob:
             if not self._kernel32.AssignProcessToJobObject(self._handle, process_handle):
                 _raise_last_error("AssignProcessToJobObject failed; worker remains suspended")
             if resume:
-                self.resume_suspended(process)
+                try:
+                    self.resume_suspended(process)
+                except Exception:
+                    self.terminate()
+                    raise
 
     def resume_suspended(self, process: subprocess.Popen[bytes]) -> None:
         """Resume the primary thread only after the caller's durable identity callback succeeds."""
