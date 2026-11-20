@@ -37,7 +37,7 @@
 | #262 | OPEN Draft; stacked on #261 | Head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`; Python 1,176 passed / 4 skipped; Windows and workflow sanity PASS |
 | #263 | OPEN Draft; stacked on #262 | Head `077edafe5c1e750be6270b28f98fd42430348a98`; Python 1,179 passed / 5 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 18 passed; workflow sanity PASS |
 | #264 | OPEN Draft; stacked on #263 | Head `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`; Python 1,185 passed / 5 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime integration 70 passed; workflow sanity PASS |
-| #265 | OPEN Draft; stacked on #264 | Head `088db6ad3178ac02321012a50fb319f5996d2d52`; Windows process reconciliation 2 passed / 8 skipped and other Windows jobs PASS; Python IN_PROGRESS |
+| #265 | OPEN Draft; stacked on #264 | Head `088db6ad3178ac02321012a50fb319f5996d2d52`; Python 1,194 passed / 6 skipped; Windows process reconciliation 2 passed / 8 skipped and other Windows jobs PASS |
 | #266 | OPEN Draft; stacked on #265 | Head `ed214969d9382e4dd343d24df0bd4d38d83e670b`; CI QUEUED |
 
 Latest review query for #258–#266 returned no formal review submissions and no unresolved review threads. All are mergeable; none is approved or merged by that fact. See [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](../engineering/TECHNICAL_DEBT.md).
