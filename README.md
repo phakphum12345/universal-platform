@@ -362,4 +362,4 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 WP-15 defines a Modern Unified Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, audit and settings. It is PLANNED only; see [the WP-15 specification](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). Existing UI and API surfaces must be inventoried before implementation or replacement.
 
-Historical documentation compatibility anchor: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a pinned reference required by the post-PR #113 audit regression test. It is a historical baseline, not the current branch HEAD.
+Historical documentation compatibility anchor: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a pinned reference required by the post-PR #113 audit regression test. It is a historical baseline, not the current branch HEAD. The historical post-PR #113 test snapshot recorded `732 passed`; this is retained as historical evidence, not a claim about the current test suite.
