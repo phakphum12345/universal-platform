@@ -83,3 +83,26 @@ def test_fix_mode_does_not_rewrite_semantically_invalid_geometry(tmp_path, capsy
     assert path.read_text(encoding="utf-8") == original
     assert not path.with_name(path.name + ".bak").exists()
     assert "FAIL:" in output
+
+
+def test_fix_mode_fails_when_backup_creation_fails(tmp_path, capsys, monkeypatch):
+    from pathlib import Path
+
+    path = _write(tmp_path / "part.geometry.json", _snapshot(), indent=None)
+    original = path.read_text(encoding="utf-8")
+    write_bytes = Path.write_bytes
+
+    def fail_backup_write(target, data):
+        if target.name.endswith(".bak"):
+            raise OSError("simulated backup write failure")
+        return write_bytes(target, data)
+
+    monkeypatch.setattr(Path, "write_bytes", fail_backup_write)
+
+    exit_code = main(["validate", str(path), "--fix"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert "FAIL:" in output
+    assert "simulated backup write failure" in output
+    assert path.read_text(encoding="utf-8") == original
