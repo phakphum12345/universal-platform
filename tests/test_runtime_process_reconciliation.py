@@ -166,3 +166,20 @@ def test_windows_inspector_queries_named_job_process_tree_liveness():
             job.terminate()
             process.wait(timeout=5)
         job.close()
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs process reconciliation")
+def test_linux_inspector_returns_unknown_for_identity_without_group_leader_anchor(tmp_path):
+    identity = ProcessIdentity(
+        platform="linux",
+        pid=101,
+        creation_token="900",
+        host_boot_id="boot-token",
+        worker_id="worker-101",
+        host_instance_id="host-101",
+        process_group_id=99,
+        session_id=99,
+    )
+    evidence = ProcessIdentityInspector(proc_root=tmp_path).inspect(identity)
+    assert evidence.status is ProcessLiveness.UNKNOWN
+    assert "not its process-group and session leader" in (evidence.reason or "")
