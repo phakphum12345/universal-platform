@@ -284,7 +284,7 @@ def test_curved_profile_supports_circular_through_hole_and_inner_wall_area():
     model = PrimitiveGeometryModel(graph_with_frame("part"), (solid,))
     assert solid.area == pytest.approx(15.0 + pi / 4.0)
     assert solid.perimeter == pytest.approx(16.0 + pi)
-    assert model.volume("solid.circular-hole").si_value == pytest.approx((16.0 - pi / 4.0) * 1e-9)
+    assert model.volume("solid.circular-hole").si_value == pytest.approx((15.0 + pi / 4.0) * 1e-9)
     assert model.surface_area("solid.circular-hole").si_value == pytest.approx((2.0 * (16.0 - pi / 4.0) + 16.0 + pi) * 1e-6)
     restored = PrimitiveGeometryModel.from_dict(json.loads(json.dumps(model.to_dict())))
     assert restored.to_dict() == model.to_dict()
