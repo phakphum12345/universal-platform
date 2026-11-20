@@ -61,6 +61,12 @@ class ProcessIdentity:
             self.process_group_id != self.pid or self.session_id != self.pid
         ):
             raise ValueError("Linux supervised worker must be its process-group and session leader")
+        if self.job_object_id is not None and (
+            not isinstance(self.job_object_id, str)
+            or not self.job_object_id.strip()
+            or "\\x00" in self.job_object_id
+        ):
+            raise ValueError("job_object_id must be a non-empty NUL-free string or None")
 
     def to_dict(self) -> dict[str, object]:
         return {
