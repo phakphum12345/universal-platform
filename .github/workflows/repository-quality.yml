@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-      - "docs/**"
-      - "feat/**"
-      - "ci/**"
+      - "docs/phase-0-complete-requirements"
   pull_request:
     branches:
       - main
