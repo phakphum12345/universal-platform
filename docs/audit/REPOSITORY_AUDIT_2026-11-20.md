@@ -102,7 +102,7 @@ The remaining older closed/unmerged entries should remain available for historic
 
 - PR #265 adds Linux procfs inspection using boot ID, start-time, process-group and session identity; Windows inspection queries the named Job Object's active-process count. The inspector returns PRESENT / ABSENT / UNKNOWN and fails closed on PID reuse ambiguity, unsupported platforms or incomplete inspection. It does not release leases.
 - PR #266 connects liveness evidence to durable allocator startup replay, blocks admissions until reconciliation, records `LEASE_RECOVERED_RELEASED` only for exact-identity ABSENT evidence, retains same-host PRESENT leases, quarantines other-host PRESENT and UNKNOWN states, and never clears existing quarantine. ModuleRuntime runs pending reconciliation before becoming available.
-- PR #265's latest Python CI is IN_PROGRESS; its Windows and workflow-sanity checks pass. PR #266 exact-head CI is QUEUED.
+- PR #265 exact head `088db6ad3178ac02321012a50fb319f5996d2d52` passes Python 1,194 passed / 6 skipped; Windows and workflow-sanity checks pass. PR #266 exact-head CI is QUEUED.
 
 ### WP-09G-E — operator recovery
 
@@ -178,13 +178,13 @@ Historical audit entries, exact SHAs, prior test counts and closed PR dispositio
 
 The audit and execution branches have continued beyond the initial #258 snapshot. Current PR inventory is #1–#266: 239 merged, 18 closed without merge, 9 open (#258–#266).
 
-- **PR #259** audit/docs branch exact head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a`: Python 1,150 passed / 4 skipped; Windows supervisor and workflow-sanity PASS. Historical README compatibility anchors are explicitly labelled historical.
+- **PR #259** audit/docs branch: prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed Python 1,150 / 4 skipped, Windows supervisor and workflow-sanity. The current live documentation refresh advances the branch; its new exact head must be revalidated. Historical README compatibility anchors are explicitly labelled historical.
 - **PR #260** exact head `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: Python 1,166 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
 - **PR #261** exact head `3e8af697ead9050dd531f27ce8bbaef358145261`: identity snapshot primitive; exact-head Python, Windows supervisor and workflow-sanity PASS.
 - **PR #262** exact head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: durable lease identity binding; Python 1,176 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
 - **PR #263** exact head `077edafe5c1e750be6270b28f98fd42430348a98`: Linux/Windows start gate; Python 1,179 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed; workflow-sanity PASS.
 - **PR #264** exact head `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: WorkerIPC/ModuleRuntime identity binding; Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed; workflow-sanity PASS.
-- **PR #265** exact head `088db6ad3178ac02321012a50fb319f5996d2d52`: process liveness adapters; Windows supervisor, journal, durable allocator/ModuleRuntime, WorkerIPC/ModuleRuntime, process-reconciliation (2 passed / 8 skipped) and workflow-sanity PASS; Python suite IN_PROGRESS at this update.
+- **PR #265** exact head `088db6ad3178ac02321012a50fb319f5996d2d52`: process liveness adapters; Python 1,194 passed / 6 skipped; Windows supervisor, journal, durable allocator/ModuleRuntime, WorkerIPC/ModuleRuntime, process-reconciliation (2 passed / 8 skipped) and workflow-sanity PASS.
 - **PR #266** exact head `ed214969d9382e4dd343d24df0bd4d38d83e670b`: startup reconciliation and ModuleRuntime readiness gating; exact-head CI QUEUED at this update.
 - Latest review query for #258–#266 returned zero formal review submissions and zero unresolved inline threads. All nine are reported mergeable; none is merged.
 - Both `main` and development remain `protected=false`; required status checks are unenforced and rulesets are empty. No settings were changed.
