@@ -1,3 +1,5 @@
+> **LIVE PR STATUS CORRECTION — 2026-11-20 (supersedes older PR inventory snapshots below):** GitHub confirms PRs #258, #260 and #261 are MERGED. Their exact merge-SHA checks all PASS: `python-tests`, `windows-process-supervisor` and `workflow-sanity`. PRs #259 and #262–#268 remain OPEN (8 open PRs total); do not repeat earlier inventory counts of 3 or 9 as current. Exact-head checks for #259, #262, #263, #264, #265, #266 and #268 each report those three checks PASS. PR #267 remains FAIL because `repository-quality` failed; its other currently reported checks (Python, Windows supervisor, workflow sanity and Chromium E2E) PASS. PRs #262–#268 are Draft and require readiness/review handling before merge. These check results do not override dependency order, review requirements, post-merge verification, or the prohibition on promotion to `main`. SKIPPED remains distinct from PASS. Historical snapshots are retained for traceability and must not be interpreted as live status.
+
 # Universal Platform — Roadmap
 
 Status: Proposed sequence. No phase is declared complete.
