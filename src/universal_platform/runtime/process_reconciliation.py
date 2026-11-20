@@ -33,7 +33,11 @@ class ProcessLivenessEvidence:
             raise ValueError("status must be a ProcessLiveness")
         if not isinstance(self.method, str) or not self.method.strip():
             raise ValueError("method must be a non-empty string")
-        if not isinstance(self.observed_at, datetime) or self.observed_at.tzinfo is None:
+        if (
+            not isinstance(self.observed_at, datetime)
+            or self.observed_at.tzinfo is None
+            or self.observed_at.utcoffset() is None
+        ):
             raise ValueError("observed_at must be timezone-aware")
         if self.reason is not None and not isinstance(self.reason, str):
             raise ValueError("reason must be a string or None")
@@ -69,6 +73,38 @@ def _linux_stat_fields(path: Path) -> tuple[str, int, int, int]:
     if min(process_group_id, session_id, start_ticks) <= 0:
         raise ValueError("proc stat identity fields must be positive")
     return state, process_group_id, session_id, start_ticks
+
+
+@dataclass(frozen=True, slots=True)
+class WorkerReconciliationResult:
+    lease_id: str
+    status: ProcessLiveness
+    action: str
+    reason: str | None = None
+    evidence: ProcessLivenessEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.lease_id, str) or not self.lease_id.strip():
+            raise ValueError("lease_id must be a non-empty string")
+        if not isinstance(self.status, ProcessLiveness):
+            raise ValueError("status must be a ProcessLiveness")
+        if not isinstance(self.action, str) or self.action not in {
+            "retained", "released", "quarantined", "retained_quarantine"
+        }:
+            raise ValueError("unsupported worker reconciliation action")
+        if self.reason is not None and not isinstance(self.reason, str):
+            raise ValueError("reason must be a string or None")
+        if self.evidence is not None and not isinstance(self.evidence, ProcessLivenessEvidence):
+            raise ValueError("evidence must be ProcessLivenessEvidence or None")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "lease_id": self.lease_id,
+            "status": self.status.value,
+            "action": self.action,
+            "reason": self.reason,
+            "evidence": self.evidence.to_dict() if self.evidence is not None else None,
+        }
 
 
 class ProcessIdentityInspector:
@@ -265,4 +301,5 @@ __all__ = [
     "ProcessIdentityInspector",
     "ProcessLiveness",
     "ProcessLivenessEvidence",
+    "WorkerReconciliationResult",
 ]

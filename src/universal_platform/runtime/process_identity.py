@@ -57,6 +57,12 @@ class ProcessIdentity:
             or self.session_id is None
         ):
             raise ValueError("Linux identity requires boot, process-group and session tokens")
+        if self.job_object_id is not None and (
+            not isinstance(self.job_object_id, str)
+            or not self.job_object_id.strip()
+            or "\\x00" in self.job_object_id
+        ):
+            raise ValueError("job_object_id must be a non-empty NUL-free string or None")
 
     def to_dict(self) -> dict[str, object]:
         return {

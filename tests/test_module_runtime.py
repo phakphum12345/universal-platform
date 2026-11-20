@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import sys
 import threading
 import time
@@ -12,6 +13,8 @@ from universal_platform.runtime.supervisor import PythonProcessSupervisor, Worke
 from universal_platform.runtime.resources.allocator import ResourceAllocator
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
+from universal_platform.runtime.process_identity import ProcessIdentity
+from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
 from universal_platform.runtime.worker_ipc import WorkerIPCClient
 
 
@@ -995,3 +998,69 @@ def test_unconfirmed_identity_handoff_quarantines_durable_worker_lease(tmp_path)
     quarantined = allocator.quarantined_leases()
     assert len(quarantined) == 1
     assert quarantined[0][0].lease_id == active[0].lease_id
+
+
+def test_module_runtime_reconciles_existing_worker_leases_before_startup(tmp_path):
+    allocator = DurableResourceAllocator(
+        tmp_path,
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        pool_id="module-runtime-startup-reconciliation",
+    )
+    lease = allocator.allocate_worker(
+        "previous-runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-before-restart",
+        worker_id="worker-before-restart",
+    )
+    identity = ProcessIdentity(
+        platform="linux",
+        pid=43210,
+        creation_token="12345",
+        host_boot_id="previous-boot",
+        worker_id="worker-before-restart",
+        host_instance_id="host-before-restart",
+        process_group_id=43210,
+        session_id=43210,
+    )
+    allocator.bind_process_identity(lease.lease_id, identity)
+
+    restarted_allocator = DurableResourceAllocator(
+        tmp_path,
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        pool_id="module-runtime-startup-reconciliation",
+    )
+    assert restarted_allocator.startup_reconciliation_required
+
+    class AbsentInspector:
+        def inspect(self, observed_identity):
+            return ProcessLivenessEvidence(
+                identity=observed_identity,
+                status=ProcessLiveness.ABSENT,
+                method="test.startup-inspector",
+                observed_at=datetime.now(timezone.utc),
+                reason="test proves previous worker process tree is absent",
+            )
+
+    runtime = ModuleRuntime(
+        ModuleRegistry(),
+        resource_allocator=restarted_allocator,
+        host_instance_id="host-after-restart",
+        process_identity_inspector=AbsentInspector(),
+    )
+
+    assert runtime._host_instance_id == "host-after-restart"
+    assert not restarted_allocator.startup_reconciliation_required
+    assert restarted_allocator.active_leases() == ()
+    assert restarted_allocator.available()[0].value == 2
+    assert any(
+        event["event_type"] == "LEASE_RECOVERED_RELEASED"
+        for event in restarted_allocator._journal.read_all()
+    )
+
+
+def test_module_runtime_instances_share_process_scoped_host_identity():
+    first = ModuleRuntime(ModuleRegistry())
+    second = ModuleRuntime(ModuleRegistry())
+    explicit = ModuleRuntime(ModuleRegistry(), host_instance_id="explicit-host-instance")
+    assert first._host_instance_id == second._host_instance_id
+    assert explicit._host_instance_id == "explicit-host-instance"

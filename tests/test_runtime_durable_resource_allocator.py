@@ -7,6 +7,7 @@ import pytest
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.process_identity import ProcessIdentity
+from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
 
 
 def capacity():
@@ -236,3 +237,177 @@ def test_identity_only_worker_lease_allows_empty_resource_metrics_but_ordinary_l
     assert allocator.active_leases() == (lease,)
     with pytest.raises(ValueError, match="ordinary leases require"):
         allocator.allocate("ordinary-runtime", (), ttl_seconds=None)
+
+
+class StaticProcessInspector:
+    def __init__(self, status, *, reason=None, mismatch=False):
+        self.status = status
+        self.reason = reason
+        self.mismatch = mismatch
+
+    def inspect(self, identity):
+        if self.mismatch:
+            identity = worker_identity(pid=identity.pid + 1, worker_id=identity.worker_id,
+                                       host_instance_id=identity.host_instance_id)
+        return ProcessLivenessEvidence(
+            identity=identity,
+            status=self.status,
+            method="test.static-inspector",
+            observed_at=datetime.now(timezone.utc),
+            reason=self.reason,
+        )
+
+
+def test_startup_reconciliation_requires_proof_before_new_admissions_and_recovers_absent_worker(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-absent")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-old",
+        worker_id="worker-old",
+    )
+    identity = worker_identity(worker_id="worker-old", host_instance_id="host-old")
+    original.bind_process_identity(lease.lease_id, identity)
+
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-absent")
+    assert restarted.startup_reconciliation_required
+    with pytest.raises(RuntimeError, match="startup reconciliation"):
+        restarted.allocate("new-runtime", (ResourceMetric("cpu.cores", 1, "cores"),))
+    with pytest.raises(RuntimeError, match="startup reconciliation"):
+        restarted.release(lease.lease_id)
+
+    outcomes = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.ABSENT, reason="worker process tree is gone"),
+        current_host_instance_id="host-new",
+    )
+    assert len(outcomes) == 1
+    assert outcomes[0].status is ProcessLiveness.ABSENT
+    assert outcomes[0].action == "released"
+    assert not restarted.startup_reconciliation_required
+    assert restarted.active_leases() == ()
+    assert restarted.available()[0].value == 2
+    recovered = next(
+        event for event in restarted._journal.read_all()
+        if event["event_type"] == "LEASE_RECOVERED_RELEASED"
+    )
+    assert recovered["evidence"]["status"] == "ABSENT"
+    assert recovered["evidence"]["process_identity"] == identity.to_dict()
+    replayed = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-absent")
+    assert not replayed.startup_reconciliation_required
+    assert replayed.active_leases() == ()
+    restarted.allocate("new-runtime", (ResourceMetric("cpu.cores", 1, "cores"),))
+
+
+def test_startup_reconciliation_quarantines_unknown_worker_without_identity(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-missing-identity")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        host_instance_id="host-old",
+        worker_id="worker-no-identity",
+    )
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-missing-identity")
+    outcome = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.ABSENT),
+        current_host_instance_id="host-new",
+    )[0]
+
+    assert outcome.status is ProcessLiveness.UNKNOWN
+    assert outcome.action == "quarantined"
+    assert "no recorded OS process identity" in (outcome.reason or "")
+    assert restarted.active_leases() == (lease,)
+    assert restarted.available()[0].value == 0
+    assert len(restarted.quarantined_leases()) == 1
+
+
+def test_startup_reconciliation_retains_same_host_present_worker(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-present-same-host")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-current",
+        worker_id="worker-current",
+    )
+    original.bind_process_identity(
+        lease.lease_id,
+        worker_identity(worker_id="worker-current", host_instance_id="host-current"),
+    )
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-present-same-host")
+    outcome = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.PRESENT),
+        current_host_instance_id="host-current",
+    )[0]
+    assert outcome.status is ProcessLiveness.PRESENT
+    assert outcome.action == "retained"
+    assert restarted.active_leases()[0].lease_id == lease.lease_id
+    assert restarted.quarantined_leases() == ()
+
+
+def test_startup_reconciliation_quarantines_present_worker_from_previous_host(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-present-other-host")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-old",
+        worker_id="worker-old",
+    )
+    original.bind_process_identity(
+        lease.lease_id,
+        worker_identity(worker_id="worker-old", host_instance_id="host-old"),
+    )
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-present-other-host")
+    outcome = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.PRESENT),
+        current_host_instance_id="host-new",
+    )[0]
+    assert outcome.status is ProcessLiveness.PRESENT
+    assert outcome.action == "quarantined"
+    assert "automatic adoption is disabled" in (outcome.reason or "")
+    assert len(restarted.quarantined_leases()) == 1
+    assert restarted.active_leases()[0].lease_id == lease.lease_id
+
+
+def test_startup_reconciliation_never_clears_existing_quarantine(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-preserve-quarantine")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-old",
+        worker_id="worker-old",
+    )
+    original.bind_process_identity(
+        lease.lease_id,
+        worker_identity(worker_id="worker-old", host_instance_id="host-old"),
+    )
+    original.quarantine(lease.lease_id, "previous cleanup could not be confirmed")
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-preserve-quarantine")
+    outcome = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.ABSENT),
+        current_host_instance_id="host-new",
+    )[0]
+    assert outcome.status is ProcessLiveness.ABSENT
+    assert outcome.action == "retained_quarantine"
+    assert restarted.active_leases()[0].lease_id == lease.lease_id
+    assert len(restarted.quarantined_leases()) == 1
+
+
+def test_startup_reconciliation_rejects_mismatched_inspector_evidence_as_unknown(tmp_path):
+    original = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-mismatched-evidence")
+    lease = original.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-old",
+        worker_id="worker-old",
+    )
+    original.bind_process_identity(
+        lease.lease_id,
+        worker_identity(worker_id="worker-old", host_instance_id="host-old"),
+    )
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-mismatched-evidence")
+    outcome = restarted.reconcile_startup(
+        StaticProcessInspector(ProcessLiveness.ABSENT, mismatch=True),
+        current_host_instance_id="host-new",
+    )[0]
+    assert outcome.status is ProcessLiveness.UNKNOWN
+    assert outcome.action == "quarantined"
+    assert len(restarted.quarantined_leases()) == 1

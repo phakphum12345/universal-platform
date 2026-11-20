@@ -2,7 +2,12 @@
 from .resources.registry import ResourceRegistry
 from .resources.models import ResourceRecord, ResourceState
 from .process_identity import ProcessIdentity, capture_process_identity
-from .process_reconciliation import ProcessIdentityInspector, ProcessLiveness, ProcessLivenessEvidence
+from .process_reconciliation import (
+    ProcessIdentityInspector,
+    ProcessLiveness,
+    ProcessLivenessEvidence,
+    WorkerReconciliationResult,
+)
 from .supervisor import PythonProcessSupervisor, WorkerResult, WorkerSpec, WorkerTerminationError
 from .worker_ipc import WorkerIPCClient, WorkerIPCError
 
@@ -16,6 +21,7 @@ __all__ = [
     "ResourceRegistry",
     "ResourceState",
     "WorkerResult",
+    "WorkerReconciliationResult",
     "WorkerTerminationError",
     "WorkerIPCClient",
     "WorkerIPCError",
