@@ -6,6 +6,7 @@ import pytest
 
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
+from universal_platform.runtime.process_identity import ProcessIdentity
 
 
 def capacity():
@@ -122,3 +123,98 @@ def test_durable_allocator_fails_closed_on_corrupt_journal(tmp_path):
 
     with pytest.raises(ValueError, match="hash-chain"):
         DurableResourceAllocator(tmp_path, capacity(), pool_id="corrupt")
+
+
+def worker_identity(*, pid=1234, worker_id="worker-1", host_instance_id="host-1"):
+    return ProcessIdentity(
+        platform="linux",
+        pid=pid,
+        creation_token=str(pid * 10),
+        host_boot_id="boot-token",
+        worker_id=worker_id,
+        host_instance_id=host_instance_id,
+        process_group_id=pid,
+        session_id=pid,
+    )
+
+
+def test_process_identity_binding_is_durable_and_idempotent(tmp_path):
+    allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="identity-bound")
+    lease = allocator.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-1",
+        worker_id="worker-1",
+    )
+    identity = worker_identity()
+
+    bound = allocator.bind_process_identity(lease.lease_id, identity)
+    assert bound.process_identity == identity
+    assert allocator.bind_process_identity(lease.lease_id, identity) == bound
+
+    restarted = DurableResourceAllocator(tmp_path, capacity(), pool_id="identity-bound")
+    recovered = restarted.active_leases()
+    assert len(recovered) == 1
+    assert recovered[0].process_identity == identity
+    assert restarted.verify()[0] >= 3
+
+
+def test_process_identity_binding_rejects_mismatched_host_or_worker(tmp_path):
+    allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="identity-mismatch")
+    lease = allocator.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-1",
+        worker_id="worker-1",
+    )
+    with pytest.raises(ValueError, match="does not match"):
+        allocator.bind_process_identity(
+            lease.lease_id,
+            worker_identity(worker_id="worker-other"),
+        )
+    with pytest.raises(ValueError, match="does not match"):
+        allocator.bind_process_identity(
+            lease.lease_id,
+            worker_identity(host_instance_id="host-other"),
+        )
+    assert allocator.active_leases()[0].process_identity is None
+
+
+def test_process_identity_binding_rejects_ordinary_or_unknown_leases(tmp_path):
+    allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="identity-kind")
+    ordinary = allocator.allocate(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        ttl_seconds=None,
+    )
+    with pytest.raises(ValueError, match="supervised worker"):
+        allocator.bind_process_identity(ordinary.lease_id, worker_identity())
+    with pytest.raises(ValueError, match="unknown lease"):
+        allocator.bind_process_identity("missing-lease", worker_identity())
+
+
+def test_process_identity_binding_cannot_be_replaced_or_added_after_quarantine(tmp_path):
+    allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="identity-immutable")
+    lease = allocator.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-1",
+        worker_id="worker-1",
+    )
+    first = worker_identity(pid=1234)
+    allocator.bind_process_identity(lease.lease_id, first)
+    with pytest.raises(RuntimeError, match="different process identity"):
+        allocator.bind_process_identity(lease.lease_id, worker_identity(pid=5678))
+
+    other = allocator.allocate_worker(
+        "runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-1",
+        worker_id="worker-2",
+    )
+    allocator.quarantine(other.lease_id, "identity capture incomplete")
+    with pytest.raises(RuntimeError, match="quarantined"):
+        allocator.bind_process_identity(
+            other.lease_id,
+            worker_identity(worker_id="worker-2"),
+        )
