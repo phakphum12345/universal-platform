@@ -273,6 +273,8 @@ def test_startup_reconciliation_requires_proof_before_new_admissions_and_recover
     assert restarted.startup_reconciliation_required
     with pytest.raises(RuntimeError, match="startup reconciliation"):
         restarted.allocate("new-runtime", (ResourceMetric("cpu.cores", 1, "cores"),))
+    with pytest.raises(RuntimeError, match="startup reconciliation"):
+        restarted.release(lease.lease_id)
 
     outcomes = restarted.reconcile_startup(
         StaticProcessInspector(ProcessLiveness.ABSENT, reason="worker process tree is gone"),
@@ -290,6 +292,9 @@ def test_startup_reconciliation_requires_proof_before_new_admissions_and_recover
     )
     assert recovered["evidence"]["status"] == "ABSENT"
     assert recovered["evidence"]["process_identity"] == identity.to_dict()
+    replayed = DurableResourceAllocator(tmp_path, capacity(), pool_id="startup-absent")
+    assert not replayed.startup_reconciliation_required
+    assert replayed.active_leases() == ()
     restarted.allocate("new-runtime", (ResourceMetric("cpu.cores", 1, "cores"),))
 
 
