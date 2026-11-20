@@ -218,3 +218,21 @@ def test_process_identity_binding_cannot_be_replaced_or_added_after_quarantine(t
             other.lease_id,
             worker_identity(worker_id="worker-2"),
         )
+
+
+def test_identity_only_worker_lease_allows_empty_resource_metrics_but_ordinary_lease_does_not(tmp_path):
+    allocator = DurableResourceAllocator(
+        tmp_path,
+        capacity(),
+        pool_id="identity-only-worker",
+    )
+    lease = allocator.allocate_worker(
+        "runtime",
+        (),
+        host_instance_id="host-identity-only",
+        worker_id="worker-identity-only",
+    )
+    assert lease.allocations == ()
+    assert allocator.active_leases() == (lease,)
+    with pytest.raises(ValueError, match="ordinary leases require"):
+        allocator.allocate("ordinary-runtime", (), ttl_seconds=None)

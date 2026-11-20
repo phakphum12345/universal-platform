@@ -307,9 +307,20 @@ class ModuleRuntime:
         *,
         worker_handle: WorkerInvocationHandle | None = None,
     ) -> ResourceLeasePort | None:
-        if not request.resource_limits:
-            return None
         allocator = self._resource_allocator
+        if not request.resource_limits:
+            if worker_handle is None or allocator is None:
+                return None
+            allocate_worker = getattr(allocator, "allocate_worker", None)
+            bind_process_identity = getattr(allocator, "bind_process_identity", None)
+            if callable(allocate_worker) and callable(bind_process_identity):
+                return allocate_worker(
+                    request.request_id,
+                    (),
+                    host_instance_id=self._host_instance_id,
+                    worker_id=worker_handle.worker_id,
+                )
+            return None
         if allocator is None:
             raise RuntimeError("resource allocator is not configured")
         capacities = {item.name: item for item in allocator.capacity()}
@@ -321,7 +332,8 @@ class ModuleRuntime:
             requested.append(ResourceMetric(name, amount, capacity.unit))
         if worker_handle is not None:
             allocate_worker = getattr(allocator, "allocate_worker", None)
-            if callable(allocate_worker):
+            bind_process_identity = getattr(allocator, "bind_process_identity", None)
+            if callable(allocate_worker) and callable(bind_process_identity):
                 return allocate_worker(
                     request.request_id,
                     tuple(requested),
@@ -416,8 +428,26 @@ class ModuleRuntime:
                     error_code="module.resource_reservation_failed",
                 )
 
+            identity_binder = getattr(self._resource_allocator, "bind_process_identity", None)
+            supports_durable_worker_identity = (
+                callable(getattr(self._resource_allocator, "allocate_worker", None))
+                and callable(identity_binder)
+            )
             warnings = (
-                ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
+                (
+                    "Durable worker identity lease acquired; it is not an OS resource limit.",
+                    "The supervised worker identity is persisted before its payload is allowed to execute.",
+                )
+                if lease is not None
+                and supports_durable_worker_identity
+                and worker_handle is not None
+                and not getattr(lease, "allocations", ())
+                else (
+                    "Host quota and durable worker identity reservation acquired; it is not an OS resource limit.",
+                    "The supervised worker identity is persisted before its payload is allowed to execute.",
+                )
+                if lease is not None and supports_durable_worker_identity and worker_handle is not None
+                else ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
                 if lease is not None else ()
             )
             try:
@@ -435,10 +465,21 @@ class ModuleRuntime:
                                 for name in sorted(request.resource_limits)
                             },
                         }
-                        response_frame = handler.request(
-                            WorkerFrame("REQUEST", request.request_id, request_payload),
-                            handle=worker_handle,
-                        )
+                        if lease is not None and supports_durable_worker_identity:
+                            response_frame = handler.request(
+                                WorkerFrame("REQUEST", request.request_id, request_payload),
+                                handle=worker_handle,
+                                host_instance_id=self._host_instance_id,
+                                on_process_started=lambda identity: identity_binder(
+                                    lease.lease_id,
+                                    identity,
+                                ),
+                            )
+                        else:
+                            response_frame = handler.request(
+                                WorkerFrame("REQUEST", request.request_id, request_payload),
+                                handle=worker_handle,
+                            )
                         if set(response_frame.payload) != {"outputs"}:
                             raise WorkerIPCError(
                                 "worker.response_contract_invalid",
@@ -484,6 +525,8 @@ class ModuleRuntime:
                             if error.code == "worker.timeout"
                             else "module.worker_request_invalid"
                             if error.code == "worker.request_invalid"
+                            else "module.worker_identity_handoff_failed"
+                            if error.code.startswith("worker.identity_handoff_")
                             else "module.worker_response_invalid"
                             if error.code.startswith("worker.response_")
                             else "module.worker_failed"

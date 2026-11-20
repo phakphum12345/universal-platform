@@ -72,3 +72,5 @@ jobs:
         run: python -m pytest -q tests/test_runtime_jsonl_journal.py tests/test_runtime_log_sources_evidence.py
       - name: Run durable allocator and ModuleRuntime integration tests on Windows
         run: python -m pytest -q tests/test_runtime_durable_resource_allocator.py tests/test_runtime_durable_module_runtime.py tests/test_runtime_durable_allocator_processes.py
+      - name: Run WorkerIPC and ModuleRuntime process identity integration tests on Windows
+        run: python -m pytest -q tests/test_module_runtime.py tests/test_runtime_worker_ipc.py
