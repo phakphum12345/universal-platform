@@ -15,7 +15,7 @@
 - PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable lease identity binding and replay.
 - PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Python 1,179 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
 - PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
-- PR #265: Draft; Linux procfs and Windows named Job Object liveness adapters. Current exact-head Python CI IN_PROGRESS; Windows and workflow-sanity PASS.
+- PR #265 @ `088db6ad3178ac02321012a50fb319f5996d2d52`: Draft; exact-head Python 1,194 passed / 6 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped; workflow sanity PASS.
 - PR #266: Draft; allocator startup reconciliation and ModuleRuntime startup gating. Current exact-head CI QUEUED.
 - PRs #258–#266 have no formal review submissions or unresolved review threads at the latest review query; all are reported mergeable. Mergeability is not approval.
 
