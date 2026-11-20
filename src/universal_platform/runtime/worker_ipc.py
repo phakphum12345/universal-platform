@@ -153,20 +153,21 @@ class WorkerIPCClient:
             if self._active_requests.get(frame.request_id) != handle:
                 raise WorkerIPCError("worker.request_handle_invalid", "worker handle is not the active reservation")
         worker_id = handle.worker_id
-        if on_process_started is not None:
-            if not callable(on_process_started):
-                raise WorkerIPCError("worker.identity_handoff_invalid", "process identity callback is invalid")
-            if not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id:
-                raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id is required for identity hand-off")
-            if not callable(getattr(self._supervisor, "run_with_identity", None)):
-                raise WorkerIPCError(
-                    "worker.identity_handoff_unavailable",
-                    "supervisor does not support identity-gated worker startup",
-                )
-        elif host_instance_id is not None:
-            raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id requires an identity callback")
 
         try:
+            if on_process_started is not None:
+                if not callable(on_process_started):
+                    raise WorkerIPCError("worker.identity_handoff_invalid", "process identity callback is invalid")
+                if not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id:
+                    raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id is required for identity hand-off")
+                if not callable(getattr(self._supervisor, "run_with_identity", None)):
+                    raise WorkerIPCError(
+                        "worker.identity_handoff_unavailable",
+                        "supervisor does not support identity-gated worker startup",
+                    )
+            elif host_instance_id is not None:
+                raise WorkerIPCError("worker.identity_handoff_invalid", "host_instance_id requires an identity callback")
+
             try:
                 encoded = encode_frame(frame, max_frame_bytes=self._max_frame_bytes)
             except WorkerProtocolError as error:
