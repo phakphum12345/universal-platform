@@ -103,7 +103,7 @@ def test_durable_release_is_persisted_and_idempotent(tmp_path):
 def test_expired_ordinary_lease_is_released_as_a_durable_event(tmp_path):
     now = datetime(2026, 11, 20, tzinfo=UTC)
     allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="expiry")
-    lease = allocator.allocate(
+    allocator.allocate(
         "worker", (ResourceMetric("cpu.cores", 1, "cores"),), ttl_seconds=5, now=now,
     )
     assert allocator.active_leases(now=now + timedelta(seconds=5)) == ()

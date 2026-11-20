@@ -221,7 +221,7 @@ class DurableResourceAllocator:
         if not isinstance(lease_id, str) or not lease_id.strip():
             raise ValueError("lease_id must be a non-empty string")
         if not isinstance(identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")
+            raise ValueError("identity must be a ProcessIdentity")  # noqa: TRY004
         result: dict[str, DurableResourceLease] = {}
 
         def bind(records):
