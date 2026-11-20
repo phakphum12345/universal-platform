@@ -11,11 +11,20 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import threading
 import time
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 
+from .process_identity import ProcessIdentity, capture_process_identity
 from .windows_job import WindowsJob
+
+
+_POSIX_START_GATE_BOOTSTRAP = (
+    "import os,sys; "
+    "fd=int(sys.argv[1]); token=os.read(fd,1); os.close(fd); "
+    "os._exit(125) if token != b'1' else os.execve(sys.argv[2],sys.argv[2:],os.environ)"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,7 +138,13 @@ class PythonProcessSupervisor:
         """Maximum raw stdin buffer size accepted by this supervisor."""
         return self._max_input_bytes
 
-    def run(self, spec: WorkerSpec) -> WorkerResult:
+    def run(
+        self,
+        spec: WorkerSpec,
+        *,
+        on_process_started: Callable[[ProcessIdentity], object] | None = None,
+        host_instance_id: str | None = None,
+    ) -> WorkerResult:
         executable = Path(spec.executable).resolve(strict=True)
         if os.path.normcase(str(executable)) not in self._allowed:
             raise PermissionError("executable is not allow-listed")
@@ -137,6 +152,15 @@ class PythonProcessSupervisor:
             raise ValueError("executable must be a file")
         if spec.stdin_data is not None and memoryview(spec.stdin_data).nbytes > self._max_input_bytes:
             raise ValueError("worker stdin payload exceeds max_input_bytes")
+        if on_process_started is not None:
+            if not callable(on_process_started):
+                raise TypeError("on_process_started must be callable")
+            if not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id:
+                raise ValueError("host_instance_id must be a non-empty NUL-free string for identity hand-off")
+            if os.name != "nt" and sys.platform != "linux":
+                raise NotImplementedError("identity-gated worker launch is supported only on Linux and Windows")
+        elif host_instance_id is not None:
+            raise ValueError("host_instance_id requires on_process_started")
         cwd = (self._root / spec.working_directory).resolve(strict=True)
         if not cwd.is_dir() or not cwd.is_relative_to(self._root):
             raise PermissionError("working directory must remain beneath working_root")
@@ -148,21 +172,40 @@ class PythonProcessSupervisor:
             )
         else:
             creation["start_new_session"] = True
+        gate_read_fd: int | None = None
+        gate_write_fd: int | None = None
+        launch_command = command
+        if on_process_started is not None and os.name != "nt":
+            gate_read_fd, gate_write_fd = os.pipe()
+            os.set_inheritable(gate_read_fd, True)
+            launch_command = [
+                sys.executable,
+                "-I",
+                "-S",
+                "-c",
+                _POSIX_START_GATE_BOOTSTRAP,
+                str(gate_read_fd),
+                *command,
+            ]
+            creation["pass_fds"] = (gate_read_fd,)
         started = time.monotonic()
 
         # Reserve the ID under lock, but do not hold the registry lock while
         # the OS creates the process. Cancellation can mark a starting worker.
         with self._lock:
             if spec.worker_id in self._processes or spec.worker_id in self._starting:
+                for descriptor in (gate_read_fd, gate_write_fd):
+                    if descriptor is not None:
+                        os.close(descriptor)
                 raise RuntimeError(f"worker already running: {spec.worker_id}")
             self._starting.add(spec.worker_id)
-        job = None
+        job: WindowsJob | None = None
         process: subprocess.Popen[bytes] | None = None
         try:
             if os.name == "nt":
                 job = WindowsJob()
             process = subprocess.Popen(
-                command,
+                launch_command,
                 cwd=str(cwd),
                 env=dict(spec.environment),
                 stdin=subprocess.PIPE if spec.stdin_data is not None else subprocess.DEVNULL,
@@ -172,21 +215,64 @@ class PythonProcessSupervisor:
                 close_fds=True,
                 **creation,
             )
+            if gate_read_fd is not None:
+                os.close(gate_read_fd)
+                gate_read_fd = None
             if job is not None:
-                job.assign_suspended(process)
+                job.assign_suspended(
+                    process,
+                    resume=on_process_started is None,
+                )
+            if on_process_started is not None:
+                identity = capture_process_identity(
+                    process,
+                    worker_id=spec.worker_id,
+                    host_instance_id=host_instance_id,
+                    job_object_id=job.object_id if job is not None else None,
+                )
+                on_process_started(identity)
+
+            # Publish the process and release its start gate under the same
+            # lock used by cancel(). A cancellation observed before this point
+            # cannot race with payload release.
+            with self._lock:
+                cancel_requested_before_start = spec.worker_id in self._cancelled
+                if not cancel_requested_before_start and on_process_started is not None:
+                    if job is not None:
+                        job.resume_suspended(process)
+                    elif gate_write_fd is not None:
+                        written = os.write(gate_write_fd, b"1")
+                        if written != 1:
+                            raise OSError("could not release POSIX worker start gate")
+                if gate_write_fd is not None:
+                    os.close(gate_write_fd)
+                    gate_write_fd = None
+                self._processes[spec.worker_id] = process
+                self._starting.discard(spec.worker_id)
+                if job is not None:
+                    self._jobs[spec.worker_id] = job
         except Exception as launch_error:
             cleanup_error: Exception | None = None
+            for descriptor in (gate_read_fd, gate_write_fd):
+                if descriptor is not None:
+                    try:
+                        os.close(descriptor)
+                    except OSError as error:
+                        cleanup_error = cleanup_error or error
             if process is not None and process.poll() is None:
                 if job is not None:
                     try:
                         job.terminate()
                     except Exception as error:
-                        cleanup_error = error
-                try:
-                    process.kill()
-                except OSError as error:
-                    if process.poll() is None:
                         cleanup_error = cleanup_error or error
+                try:
+                    self._terminate_process(
+                        process,
+                        max(1.0, spec.terminate_grace_seconds + 1.0),
+                        job,
+                    )
+                except Exception as error:
+                    cleanup_error = cleanup_error or error
                 try:
                     process.wait(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
                 except Exception as error:
@@ -197,18 +283,13 @@ class PythonProcessSupervisor:
                 except Exception as error:
                     cleanup_error = cleanup_error or error
             with self._lock:
+                self._processes.pop(spec.worker_id, None)
+                self._jobs.pop(spec.worker_id, None)
                 self._starting.discard(spec.worker_id)
                 self._cancelled.discard(spec.worker_id)
             if cleanup_error is not None and process is not None:
                 raise WorkerTerminationError(spec.worker_id) from cleanup_error
             raise launch_error
-        with self._lock:
-            self._processes[spec.worker_id] = process
-            self._starting.discard(spec.worker_id)
-            if job is not None:
-                self._jobs[spec.worker_id] = job
-            cancel_requested_before_start = spec.worker_id in self._cancelled
-
         output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
         truncated = threading.Event()
 
@@ -357,6 +438,20 @@ class PythonProcessSupervisor:
                         pipe.close()
             if cleanup_error is not None:
                 raise WorkerTerminationError(spec.worker_id) from cleanup_error
+
+    def run_with_identity(
+        self,
+        spec: WorkerSpec,
+        *,
+        host_instance_id: str,
+        on_process_started: Callable[[ProcessIdentity], object],
+    ) -> WorkerResult:
+        """Launch a worker behind an OS start gate and persist identity before payload execution."""
+        return self.run(
+            spec,
+            on_process_started=on_process_started,
+            host_instance_id=host_instance_id,
+        )
 
     def cancel(self, worker_id: str, *, grace_seconds: float = 1.0) -> bool:
         if isinstance(grace_seconds, bool) or not isinstance(grace_seconds, (int, float)) or not math.isfinite(grace_seconds) or grace_seconds < 0:

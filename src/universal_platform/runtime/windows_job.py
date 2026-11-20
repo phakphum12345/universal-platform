@@ -11,6 +11,7 @@ import os
 import subprocess
 import threading
 import time
+from uuid import uuid4
 
 
 if os.name == "nt":
@@ -161,7 +162,8 @@ class WindowsJob:
 
     def __init__(self) -> None:
         self._kernel32 = _windows_api()
-        self._handle = self._kernel32.CreateJobObjectW(None, None)
+        self._object_id = f"Local\\UniversalPlatform-{uuid4().hex}"
+        self._handle = self._kernel32.CreateJobObjectW(None, self._object_id)
         if not self._handle:
             _raise_last_error("CreateJobObjectW failed")
         self._closed = False
@@ -175,7 +177,18 @@ class WindowsJob:
             self.close()
             raise OSError(error, f"SetInformationJobObject failed: {ctypes.FormatError(error).strip()}")
 
-    def assign_suspended(self, process: subprocess.Popen[bytes]) -> None:
+    @property
+    def object_id(self) -> str:
+        """Opaque named Job Object identity suitable for durable worker records."""
+        return self._object_id
+
+    def assign_suspended(
+        self,
+        process: subprocess.Popen[bytes],
+        *,
+        resume: bool = True,
+    ) -> None:
+        """Assign a CREATE_SUSPENDED process; optionally keep it suspended for durable hand-off."""
         with self._lock:
             if self._closed or not self._handle:
                 raise RuntimeError("Job Object is closed")
@@ -184,11 +197,21 @@ class WindowsJob:
             process_handle = wintypes.HANDLE(int(process._handle))
             if not self._kernel32.AssignProcessToJobObject(self._handle, process_handle):
                 _raise_last_error("AssignProcessToJobObject failed; worker remains suspended")
-            try:
-                _resume_only_suspended_primary_thread(self._kernel32, process.pid)
-            except Exception:
-                self.terminate()
-                raise
+            if resume:
+                try:
+                    self.resume_suspended(process)
+                except Exception:
+                    self.terminate()
+                    raise
+
+    def resume_suspended(self, process: subprocess.Popen[bytes]) -> None:
+        """Resume the primary thread only after the caller's durable identity callback succeeds."""
+        with self._lock:
+            if self._closed or not self._handle:
+                raise RuntimeError("Job Object is closed")
+            if process.poll() is not None:
+                raise RuntimeError("cannot resume an exited worker")
+            _resume_only_suspended_primary_thread(self._kernel32, process.pid)
 
     def terminate(self, exit_code: int = 1) -> None:
         with self._lock:
