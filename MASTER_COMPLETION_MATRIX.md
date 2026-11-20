@@ -7,11 +7,13 @@
 - Development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`.
 - Development is 878 commits ahead of `main` and 0 behind; `main` is an ancestor of development.
 - GitHub reports both `main` and development as `protected=false`; required status-check enforcement is off; repository rulesets are empty.
-- PR inventory #1–#260: 239 merged, 18 closed without merge, 3 open (#258, #259, #260).
-- PR #258: open, clean, exact head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; workflow-sanity, Python and Windows supervisor PASS; Python 1,160 passed / 4 skipped. The four Linux skips are Windows-only supervisor tests and are exercised by the Windows job. No formal review submission; not merged.
-- PR #259: documentation/audit reconciliation PR; latest head is being revalidated after the final baseline corrections.
-- PR #260: stacked on #258; ModuleRuntime durable allocator integration, supervised worker identity persistence, quarantine replay and multiprocess contention tests. Windows job PASS (21 process-supervisor tests, 20 journal tests, 14 durable allocator/integration/multiprocess tests; platform-specific skips remain SKIPPED). Full Python suite pending.
-- WP-09G-A is integrated via #257. WP-09G-B is implemented on #258 and integration is a candidate on #260; not yet accepted. WP-09G-C/D/E remain open.
+- PR inventory #1–#262: 239 merged, 18 closed without merge, 5 open (#258–#262).
+- PR #258: open, exact head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; workflow-sanity, Python and Windows supervisor PASS; Python 1,160 passed / 4 skipped. The Linux skips are Windows-only supervisor cases and are exercised by the Windows job. No formal review submission; not merged.
+- PR #259: open audit/documentation reconciliation at exact head `af7fb944f90469e217118b50ca20ad4c94e394aa`; Python, Windows supervisor and workflow-sanity PASS. No formal review submission; not merged.
+- PR #260: open, stacked on #258 at exact head `47d2ac49eab69d9dd8c260d8803a73070c25aad1`; Python 1,166 passed / 4 skipped, Windows supervisor and workflow-sanity PASS. No formal review submission; not merged.
+- PR #261: open Draft, stacked on #260 at exact head `3e8af697ead9050dd531f27ce8bbaef358145261`; Python, Windows supervisor and workflow-sanity PASS. Adds process identity snapshots only; no start gate or durable binding is wired yet.
+- PR #262: open Draft, stacked on #261 at exact head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`; workflow-sanity and Windows supervisor PASS; Python tests are IN_PROGRESS. Adds durable process-identity binding to worker leases; it does not yet gate worker payload execution.
+- WP-09G-A is integrated via #257. WP-09G-B is verified on #258 and ModuleRuntime integration is verified on #260; neither is integrated/accepted. WP-09G-C is in progress across #261/#262; supervisor hand-off remains open. WP-09G-D/E remain not implemented.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
