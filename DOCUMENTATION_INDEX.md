@@ -24,7 +24,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 ## Repository-level product and governance
 
-- [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) — live baseline, PR inventory, CI evidence and acceptance gaps.
+- [Continuous Execution Audit 2026-11-21](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) — exact main SHA, PR #271/#272 integration, post-merge CI, closed-unmerged PR reconciliation and remaining acceptance gaps.
+- [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) — historical baseline, retained for traceability.
 - [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) — prioritized technical debt and required closure evidence.
 
 - [README](README.md) — entry point, current scope and documentation map.
