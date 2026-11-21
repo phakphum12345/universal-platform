@@ -1,15 +1,13 @@
 import json
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from universal_platform.runtime.process_identity import ProcessIdentity
-from universal_platform.runtime.resources.durable_allocator import (
-    DurableResourceAllocator,
-)
-from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
+from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
+from universal_platform.runtime.resources.models import ResourceMetric
 
 
 def capacity():
@@ -255,7 +253,7 @@ class StaticProcessInspector:
             identity=identity,
             status=self.status,
             method="test.static-inspector",
-            observed_at=datetime.now(timezone.utc),
+            observed_at=datetime.now(UTC),
             reason=self.reason,
         )
 
