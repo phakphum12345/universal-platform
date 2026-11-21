@@ -4,17 +4,28 @@
 
 Status: Proposed sequence. No phase is declared complete.
 
-## Continuous execution control — 2026-11-20
+## Continuous execution control — 2026-11-21
 
-The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the live execution ledger. Development HEAD is `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; `main` is `96e75010716226037893155b9fd4b13410fb0d6f`; development is 878 commits ahead / 0 behind. GitHub reports both branches `protected=false`, required status-check enforcement off and no repository rulesets. Do not describe either branch as protected until live settings are changed and verified.
+The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) are the live execution records.
 
-Current PR inventory #1–#266: 239 merged, 18 closed without merge and 9 open (#258–#266). Exact-head CI is PASS on #258–#264. #264 passes Python 1,185 / 5 skipped and Windows WorkerIPC/ModuleRuntime integration (70 passed), in addition to the supervisor, journal and durable allocator jobs. #265 adds Linux procfs and Windows named Job Object liveness evidence; exact-head CI PASS (Python 1,194 passed / 6 skipped; Windows process reconciliation 2 passed / 8 skipped). #266 adds durable allocator startup reconciliation and ModuleRuntime startup gating; its CI is QUEUED. All PRs remain unmerged and have no formal review submissions or unresolved threads in the latest review query. No merge to `main` or `development` is authorized by CI status.
+- `main`: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; PR #271 and #272 are merged.
+- PR #272 post-merge CI: 4/4 PASS on the exact merge commit.
+- Open PRs: 0. Eighteen closed-without-merge PRs have preliminary successor/source dispositions; preserve all historical branches and records.
+- Branch protection and required status-check enforcement are disabled.
+- WP-09G-A through D are integrated; WP-09G-E operator recovery remains open.
+- WP-15A inventory exists; WP-15B remains a DRAFT pending owner acceptance; WP-15C shared shell and real-backend integration are not started.
+- CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability and security work remain partial.
+- Tracked Python bytecode artifacts were observed despite ignore rules; handle in a separate hygiene PR.
+- Local launch and Control Center browser acceptance are UNKNOWN until tested from a clean checkout.
 
-WP-09G-C candidate sequence: #261 process identity snapshot → #262 durable identity binding → #263 Linux/Windows supervisor start gate → #264 WorkerIPC/ModuleRuntime durable binding. This candidate chain is exact-head CI verified but remains unintegrated pending review and explicit merge authorization. WP-09G-D continues with #265 liveness inspection and #266 startup reconciliation; do not release leases unless exact ABSENT evidence is persisted. UNKNOWN and unsafe PRESENT states must remain charged/quarantined. WP-09G-E must add authenticated operator recovery and durable audit before any manual force release. No process supervisor claim implies a general OS sandbox or resource enforcement.
+### Next execution priorities
 
-Next dependency-ready work: finish #265/#266 exact-head CI and fault-injection, then implement WP-09G-E; in parallel continue full repository gap closure across CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interchange, UI, security and E2E. The current CI does not yet provide repository-wide lint, type-check, dependency-security or full cross-domain release gates. WP-15A inventory exists; WP-15B remains a DRAFT pending owner acceptance; WP-15C is not started. The repository remains INCOMPLETE.
-
-See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+1. Reconcile current documentation and historical PR/branch content without discarding unique work.
+2. Review WP-15B and implement WP-15C against the existing CAD workbench and actual API contracts.
+3. Complete WP-09G-E with authenticated operator approval, durable audit and failure-injection tests.
+4. Remove tracked generated artifacts through a dedicated, test-verified change.
+5. Continue engineering-domain increments and system integration.
+6. Complete clean-checkout install/build/launch and end-to-end acceptance.
 
 ## Phase 0 — Requirements consolidation
 - Consolidate goals, constraints, terminology, and command expectations.
