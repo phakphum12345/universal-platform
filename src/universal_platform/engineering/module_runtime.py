@@ -366,7 +366,7 @@ class ModuleRuntime:
                     worker_id=worker_handle.worker_id,
                 )
             return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
-        return allocator.allocate(request.request_id, tuple(requested))
+        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
