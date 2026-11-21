@@ -15,6 +15,7 @@ from threading import Condition, RLock
 from typing import Any, Protocol, runtime_checkable
 from uuid import uuid4
 
+from ..runtime.process_reconciliation import ProcessIdentityInspector
 from ..runtime.resources.allocator import ResourceLease
 from ..runtime.resources.models import ResourceMetric
 from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
@@ -22,7 +23,6 @@ from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
-from ..runtime.process_reconciliation import ProcessIdentityInspector
 
 
 _PROCESS_HOST_INSTANCE_ID = uuid4().hex
