@@ -14,7 +14,6 @@ from ctypes import wintypes
 from typing import Self
 from uuid import uuid4
 
-
 if os.name == "nt":
     _DWORD = wintypes.DWORD
     _HANDLE = wintypes.HANDLE

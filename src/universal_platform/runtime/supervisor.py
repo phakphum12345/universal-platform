@@ -19,7 +19,6 @@ from pathlib import Path
 from .process_identity import ProcessIdentity, capture_process_identity
 from .windows_job import WindowsJob
 
-
 _POSIX_START_GATE_BOOTSTRAP = (
     "import os,sys; "
     "fd=int(sys.argv[1]); token=os.read(fd,1); os.close(fd); "

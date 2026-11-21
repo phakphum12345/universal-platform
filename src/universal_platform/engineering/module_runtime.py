@@ -24,7 +24,6 @@ from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
 
-
 _PROCESS_HOST_INSTANCE_ID = uuid4().hex
 
 
