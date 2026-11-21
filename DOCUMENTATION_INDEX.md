@@ -9,7 +9,7 @@
 **Inventory result:** 78 Markdown files in the recursive Git tree at the pinned baseline; this new index is intentionally excluded from that baseline count. The recursive tree response was not truncated.  
 **Purpose:** Canonical navigation for product intent, architecture, engineering contracts, hardware, CAD/3D, implementation evidence, requirements and operations.
 
-**Historical integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` remains `96e75010716226037893155b9fd4b13410fb0d6f`. PR #235–#240 post-merge Python/workflow-sanity checks pass on exact merge SHAs. PR #241 remains open/unmerged; Windows CI passes but Job Object containment is not implemented. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
+**Historical integration checkpoint (2026-11-12):** `docs/phase-0-complete-requirements` at `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge); `main` was `96e75010716226037893155b9fd4b13410fb0d6f` at that historical checkpoint. PR #235–#240 post-merge Python/workflow-sanity checks passed on their exact merge SHAs. PR #241 was subsequently integrated in the accumulated baseline, including bounded Windows Job Object containment via PR #244. See [current repository audit](docs/audit/REPOSITORY_AUDIT_2026-11-12_POST_PR240.md).
 
 ## How to read documentation status
 
