@@ -1,12 +1,12 @@
 """Fail-closed OS process-tree liveness inspection for durable worker recovery."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
 import os
-from pathlib import Path
 import sys
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from pathlib import Path
 
 from .process_identity import ProcessIdentity
 
@@ -28,27 +28,27 @@ class ProcessLivenessEvidence:
 
     def __post_init__(self) -> None:
         if not isinstance(self.identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")
+            raise TypeError("identity must be a ProcessIdentity")
         if not isinstance(self.status, ProcessLiveness):
-            raise ValueError("status must be a ProcessLiveness")
+            raise TypeError("status must be a ProcessLiveness")
         if not isinstance(self.method, str) or not self.method.strip():
-            raise ValueError("method must be a non-empty string")
+            raise TypeError("method must be a non-empty string") if not isinstance(self.method, str) else ValueError("method must be a non-empty string")
         if (
             not isinstance(self.observed_at, datetime)
             or self.observed_at.tzinfo is None
             or self.observed_at.utcoffset() is None
         ):
-            raise ValueError("observed_at must be timezone-aware")
+            raise TypeError("observed_at must be a datetime") if not isinstance(self.observed_at, datetime) else ValueError("observed_at must be timezone-aware")
         if self.reason is not None and not isinstance(self.reason, str):
-            raise ValueError("reason must be a string or None")
+            raise TypeError("reason must be a string or None")
         if not isinstance(self.details, tuple) or any(not isinstance(item, str) for item in self.details):
-            raise ValueError("details must be a tuple of strings")
+            raise TypeError("details must be a tuple of strings")
 
     def to_dict(self) -> dict[str, object]:
         return {
             "status": self.status.value,
             "method": self.method,
-            "observed_at": self.observed_at.astimezone(timezone.utc).isoformat(),
+            "observed_at": self.observed_at.astimezone(UTC).isoformat(),
             "reason": self.reason,
             "details": list(self.details),
             "process_identity": self.identity.to_dict(),
@@ -85,17 +85,17 @@ class WorkerReconciliationResult:
 
     def __post_init__(self) -> None:
         if not isinstance(self.lease_id, str) or not self.lease_id.strip():
-            raise ValueError("lease_id must be a non-empty string")
+            raise TypeError("lease_id must be a non-empty string") if not isinstance(self.lease_id, str) else ValueError("lease_id must be a non-empty string")
         if not isinstance(self.status, ProcessLiveness):
             raise ValueError("status must be a ProcessLiveness")
         if not isinstance(self.action, str) or self.action not in {
             "retained", "released", "quarantined", "retained_quarantine"
         }:
-            raise ValueError("unsupported worker reconciliation action")
+            raise TypeError("action must be a string") if not isinstance(self.action, str) else ValueError("unsupported worker reconciliation action")
         if self.reason is not None and not isinstance(self.reason, str):
             raise ValueError("reason must be a string or None")
         if self.evidence is not None and not isinstance(self.evidence, ProcessLivenessEvidence):
-            raise ValueError("evidence must be ProcessLivenessEvidence or None")
+            raise TypeError("evidence must be ProcessLivenessEvidence or None")
 
     def to_dict(self) -> dict[str, object]:
         return {
