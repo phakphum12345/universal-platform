@@ -18,7 +18,7 @@ from uuid import uuid4
 from ..runtime.process_reconciliation import ProcessIdentityInspector
 from ..runtime.resources.allocator import ResourceLease
 from ..runtime.resources.models import ResourceMetric
-from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
+from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
