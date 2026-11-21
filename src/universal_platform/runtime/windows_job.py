@@ -6,11 +6,11 @@ security sandbox and does not enforce CPU, memory, filesystem, or network policy
 from __future__ import annotations
 
 import ctypes
+from ctypes import wintypes
 import os
 import subprocess
 import threading
 import time
-from ctypes import wintypes
 from typing import Self
 from uuid import uuid4
 
