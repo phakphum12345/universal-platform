@@ -5,7 +5,6 @@ with this adapter; use an OS/container sandbox with an explicit policy.
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
 import math
 import os
 import signal
@@ -13,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
