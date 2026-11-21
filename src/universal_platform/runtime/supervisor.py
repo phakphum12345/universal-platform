@@ -5,6 +5,7 @@ with this adapter; use an OS/container sandbox with an explicit policy.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping, Sequence
 import math
 import os
 import signal
@@ -12,7 +13,6 @@ import subprocess
 import sys
 import threading
 import time
-from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -251,7 +251,7 @@ class PythonProcessSupervisor:
                 self._starting.discard(spec.worker_id)
                 if job is not None:
                     self._jobs[spec.worker_id] = job
-        except Exception as launch_error:
+        except Exception:
             cleanup_error: Exception | None = None
             for descriptor in (gate_read_fd, gate_write_fd):
                 if descriptor is not None:
