@@ -1,6 +1,6 @@
 import json
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
@@ -9,7 +9,6 @@ from universal_platform.runtime.resources.durable_allocator import (
     DurableResourceAllocator,
 )
 from universal_platform.runtime.resources.models import ResourceMetric
-from universal_platform.runtime.process_identity import ProcessIdentity
 from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
 
 
