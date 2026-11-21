@@ -397,6 +397,7 @@ class ModuleRuntime:
 
         key = (request.module_id, request.operation)
         required = frozenset(operation.required_permissions)
+        worker_handle: WorkerInvocationHandle | None = None
         # Admission and active-count increment share revoke's condition lock.
         with self._condition:
             granted = self._grants.get(request.module_id, frozenset())
@@ -449,8 +450,7 @@ class ModuleRuntime:
                 if isinstance(handler, WorkerIPCClient):
                     lease = self._reserve_resources(
                         request,
-                        lease_kind="supervised_worker",
-                        worker_id=worker_handle.worker_id,
+                        worker_handle=worker_handle,
                     )
                 else:
                     lease = self._reserve_resources(request)
