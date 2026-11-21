@@ -247,7 +247,7 @@ class DurableResourceAllocator:
         if not isinstance(lease_id, str) or not lease_id.strip():
             raise ValueError("lease_id must be a non-empty string")
         if not isinstance(identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")
+            raise TypeError("identity must be a ProcessIdentity")
         result: dict[str, DurableResourceLease] = {}
 
         def bind(records):
@@ -294,7 +294,7 @@ class DurableResourceAllocator:
         quarantine is never cleared by startup reconciliation.
         """
         if not callable(getattr(inspector, "inspect", None)):
-            raise ValueError("inspector must provide a callable inspect(identity) method")
+            raise TypeError("inspector must provide a callable inspect(identity) method")
         if (
             not isinstance(current_host_instance_id, str)
             or not current_host_instance_id.strip()
