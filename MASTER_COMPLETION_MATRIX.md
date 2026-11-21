@@ -2,40 +2,33 @@
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-20
+## Live repository reconciliation — 2026-11-21
 
-**This live snapshot supersedes the historical snapshot immediately below.** Historical rows and evidence are retained.
+**This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
 
-- Development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`.
-- Development is 878 commits ahead / 0 behind; `main` is an ancestor of development.
-- GitHub reports `main` and development as `protected=false`; required status-check enforcement is off; repository rulesets are empty.
-- PR inventory #1–#266: 239 merged, 18 closed without merge, 9 open (#258–#266). No current PR is merged.
-- PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
-- PR #259: audit/documentation refresh branch; previous verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed (Python 1,150 passed / 4 skipped, Windows and workflow sanity PASS). This live documentation update advances the branch; its new exact head must be revalidated.
-- PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow-sanity PASS.
-- PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable process identity snapshot foundation.
-- PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable lease identity binding and replay.
-- PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Python 1,179 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
-- PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
-- PR #265 @ `088db6ad3178ac02321012a50fb319f5996d2d52`: Draft; exact-head Python 1,194 passed / 6 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped; workflow sanity PASS.
-- PR #266: Draft; allocator startup reconciliation and ModuleRuntime startup gating. Current exact-head CI QUEUED.
-- PRs #258–#266 have no formal review submissions or unresolved review threads at the latest review query; all are reported mergeable. Mergeability is not approval.
+- `main` HEAD: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
+- PR #271 merge: `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`.
+- PR #272 merge: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
+- Exact post-merge CI on #272: 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor).
+- Open PRs: 0. Eighteen closed-without-merge PRs remain recorded; preliminary dispositions are in [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
+- `main` protection is disabled and required status checks are not enforced.
+- Tracked generated `__pycache__` / `.pyc` artifacts were observed in the recursive tree despite ignore rules; isolate cleanup into a dedicated PR.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
 | Core architecture / governance | PARTIAL | Branch protection, identity/authorization, threat model, secure configuration, audit, migration/rollback and platform orchestration |
-| Runtime / Worker | IN PROGRESS | #258–#264 candidate chain passes exact-head CI but is unmerged; #265/#266 startup liveness/reconciliation pending CI; WP-09G-E operator recovery remains open; no general sandbox or OS resource enforcement |
+| Runtime / Worker | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery and durable approval/audit remain open; general sandbox and OS resource enforcement are not established |
 | CAD / Geometry / Generator | PARTIAL | General topology/degeneracies, curved geometry, recompute propagation, broader interoperability and independent adversarial references |
 | Mechanics / Kinematics | PARTIAL | General multi-loop/3D configuration solving, singularity/redundancy analysis, dynamics and contact |
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
 | Hardware / EDA / Drivers | PARTIAL | Datasheet constraints, full PCB/library workflows, circuit simulation, BOM/footprint validation and safe device diagnostics |
 | Interchange | PARTIAL | Broader versioned profiles, fidelity/loss accounting and independent round-trip validation |
-| Unified Control Center | PLANNED / DESIGN | WP-15B owner acceptance; WP-15C shared shell and subsequent real-backend work not started |
+| Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B draft awaits owner acceptance; WP-15C shared shell and real-backend UI not started |
 | Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
 
-**Lifecycle:** WP-09G-A is IMPLEMENTED / VERIFIED / INTEGRATED via PR #257. WP-09G-B is IMPLEMENTED / VERIFIED on #258 and ModuleRuntime integration is VERIFIED on #260, but neither is ACCEPTED until reviewed and merged with post-merge evidence. WP-09G-C candidate identity hand-off is CI-verified through #264 but not integrated. WP-09G-D is IN PROGRESS on #265/#266; WP-09G-E is NOT IMPLEMENTED. The repository remains INCOMPLETE.
+**Lifecycle:** WP-09G-A through WP-09G-D are integrated through the completed runtime chain. WP-09G-E is NOT IMPLEMENTED / NOT ACCEPTED. WP-15A is an existing inventory, WP-15B is DRAFT, and WP-15C is NOT STARTED. The repository remains INCOMPLETE.
 
-See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+See [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
 
 ---
 
