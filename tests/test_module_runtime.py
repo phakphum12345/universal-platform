@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 import sys
 import threading
 import time
@@ -19,6 +20,7 @@ from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.process_identity import ProcessIdentity
 from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
 from universal_platform.runtime.worker_ipc import WorkerIPCClient
+from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
 
 
 def setup_runtime(required=("engineering.calculate",)):
@@ -209,8 +211,6 @@ def test_runtime_rejects_unknown_host_resource_metric():
     assert result.error_code == "module.resource_reservation_failed"
     assert allocator.active_leases() == ()
 
-
-from datetime import UTC, datetime, timedelta
 
 
 def test_runtime_lease_remains_reserved_until_long_handler_returns():
