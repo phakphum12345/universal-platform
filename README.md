@@ -27,8 +27,8 @@ Current modules include:
 - SI-backed quantities with dimensional checks (limited initial unit registry).
 - Evidence and provenance contracts with explicit evidence kinds and statuses.
 - A fail-closed safety gate for offline engineering workflows.
-- A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
-- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
+- A validated ModuleManifest/ModuleOperation registry with deterministic dependency ordering, plus host-grant-gated trusted-handler and supervised-worker dispatch; this is not a general sandbox or arbitrary plugin execution environment.
+- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses, integrated with host-controlled trusted-handler and supervised-worker dispatch.
 - Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 merged).
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
@@ -326,7 +326,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
 - Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
 - PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
-- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- Historical snapshot: PR #241 was OPEN and unmerged at that time; it was subsequently integrated into the accumulated baseline. Exact historical head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
 - PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
 - Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
 - No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
@@ -352,7 +352,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ### Next dependency-ready work
 
-1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+1. Historical recommendation at that checkpoint: keep PR #241 open while documentation reconciliation is reviewed.
 2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
 3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
