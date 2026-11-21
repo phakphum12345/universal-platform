@@ -1,8 +1,8 @@
-from datetime import UTC, datetime, timedelta, timezone
-from pathlib import Path
 import sys
 import threading
 import time
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -14,13 +14,13 @@ from universal_platform.engineering.module_registry import (
     ModuleRegistry,
 )
 from universal_platform.engineering.module_runtime import ModuleRuntime
+from universal_platform.runtime.process_identity import ProcessIdentity
+from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
 from universal_platform.runtime.resources.allocator import ResourceAllocator
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
-from universal_platform.runtime.process_identity import ProcessIdentity
-from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
-from universal_platform.runtime.worker_ipc import WorkerIPCClient
 from universal_platform.runtime.supervisor import PythonProcessSupervisor, WorkerSpec, WorkerTerminationError
+from universal_platform.runtime.worker_ipc import WorkerIPCClient
 
 
 def setup_runtime(required=("engineering.calculate",)):
@@ -1038,7 +1038,7 @@ def test_module_runtime_reconciles_existing_worker_leases_before_startup(tmp_pat
                 identity=observed_identity,
                 status=ProcessLiveness.ABSENT,
                 method="test.startup-inspector",
-                observed_at=datetime.now(timezone.utc),
+                observed_at=datetime.now(UTC),
                 reason="test proves previous worker process tree is absent",
             )
 
