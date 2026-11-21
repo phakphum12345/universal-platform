@@ -12,6 +12,7 @@ import threading
 import time
 from ctypes import wintypes
 from typing import Self
+from uuid import uuid4
 
 if os.name == "nt":
     _DWORD = wintypes.DWORD
@@ -83,6 +84,8 @@ def _windows_api():
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
     kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.OpenJobObjectW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+    kernel32.OpenJobObjectW.restype = wintypes.HANDLE
     kernel32.SetInformationJobObject.argtypes = [
         wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD,
     ]
@@ -156,12 +159,45 @@ def _resume_only_suspended_primary_thread(kernel32, process_id: int) -> None:
         kernel32.CloseHandle(snapshot)
 
 
+def query_named_job_active_processes(object_id: str) -> int | None:
+    """Return active processes in a named Job Object, or None if it no longer exists.
+
+    Access denied, query errors and malformed names raise OSError/ValueError;
+    callers must treat those outcomes as UNKNOWN rather than ABSENT.
+    """
+    if not isinstance(object_id, str) or not object_id.strip() or "\\x00" in object_id:
+        raise ValueError("object_id must be a non-empty NUL-free string")
+    kernel32 = _windows_api()
+    handle = kernel32.OpenJobObjectW(0x0004, False, object_id)  # JOB_OBJECT_QUERY
+    if not handle:
+        error = ctypes.get_last_error()
+        if error == 2:  # ERROR_FILE_NOT_FOUND: kill-on-close Job Object is gone
+            return None
+        raise OSError(error, f"OpenJobObjectW failed: {ctypes.FormatError(error).strip()}")
+    try:
+        info = _BasicAccountingInformation()
+        returned = wintypes.DWORD()
+        if not kernel32.QueryInformationJobObject(
+            handle,
+            1,
+            ctypes.byref(info),
+            ctypes.sizeof(info),
+            ctypes.byref(returned),
+        ):
+            _raise_last_error("QueryInformationJobObject(named job) failed")
+        return int(info.ActiveProcesses)
+    finally:
+        if not kernel32.CloseHandle(handle):
+            _raise_last_error("CloseHandle(named Job Object) failed")
+
+
 class WindowsJob:
     """Owns one kill-on-close Job Object and its assigned worker process tree."""
 
     def __init__(self) -> None:
         self._kernel32 = _windows_api()
-        self._handle = self._kernel32.CreateJobObjectW(None, None)
+        self._object_id = f"Local\\UniversalPlatform-{uuid4().hex}"
+        self._handle = self._kernel32.CreateJobObjectW(None, self._object_id)
         if not self._handle:
             _raise_last_error("CreateJobObjectW failed")
         self._closed = False
@@ -175,7 +211,18 @@ class WindowsJob:
             self.close()
             raise OSError(error, f"SetInformationJobObject failed: {ctypes.FormatError(error).strip()}")
 
-    def assign_suspended(self, process: subprocess.Popen[bytes]) -> None:
+    @property
+    def object_id(self) -> str:
+        """Opaque named Job Object identity suitable for durable worker records."""
+        return self._object_id
+
+    def assign_suspended(
+        self,
+        process: subprocess.Popen[bytes],
+        *,
+        resume: bool = True,
+    ) -> None:
+        """Assign a CREATE_SUSPENDED process; optionally keep it suspended for durable hand-off."""
         with self._lock:
             if self._closed or not self._handle:
                 raise RuntimeError("Job Object is closed")
@@ -184,11 +231,21 @@ class WindowsJob:
             process_handle = wintypes.HANDLE(int(process._handle))
             if not self._kernel32.AssignProcessToJobObject(self._handle, process_handle):
                 _raise_last_error("AssignProcessToJobObject failed; worker remains suspended")
-            try:
-                _resume_only_suspended_primary_thread(self._kernel32, process.pid)
-            except Exception:
-                self.terminate()
-                raise
+            if resume:
+                try:
+                    self.resume_suspended(process)
+                except Exception:
+                    self.terminate()
+                    raise
+
+    def resume_suspended(self, process: subprocess.Popen[bytes]) -> None:
+        """Resume the primary thread only after the caller's durable identity callback succeeds."""
+        with self._lock:
+            if self._closed or not self._handle:
+                raise RuntimeError("Job Object is closed")
+            if process.poll() is not None:
+                raise RuntimeError("cannot resume an exited worker")
+            _resume_only_suspended_primary_thread(self._kernel32, process.pid)
 
     def terminate(self, exit_code: int = 1) -> None:
         with self._lock:

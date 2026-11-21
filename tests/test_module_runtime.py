@@ -1,6 +1,7 @@
 import sys
 import threading
 import time
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -12,7 +13,15 @@ from universal_platform.engineering.module_registry import (
     ModuleRegistry,
 )
 from universal_platform.engineering.module_runtime import ModuleRuntime
+from universal_platform.runtime.process_identity import ProcessIdentity
+from universal_platform.runtime.process_reconciliation import (
+    ProcessLiveness,
+    ProcessLivenessEvidence,
+)
 from universal_platform.runtime.resources.allocator import ResourceAllocator
+from universal_platform.runtime.resources.durable_allocator import (
+    DurableResourceAllocator,
+)
 from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.supervisor import (
     PythonProcessSupervisor,
@@ -210,8 +219,6 @@ def test_runtime_rejects_unknown_host_resource_metric():
     assert result.error_code == "module.resource_reservation_failed"
     assert allocator.active_leases() == ()
 
-
-from datetime import UTC, datetime, timedelta
 
 
 def test_runtime_lease_remains_reserved_until_long_handler_returns():
@@ -840,3 +847,229 @@ def test_worker_termination_quarantine_failure_still_retains_lease(tmp_path, mon
     assert len(allocator.active_leases()) == 1
     assert allocator.available()[0].value == 1
     assert allocator.quarantined_leases() == ()
+
+
+def _durable_worker_runtime(tmp_path, worker_script, *, extra_arguments=()):
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker",
+        version="1.0.0",
+        domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.double",
+            input_schema_version="1.0",
+            output_schema_version="1.0",
+            required_permissions=("engineering.calculate",),
+            input_schema=_INPUT_SCHEMA,
+            output_schema=_OUTPUT_SCHEMA,
+        ),),
+        permissions=("engineering.calculate",),
+        license_id="Apache-2.0",
+    ))
+    journal_root = tmp_path / "durable-worker-leases"
+    journal_root.mkdir(exist_ok=True)
+    allocator = DurableResourceAllocator(
+        journal_root,
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        pool_id="module-runtime-process-identity",
+    )
+    supervisor = PythonProcessSupervisor(
+        working_root=tmp_path,
+        allowed_executables=(sys.executable,),
+        max_output_bytes=4096,
+    )
+    client = WorkerIPCClient(
+        supervisor,
+        WorkerSpec(
+            "worker-template",
+            sys.executable,
+            ("-c", worker_script, str(journal_root), *extra_arguments),
+            working_directory=".",
+            timeout_seconds=3,
+        ),
+    )
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+    return runtime, allocator, supervisor, journal_root
+
+
+def test_durable_worker_identity_is_fsynced_before_payload_execution(tmp_path):
+    script = (
+        "import json,os,sys; from pathlib import Path; "
+        "from universal_platform.runtime.worker_protocol import read_frame,write_frame,WorkerFrame; "
+        "root=Path(sys.argv[1]); "
+        "journal=next(root.glob('worker-leases-*.jsonl')); "
+        "events=[json.loads(line) for line in journal.read_text(encoding='utf-8').splitlines()]; "
+        "acquired=next(item for item in events if item.get('event_type')=='LEASE_ACQUIRED'); "
+        "bound=next(item for item in events if item.get('event_type')=='LEASE_PROCESS_BOUND'); "
+        "identity=bound['process_identity']; "
+        "assert identity['pid']==os.getpid(); "
+        "assert identity['worker_id']==acquired['worker_id']; "
+        "assert identity['host_instance_id']==acquired['host_instance_id']; "
+        "request=read_frame(sys.stdin.buffer); "
+        "write_frame(sys.stdout.buffer,WorkerFrame('RESPONSE',request.request_id,"
+        "{'outputs':{'result':request.payload['inputs']['value']*2}}))"
+    )
+    runtime, allocator, supervisor, _journal_root = _durable_worker_runtime(tmp_path, script)
+
+    result = runtime.invoke(worker_request(resource_limits={}))
+
+    assert result.status == "COMPLETED"
+    assert result.outputs["result"] == 6
+    assert any("not an OS resource limit" in warning for warning in result.warnings)
+    assert allocator.active_leases() == ()
+    assert allocator.available()[0].value == 2
+    assert supervisor.active_worker_ids == ()
+
+    events = allocator._journal.read_all()
+    event_types = [event["event_type"] for event in events]
+    assert event_types.index("LEASE_ACQUIRED") < event_types.index("LEASE_PROCESS_BOUND")
+    assert event_types.index("LEASE_PROCESS_BOUND") < event_types.index("LEASE_RELEASED")
+    binding = next(event for event in events if event["event_type"] == "LEASE_PROCESS_BOUND")
+    assert binding["process_identity"]["pid"] > 0
+
+
+def test_durable_identity_persistence_failure_never_executes_worker_payload(tmp_path, monkeypatch):
+    marker = tmp_path / "worker-payload-must-not-run.txt"
+    script = (
+        "from pathlib import Path; import sys; "
+        "Path(sys.argv[2]).write_text('ran', encoding='utf-8')"
+    )
+    runtime, allocator, supervisor, _journal_root = _durable_worker_runtime(
+        tmp_path,
+        script,
+        extra_arguments=(str(marker),),
+    )
+
+    def fail_binding(_lease_id, _identity):
+        raise OSError("injected durable identity persistence failure")
+
+    monkeypatch.setattr(allocator, "bind_process_identity", fail_binding)
+    result = runtime.invoke(worker_request(resource_limits={}))
+
+    assert result.status == "ERROR"
+    assert result.error_code == "module.worker_identity_handoff_failed"
+    assert not marker.exists()
+    assert allocator.active_leases() == ()
+    assert supervisor.active_worker_ids == ()
+
+
+def test_unconfirmed_identity_handoff_quarantines_durable_worker_lease(tmp_path):
+    class UnconfirmedIdentitySupervisor:
+        def run(self, _spec):
+            raise AssertionError("identity-gated execution must use run_with_identity")
+
+        def run_with_identity(self, spec, *, host_instance_id, on_process_started):
+            raise WorkerTerminationError(spec.worker_id)
+
+        def cancel(self, _worker_id, *, grace_seconds=1.0):
+            return False
+
+    registry = ModuleRegistry()
+    registry.register(ModuleManifest(
+        module_id="org.example.worker",
+        version="1.0.0",
+        domain="calculation",
+        operations=(ModuleOperation(
+            "calculate.double",
+            input_schema_version="1.0",
+            output_schema_version="1.0",
+            required_permissions=("engineering.calculate",),
+            input_schema=_INPUT_SCHEMA,
+            output_schema=_OUTPUT_SCHEMA,
+        ),),
+        permissions=("engineering.calculate",),
+        license_id="Apache-2.0",
+    ))
+    journal_root = tmp_path / "unconfirmed-worker-leases"
+    journal_root.mkdir()
+    allocator = DurableResourceAllocator(
+        journal_root,
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        pool_id="unconfirmed-worker",
+    )
+    client = WorkerIPCClient(
+        UnconfirmedIdentitySupervisor(),
+        WorkerSpec("worker-template", sys.executable, ("-c", "pass")),
+    )
+    runtime = ModuleRuntime(registry, resource_allocator=allocator)
+    runtime.register_worker_handler("org.example.worker", "calculate.double", client)
+    runtime.grant("org.example.worker", frozenset({"engineering.calculate"}))
+
+    result = runtime.invoke(worker_request(resource_limits={}))
+
+    assert result.status == "ERROR"
+    assert result.error_code == "module.worker_termination_unconfirmed"
+    active = allocator.active_leases()
+    assert len(active) == 1
+    assert active[0].process_identity is None
+    quarantined = allocator.quarantined_leases()
+    assert len(quarantined) == 1
+    assert quarantined[0][0].lease_id == active[0].lease_id
+
+
+def test_module_runtime_reconciles_existing_worker_leases_before_startup(tmp_path):
+    allocator = DurableResourceAllocator(
+        tmp_path,
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        pool_id="module-runtime-startup-reconciliation",
+    )
+    lease = allocator.allocate_worker(
+        "previous-runtime",
+        (ResourceMetric("cpu.cores", 1, "cores"),),
+        host_instance_id="host-before-restart",
+        worker_id="worker-before-restart",
+    )
+    identity = ProcessIdentity(
+        platform="linux",
+        pid=43210,
+        creation_token="12345",
+        host_boot_id="previous-boot",
+        worker_id="worker-before-restart",
+        host_instance_id="host-before-restart",
+        process_group_id=43210,
+        session_id=43210,
+    )
+    allocator.bind_process_identity(lease.lease_id, identity)
+
+    restarted_allocator = DurableResourceAllocator(
+        tmp_path,
+        (ResourceMetric("cpu.cores", 2, "cores"),),
+        pool_id="module-runtime-startup-reconciliation",
+    )
+    assert restarted_allocator.startup_reconciliation_required
+
+    class AbsentInspector:
+        def inspect(self, observed_identity):
+            return ProcessLivenessEvidence(
+                identity=observed_identity,
+                status=ProcessLiveness.ABSENT,
+                method="test.startup-inspector",
+                observed_at=datetime.now(UTC),
+                reason="test proves previous worker process tree is absent",
+            )
+
+    runtime = ModuleRuntime(
+        ModuleRegistry(),
+        resource_allocator=restarted_allocator,
+        host_instance_id="host-after-restart",
+        process_identity_inspector=AbsentInspector(),
+    )
+
+    assert runtime._host_instance_id == "host-after-restart"
+    assert not restarted_allocator.startup_reconciliation_required
+    assert restarted_allocator.active_leases() == ()
+    assert restarted_allocator.available()[0].value == 2
+    assert any(
+        event["event_type"] == "LEASE_RECOVERED_RELEASED"
+        for event in restarted_allocator._journal.read_all()
+    )
+
+
+def test_module_runtime_instances_share_process_scoped_host_identity():
+    first = ModuleRuntime(ModuleRegistry())
+    second = ModuleRuntime(ModuleRegistry())
+    explicit = ModuleRuntime(ModuleRegistry(), host_instance_id="explicit-host-instance")
+    assert first._host_instance_id == second._host_instance_id
+    assert explicit._host_instance_id == "explicit-host-instance"

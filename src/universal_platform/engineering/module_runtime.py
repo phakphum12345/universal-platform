@@ -8,20 +8,46 @@ termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
-import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from threading import Condition, RLock
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
+from uuid import uuid4
 
-from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
+from ..runtime.process_reconciliation import ProcessIdentityInspector
+from ..runtime.resources.allocator import ResourceLease
 from ..runtime.resources.models import ResourceMetric
 from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
+
+_PROCESS_HOST_INSTANCE_ID = uuid4().hex
+
+
+class ResourceLeasePort(Protocol):
+    """Minimal lease surface consumed by ModuleRuntime."""
+
+    lease_id: str
+
+
+@runtime_checkable
+class ResourceAllocatorPort(Protocol):
+    """Host-supplied quota allocator; implementations may be in-memory or durable."""
+
+    def capacity(self) -> tuple[ResourceMetric, ...]: ...
+    def allocate(
+        self,
+        owner_id: str,
+        requested: tuple[ResourceMetric, ...],
+        *,
+        ttl_seconds: float | None = 60.0,
+    ) -> ResourceLeasePort: ...
+    def quarantine(self, lease_id: str, reason: str) -> bool: ...
+    def release(self, lease_id: str) -> bool: ...
+
 
 ModuleHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 RegisteredHandler = ModuleHandler | WorkerIPCClient
@@ -166,18 +192,35 @@ class ModuleRuntime:
         self,
         registry: ModuleRegistry,
         *,
-        resource_allocator: ResourceAllocator | None = None,
+        resource_allocator: ResourceAllocatorPort | None = None,
+        host_instance_id: str | None = None,
+        process_identity_inspector: ProcessIdentityInspector | None = None,
     ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise InvalidModelError("registry must be a ModuleRegistry")
-        if resource_allocator is not None:
-            has_allocator_contract = callable(getattr(resource_allocator, "allocate", None)) and callable(
-                getattr(resource_allocator, "release", None)
-            )
-            if not isinstance(resource_allocator, ResourceAllocator) and not has_allocator_contract:
-                raise InvalidModelError("resource_allocator must satisfy resource allocator contract")
+        if resource_allocator is not None and not isinstance(resource_allocator, ResourceAllocatorPort):
+            raise InvalidModelError("resource_allocator must implement the resource allocator contract")
+        if host_instance_id is not None and (
+            not isinstance(host_instance_id, str) or not host_instance_id.strip() or "\\x00" in host_instance_id
+        ):
+            raise InvalidModelError("host_instance_id must be a non-empty NUL-free string")
+        if process_identity_inspector is not None and not callable(
+            getattr(process_identity_inspector, "inspect", None)
+        ):
+            raise InvalidModelError("process_identity_inspector must provide inspect(identity)")
         self._registry = registry
         self._resource_allocator = resource_allocator
+        self._host_instance_id = host_instance_id or _PROCESS_HOST_INSTANCE_ID
+        self._process_identity_inspector = process_identity_inspector or ProcessIdentityInspector()
+        reconcile_startup = getattr(resource_allocator, "reconcile_startup", None)
+        if (
+            callable(reconcile_startup)
+            and getattr(resource_allocator, "startup_reconciliation_required", False)
+        ):
+            reconcile_startup(
+                self._process_identity_inspector,
+                current_host_instance_id=self._host_instance_id,
+            )
         self._handlers: dict[tuple[str, str], RegisteredHandler] = {}
         self._worker_invocations: dict[str, tuple[WorkerIPCClient, WorkerInvocationHandle]] = {}
         self._grants: dict[str, frozenset[str]] = {}
@@ -286,13 +329,22 @@ class ModuleRuntime:
         self,
         request: ModuleRequest,
         *,
-        lease_kind: str = "ordinary",
-        host_instance_id: str | None = None,
-        worker_id: str | None = None,
-    ) -> ResourceLease | None:
-        if not request.resource_limits:
-            return None
+        worker_handle: WorkerInvocationHandle | None = None,
+    ) -> ResourceLeasePort | None:
         allocator = self._resource_allocator
+        if not request.resource_limits:
+            if worker_handle is None or allocator is None:
+                return None
+            allocate_worker = getattr(allocator, "allocate_worker", None)
+            bind_process_identity = getattr(allocator, "bind_process_identity", None)
+            if callable(allocate_worker) and callable(bind_process_identity):
+                return allocate_worker(
+                    request.request_id,
+                    (),
+                    host_instance_id=self._host_instance_id,
+                    worker_id=worker_handle.worker_id,
+                )
+            return None
         if allocator is None:
             raise RuntimeError("resource allocator is not configured")
         capacities = {item.name: item for item in allocator.capacity()}
@@ -302,20 +354,18 @@ class ModuleRuntime:
             if capacity is None:
                 raise ValueError(f"resource metric is not host-configured: {name}")
             requested.append(ResourceMetric(name, amount, capacity.unit))
-        alloc_params = inspect.signature(allocator.allocate).parameters
-        alloc_kwargs: dict[str, object] = {"ttl_seconds": None}
-        if lease_kind == "supervised_worker":
-            if "lease_kind" in alloc_params:
-                alloc_kwargs["lease_kind"] = "supervised_worker"
-            if "host_instance_id" in alloc_params:
-                alloc_kwargs["host_instance_id"] = (
-                    host_instance_id
-                    or getattr(allocator, "host_instance_id", None)
-                    or "module-runtime-host"
+        if worker_handle is not None:
+            allocate_worker = getattr(allocator, "allocate_worker", None)
+            bind_process_identity = getattr(allocator, "bind_process_identity", None)
+            if callable(allocate_worker) and callable(bind_process_identity):
+                return allocate_worker(
+                    request.request_id,
+                    tuple(requested),
+                    host_instance_id=self._host_instance_id,
+                    worker_id=worker_handle.worker_id,
                 )
-            if "worker_id" in alloc_params:
-                alloc_kwargs["worker_id"] = worker_id
-        return allocator.allocate(request.request_id, tuple(requested), **alloc_kwargs)
+            return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
+        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
@@ -346,6 +396,7 @@ class ModuleRuntime:
 
         key = (request.module_id, request.operation)
         required = frozenset(operation.required_permissions)
+        worker_handle: WorkerInvocationHandle | None = None
         # Admission and active-count increment share revoke's condition lock.
         with self._condition:
             granted = self._grants.get(request.module_id, frozenset())
@@ -398,8 +449,7 @@ class ModuleRuntime:
                 if isinstance(handler, WorkerIPCClient):
                     lease = self._reserve_resources(
                         request,
-                        lease_kind="supervised_worker",
-                        worker_id=worker_handle.worker_id,
+                        worker_handle=worker_handle,
                     )
                 else:
                     lease = self._reserve_resources(request)
@@ -409,8 +459,26 @@ class ModuleRuntime:
                     error_code="module.resource_reservation_failed",
                 )
 
+            identity_binder = getattr(self._resource_allocator, "bind_process_identity", None)
+            supports_durable_worker_identity = (
+                callable(getattr(self._resource_allocator, "allocate_worker", None))
+                and callable(identity_binder)
+            )
             warnings = (
-                ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
+                (
+                    "Durable worker identity lease acquired; it is not an OS resource limit.",
+                    "The supervised worker identity is persisted before its payload is allowed to execute.",
+                )
+                if lease is not None
+                and supports_durable_worker_identity
+                and worker_handle is not None
+                and not getattr(lease, "allocations", ())
+                else (
+                    "Host quota and durable worker identity reservation acquired; it is not an OS resource limit.",
+                    "The supervised worker identity is persisted before its payload is allowed to execute.",
+                )
+                if lease is not None and supports_durable_worker_identity and worker_handle is not None
+                else ("Host quota reservation acquired for this invocation; it is not an OS resource limit.",)
                 if lease is not None else ()
             )
             try:
@@ -428,10 +496,21 @@ class ModuleRuntime:
                                 for name in sorted(request.resource_limits)
                             },
                         }
-                        response_frame = handler.request(
-                            WorkerFrame("REQUEST", request.request_id, request_payload),
-                            handle=worker_handle,
-                        )
+                        if lease is not None and supports_durable_worker_identity:
+                            response_frame = handler.request(
+                                WorkerFrame("REQUEST", request.request_id, request_payload),
+                                handle=worker_handle,
+                                host_instance_id=self._host_instance_id,
+                                on_process_started=lambda identity: identity_binder(
+                                    lease.lease_id,
+                                    identity,
+                                ),
+                            )
+                        else:
+                            response_frame = handler.request(
+                                WorkerFrame("REQUEST", request.request_id, request_payload),
+                                handle=worker_handle,
+                            )
                         if set(response_frame.payload) != {"outputs"}:
                             raise WorkerIPCError(
                                 "worker.response_contract_invalid",
@@ -477,6 +556,8 @@ class ModuleRuntime:
                             if error.code == "worker.timeout"
                             else "module.worker_request_invalid"
                             if error.code == "worker.request_invalid"
+                            else "module.worker_identity_handoff_failed"
+                            if error.code.startswith("worker.identity_handoff_")
                             else "module.worker_response_invalid"
                             if error.code.startswith("worker.response_")
                             else "module.worker_failed"

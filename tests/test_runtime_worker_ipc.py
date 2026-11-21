@@ -4,6 +4,7 @@ import time
 
 import pytest
 
+from universal_platform.runtime.process_identity import ProcessIdentity
 from universal_platform.runtime.supervisor import (
     PythonProcessSupervisor,
     WorkerResult,
@@ -394,3 +395,58 @@ def test_worker_ipc_client_cancel_returns_false_when_supervisor_raises():
     client = WorkerIPCClient(RaisingSupervisor(), worker_spec())
     handle = client.reserve("cancel-error")
     assert client.cancel(handle, grace_seconds=0) is False
+
+
+def test_worker_ipc_identity_handoff_requires_capable_supervisor_and_releases_reservation():
+    client = WorkerIPCClient(StubSupervisor(worker_result()), worker_spec())
+    handle = client.reserve("identity-request")
+    with pytest.raises(WorkerIPCError) as error:
+        client.request(
+            WorkerFrame("REQUEST", "identity-request", {}),
+            handle=handle,
+            host_instance_id="host-identity-test",
+            on_process_started=lambda _identity: None,
+        )
+    assert error.value.code == "worker.identity_handoff_unavailable"
+    assert client._active_requests == {}
+
+
+def test_worker_ipc_routes_identity_callback_before_accepting_response():
+    response = encode_frame(WorkerFrame("RESPONSE", "identity-request", {"ok": True}))
+
+    class IdentityAwareSupervisor:
+        def run(self, _spec):
+            raise AssertionError("identity hand-off must use run_with_identity")
+
+        def run_with_identity(self, spec, *, host_instance_id, on_process_started):
+            self.spec = spec
+            self.host_instance_id = host_instance_id
+            on_process_started(ProcessIdentity(
+                platform="linux",
+                pid=123,
+                creation_token="456",
+                host_boot_id="boot",
+                worker_id=spec.worker_id,
+                host_instance_id=host_instance_id,
+                process_group_id=123,
+                session_id=123,
+            ))
+            return worker_result(response)
+
+        def cancel(self, _worker_id, *, grace_seconds=1.0):
+            return True
+
+    supervisor = IdentityAwareSupervisor()
+    client = WorkerIPCClient(supervisor, worker_spec())
+    identities = []
+    result = client.request(
+        WorkerFrame("REQUEST", "identity-request", {}),
+        host_instance_id="host-identity-test",
+        on_process_started=identities.append,
+    )
+    assert result.payload == {"ok": True}
+    assert len(identities) == 1
+    assert identities[0].worker_id == supervisor.spec.worker_id
+    assert identities[0].host_instance_id == "host-identity-test"
+    assert supervisor.host_instance_id == "host-identity-test"
+    assert client._active_requests == {}

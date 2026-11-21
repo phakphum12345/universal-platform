@@ -343,7 +343,7 @@ def test_windows_assignment_failure_never_resumes_worker(supervisor, tmp_path, m
     marker = tmp_path / "worker-ran.txt"
     code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
 
-    def reject_assignment(self, process):
+    def reject_assignment(self, process, *, resume=True):
         raise RuntimeError("injected Job Object assignment failure")
 
     monkeypatch.setattr(windows_job.WindowsJob, "assign_suspended", reject_assignment)
@@ -397,4 +397,112 @@ def test_windows_cancellation_terminates_worker_descendants(supervisor):
     assert not thread.is_alive()
     assert results[0].cancelled
     assert results[0].exit_code is not None
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs start-gate identity")
+def test_supervisor_persists_process_identity_before_linux_worker_payload(supervisor, tmp_path):
+    marker = tmp_path / "payload-started.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('started')"
+    captured = []
+
+    def persist(identity):
+        assert not marker.exists()
+        captured.append(identity)
+
+    result = supervisor.run_with_identity(
+        WorkerSpec("identity-gated-linux", sys.executable, ("-c", code), timeout_seconds=3),
+        host_instance_id="host-linux-test",
+        on_process_started=persist,
+    )
+
+    assert result.exit_code == 0
+    assert marker.read_text(encoding="utf-8") == "started"
+    assert len(captured) == 1
+    identity = captured[0]
+    assert identity.platform == "linux"
+    assert identity.pid > 0
+    assert identity.creation_token.isdigit()
+    assert identity.host_boot_id
+    assert identity.process_group_id == identity.pid
+    assert identity.session_id == identity.pid
+    assert identity.worker_id == "identity-gated-linux"
+    assert identity.host_instance_id == "host-linux-test"
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs start-gate identity")
+def test_supervisor_identity_persistence_failure_never_runs_linux_payload(supervisor, tmp_path):
+    marker = tmp_path / "must-not-run.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
+
+    def reject_identity(_identity):
+        raise RuntimeError("durable identity write failed")
+
+    with pytest.raises(RuntimeError, match="durable identity write failed"):
+        supervisor.run_with_identity(
+            WorkerSpec("identity-persist-failure", sys.executable, ("-c", code), timeout_seconds=3),
+            host_instance_id="host-linux-test",
+            on_process_started=reject_identity,
+        )
+
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux procfs start-gate identity")
+def test_supervisor_cancellation_during_identity_callback_keeps_linux_payload_gated(supervisor, tmp_path):
+    marker = tmp_path / "cancelled-payload.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')"
+    callback_entered = threading.Event()
+    callback_release = threading.Event()
+    results = []
+
+    def delayed_persist(_identity):
+        callback_entered.set()
+        assert callback_release.wait(timeout=3)
+
+    thread = threading.Thread(target=lambda: results.append(supervisor.run_with_identity(
+        WorkerSpec("identity-gated-cancel", sys.executable, ("-c", code), timeout_seconds=3),
+        host_instance_id="host-linux-test",
+        on_process_started=delayed_persist,
+    )))
+    thread.start()
+    assert callback_entered.wait(timeout=3)
+    assert supervisor.cancel("identity-gated-cancel", grace_seconds=0.1)
+    callback_release.set()
+    thread.join(timeout=3)
+
+    assert not thread.is_alive()
+    assert results[0].cancelled
+    assert not marker.exists()
+    assert supervisor.active_worker_ids == ()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows suspended-process identity hand-off")
+def test_windows_supervisor_persists_identity_before_resuming_worker(supervisor, tmp_path):
+    marker = tmp_path / "windows-payload-started.txt"
+    code = f"from pathlib import Path; Path({str(marker)!r}).write_text('started')"
+    captured = []
+
+    def persist(identity):
+        assert not marker.exists()
+        captured.append(identity)
+
+    result = supervisor.run_with_identity(
+        WorkerSpec("identity-gated-windows", sys.executable, ("-c", code), timeout_seconds=3),
+        host_instance_id="host-windows-test",
+        on_process_started=persist,
+    )
+
+    assert result.exit_code == 0
+    assert marker.read_text(encoding="utf-8") == "started"
+    assert len(captured) == 1
+    identity = captured[0]
+    assert identity.platform == "windows"
+    assert identity.pid > 0
+    assert len(identity.creation_token) == 16
+    assert identity.job_object_id
+    assert identity.worker_id == "identity-gated-windows"
+    assert identity.host_instance_id == "host-windows-test"
     assert supervisor.active_worker_ids == ()

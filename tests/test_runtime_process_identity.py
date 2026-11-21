@@ -108,3 +108,17 @@ def test_process_identity_rejects_unsupported_platform():
             worker_id="worker",
             host_instance_id="host",
         )
+
+
+
+def test_process_identity_rejects_nul_in_job_object_id():
+    with pytest.raises(ValueError, match="job_object_id"):
+        ProcessIdentity(
+            platform="windows",
+            pid=1,
+            creation_token="creation-token",
+            host_boot_id=None,
+            worker_id="worker",
+            host_instance_id="host",
+            job_object_id="job\x00id",
+        )

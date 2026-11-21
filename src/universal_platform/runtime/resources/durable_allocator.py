@@ -12,6 +12,11 @@ from uuid import uuid4
 
 from ..evidence.jsonl_journal import JsonlHashChainJournal
 from ..process_identity import ProcessIdentity
+from ..process_reconciliation import (
+    ProcessLiveness,
+    ProcessLivenessEvidence,
+    WorkerReconciliationResult,
+)
 from .models import ResourceMetric
 
 
@@ -109,6 +114,26 @@ class DurableResourceAllocator:
             return ()
 
         self._journal.append_transaction(initialize)
+        records = self._journal.read_all()
+        self._validate_pool(records)
+        state, _quarantined = self._replay(records)
+        self._startup_reconciliation_required = any(
+            lease.lease_kind == "supervised_worker" for lease in state.values()
+        )
+
+    @property
+    def startup_reconciliation_required(self) -> bool:
+        return self._startup_reconciliation_required
+
+    @property
+    def is_ready(self) -> bool:
+        return not self._startup_reconciliation_required
+
+    def _ensure_ready(self) -> None:
+        if self._startup_reconciliation_required:
+            raise RuntimeError(
+                "durable worker lease startup reconciliation is required before new admissions"
+            )
 
     def allocate(
         self,
@@ -121,6 +146,7 @@ class DurableResourceAllocator:
         host_instance_id: str | None = None,
         worker_id: str | None = None,
     ) -> DurableResourceLease:
+        self._ensure_ready()
         if not isinstance(owner_id, str) or not owner_id.strip():
             raise ValueError("owner_id must be non-empty")
         if ttl_seconds is not None and (
@@ -143,8 +169,8 @@ class DurableResourceAllocator:
         if captured.tzinfo is None or captured.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         amounts = tuple(requested)
-        if not amounts:
-            raise ValueError("at least one resource amount is required")
+        if not amounts and lease_kind != "supervised_worker":
+            raise ValueError("ordinary leases require at least one resource amount")
         if len({item.name for item in amounts}) != len(amounts):
             raise ValueError("requested metric names must be unique")
         for item in amounts:
@@ -221,7 +247,7 @@ class DurableResourceAllocator:
         if not isinstance(lease_id, str) or not lease_id.strip():
             raise ValueError("lease_id must be a non-empty string")
         if not isinstance(identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")  # noqa: TRY004
+            raise TypeError("identity must be a ProcessIdentity")
         result: dict[str, DurableResourceLease] = {}
 
         def bind(records):
@@ -254,6 +280,94 @@ class DurableResourceAllocator:
         self._journal.append_transaction(bind)
         return result["lease"]
 
+    def reconcile_startup(
+        self,
+        inspector,
+        *,
+        current_host_instance_id: str,
+    ) -> tuple[WorkerReconciliationResult, ...]:
+        """Reconcile non-terminal worker leases before admitting new work.
+
+        ABSENT identities receive a durable recovered-release event. PRESENT
+        identities from this same host instance remain charged. PRESENT workers
+        from another host and all UNKNOWN identities are quarantined. Existing
+        quarantine is never cleared by startup reconciliation.
+        """
+        if not callable(getattr(inspector, "inspect", None)):
+            raise TypeError("inspector must provide a callable inspect(identity) method")
+        if (
+            not isinstance(current_host_instance_id, str)
+            or not current_host_instance_id.strip()
+            or "\\x00" in current_host_instance_id
+        ):
+            raise ValueError("current_host_instance_id must be a non-empty NUL-free string")
+        outcomes: list[WorkerReconciliationResult] = []
+
+        def reconcile(records):
+            self._validate_pool(records)
+            state, quarantined = self._replay(records)
+            events = []
+            for lease_id, lease in sorted(state.items()):
+                if lease.lease_kind != "supervised_worker":
+                    continue
+                evidence: ProcessLivenessEvidence | None = None
+                if lease.process_identity is None:
+                    status = ProcessLiveness.UNKNOWN
+                    reason = "worker lease has no recorded OS process identity"
+                else:
+                    try:
+                        candidate = inspector.inspect(lease.process_identity)
+                        if (
+                            isinstance(candidate, ProcessLivenessEvidence)
+                            and candidate.identity == lease.process_identity
+                        ):
+                            evidence = candidate
+                            status = candidate.status
+                            reason = candidate.reason
+                        else:
+                            status = ProcessLiveness.UNKNOWN
+                            reason = "process inspector returned invalid or mismatched evidence"
+                    except Exception as error:  # noqa: BLE001 - unknown liveness must fail closed
+                        status = ProcessLiveness.UNKNOWN
+                        reason = f"process liveness inspection failed ({error.__class__.__name__})"
+
+                if lease_id in quarantined:
+                    outcomes.append(WorkerReconciliationResult(
+                        lease_id, status, "retained_quarantine", reason, evidence
+                    ))
+                    continue
+                if status is ProcessLiveness.ABSENT and evidence is not None:
+                    events.append(self._event("LEASE_RECOVERED_RELEASED", {
+                        "lease_id": lease_id,
+                        "evidence": evidence.to_dict(),
+                    }))
+                    outcomes.append(WorkerReconciliationResult(
+                        lease_id, status, "released", reason, evidence
+                    ))
+                elif status is ProcessLiveness.PRESENT and lease.host_instance_id == current_host_instance_id:
+                    outcomes.append(WorkerReconciliationResult(
+                        lease_id, status, "retained", reason, evidence
+                    ))
+                else:
+                    quarantine_reason = (
+                        "startup reconciliation: worker is PRESENT but belongs to another host instance; "
+                        "automatic adoption is disabled"
+                        if status is ProcessLiveness.PRESENT
+                        else f"startup reconciliation: {reason or 'process liveness is UNKNOWN'}"
+                    )
+                    events.append(self._event("LEASE_QUARANTINED", {
+                        "lease_id": lease_id,
+                        "reason": quarantine_reason,
+                    }))
+                    outcomes.append(WorkerReconciliationResult(
+                        lease_id, status, "quarantined", quarantine_reason, evidence
+                    ))
+            return tuple(events)
+
+        self._journal.append_transaction(reconcile)
+        self._startup_reconciliation_required = False
+        return tuple(outcomes)
+
     def quarantine(self, lease_id: str, reason: str) -> bool:
         if not isinstance(reason, str) or not reason.strip():
             raise ValueError("quarantine reason must be a non-empty string")
@@ -278,6 +392,7 @@ class DurableResourceAllocator:
         return bool(result["changed"])
 
     def release(self, lease_id: str) -> bool:
+        self._ensure_ready()
         result = {"changed": False}
 
         def update(records):
@@ -412,11 +527,33 @@ class DurableResourceAllocator:
                 if not isinstance(reason, str) or not reason.strip():
                     raise ValueError("durable journal quarantine reason is invalid")
                 quarantined[lease_id] = reason
-            elif event_type == "LEASE_RELEASED":
+            elif event_type in {"LEASE_RELEASED", "LEASE_RECOVERED_RELEASED"}:
                 if not isinstance(lease_id, str) or lease_id not in state:
                     raise ValueError("durable journal releases an unknown lease")
                 if lease_id in quarantined:
                     raise ValueError("durable journal releases a quarantined lease without operator audit")
+                if event_type == "LEASE_RECOVERED_RELEASED":
+                    lease = state[lease_id]
+                    evidence = record.get("evidence")
+                    observed_at = None
+                    if isinstance(evidence, dict) and isinstance(evidence.get("observed_at"), str):
+                        try:
+                            observed_at = datetime.fromisoformat(evidence["observed_at"])
+                        except ValueError:
+                            observed_at = None
+                    if (
+                        lease.lease_kind != "supervised_worker"
+                        or lease.process_identity is None
+                        or not isinstance(evidence, dict)
+                        or evidence.get("status") != ProcessLiveness.ABSENT.value
+                        or evidence.get("process_identity") != lease.process_identity.to_dict()
+                        or not isinstance(evidence.get("method"), str)
+                        or not evidence.get("method")
+                        or observed_at is None
+                        or observed_at.tzinfo is None
+                        or observed_at.utcoffset() is None
+                    ):
+                        raise ValueError("durable journal recovered-release evidence is invalid")
                 del state[lease_id]
             else:
                 raise ValueError(f"unsupported durable lease event: {event_type}")
@@ -463,7 +600,7 @@ class DurableResourceAllocator:
 
     @staticmethod
     def _apply_event(state, quarantined, event):
-        if event["event_type"] == "LEASE_RELEASED":
+        if event["event_type"] in {"LEASE_RELEASED", "LEASE_RECOVERED_RELEASED"}:
             state.pop(event["lease_id"], None)
             quarantined.pop(event["lease_id"], None)
 
