@@ -8,14 +8,14 @@ termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
-import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from threading import Condition, RLock
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
+from uuid import uuid4
 
-from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
+from ..runtime.resources.allocator import ResourceLease
 from ..runtime.resources.models import ResourceMetric
 from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
 from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
@@ -23,9 +23,6 @@ from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
 from ..runtime.process_reconciliation import ProcessIdentityInspector
-from ..runtime.worker_ipc import WorkerIPCClient, WorkerIPCError, WorkerInvocationHandle
-from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
-from ..runtime.resources.models import ResourceMetric
 
 
 _PROCESS_HOST_INSTANCE_ID = uuid4().hex
@@ -368,9 +365,8 @@ class ModuleRuntime:
                     host_instance_id=self._host_instance_id,
                     worker_id=worker_handle.worker_id,
                 )
-            if "worker_id" in alloc_params:
-                alloc_kwargs["worker_id"] = worker_id
-        return allocator.allocate(request.request_id, tuple(requested), **alloc_kwargs)
+            return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
+        return allocator.allocate(request.request_id, tuple(requested))
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
