@@ -8,12 +8,14 @@ from universal_platform.engineering.errors import InvalidModelError, SolverError
 from universal_platform.engineering.nonlinear_solver import NonlinearSolveStatus
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
+    SketchArc,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
-    SketchArc,
     solve_parametric_sketch,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 
 

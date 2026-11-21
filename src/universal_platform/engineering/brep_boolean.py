@@ -7,14 +7,15 @@ curved-surface Boolean kernel.
 """
 from __future__ import annotations
 
+import json
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
 from hashlib import sha256
 from itertools import product
-import json
-import re
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from .brep import BRepSolid, brep_from_triangle_mesh
 from .brep_multishell import BRepMultiShellSolid, _point_inside_mesh
@@ -94,7 +95,7 @@ class BRepBooleanResult:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "BRepBooleanResult":
+    def from_dict(cls, value: Mapping[str, object]) -> BRepBooleanResult:
         required = {
             "schema_version", "algorithm_version", "operation", "input_solid_ids",
             "input_source_sha256", "components", "grid_cell_count", "result_sha256",
@@ -474,7 +475,7 @@ class BRepMultiShellBooleanResult:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "BRepMultiShellBooleanResult":
+    def from_dict(cls, value: Mapping[str, object]) -> BRepMultiShellBooleanResult:
         required = {
             "schema_version", "algorithm_version", "operation", "input_solid_ids",
             "input_source_sha256", "components", "grid_cell_count", "result_sha256",

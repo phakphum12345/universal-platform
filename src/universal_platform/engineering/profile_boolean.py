@@ -162,7 +162,7 @@ class ProfileBooleanResult:
         }
 
     @classmethod
-    def from_dict(cls, value: dict[str, object]) -> "ProfileBooleanResult":
+    def from_dict(cls, value: dict[str, object]) -> ProfileBooleanResult:
         required = {"schema_version", "operation", "first_profile_id", "second_profile_id",
                     "regions", "area", "region_count", "limitations"}
         if not isinstance(value, dict) or set(value) != required:

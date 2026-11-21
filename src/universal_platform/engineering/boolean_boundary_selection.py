@@ -1,14 +1,25 @@
 """Boolean boundary selection using exact two-sided material witnesses."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from fractions import Fraction
+
+from .boolean_resource_budget import BooleanResourceLedger
 from .brep_boolean import BRepBooleanOperation
 from .errors import InvalidModelError
-from .boolean_resource_budget import BooleanResourceLedger
-from .material_classification import ExactMeshMaterialClassifier, MaterialClassification, RAY_DIRECTION_COUNT
+from .material_classification import (
+    RAY_DIRECTION_COUNT,
+    ExactMeshMaterialClassifier,
+    MaterialClassification,
+)
 from .mesh import TriangleMesh
 from .triangle_coverage_oracle import certify_triangle_partition
-from .triangle_fragment_arrangement import RationalPoint3, RationalTriangle3, RationalTriangleFragment
+from .triangle_fragment_arrangement import (
+    RationalPoint3,
+    RationalTriangle3,
+    RationalTriangleFragment,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class SelectedBoundaryFragment:

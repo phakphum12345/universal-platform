@@ -6,15 +6,22 @@ collision engine, manufacturing validator, or physical verification tool.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 from json import dumps
 from math import acos, ceil, cos, isfinite, pi, sin, sqrt
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .primitive_geometry import BoxSolid, CylinderSolid, ExtrudedProfileSolid, Vec2, _arc_geometry
+from .primitive_geometry import (
+    BoxSolid,
+    CylinderSolid,
+    ExtrudedProfileSolid,
+    Vec2,
+    _arc_geometry,
+)
 from .quantity import LENGTH, Quantity
 
 
@@ -98,7 +105,7 @@ class TriangleMesh:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "TriangleMesh":
+    def from_dict(cls, value: Mapping[str, Any]) -> TriangleMesh:
         expected = {
             "schema_version", "solid_id", "frame_id", "length_unit", "source_kind",
             "source_geometry_sha256", "chordal_tolerance", "vertices", "triangles",

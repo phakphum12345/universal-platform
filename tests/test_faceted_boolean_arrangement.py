@@ -3,7 +3,9 @@ from hashlib import sha256
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.faceted_boolean_arrangement import arrange_faceted_boolean_meshes
+from universal_platform.engineering.faceted_boolean_arrangement import (
+    arrange_faceted_boolean_meshes,
+)
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.mesh import TriangleMesh, tessellate_box
 from universal_platform.engineering.primitive_geometry import BoxSolid

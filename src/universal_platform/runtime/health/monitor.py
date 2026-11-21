@@ -34,7 +34,7 @@ class ResourceHealthRule:
         if not self.metric_name.strip() or not self.unit.strip():
             raise ValueError("metric_name and unit must be non-empty")
         if not isinstance(self.comparison, ThresholdComparison):
-            raise ValueError("comparison must be a ThresholdComparison")
+            raise ValueError("comparison must be a ThresholdComparison")  # noqa: TRY004
         if isinstance(self.threshold, bool) or not isinstance(self.threshold, (int, float)) or not isfinite(self.threshold):
             raise ValueError("threshold must be finite")
         if not isinstance(self.severity, str) or self.severity not in {"WARNING", "CRITICAL"}:

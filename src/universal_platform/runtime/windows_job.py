@@ -6,7 +6,6 @@ security sandbox and does not enforce CPU, memory, filesystem, or network policy
 from __future__ import annotations
 
 import ctypes
-from ctypes import wintypes
 import os
 import subprocess
 import threading
@@ -289,7 +288,7 @@ class WindowsJob:
             self._handle = None
             self._closed = True
 
-    def __enter__(self) -> "WindowsJob":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:

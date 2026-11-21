@@ -8,10 +8,11 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.feature_history import (
-    FeatureHistory, FeatureKind, FeatureNode,
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
 )
 from universal_platform.engineering.feature_history_store import (
-    FeatureHistoryBranch,
     FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,

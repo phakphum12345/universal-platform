@@ -5,18 +5,25 @@ HTTP listener, access the network, execute user code, or control devices.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
-from .errors import InvalidModelError
+from .boolean_boundary_selection import (
+    BooleanBoundarySelection,
+    select_boolean_boundary_fragments,
+)
 from .boolean_resource_budget import BooleanResourceLedger
-from .faceted_boolean_arrangement import FacetedBooleanArrangement, arrange_faceted_boolean_meshes
+from .boolean_shell_assembly import (
+    BooleanShellAssemblyResult,
+    assemble_boolean_shells,
+    assemble_rational_boolean_solid,
+)
 from .brep_boolean import BRepBooleanOperation
-from .boolean_boundary_selection import BooleanBoundarySelection, select_boolean_boundary_fragments
-from .boolean_shell_assembly import BooleanShellAssemblyResult, assemble_boolean_shells, assemble_rational_boolean_solid
-from .rational_boolean_solid import RationalBooleanSolid
-from .mesh import TriangleMesh
-from .triangle_fragment_arrangement import RationalTriangleFragment
+from .errors import InvalidModelError
+from .faceted_boolean_arrangement import (
+    FacetedBooleanArrangement,
+    arrange_faceted_boolean_meshes,
+)
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history import (
     FeatureHistory,
@@ -25,7 +32,12 @@ from .feature_history import (
     regenerate_feature_history,
 )
 from .feature_history_editor import (
-    add_feature, remove_feature, reorder_features, replace_feature, suppress_feature, unsuppress_feature,
+    add_feature,
+    remove_feature,
+    reorder_features,
+    replace_feature,
+    suppress_feature,
+    unsuppress_feature,
 )
 from .feature_history_store import (
     FeatureHistoryBranch,
@@ -34,7 +46,10 @@ from .feature_history_store import (
     FeatureHistoryRevisionConflict,
     SQLiteFeatureHistoryStore,
 )
+from .mesh import TriangleMesh
 from .nonlinear_solver import NonlinearSolverOptions
+from .rational_boolean_solid import RationalBooleanSolid
+from .triangle_fragment_arrangement import RationalTriangleFragment
 
 
 @dataclass(frozen=True, slots=True)

@@ -3,12 +3,19 @@ import json
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.mechanism_model import (
-    FrameReference, JointKind, JointModel, LinkModel, MechanismModel,
-)
 from universal_platform.engineering.mechanism_mobility import (
-    ConstraintJacobian, MobilityFormulation, SingularityStatus,
-    analyze_mechanism_mobility, estimate_nominal_mobility,
+    ConstraintJacobian,
+    MobilityFormulation,
+    SingularityStatus,
+    analyze_mechanism_mobility,
+    estimate_nominal_mobility,
+)
+from universal_platform.engineering.mechanism_model import (
+    FrameReference,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 
 

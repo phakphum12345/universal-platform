@@ -6,9 +6,9 @@ source facets, classify solid membership, or assemble Boolean shells.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Iterable
 
 from .errors import InvalidModelError
 

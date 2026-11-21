@@ -4,22 +4,43 @@ from pathlib import Path
 
 import pytest
 
-from universal_platform.engineering.assembly import Assembly, Joint, JointType, PartOccurrence
-from universal_platform.engineering.constraints import Constraint, ConstraintKind, evaluate_constraints
+from universal_platform.engineering.assembly import (
+    Assembly,
+    Joint,
+    JointType,
+    PartOccurrence,
+)
+from universal_platform.engineering.constraints import (
+    Constraint,
+    ConstraintKind,
+    evaluate_constraints,
+)
 from universal_platform.engineering.electrical import electrical_power, ohms_law
 from universal_platform.engineering.geometry import Box, Cylinder, Vec3
-from universal_platform.engineering.inverse_kinematics import solve_planar_two_link_inverse_kinematics
+from universal_platform.engineering.inverse_kinematics import (
+    solve_planar_two_link_inverse_kinematics,
+)
 from universal_platform.engineering.linear_solver import solve_linear
 from universal_platform.engineering.materials import Material
-from universal_platform.engineering.mechanics import axial_strain, axial_stress, factor_of_safety
-from universal_platform.engineering.planar_four_bar_adapter import PlanarFourBarModelSnapshot, solve_planar_four_bar_model
-from universal_platform.engineering.provenance import EvidenceKind, EvidenceRecord, EvidenceStatus
+from universal_platform.engineering.mechanics import (
+    axial_strain,
+    axial_stress,
+    factor_of_safety,
+)
+from universal_platform.engineering.planar_four_bar_adapter import (
+    PlanarFourBarModelSnapshot,
+    solve_planar_four_bar_model,
+)
+from universal_platform.engineering.provenance import (
+    EvidenceKind,
+    EvidenceRecord,
+    EvidenceStatus,
+)
 from universal_platform.engineering.quantity import Quantity
 from universal_platform.engineering.safety import RiskTier, SafetyGate
 from universal_platform.engineering.simulation import solve_static_linear_system
 from universal_platform.engineering.thermal import linear_thermal_expansion
 from universal_platform.engineering.transforms import RigidTransform
-
 
 REFERENCE_FILE = Path(__file__).parent / "reference_cases" / "engineering_reference_cases.json"
 REGISTRY = json.loads(REFERENCE_FILE.read_text(encoding="utf-8"))

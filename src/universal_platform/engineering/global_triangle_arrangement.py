@@ -1,12 +1,21 @@
 """Global exact-rational arrangement with conforming facet edge subdivision."""
 from __future__ import annotations
+
+from collections.abc import Iterable
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Iterable
-from .errors import InvalidModelError
+
 from .boolean_resource_budget import BooleanResourceLedger
+from .errors import InvalidModelError
 from .triangle_coverage_oracle import certify_triangle_partition
-from .triangle_fragment_arrangement import RationalPlane, RationalPoint3, RationalTriangle3, RationalTriangleFragment, arrange_triangles_by_planes
+from .triangle_fragment_arrangement import (
+    RationalPlane,
+    RationalPoint3,
+    RationalTriangle3,
+    RationalTriangleFragment,
+    arrange_triangles_by_planes,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class GlobalArrangementVertex:

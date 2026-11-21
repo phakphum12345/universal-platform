@@ -2,20 +2,26 @@ import json
 import subprocess
 import sys
 
-from universal_platform.engineering.feature_artifact_store import SQLiteFeatureArtifactCache
+from universal_platform.engineering.feature_artifact_store import (
+    SQLiteFeatureArtifactCache,
+)
 from universal_platform.engineering.feature_history import (
     FeatureHistory,
     FeatureKind,
     FeatureNode,
     regenerate_feature_history,
 )
-from universal_platform.engineering.feature_history_store import SQLiteFeatureHistoryStore
+from universal_platform.engineering.feature_history_store import (
+    SQLiteFeatureHistoryStore,
+)
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
+)
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
 )
 
 

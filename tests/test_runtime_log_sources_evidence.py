@@ -1,9 +1,12 @@
-from datetime import datetime, timezone
 import json
+from datetime import UTC, datetime
 
 import pytest
 
-from universal_platform.runtime.evidence.recovery_records import JsonlRecoveryEvidenceStore, RecoveryEvidenceRecord
+from universal_platform.runtime.evidence.recovery_records import (
+    JsonlRecoveryEvidenceStore,
+    RecoveryEvidenceRecord,
+)
 from universal_platform.runtime.health.log_sources import FileLogSource
 from universal_platform.runtime.recovery.coordinator import RecoveryCoordinator
 from universal_platform.runtime.resources.models import ResourceRecord, ResourceState
@@ -35,7 +38,7 @@ def test_file_log_source_rejects_traversal_oversize_and_invalid_utf8(tmp_path):
 
 def make_record(record_id="r-1"):
     return RecoveryEvidenceRecord(
-        record_id, "worker-9", datetime.now(timezone.utc), ("a" * 64,),
+        record_id, "worker-9", datetime.now(UTC), ("a" * 64,),
         "ACTIVE", "ACTIVE", True, True, "recovery validated",
     )
 
@@ -54,9 +57,9 @@ def test_recovery_evidence_rejects_naive_time_duplicate_fingerprints_and_invalid
     with pytest.raises(ValueError, match="timezone-aware"):
         RecoveryEvidenceRecord("r", "worker", datetime.now(), (), "ACTIVE", "ACTIVE", True, True, "ok")
     with pytest.raises(ValueError, match="unique"):
-        RecoveryEvidenceRecord("r", "worker", datetime.now(timezone.utc), ("a" * 64, "a" * 64), "ACTIVE", "ACTIVE", True, True, "ok")
+        RecoveryEvidenceRecord("r", "worker", datetime.now(UTC), ("a" * 64, "a" * 64), "ACTIVE", "ACTIVE", True, True, "ok")
     with pytest.raises(ValueError, match="unless repair"):
-        RecoveryEvidenceRecord("r", "worker", datetime.now(timezone.utc), (), "ACTIVE", "ACTIVE", False, True, "invalid")
+        RecoveryEvidenceRecord("r", "worker", datetime.now(UTC), (), "ACTIVE", "ACTIVE", False, True, "invalid")
 
 
 def test_evidence_store_rejects_path_like_filename_and_symlink(tmp_path):

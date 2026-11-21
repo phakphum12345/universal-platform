@@ -1,8 +1,10 @@
 """Fail-closed exact material classification against closed triangle meshes."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
+
 from .errors import InvalidModelError
 from .geometry import Vec3
 from .mesh import TriangleMesh, validate_triangle_mesh

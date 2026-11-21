@@ -5,12 +5,13 @@ solvers or imply that a passing calculation is a validated engineering design.
 """
 from __future__ import annotations
 
+import re
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
-import re
 from threading import RLock
-from typing import Callable, Iterable, Protocol
+from typing import Protocol
 
 from .electrical import electrical_power, ohms_law
 from .errors import EngineeringError
@@ -51,7 +52,7 @@ class PhysicsInput:
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("physics input name must be non-empty")
         if isinstance(self.value, bool) or not isinstance(self.value, (Quantity, int, float)):
-            raise ValueError("physics input must be a Quantity or finite scalar")
+            raise ValueError("physics input must be a Quantity or finite scalar")  # noqa: TRY004
         if not isinstance(self.value, Quantity) and not isfinite(float(self.value)):
             raise ValueError("physics scalar inputs must be finite")
 
@@ -71,7 +72,7 @@ class PhysicsProblem:
         if not isinstance(self.problem_id, str) or not self.problem_id.strip():
             raise ValueError("problem_id must be non-empty")
         if not isinstance(self.domain, PhysicsDomain) or not isinstance(self.method, PhysicsMethod):
-            raise ValueError("domain and method must use declared Physics enums")
+            raise ValueError("domain and method must use declared Physics enums")  # noqa: TRY004
         if not isinstance(self.inputs, tuple) or not self.inputs:
             raise ValueError("inputs must be a non-empty immutable tuple")
         if any(not isinstance(item, PhysicsInput) for item in self.inputs):
@@ -112,7 +113,7 @@ class PhysicsSolverDescriptor:
         if not isinstance(self.version, str) or not _SEMVER.fullmatch(self.version):
             raise ValueError("solver version must be semantic MAJOR.MINOR.PATCH")
         if not isinstance(self.domain, PhysicsDomain) or not isinstance(self.method, PhysicsMethod):
-            raise ValueError("solver domain and method must use declared enums")
+            raise ValueError("solver domain and method must use declared enums")  # noqa: TRY004
         if not isinstance(self.license_id, str) or not self.license_id.strip():
             raise ValueError("solver license_id must be explicit")
         for label, values in (("capabilities", self.capabilities), ("dependencies", self.dependencies)):
@@ -131,7 +132,7 @@ class PhysicsOutput:
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("physics output name must be non-empty")
         if not isinstance(self.quantity, Quantity):
-            raise ValueError("physics output must be a Quantity")
+            raise ValueError("physics output must be a Quantity")  # noqa: TRY004
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,7 +151,7 @@ class PhysicsSolverResponse:
         if len(names) != len(set(names)):
             raise ValueError("physics output names must be unique")
         if not isinstance(self.status, EvidenceStatus):
-            raise ValueError("solver response status must be an EvidenceStatus")
+            raise ValueError("solver response status must be an EvidenceStatus")  # noqa: TRY004
         if not isinstance(self.statement, str) or not self.statement.strip():
             raise ValueError("solver response statement must be non-empty")
         if not isinstance(self.limitations, tuple) or any(not isinstance(item, str) or not item.strip() for item in self.limitations):

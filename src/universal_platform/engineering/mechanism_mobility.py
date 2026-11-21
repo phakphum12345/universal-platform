@@ -8,26 +8,25 @@ reference.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
-from typing import Mapping, Sequence
 
 from .errors import InvalidModelError
+from .joint_constraints import generate_joint_constraints
+from .joint_jacobian import build_joint_constraint_jacobian
 from .mechanism_model import (
     JointKind,
     MechanismModel,
     validate_mechanism_model,
 )
-from .joint_constraints import generate_joint_constraints
-from .joint_jacobian import build_joint_constraint_jacobian
 from .nonlinear_solver import (
     JacobianMethod,
     JacobianRankDiagnostics,
     _estimate_jacobian_rank,
 )
 from .transforms import RigidTransform
-
 
 SCHEMA_VERSION = "1.0"
 

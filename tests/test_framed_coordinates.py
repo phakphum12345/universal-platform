@@ -4,10 +4,12 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.frame_graph import FrameGraph
-from universal_platform.engineering.framed_coordinates import FramedPoint3, FramedVector3
+from universal_platform.engineering.framed_coordinates import (
+    FramedPoint3,
+    FramedVector3,
+)
 from universal_platform.engineering.geometry import Vec3
 from universal_platform.engineering.transforms import RigidTransform
-
 
 ROTATE_Z_90 = ((0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
 

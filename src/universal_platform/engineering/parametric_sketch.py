@@ -7,19 +7,20 @@ solution.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from math import atan2, hypot, isfinite
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from .errors import InvalidModelError, SolverError
-from .quantity import LENGTH, Quantity
 from .nonlinear_solver import (
     NonlinearConstraint,
     NonlinearSolveResult,
     NonlinearSolverOptions,
     solve_nonlinear_constraints,
 )
+from .quantity import LENGTH, Quantity
 
 
 class SketchConstraintKind(str, Enum):
@@ -284,7 +285,7 @@ class ParametricSketch:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "ParametricSketch":
+    def from_dict(cls, value: Mapping[str, object]) -> ParametricSketch:
         required = {"schema_version", "sketch_id", "frame_id", "length_unit",
                     "points", "segments", "constraints"}
         if not isinstance(value, Mapping) or value.get("schema_version") not in cls.SUPPORTED_SCHEMA_VERSIONS:

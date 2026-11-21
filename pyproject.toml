@@ -12,8 +12,12 @@ license = { text = "Apache-2.0" }
 authors = [{ name = "Universal Platform Contributors" }]
 dependencies = []
 
+[project.scripts]
+up-geometry = "universal_platform.engineering.geometry_batch:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+quality = ["ruff>=0.11,<1", "pip-audit>=2.8,<3"]
 browser = ["playwright>=1.55"]
 
 [tool.setuptools.packages.find]

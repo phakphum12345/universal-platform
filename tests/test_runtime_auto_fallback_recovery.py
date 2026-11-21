@@ -8,7 +8,9 @@ from universal_platform.runtime.adapters.catalog import (
     AdapterReplacementCoordinator,
     RuntimeAdapterRouter,
 )
-from universal_platform.runtime.evidence.recovery_records import JsonlRecoveryEvidenceStore
+from universal_platform.runtime.evidence.recovery_records import (
+    JsonlRecoveryEvidenceStore,
+)
 from universal_platform.runtime.health.log_sources import FileLogSource
 from universal_platform.runtime.recovery.coordinator import (
     AdapterFallbackPolicy,
@@ -114,7 +116,7 @@ def test_unhealthy_adapter_without_fallback_policy_is_quarantined_without_repair
 
 def test_failed_fallback_candidate_keeps_old_route_and_quarantines(tmp_path):
     (tmp_path / "worker.log").write_text("ERROR component_id=worker-1 failed", encoding="utf-8")
-    resources, old, new, router, coordinator, policy, _ = make_stack(new_healthy=False)
+    resources, old, _new, router, coordinator, policy, _ = make_stack(new_healthy=False)
     repair = Repair()
     result = coordinator.recover_from_source(
         "worker-1", "worker.log", log_source=FileLogSource(tmp_path),

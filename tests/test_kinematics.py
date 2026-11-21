@@ -2,10 +2,18 @@ import math
 
 import pytest
 
-from universal_platform.engineering.assembly import Assembly, Joint, JointType, PartOccurrence
+from universal_platform.engineering.assembly import (
+    Assembly,
+    Joint,
+    JointType,
+    PartOccurrence,
+)
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
-from universal_platform.engineering.kinematics import JointPlacement, solve_tree_forward_kinematics
+from universal_platform.engineering.kinematics import (
+    JointPlacement,
+    solve_tree_forward_kinematics,
+)
 from universal_platform.engineering.transforms import RigidTransform
 
 

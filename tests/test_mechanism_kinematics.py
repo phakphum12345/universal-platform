@@ -5,15 +5,21 @@ import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.mechanism_kinematics import (
-    BranchContinuityStatus, MechanismKinematicsInput,
+    BranchContinuityStatus,
+    MechanismKinematicsInput,
     solve_mechanism_kinematics,
 )
 from universal_platform.engineering.mechanism_loops import LoopClosureConstraint
-from universal_platform.engineering.mechanism_model import (
-    FrameReference, JointKind, JointModel, LinkModel, MechanismModel,
-)
 from universal_platform.engineering.mechanism_mobility import (
-    ConstraintJacobian, MobilityFormulation,
+    ConstraintJacobian,
+    MobilityFormulation,
+)
+from universal_platform.engineering.mechanism_model import (
+    FrameReference,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 
 

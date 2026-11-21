@@ -5,15 +5,15 @@ preserves component/cavity semantics without binary64 conversion.
 """
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass
 from fractions import Fraction
 from hashlib import sha256
-import json
-import re
 from typing import Any
 
 from .errors import InvalidModelError
-from .rational_faceted_solid import RationalFacetedSolid, RationalPoint3
+from .rational_faceted_solid import RationalFacetedSolid
 
 _ID = re.compile(r"^[a-z0-9]+(?:[._/-][a-z0-9]+)*$")
 
@@ -215,7 +215,7 @@ class RationalBooleanSolid:
         return {**payload, "result_sha256": sha256(canonical).hexdigest()}
 
     @classmethod
-    def from_dict(cls, value: object) -> "RationalBooleanSolid":
+    def from_dict(cls, value: object) -> RationalBooleanSolid:
         if not isinstance(value, dict) or value.get("schema_version") != "1.0" or value.get("profile") != cls.PROFILE:
             raise InvalidModelError("unsupported rational Boolean result schema/profile")
         expected_fields = {
@@ -284,7 +284,8 @@ class RationalBooleanSolid:
 def _validate_shell_relationships(result: RationalBooleanSolid) -> None:
     """Recheck inter-shell geometry, ownership, and counters on deserialization."""
     from .material_classification import (
-        MaterialClassification, classify_rational_point_against_triangles,
+        MaterialClassification,
+        classify_rational_point_against_triangles,
     )
     from .rational_faceted_solid import _axes_overlap
 

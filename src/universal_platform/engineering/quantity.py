@@ -4,9 +4,12 @@ Base dimensions are length, mass, time, electric current and temperature.
 Values are stored in SI base units; source unit is retained for traceability.
 """
 from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
+
 from .errors import DimensionMismatchError, EngineeringError
 
 Dimension = tuple[int, int, int, int, int]
@@ -56,7 +59,7 @@ class Quantity:
             raise EngineeringError(f"Unsupported unit: {self.source_unit}")
 
     @classmethod
-    def of(cls, value: float, unit: str) -> "Quantity":
+    def of(cls, value: float, unit: str) -> Quantity:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise EngineeringError("Quantity input must be numeric")
         if not isinstance(unit, str) or unit not in _UNITS:
@@ -74,7 +77,7 @@ class Quantity:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "Quantity":
+    def from_dict(cls, value: Mapping[str, Any]) -> Quantity:
         """Restore a strict v1.0 quantity snapshot."""
         expected = {"schema_version", "si_value", "dimension", "source_unit"}
         if not isinstance(value, Mapping) or set(value) != expected:
@@ -102,28 +105,28 @@ class Quantity:
             raise DimensionMismatchError(f"Cannot express {self.dimension} in {unit}")
         return self.si_value / factor
 
-    def _same(self, other: "Quantity") -> None:
+    def _same(self, other: Quantity) -> None:
         if self.dimension != other.dimension:
             raise DimensionMismatchError(f"Incompatible dimensions: {self.dimension} and {other.dimension}")
 
-    def __add__(self, other: "Quantity") -> "Quantity":
+    def __add__(self, other: Quantity) -> Quantity:
         self._same(other)
         return Quantity(self.si_value + other.si_value, self.dimension, "1")
 
-    def __sub__(self, other: "Quantity") -> "Quantity":
+    def __sub__(self, other: Quantity) -> Quantity:
         self._same(other)
         return Quantity(self.si_value - other.si_value, self.dimension, "1")
 
-    def __mul__(self, other: float | "Quantity") -> "Quantity":
+    def __mul__(self, other: float | Quantity) -> Quantity:
         if isinstance(other, Quantity):
             dim = tuple(a + b for a, b in zip(self.dimension, other.dimension))
             return Quantity(self.si_value * other.si_value, dim, "1")
         return Quantity(self.si_value * float(other), self.dimension, self.source_unit)
 
-    def __rmul__(self, other: float) -> "Quantity":
+    def __rmul__(self, other: float) -> Quantity:
         return self * other
 
-    def __truediv__(self, other: float | "Quantity") -> "Quantity":
+    def __truediv__(self, other: float | Quantity) -> Quantity:
         if isinstance(other, Quantity):
             if other.si_value == 0:
                 raise ZeroDivisionError("Quantity division by zero")

@@ -3,6 +3,8 @@ import pytest
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.planar_boolean import (
     PlanarRegionBooleanOperation as Operation,
+)
+from universal_platform.engineering.planar_boolean import (
     boolean_planar_regions,
 )
 from universal_platform.engineering.planar_region import PlanarRegion
@@ -90,7 +92,9 @@ def test_point_touching_union_preserves_two_simple_components():
 
 
 def test_four_components_touching_at_one_point_remain_four_canonical_regions():
-    from universal_platform.engineering.planar_region_set_boolean import boolean_planar_region_set
+    from universal_platform.engineering.planar_region_set_boolean import (
+        boolean_planar_region_set,
+    )
 
     regions = (
         region("west", ((0, 0), (-2, -1), (-2, 1))),

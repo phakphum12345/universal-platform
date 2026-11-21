@@ -6,9 +6,9 @@ It does not search for a configuration or establish physical feasibility.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Mapping
 
 from .errors import InvalidModelError
 from .joint_constraints import (

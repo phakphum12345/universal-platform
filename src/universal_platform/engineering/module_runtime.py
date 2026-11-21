@@ -8,13 +8,17 @@ termination is confirmed; unconfirmed worker exits quarantine the lease.
 """
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from threading import Condition, RLock
-from typing import Any, Protocol, runtime_checkable
-from uuid import uuid4
+from typing import Any
 
+from ..runtime.resources.allocator import ResourceAllocator, ResourceLease
+from ..runtime.resources.models import ResourceMetric
+from ..runtime.worker_ipc import WorkerInvocationHandle, WorkerIPCClient, WorkerIPCError
+from ..runtime.worker_protocol import WorkerFrame, WorkerProtocolError
 from .contracts import ModuleRequest, ModuleResponse
 from .errors import InvalidModelError
 from .module_registry import ModuleRegistry
@@ -183,7 +187,7 @@ class ModuleRuntime:
 
     Request.permissions is descriptive and is never treated as an authority
     grant. Worker process configuration is host-owned. Resource limits are
-    reservation requests against a host-configured allocator; they
+    reservation requests against a host-configured in-memory quota pool; they
     do not limit actual CPU, memory, I/O or runtime. A lease is retained in
     quarantine if the supervisor cannot confirm worker process-tree exit.
     """
@@ -320,7 +324,7 @@ class ModuleRuntime:
         client, handle = invocation
         try:
             return client.cancel(handle)
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Cancellation is a boolean control API; lease safety is enforced
             # independently by the invocation's termination result.
             return False
@@ -364,7 +368,9 @@ class ModuleRuntime:
                     host_instance_id=self._host_instance_id,
                     worker_id=worker_handle.worker_id,
                 )
-        return allocator.allocate(request.request_id, tuple(requested), ttl_seconds=None)
+            if "worker_id" in alloc_params:
+                alloc_kwargs["worker_id"] = worker_id
+        return allocator.allocate(request.request_id, tuple(requested), **alloc_kwargs)
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         if not isinstance(request, ModuleRequest):
@@ -396,7 +402,6 @@ class ModuleRuntime:
         key = (request.module_id, request.operation)
         required = frozenset(operation.required_permissions)
         # Admission and active-count increment share revoke's condition lock.
-        worker_handle: WorkerInvocationHandle | None = None
         with self._condition:
             granted = self._grants.get(request.module_id, frozenset())
             handler = self._handlers.get(key)
@@ -418,7 +423,7 @@ class ModuleRuntime:
                     )
                 try:
                     input_validation_error = _validate_module_input(request.inputs, operation)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     input_validation_error = "input schema validation failed"
                 if input_validation_error is not None:
                     return ModuleResponse(
@@ -441,12 +446,19 @@ class ModuleRuntime:
                 self._active_invocations.get(request.module_id, 0) + 1
             )
 
-        lease: ResourceLeasePort | None = None
+        lease: ResourceLease | None = None
         lease_quarantined = False
         try:
             try:
-                lease = self._reserve_resources(request, worker_handle=worker_handle)
-            except (ValueError, RuntimeError, OverflowError, OSError):
+                if isinstance(handler, WorkerIPCClient):
+                    lease = self._reserve_resources(
+                        request,
+                        lease_kind="supervised_worker",
+                        worker_id=worker_handle.worker_id,
+                    )
+                else:
+                    lease = self._reserve_resources(request)
+            except (ValueError, RuntimeError, OverflowError):
                 return ModuleResponse(
                     request_id=request.request_id, status="REJECTED",
                     error_code="module.resource_reservation_failed",
@@ -530,7 +542,7 @@ class ModuleRuntime:
                                     lease.lease_id,
                                     "worker process-tree termination was not confirmed",
                                 )
-                            except Exception:
+                            except Exception:  # noqa: BLE001
                                 quarantine_recorded = False
                             warnings = warnings + ((
                                 "Resource lease quarantined because worker termination was not confirmed; operator inspection is required."
@@ -562,14 +574,14 @@ class ModuleRuntime:
                 else:
                     try:
                         outputs = handler(request.inputs)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         return ModuleResponse(
                             request_id=request.request_id, status="ERROR",
                             error_code="module.handler_failed", warnings=warnings,
                         )
                 try:
                     validation_error = _validate_module_output(outputs, operation)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     validation_error = "output schema validation failed"
                 if validation_error is not None:
                     return ModuleResponse(

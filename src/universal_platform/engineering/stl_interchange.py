@@ -5,11 +5,12 @@ unit, identity, provenance and tessellation tolerance that STL cannot encode.
 """
 from __future__ import annotations
 
+import struct
+from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 from math import isfinite, sqrt
-import struct
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar
 
 from .errors import InvalidModelError
 from .mesh import TriangleMesh, validate_triangle_mesh
@@ -135,7 +136,7 @@ class STLInterchangeManifest:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "STLInterchangeManifest":
+    def from_dict(cls, value: Mapping[str, Any]) -> STLInterchangeManifest:
         if not isinstance(value, Mapping) or set(value) != _MANIFEST_FIELDS:
             raise InvalidModelError("STL manifest has missing or unknown fields")
         return cls(

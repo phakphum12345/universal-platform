@@ -1,23 +1,30 @@
 import pytest
 
 from universal_platform.engineering.mechanism_model import (
-    CoordinateKind, FrameReference, GeneralizedCoordinate, JointCoordinateParameterization,
-    JointKind, JointModel, LinkModel, MechanismModel, validate_mechanism_model,
+    CoordinateKind,
+    FrameReference,
+    GeneralizedCoordinate,
+    JointCoordinateParameterization,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
+    validate_mechanism_model,
 )
 
 
 def make_model(kind, coordinates=(), parameterization=None, **changes):
     axis = (1.0, 0.0, 0.0) if kind is JointKind.PRISMATIC else (0.0, 0.0, 1.0)
     unit = "rad" if kind in (JointKind.REVOLUTE, JointKind.HELICAL) else ("m" if kind is JointKind.PRISMATIC else None)
-    values = dict(
-        model_id="model/coordinates", revision="r1",
-        links=(LinkModel("link/base", "part-r1", "frame/base"), LinkModel("link/moving", "part-r1", "frame/moving")),
-        joints=(JointModel("joint/main", kind, "link/base", "link/moving", "frame/joint", axis, unit),),
-        frames=(FrameReference("frame/world"), FrameReference("frame/base", "frame/world", "link/base"),
+    values = {
+        "model_id": "model/coordinates", "revision": "r1",
+        "links": (LinkModel("link/base", "part-r1", "frame/base"), LinkModel("link/moving", "part-r1", "frame/moving")),
+        "joints": (JointModel("joint/main", kind, "link/base", "link/moving", "frame/joint", axis, unit),),
+        "frames": (FrameReference("frame/world"), FrameReference("frame/base", "frame/world", "link/base"),
                 FrameReference("frame/moving", "frame/world", "link/moving"), FrameReference("frame/joint", "frame/world")),
-        generalized_coordinates=tuple(coordinates),
-        joint_parameterizations=(() if parameterization is None else (parameterization,)),
-    )
+        "generalized_coordinates": tuple(coordinates),
+        "joint_parameterizations": (() if parameterization is None else (parameterization,)),
+    }
     values.update(changes)
     return MechanismModel(**values)
 

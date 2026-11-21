@@ -1,7 +1,8 @@
 """Unit-aware elementary mechanics calculations; not a design code checker."""
 from __future__ import annotations
-from .quantity import Quantity
+
 from .errors import DimensionMismatchError, EngineeringError
+from .quantity import Quantity
 
 FORCE = (1, 1, -2, 0, 0)
 AREA = (2, 0, 0, 0, 0)

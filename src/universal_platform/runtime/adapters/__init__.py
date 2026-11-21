@@ -1,5 +1,5 @@
 """Runtime adapter contracts and governed adapter discovery."""
-from .base import RuntimeAdapter, RepairExecutor
+from .base import RepairExecutor, RuntimeAdapter
 from .catalog import (
     AdapterCandidate,
     AdapterRegistry,
@@ -13,7 +13,7 @@ __all__ = [
     "AdapterRegistry",
     "AdapterReplacement",
     "AdapterReplacementCoordinator",
-    "RuntimeAdapterRouter",
     "RepairExecutor",
     "RuntimeAdapter",
+    "RuntimeAdapterRouter",
 ]

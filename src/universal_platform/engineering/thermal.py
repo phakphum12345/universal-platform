@@ -1,7 +1,9 @@
 """Elementary thermal expansion helpers; material coefficient is caller-supplied."""
 from math import isfinite
-from .quantity import Quantity
+
 from .errors import DimensionMismatchError, EngineeringError
+from .quantity import Quantity
+
 
 def linear_thermal_expansion(length: Quantity, coefficient_per_kelvin: float,
                              temperature_change_kelvin: float) -> Quantity:

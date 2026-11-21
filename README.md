@@ -1,24 +1,32 @@
+> **LIVE STATUS — 2026-11-21:** The current main-integration evidence is recorded in [Repository Audit 2026-11-21](docs/audit/REPOSITORY_AUDIT_2026-11-21_MAIN_INTEGRATION.md). PR #271 is OPEN and not merged; its exact head is `67bdc6411dd2e705684b0f15378ae5ed907636a2`, base `main` was `96e75010716226037893155b9fd4b13410fb0d6f`, and the latest PR-triggered Python engineering-core test job was still IN_PROGRESS at audit time. The owner has authorized merging completed, verified work into `main`, but this does not waive CI, diff, ancestry, security, or post-merge checks. Historical status snapshots below are retained for traceability and are not current status. SKIPPED and UNKNOWN are never PASS.
+
 # Universal Platform
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status — 2026-11-19
+## Current status — 2026-11-20
 
-- Stage: Active incremental implementation on `docs/phase-0-complete-requirements`; the repository is **INCOMPLETE**.
-- Historical audit baseline before PR #116: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2`; its recorded historical suite result was 732 passed. Retained for traceability only, not current CI evidence.
-- Exact Development Branch HEAD at PR #246 creation: `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8` (PR #242 documentation reconciliation merge).
-- Latest verified merged runtime increment: PR #244, merge commit `b6e02988b009754fbf0ccdfc032c33174355e5c6`. Exact-head run #43283027429 passed its recorded required jobs; post-merge CI on the exact merge SHA was not found in this audit and remains UNKNOWN.
-- Main HEAD observed: `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
-- PR #243 (Windows containment contract refinement) remains OPEN. It contains unique process/thread-handle ownership and descendant/pipe acceptance refinements not made redundant by PR #244's implementation; preserve those requirements while reconciling its stale status edits.
-- PR #245 (versioned Worker IPC framing) remains OPEN at exact head `2cd11f445f003f68a4478f1ceff04fd29c823b28`. Exact-head run #44562681272 passed workflow-sanity, Windows supervisor and Python (1,096 passed, 4 skipped). Formal review submissions and unresolved review threads were empty; review outcome is UNKNOWN. The transport primitive is verified on its PR branch but not integrated.
-- Earlier PR #245 runs #44559792152 and #44562681272 apply to different exact heads; only #44562681272 verifies the latest head. Run #44561148170 failed two newly added negative tests due error wrapping; the fix is included in the latest passing head.
-- The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) is the repository-wide execution ledger. Use it with [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md) and [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md).
-- Runtime maturity remains PARTIAL: ModuleRuntime is not yet wired through supervised workers; IPC integration, lease coupling, durable recovery and security isolation remain open.
-- CAD, Mechanics, Physics, Hardware/EDA, Unified Control Center and platform-wide acceptance remain PARTIAL or PLANNED as detailed in the matrix.
-- Local working-tree state and protected-branch configuration are UNKNOWN to this GitHub-only audit.
-- Principles: local-first, cost-aware, evidence-driven, modular and secure. No new paid service or public exposure without documented need and approval.
+- Overall lifecycle: **INCOMPLETE**. This is an active development repository, not a release-accepted universal platform.
+- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`. Development is 878 commits ahead / 0 behind; main is an ancestor.
+- GitHub reports `main` and development as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Branch protection remains an owner/admin governance action.
+- Current PR inventory #1–#266: **239 merged, 18 closed without merge, 9 open (#258–#266)**. All nine are unmerged; no PR in the current runtime dependency chain has post-merge evidence.
+- PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS.
+- PR #259: audit/documentation refresh branch; the prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed (Python 1,150 passed / 4 skipped, Windows and workflow sanity PASS). This live documentation update advances the branch again; validate its new exact head before treating the PR as PASS. Historical README compatibility anchors are not current test counts.
+- PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS. It depends on #258.
+- PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable Linux/Windows process identity snapshot foundation. Depends on #260.
+- PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable process identity binding and journal replay. Depends on #261.
+- PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Linux start gate and Windows suspended-process/Job Object hand-off. Python 1,179 passed / 5 skipped; Windows process supervisor 22 passed / 5 skipped; Windows journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
+- PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; WorkerIPC/ModuleRuntime binds OS identity before worker payload execution. Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
+- PR #265 @ `088db6ad3178ac02321012a50fb319f5996d2d52`: Draft process-liveness adapters; exact-head Python 1,194 passed / 6 skipped, Windows supervisor 22 passed / 5 skipped, journal 20 passed / 1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped, workflow sanity PASS.
+- PR #266: Draft durable allocator startup reconciliation; current exact-head CI is QUEUED. It depends on #265.
+- PR #258–#266 have no formal review submissions or unresolved review threads at the latest GitHub review query. Mergeability is reported clean/true; that is not approval.
+- WP-09G-A is integrated via #257. WP-09G-B is verified on #258/#260 but not integrated. WP-09G-C candidate implementation passes CI through #264 but remains unmerged. WP-09G-D is in progress (#265/#266); WP-09G-E operator recovery remains open.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. CI currently lacks repository-wide lint/type-check/dependency-security gates. Local working-tree state is UNKNOWN to this GitHub-only audit.
+- No PR has been merged in this execution. No merge to `main`, deployment or paid infrastructure is implied.
+- Use the [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) as the current evidence set.
 
 ## Initial implementation (active development)
+
 
 The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
@@ -104,6 +112,7 @@ This remains an incremental engineering foundation, not a completed universal pl
 
 ### Engineering intelligence
 - [Universal Engineering Intelligence Core](docs/engineering/UNIVERSAL_ENGINEERING_INTELLIGENCE_CORE.md)
+- [Geometry Batch Validation CLI](docs/engineering/GEOMETRY_BATCH_VALIDATION.md)
 - [Multidisciplinary Knowledge Modules](docs/engineering/MULTIDISCIPLINARY_KNOWLEDGE_MODULES.md)
 - [Physics and First-Principles Modeling](docs/engineering/PHYSICS_AND_FIRST_PRINCIPLES.md)
 - [Universal Calculation Engine](docs/engineering/UNIVERSAL_CALCULATION_ENGINE.md)
@@ -361,3 +370,5 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 ## Planned UI modernization
 
 WP-15 defines a Modern Unified Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, audit and settings. It is PLANNED only; see [the WP-15 specification](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). Existing UI and API surfaces must be inventoried before implementation or replacement.
+
+Historical documentation compatibility anchor: `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a pinned reference required by the post-PR #113 audit regression test. It is a historical baseline, not the current branch HEAD. The historical post-PR #113 test snapshot recorded `732 passed`; this is retained as historical evidence, not a claim about the current test suite.

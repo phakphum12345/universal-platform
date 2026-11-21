@@ -1,12 +1,13 @@
 """Adapter-driven resource sampling and immutable snapshot publication."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import os
-from pathlib import Path
 import shutil
+from collections.abc import Callable, Iterable
+from datetime import UTC, datetime
+from pathlib import Path
 from threading import RLock
-from typing import Callable, Iterable, Protocol
+from typing import Protocol
 
 from .models import ResourceMetric, ResourceSnapshot
 from .registry import ResourceRegistry
@@ -27,7 +28,7 @@ class ResourceSnapshotCollector:
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._registry = registry
-        self._clock = clock or (lambda: datetime.now(timezone.utc))
+        self._clock = clock or (lambda: datetime.now(UTC))
         self._providers: dict[str, ResourceMetricProvider] = {}
         self._sequences: dict[str, int] = {}
         self._lock = RLock()

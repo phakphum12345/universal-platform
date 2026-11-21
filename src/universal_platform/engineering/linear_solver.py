@@ -1,8 +1,11 @@
 """Deterministic Gaussian-elimination solver for small dense linear systems."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from math import isfinite
+
 from .errors import SolverError
+
 
 @dataclass(frozen=True, slots=True)
 class LinearSolveResult:

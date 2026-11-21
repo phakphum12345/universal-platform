@@ -1,9 +1,11 @@
 """Immutable resource identity, measurements and lifecycle models."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from math import isfinite
+
 
 class ResourceState(str, Enum):
     ACTIVE = "ACTIVE"
@@ -37,11 +39,11 @@ class ResourceRecord:
         if self.generation < 0:
             raise ValueError("generation must be non-negative")
 
-    def with_state(self, state: ResourceState) -> "ResourceRecord":
+    def with_state(self, state: ResourceState) -> ResourceRecord:
         return ResourceRecord(self.resource_id, self.resource_kind, self.adapter_id,
                               self.required_capabilities, state, self.generation + 1)
 
-    def with_adapter(self, adapter_id: str) -> "ResourceRecord":
+    def with_adapter(self, adapter_id: str) -> ResourceRecord:
         if not adapter_id.strip():
             raise ValueError("adapter_id must be a non-empty string")
         return ResourceRecord(self.resource_id, self.resource_kind, adapter_id,
@@ -58,7 +60,7 @@ class ResourceMetric:
         if not self.name.strip() or not self.unit.strip():
             raise ValueError("metric name and unit must be non-empty")
         if isinstance(self.value, bool) or not isinstance(self.value, (int, float)):
-            raise ValueError("metric value must be numeric")
+            raise ValueError("metric value must be numeric")  # noqa: TRY004
         if not isfinite(float(self.value)) or self.value < 0:
             raise ValueError("metric value must be finite and non-negative")
 

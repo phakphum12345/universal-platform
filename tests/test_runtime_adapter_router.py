@@ -43,7 +43,7 @@ def setup():
 
 
 def test_replacement_atomically_updates_registry_and_runtime_route():
-    resources, router, coordinator, old, new = setup()
+    resources, router, coordinator, _old, new = setup()
     result = coordinator.replace_asleep_resource(
         "worker-1", minimum_version="1.0", allowed_licenses=("MIT",),
         dependency_check=lambda dependencies: True,
@@ -89,7 +89,7 @@ def test_failed_candidate_validation_preserves_existing_runtime_route():
 
 
 def test_router_rejects_stale_route_and_non_sleeping_replacement():
-    resources, router, coordinator, old, new = setup()
+    resources, router, _coordinator, old, new = setup()
     resources.transition("worker-1", ResourceState.DIAGNOSING)
     with pytest.raises(RuntimeError, match="SLEEP"):
         router.replace_asleep("worker-1", new)

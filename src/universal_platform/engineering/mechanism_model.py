@@ -12,7 +12,6 @@ from math import isfinite, sqrt
 
 from .transforms import RigidTransform
 
-
 SCHEMA_VERSION = "1.2"
 SUPPORTED_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
 
@@ -280,13 +279,13 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
         return {value for value in values if isinstance(value, str) and value.strip()}
 
     link_ids = unique_ids(model.links, "link_id", "link")
-    joint_ids = unique_ids(model.joints, "joint_id", "joint")
+    unique_ids(model.joints, "joint_id", "joint")
     frame_ids = unique_ids(model.frames, "frame_id", "frame")
     geometry_ids = unique_ids(model.geometry, "geometry_id", "geometry")
-    joint_placement_ids = unique_ids(
+    unique_ids(
         model.joint_placements, "joint_id", "joint placement"
     )
-    geometry_placement_ids = unique_ids(
+    unique_ids(
         model.geometry_placements, "geometry_id", "geometry placement"
     )
     coordinate_ids = unique_ids(
@@ -552,15 +551,13 @@ def validate_mechanism_model(model: MechanismModel) -> ModelValidationResult:
                     alignment = sum(float(a) * float(b) for a, b in zip(coordinate.axis, joint.axis))
                     if alignment < 1.0 - 1e-9:
                         errors.append(f"Joint parameterization {joint.joint_id!r} coordinate axes must align with the declared joint axis")
-        if joint.joint_kind is JointKind.UNIVERSAL and len(mapped) == 2:
-            if all(isinstance(item.axis, tuple) and len(item.axis) == 3
+        if joint.joint_kind is JointKind.UNIVERSAL and len(mapped) == 2 and all(isinstance(item.axis, tuple) and len(item.axis) == 3
                    and all(isinstance(v, (int, float)) and not isinstance(v, bool)
                            and isfinite(v) for v in item.axis) for item in mapped):
                 dot = sum(float(a) * float(b) for a, b in zip(mapped[0].axis, mapped[1].axis))
                 if abs(dot) >= 1.0 - 1e-9:
                     errors.append(f"Universal joint {joint.joint_id!r} coordinate axes must not be parallel")
-        if joint.joint_kind is JointKind.PLANAR and len(mapped) == 3:
-            if all(isinstance(item.axis, tuple) and len(item.axis) == 3
+        if joint.joint_kind is JointKind.PLANAR and len(mapped) == 3 and all(isinstance(item.axis, tuple) and len(item.axis) == 3
                    and all(isinstance(v, (int, float)) and not isinstance(v, bool)
                            and isfinite(v) for v in item.axis) for item in mapped):
                 x_axis, y_axis, z_axis = (item.axis for item in mapped)

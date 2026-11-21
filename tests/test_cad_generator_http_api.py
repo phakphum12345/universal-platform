@@ -13,15 +13,20 @@ from universal_platform.engineering import (
     SQLiteFeatureHistoryStore,
     create_cad_generator_http_server,
 )
-from universal_platform.engineering.feature_history import FeatureHistory, FeatureKind, FeatureNode
+from universal_platform.engineering.feature_history import (
+    FeatureHistory,
+    FeatureKind,
+    FeatureNode,
+)
 from universal_platform.engineering.parametric_sketch import (
     ParametricSketch,
     SketchConstraint,
-    SketchConstraintKind as Kind,
     SketchPoint,
     SketchSegment,
 )
-
+from universal_platform.engineering.parametric_sketch import (
+    SketchConstraintKind as Kind,
+)
 
 TOKEN = "local-test-token-" + ("x" * 40)
 
@@ -319,7 +324,7 @@ def test_http_api_enforces_body_size_strict_json_and_revision_conflict(api):
     assert status == 413
     assert oversized["error"]["code"] == "REQUEST_TOO_LARGE"
 
-    status, malformed = send(
+    status, _malformed = send(
         base, "/v1/histories", method="POST",
         body={"history": make_history().to_dict(), "expected_revision": 0},
     )
@@ -701,7 +706,7 @@ def test_http_api_reorders_feature_presentation_without_changing_execution_order
         ),
         ("dependent", "independent"),
     )
-    status, created = send(base, "/v1/histories", method="POST", body={"history": history.to_dict(), "expected_revision": 0})
+    status, _created = send(base, "/v1/histories", method="POST", body={"history": history.to_dict(), "expected_revision": 0})
     assert status == 201
     status, saved = send(
         base, "/v1/histories/history.reorder/edit", method="POST",

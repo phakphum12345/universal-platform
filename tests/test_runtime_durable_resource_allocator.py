@@ -1,10 +1,13 @@
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
 import json
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
+from universal_platform.runtime.process_identity import ProcessIdentity
+from universal_platform.runtime.resources.durable_allocator import (
+    DurableResourceAllocator,
+)
 from universal_platform.runtime.resources.models import ResourceMetric
 from universal_platform.runtime.process_identity import ProcessIdentity
 from universal_platform.runtime.process_reconciliation import ProcessLiveness, ProcessLivenessEvidence
@@ -53,7 +56,7 @@ def test_durable_allocator_pins_capacity_configuration(tmp_path):
 
 
 def test_durable_quarantine_survives_restart_and_never_expires(tmp_path):
-    now = datetime(2026, 11, 20, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 20, tzinfo=UTC)
     first = DurableResourceAllocator(tmp_path, capacity(), pool_id="quarantine")
     lease = first.allocate(
         "worker-a", (ResourceMetric("cpu.cores", 1, "cores"),),
@@ -100,9 +103,9 @@ def test_durable_release_is_persisted_and_idempotent(tmp_path):
 
 
 def test_expired_ordinary_lease_is_released_as_a_durable_event(tmp_path):
-    now = datetime(2026, 11, 20, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 20, tzinfo=UTC)
     allocator = DurableResourceAllocator(tmp_path, capacity(), pool_id="expiry")
-    lease = allocator.allocate(
+    allocator.allocate(
         "worker", (ResourceMetric("cpu.cores", 1, "cores"),), ttl_seconds=5, now=now,
     )
     assert allocator.active_leases(now=now + timedelta(seconds=5)) == ()

@@ -7,13 +7,13 @@ and do not protect against an attacker who can rewrite the entire database.
 """
 from __future__ import annotations
 
-from contextlib import closing
-from hashlib import sha256
 import json
-from math import isfinite
-from pathlib import Path
 import re
 import sqlite3
+from contextlib import closing
+from hashlib import sha256
+from math import isfinite
+from pathlib import Path
 from typing import Final
 
 from .errors import InvalidModelError

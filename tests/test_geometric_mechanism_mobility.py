@@ -1,14 +1,23 @@
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
-from universal_platform.engineering.mechanism_model import (
-    CoordinateKind, FrameReference, GeneralizedCoordinate,
-    JointCoordinateParameterization, JointFramePlacement, JointKind,
-    JointModel, LinkModel, MechanismModel,
-)
 from universal_platform.engineering.mechanism_mobility import (
-    ConstraintJacobian, MobilityFormulation, SingularityStatus,
-    analyze_geometric_mechanism_mobility, analyze_mechanism_mobility,
+    ConstraintJacobian,
+    MobilityFormulation,
+    SingularityStatus,
+    analyze_geometric_mechanism_mobility,
+    analyze_mechanism_mobility,
+)
+from universal_platform.engineering.mechanism_model import (
+    CoordinateKind,
+    FrameReference,
+    GeneralizedCoordinate,
+    JointCoordinateParameterization,
+    JointFramePlacement,
+    JointKind,
+    JointModel,
+    LinkModel,
+    MechanismModel,
 )
 from universal_platform.engineering.transforms import RigidTransform
 

@@ -1,5 +1,4 @@
 """Governed runtime resource management, supervision and recovery primitives."""
-from .resources.registry import ResourceRegistry
 from .resources.models import ResourceRecord, ResourceState
 from .process_identity import ProcessIdentity, capture_process_identity
 from .process_reconciliation import (
@@ -25,6 +24,7 @@ __all__ = [
     "WorkerTerminationError",
     "WorkerIPCClient",
     "WorkerIPCError",
+    "WorkerResult",
     "WorkerSpec",
     "capture_process_identity",
 ]

@@ -1,10 +1,18 @@
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
+
 import pytest
+
 from universal_platform.runtime.health.log_analyzer import analyze_logs
 from universal_platform.runtime.recovery.coordinator import RecoveryCoordinator
-from universal_platform.runtime.resources.models import ResourceMetric, ResourceRecord, ResourceSnapshot, ResourceState
+from universal_platform.runtime.resources.models import (
+    ResourceMetric,
+    ResourceRecord,
+    ResourceSnapshot,
+    ResourceState,
+)
 from universal_platform.runtime.resources.registry import ResourceRegistry
+
 
 @dataclass
 class FakeAdapter:
@@ -90,14 +98,14 @@ def test_registry_rejects_stale_state_and_invalid_transition():
 def test_resource_registry_stores_unit_bearing_monotonic_snapshots():
     registry = make_registry()
     first = ResourceSnapshot(
-        "worker-1", 1, datetime.now(timezone.utc),
+        "worker-1", 1, datetime.now(UTC),
         (ResourceMetric("cpu.utilization", 31.5, "%"), ResourceMetric("memory.used", 2048, "bytes")),
     )
     registry.record_snapshot(first)
     assert registry.latest_resource_snapshot("worker-1").to_dict()["metrics"][0]["name"] == "cpu.utilization"
     with pytest.raises(ValueError, match="monotonically"):
         registry.record_snapshot(first)
-    second = ResourceSnapshot("worker-1", 2, datetime.now(timezone.utc), (ResourceMetric("disk.free", 4096, "bytes"),))
+    second = ResourceSnapshot("worker-1", 2, datetime.now(UTC), (ResourceMetric("disk.free", 4096, "bytes"),))
     registry.record_snapshot(second)
     assert registry.latest_resource_snapshot("worker-1").sequence == 2
 
@@ -107,6 +115,6 @@ def test_resource_metrics_reject_invalid_values_and_duplicate_names():
         ResourceMetric("memory.used", float("nan"), "bytes")
     with pytest.raises(ValueError, match="unique"):
         ResourceSnapshot(
-            "worker-1", 1, datetime.now(timezone.utc),
+            "worker-1", 1, datetime.now(UTC),
             (ResourceMetric("cpu", 1, "%"), ResourceMetric("cpu", 2, "%")),
         )

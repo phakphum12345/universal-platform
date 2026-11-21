@@ -1,17 +1,31 @@
 """Bounded global arrangement orchestration for multiple faceted mesh inputs."""
 from __future__ import annotations
+
+from collections.abc import Sequence
 from dataclasses import dataclass
 from fractions import Fraction
 from math import gcd, lcm
-from typing import Sequence
 
-from .errors import InvalidModelError
 from .boolean_resource_budget import BooleanResourceLedger
+from .errors import InvalidModelError
+from .global_triangle_arrangement import (
+    GlobalTriangleArrangement,
+    arrange_triangle_mesh_globally,
+)
 from .mesh import TriangleMesh, validate_triangle_mesh
 from .mesh_intersection import analyze_mesh_intersections
-from .triangle_coverage_oracle import (coplanar_contact_is_covered, coplanar_triangle_intersection_geometry, coplanar_triangle_intersection_kind)
-from .triangle_fragment_arrangement import RationalPlane, RationalPoint3, RationalTriangle3, RationalTriangleFragment
-from .global_triangle_arrangement import GlobalTriangleArrangement, arrange_triangle_mesh_globally
+from .triangle_coverage_oracle import (
+    coplanar_contact_is_covered,
+    coplanar_triangle_intersection_geometry,
+    coplanar_triangle_intersection_kind,
+)
+from .triangle_fragment_arrangement import (
+    RationalPlane,
+    RationalPoint3,
+    RationalTriangle3,
+    RationalTriangleFragment,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class FacetedBooleanArrangement:

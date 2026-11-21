@@ -1,13 +1,18 @@
 import copy
 import json
 from dataclasses import replace
-from pathlib import Path
 from math import cos, sin
+from pathlib import Path
 
 import pytest
 
 from universal_platform.engineering.errors import InvalidModelError
 from universal_platform.engineering.geometry import Vec3
+from universal_platform.engineering.mechanism_mobility import (
+    MobilityFormulation,
+    SingularityStatus,
+    analyze_geometric_mechanism_mobility,
+)
 from universal_platform.engineering.mechanism_model import (
     CoordinateKind,
     FrameReference,
@@ -18,11 +23,6 @@ from universal_platform.engineering.mechanism_model import (
     JointModel,
     LinkModel,
     MechanismModel,
-)
-from universal_platform.engineering.mechanism_mobility import (
-    MobilityFormulation,
-    SingularityStatus,
-    analyze_geometric_mechanism_mobility,
 )
 from universal_platform.engineering.transforms import RigidTransform
 
@@ -154,7 +154,7 @@ def test_rotated_and_translated_plane_frame_preserves_planar_joint_mobility():
     plane_to_world = RigidTransform(
         plane_id, "world", rotation_x(0.31), Vec3(1.2, -0.7, 2.1), "m",
     )
-    parent_frame, child_frame, joint_frame = "frame/parent", "frame/child", "frame/joint"
+    parent_frame, _child_frame, joint_frame = "frame/parent", "frame/child", "frame/joint"
     parent_to_plane = RigidTransform(
         parent_frame, plane_id, rotation_z(0.2), Vec3(0.3, 0.1, 0.0), "m",
     )

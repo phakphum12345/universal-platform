@@ -6,15 +6,14 @@ a general STEP/AP242 translator.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from hashlib import sha256
 from math import isfinite, sqrt
-import re
-from typing import Any
 
 from .errors import InvalidModelError
 from .geometry import Vec3
-from .mesh import TriangleMesh, MeshValidationResult, validate_triangle_mesh
+from .mesh import MeshValidationResult, TriangleMesh, validate_triangle_mesh
 
 _MAX_FILE_BYTES = 64 * 1024 * 1024
 _MAX_ENTITIES = 1_000_000
@@ -433,9 +432,8 @@ def import_step(content: bytes) -> STEPImportResult:
     triangles_by_ids: list[tuple[int, int, int]] = []
     for face_id in face_ids:
         face_args = get(face_id, "FACE_SURFACE")
-        if len(face_args) != 4 or _unquote(face_args[0]) == "":
+        if len(face_args) != 4:
             # Empty names are valid STEP labels; only arity and booleans matter.
-            if len(face_args) != 4:
                 raise InvalidModelError("STEP FACE_SURFACE has invalid arity")
         bounds = _refs(face_args[1])
         if len(bounds) != 1:
@@ -499,14 +497,13 @@ def import_step(content: bytes) -> STEPImportResult:
     triangles = tuple(tuple(point_index[item] for item in face) for face in triangles_by_ids)
     frame_id = "step.model"
     source_digest = sha256(content).hexdigest()
-    source_kind = "IMPORTED_STEP"
     for item in descriptions:
         if item.startswith("UP_FRAME_ID="):
             frame_id = item.split("=", 1)[1]
         elif item.startswith("UP_SOURCE_SHA256="):
             source_digest = item.split("=", 1)[1]
         elif item.startswith("UP_SOURCE_KIND="):
-            source_kind = item.split("=", 1)[1]
+            item.split("=", 1)[1]
     if not _SHA256.fullmatch(source_digest):
         raise InvalidModelError("STEP source geometry metadata must be a lowercase SHA-256 digest")
     mesh = TriangleMesh(

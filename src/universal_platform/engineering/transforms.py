@@ -5,9 +5,10 @@ in the destination frame. Only proper rigid rotations are accepted.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from math import isclose, isfinite
-from typing import ClassVar, Mapping, TypeAlias
+from typing import ClassVar, TypeAlias
 
 from .errors import InvalidModelError
 from .geometry import BoundingBox, Vec3
@@ -85,7 +86,7 @@ class RigidTransform:
     from_frame: str
     to_frame: str
     rotation: Matrix3 = _IDENTITY
-    translation: Vec3 = Vec3(0.0, 0.0, 0.0)
+    translation: Vec3 = field(default_factory=lambda: Vec3(0.0, 0.0, 0.0))
     length_unit: str = "m"
 
     SCHEMA_VERSION: ClassVar[str] = "1.0"
@@ -108,7 +109,7 @@ class RigidTransform:
         _validate_rotation(self.rotation, 1e-9)
 
     @classmethod
-    def identity(cls, frame_id: str, length_unit: str = "m") -> "RigidTransform":
+    def identity(cls, frame_id: str, length_unit: str = "m") -> RigidTransform:
         return cls(frame_id, frame_id, length_unit=length_unit)
 
     def to_dict(self) -> dict[str, object]:
@@ -126,7 +127,7 @@ class RigidTransform:
         }
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, object]) -> "RigidTransform":
+    def from_dict(cls, value: Mapping[str, object]) -> RigidTransform:
         expected = {"schema_version", "from_frame", "to_frame", "rotation", "translation"}
         if not isinstance(value, Mapping) or set(value) != expected:
             raise InvalidModelError("RigidTransform snapshot has missing or unknown fields")
@@ -177,7 +178,7 @@ class RigidTransform:
             Vec3(*(max(getattr(point, axis) for point in corners) for axis in ("x", "y", "z"))),
         )
 
-    def inverse(self) -> "RigidTransform":
+    def inverse(self) -> RigidTransform:
         """Return the inverse mapping from to_frame back to from_frame."""
         inverse_rotation = _transpose(self.rotation)
         inverse_translation = _mat_vec(
@@ -187,7 +188,7 @@ class RigidTransform:
         return RigidTransform(self.to_frame, self.from_frame,
                               inverse_rotation, inverse_translation, self.length_unit)
 
-    def then(self, next_transform: "RigidTransform") -> "RigidTransform":
+    def then(self, next_transform: RigidTransform) -> RigidTransform:
         """Compose this A→B mapping followed by a B→C mapping."""
         if self.to_frame != next_transform.from_frame:
             raise InvalidModelError(

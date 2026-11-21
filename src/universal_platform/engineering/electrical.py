@@ -1,6 +1,6 @@
 """Elementary DC electrical calculations with dimensional validation."""
-from .quantity import Quantity
 from .errors import DimensionMismatchError, EngineeringError
+from .quantity import Quantity
 
 VOLTAGE = (2, 1, -3, -1, 0)
 CURRENT = (0, 0, 0, 1, 0)
