@@ -87,13 +87,13 @@ class WorkerReconciliationResult:
         if not isinstance(self.lease_id, str) or not self.lease_id.strip():
             raise TypeError("lease_id must be a non-empty string") if not isinstance(self.lease_id, str) else ValueError("lease_id must be a non-empty string")
         if not isinstance(self.status, ProcessLiveness):
-            raise ValueError("status must be a ProcessLiveness")
+            raise TypeError("status must be a ProcessLiveness")
         if not isinstance(self.action, str) or self.action not in {
             "retained", "released", "quarantined", "retained_quarantine"
         }:
             raise TypeError("action must be a string") if not isinstance(self.action, str) else ValueError("unsupported worker reconciliation action")
         if self.reason is not None and not isinstance(self.reason, str):
-            raise ValueError("reason must be a string or None")
+            raise TypeError("reason must be a string or None")
         if self.evidence is not None and not isinstance(self.evidence, ProcessLivenessEvidence):
             raise TypeError("evidence must be ProcessLivenessEvidence or None")
 
@@ -126,14 +126,14 @@ class ProcessIdentityInspector:
             identity=identity,
             status=status,
             method=method,
-            observed_at=datetime.now(timezone.utc),
+            observed_at=datetime.now(UTC),
             reason=reason,
             details=details,
         )
 
     def inspect(self, identity: ProcessIdentity) -> ProcessLivenessEvidence:
         if not isinstance(identity, ProcessIdentity):
-            raise ValueError("identity must be a ProcessIdentity")
+            raise TypeError("identity must be a ProcessIdentity")
         if identity.platform == "linux":
             if sys.platform != "linux":
                 return self._evidence(
