@@ -5,9 +5,9 @@
 > **LIVE RECONCILIATION — 2026-11-21:** Main `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; PR #271 and #272 merged; PR #272 post-merge CI 4/4 PASS. No open PRs. WP-09G-A through D integrated; WP-09G-E not implemented. WP-15A inventory exists, WP-15B awaits owner acceptance, WP-15C not started. Repository remains INCOMPLETE. Main branch protection is disabled. See [Continuous Execution Audit](../audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
 > **Historical traceability baseline (post-PR #113):** `50b5ff50e52e9f9f83d1b33030875b53ee7702e2` is retained as a historical integration reference; the associated historical test count was **732 passed** and is not a current test count. The historical audit records bounded runtime controls only: the Process Supervisor is not an OS sandbox, and in-memory resource/quota state is not durable or distributed. Current runtime/security maturity remains PARTIAL / INCOMPLETE.
 >
-> **Historical verified integration baseline (superseded by main integration on 2026-11-20/21):** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` on `docs/phase-0-complete-requirements` (PR #240 merged 2026-11-12). The default `main` branch remains `96e75010716226037893155b9fd4b13410fb0d6f`; no promotion to main is implied.
+> **Historical verified integration baseline (superseded by main integration on 2026-11-20/21):** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` on `docs/phase-0-complete-requirements` (PR #240 merged 2026-11-12). At that historical snapshot, the default `main` branch was `96e75010716226037893155b9fd4b13410fb0d6f`; this was superseded by the 2026-11-20/21 main integration.
 >
-> **Historical verified slices at that baseline:** PR #235–#240 add policy-gated trusted in-process dispatch, a bounded Physics adapter, host-configured in-memory quota reservations, bounded output-schema enforcement, grant/revoke draining, and POSIX process-supervisor lifecycle cleanup. Post-merge workflow runs on each exact merge SHA passed `python-tests` and `workflow-sanity`; see the current reconciliation section and Work Package Status. PR #241 is OPEN and unmerged; its Windows CI passed but does not implement Job Objects.
+> **Historical verified slices at that baseline:** PR #235–#240 add policy-gated trusted in-process dispatch, a bounded Physics adapter, host-configured in-memory quota reservations, bounded output-schema enforcement, grant/revoke draining, and POSIX process-supervisor lifecycle cleanup. Post-merge workflow runs on each exact merge SHA passed `python-tests` and `workflow-sanity`; see the current reconciliation section and Work Package Status. At that historical checkpoint PR #241 was still open; it was subsequently integrated in the accumulated baseline, including bounded Windows Job Object containment via PR #244.
 >
 > **Overall status:** INCOMPLETE. CAD Boolean remains PARTIAL; Physics remains PARTIAL; Module Runtime, hardware/driver integration, API/orchestration, security and repository-wide acceptance remain incomplete. Historical audit entries below are retained as historical evidence, not current branch-state claims.
 
@@ -1491,7 +1491,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
 - Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
 - PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
-- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- Historical snapshot: PR #241 was then OPEN and unmerged; it was subsequently integrated. Exact historical head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
 - PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
 - Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
 - No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
@@ -1517,7 +1517,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ### Next dependency-ready work
 
-1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+1. Historical recommendation at that checkpoint: keep PR #241 open while documentation reconciliation is reviewed.
 2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
 3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.
