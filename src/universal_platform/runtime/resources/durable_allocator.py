@@ -1,8 +1,6 @@
 """Journal-backed resource reservations with cross-process admission serialization."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from collections.abc import Iterable
@@ -329,7 +327,7 @@ class DurableResourceAllocator:
                         else:
                             status = ProcessLiveness.UNKNOWN
                             reason = "process inspector returned invalid or mismatched evidence"
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001 - unknown liveness must fail closed
                         status = ProcessLiveness.UNKNOWN
                         reason = f"process liveness inspection failed ({error.__class__.__name__})"
 
