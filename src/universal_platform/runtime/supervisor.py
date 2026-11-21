@@ -12,9 +12,9 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Mapping, Sequence
 
 from .process_identity import ProcessIdentity, capture_process_identity
 from .windows_job import WindowsJob
@@ -289,7 +289,7 @@ class PythonProcessSupervisor:
                 self._cancelled.discard(spec.worker_id)
             if cleanup_error is not None and process is not None:
                 raise WorkerTerminationError(spec.worker_id) from cleanup_error
-            raise launch_error
+            raise
         output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
         truncated = threading.Event()
 
@@ -484,13 +484,14 @@ class PythonProcessSupervisor:
     @staticmethod
     def _linux_process_group_has_live_members(
         process_group_id: int,
-        proc_root: Path = Path("/proc"),
+        proc_root: str | os.PathLike[str] = "/proc",
     ) -> bool | None:
         """Return whether /proc reports a live member; Z/X entries are terminated.
 
         None means /proc could not be inspected and the caller should fall back
         to the portable killpg probe.
         """
+        proc_root = Path(proc_root)
         try:
             entries = tuple(proc_root.iterdir())
         except OSError:
