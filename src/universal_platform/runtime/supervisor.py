@@ -12,6 +12,8 @@ import subprocess
 import sys
 import threading
 import time
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable, Mapping, Sequence
 
 from .process_identity import ProcessIdentity, capture_process_identity
@@ -261,7 +263,7 @@ class PythonProcessSupervisor:
                 if job is not None:
                     try:
                         job.terminate()
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001 - cleanup must attempt every termination path
                         cleanup_error = cleanup_error or error
                 try:
                     self._terminate_process(
@@ -269,7 +271,7 @@ class PythonProcessSupervisor:
                         max(1.0, spec.terminate_grace_seconds + 1.0),
                         job,
                     )
-                except Exception as error:
+                except Exception as error:  # noqa: BLE001 - cleanup must attempt every termination path
                     cleanup_error = cleanup_error or error
                 try:
                     process.wait(timeout=max(1.0, spec.terminate_grace_seconds + 1.0))
