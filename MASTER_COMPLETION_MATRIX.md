@@ -1,18 +1,19 @@
-> **LIVE STATUS — 2026-11-21:** `main` is at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 merged as `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged as `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. The exact merge-commit check-run set for #272 is 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor). GitHub currently reports 0 open PRs. Eighteen historical closed-without-merge PRs remain subject to patch/ancestry reconciliation; do not cherry-pick them without verifying unique content. `main` branch protection and required status checks are disabled. WP-09G-A through D are integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B remains a draft pending owner acceptance, and WP-15C shared-shell implementation is not started. Overall repository status remains **INCOMPLETE**. Historical snapshots are retained for traceability. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-21
+## Live repository reconciliation — 2026-11-22
 
 **This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
 
-- `main` HEAD: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- PR #271 merge: `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`.
-- PR #272 merge: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- Exact post-merge CI on #272: 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor).
-- Open PRs: 0. Eighteen closed-without-merge PRs remain recorded; preliminary dispositions are in [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
-- `main` protection is disabled and required status checks are not enforced.
-- Tracked generated `__pycache__` / `.pyc` artifacts were observed in the recursive tree despite ignore rules; isolate cleanup into a dedicated PR.
+- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 merged; open PRs: 0.
+- Exact merge-SHA CI: repository-quality PASS; workflow-sanity PASS; python-tests PASS; windows-process-supervisor PASS.
+- Chromium E2E first attempt: 1/9 failed in FeatureHistory branch/fork/merge. Retry on the same SHA: CAD Generator 9/9 PASS and Control Center 4/4 PASS. No intervening code change; initial failure root cause UNKNOWN.
+- Main branch protection is disabled; required checks are not enforced.
+- Recursive tree: 698 entries; 223 tracked `__pycache__` / `.pyc` entries require dedicated cleanup.
+- WP-09G-A through D integrated; WP-09G-E remains open.
+- WP-15C shell is merged; WP-15B remains draft pending owner acceptance; real platform-wide backend integration remains open.
+- Overall repository status remains **INCOMPLETE**.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
