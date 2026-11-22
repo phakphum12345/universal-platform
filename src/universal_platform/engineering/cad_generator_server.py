@@ -120,7 +120,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     """Start the foreground local service; Ctrl+C closes the listening socket."""
     args = build_parser().parse_args(argv)
-    data_path = resolve_data_directory(args.data_dir)
+    data_path = resolve_data_directory(
+        args.data_dir,
+        local_app_data=os.environ.get("LOCALAPPDATA"),
+        xdg_data_home=os.environ.get("XDG_DATA_HOME"),
+    )
     configured_token = os.environ.get("UP_CAD_BEARER_TOKEN")
     try:
         server, token, generated, data_path = create_local_server(
