@@ -14,6 +14,7 @@ dependencies = []
 
 [project.scripts]
 up-geometry = "universal_platform.engineering.geometry_batch:main"
+up-cad-generator = "universal_platform.engineering.cad_generator_server:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

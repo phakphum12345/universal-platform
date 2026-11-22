@@ -4,6 +4,18 @@
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
+## Windows local quick start
+
+The CAD Generator and local Control Center can be installed from this checkout with Python. See [Windows Local Installation](docs/installation/WINDOWS_LOCAL_INSTALL.md) for the loopback-only launcher, dynamic port, bearer-token and persistent-data instructions.
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+up-cad-generator
+```
+
+
 ## Current status — 2026-11-22
 
 - Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
