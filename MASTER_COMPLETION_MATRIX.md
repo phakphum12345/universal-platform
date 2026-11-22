@@ -4,15 +4,15 @@
 
 ## Live repository reconciliation — 2026-11-22
 
-**This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
+**This live snapshot supersedes the historical snapshots below.** Historical evidence is retained. See the [Live Main Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_LIVE_MAIN.md).
 
-- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 merged; open PRs: 0.
-- Exact merge-SHA CI: repository-quality PASS; workflow-sanity PASS; python-tests PASS; windows-process-supervisor PASS.
-- Chromium E2E first attempt: 1/9 failed in FeatureHistory branch/fork/merge. Retry on the same SHA: CAD Generator 9/9 PASS and Control Center 4/4 PASS. No intervening code change; initial failure root cause UNKNOWN.
+- `main` HEAD: `87c19a9752e43ea051dac0aa302fb85323d130ce`; PRs #271–#277 merged; PR #278 and #279 open at audit time.
+- Exact Main CI: Repository Quality (Ruff and pip-audit), Python Tests (1,219 passed / 6 skipped), Windows Process Supervisor and Workflow Sanity PASS.
+- PR #278 exact-head CI: Python 1,226 passed / 6 skipped; Windows launcher 7 passed; Geometry Batch Linux 33 passed; Chromium CAD Generator 9/9 and Control Center 4/4 PASS. Owner clean-install/usability acceptance remains UNKNOWN.
 - Main branch protection is disabled; required checks are not enforced.
-- Recursive tree: 698 entries; 223 tracked `__pycache__` / `.pyc` entries require dedicated cleanup.
-- WP-09G-A through D integrated; WP-09G-E remains open.
-- WP-15C shell is merged; WP-15B remains draft pending owner acceptance; real platform-wide backend integration remains open.
+- Recursive tree: 478 entries, 436 files, 173 Markdown files, 222 Python files, 116 Python test files; no tracked Python cache artifacts.
+- Cross-Shell Runtime Validation does not yet target Main; PR #279 adds Main push/PR triggers and is awaiting exact-head CI.
+- WP-09G-E production host authentication/authorization integration and WP-15 platform-wide Control Center integration remain open.
 - Overall repository status remains **INCOMPLETE**.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
