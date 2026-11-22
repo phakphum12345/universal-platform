@@ -1527,7 +1527,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ## WP-15 — Modern Unified Control Center UI
 
-Status: PLANNED. The scope, information architecture, settings governance, delivery sequence and acceptance gates are documented in [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md). No implementation or UI acceptance is claimed. The first implementation step is a source-backed inventory of existing UI routes, components, APIs and tests; no replacement shell should be built before that inventory.
+Status: PARTIAL. WP-15A inventory exists; WP-15B navigation/user journeys remain a draft pending owner acceptance. WP-15C local-first responsive shell foundation is merged by PR #274 at `9dbc354596896614bfe63066afdfbdebd9071151`. It preserves the CAD Generator root route and adds `/control-center`, responsive navigation, accessibility foundations, in-memory theme switching and authenticated CAD-only health inspection. Platform-wide health, workspace/modules/tools/functions/jobs/diagnostics/permissions/audit integrations and WP-15D–J acceptance remain incomplete. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md).
 
 ## Current execution checkpoint — 2026-11-19
 
