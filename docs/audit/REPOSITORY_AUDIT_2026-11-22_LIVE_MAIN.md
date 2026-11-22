@@ -3,7 +3,7 @@
 Date: 2026-11-22
 Repository: `phakphum12345/universal-platform`
 Audited base branch: `main`
-Audited Main SHA: `87c19a9752e43ea051dac0aa302fb85323d130ce`
+Audited Main SHA: `779b98b914e1bb953875268d77fe6c2c17c020ec` (PR #279 merge)
 
 ## Repository and pull request state
 
@@ -16,7 +16,13 @@ Audited Main SHA: `87c19a9752e43ea051dac0aa302fb85323d130ce`
 
 ## Exact Main CI evidence
 
-On Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce`:
+On the previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce`, Repository Quality, Python Tests (1,219 passed / 6 skipped), Windows Process Supervisor and Workflow Sanity passed.
+
+On current Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec`, the post-merge Repository Quality, Engineering Core and Cross-Shell workflows are queued; post-merge result is UNKNOWN until completion.
+
+PR #279 exact-head SHA `0e8d18183dbda4bebdee86526cfe442eb752e204` passed Repository Quality, Engineering Core and all four Cross-Shell matrix jobs (Ubuntu bash, Ubuntu sh, Windows PowerShell, Windows cmd).
+
+Historical baseline checks on `87c19a9752e43ea051dac0aa302fb85323d130ce`:
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -31,7 +37,7 @@ The skipped Python tests are reported as SKIPPED, not PASS.
 
 ## PR #278 exact-head evidence
 
-Tested code head SHA: `9de9327cb44d19863585b9e484cdcdfd2e997347`. A subsequent documentation-only token stdout-exposure clarification moved the current PR head to `185f91cc15286679bd9b9a66fec4f67eaa2f543e`; CI on that exact current head is pending.
+Tested code head SHA: `9de9327cb44d19863585b9e484cdcdfd2e997347`. Documentation-only token stdout-exposure clarifications then moved the PR head to `185f91cc15286679bd9b9a66fec4f67eaa2f543e`, followed by a README warning at current PR head `280a24ebf69723319463dc689fc8d36da2dc173d`; exact-head CI is pending.
 
 - Python Tests: PASS (1,226 passed, 6 skipped).
 - Repository Quality / Ruff / Dependency Audit: PASS.
@@ -52,9 +58,9 @@ Recursive Git tree at Main SHA:
 - 116 Python test files.
 - No tracked `__pycache__`, `.pyc`, or `.pyo` entries.
 
-## CI coverage gap
+## CI coverage status
 
-`.github/workflows/cross-shell-runtime.yml` currently targets the requirements-development and cross-shell-validation branches, not `main`. PR #279 proposes adding `main` to push and pull-request triggers. Until that PR is merged and its four matrix jobs pass, Cross-Shell Runtime Validation on Main remains UNKNOWN / not configured.
+PR #279 adds `main` to push and pull-request triggers in `.github/workflows/cross-shell-runtime.yml` and is merged. Its exact-head four-job matrix passed. The first post-merge run on Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec` is queued; post-merge verification remains UNKNOWN until it completes.
 
 See [Main Branch Protection Policy](../governance/MAIN_BRANCH_PROTECTION.md) for the exact recommended settings and verification steps.
 
