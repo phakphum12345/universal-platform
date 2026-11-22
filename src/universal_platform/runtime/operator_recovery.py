@@ -195,6 +195,9 @@ class OperatorRecoveryService:
             reason=reason.strip(),
             evidence=evidence,
             audit_event_id=uuid4().hex,
+            max_evidence_age_seconds=self._max_evidence_age.total_seconds(),
+            max_authentication_age_seconds=self._max_authentication_age.total_seconds(),
+            allowed_clock_skew_seconds=self._allowed_clock_skew.total_seconds(),
         )
         if audit_reference is None:
             return OperatorRecoveryResult(

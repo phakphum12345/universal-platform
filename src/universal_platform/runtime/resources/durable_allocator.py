@@ -423,6 +423,9 @@ class DurableResourceAllocator:
         reason: str,
         evidence: ProcessLivenessEvidence,
         audit_event_id: str,
+        max_evidence_age_seconds: float,
+        max_authentication_age_seconds: float,
+        allowed_clock_skew_seconds: float,
     ) -> str | None:
         """Append an audited operator force-release event and return its chain hash.
 
@@ -443,6 +446,21 @@ class DurableResourceAllocator:
         for name, value in text_fields:
             if not isinstance(value, str) or not value.strip() or "\x00" in value:
                 raise ValueError(f"{name} must be a non-empty NUL-free string")
+        if permission != "runtime.worker.force_release":
+            raise ValueError("operator force-release permission is invalid")
+        for name, value, allow_zero in (
+            ("max_evidence_age_seconds", max_evidence_age_seconds, False),
+            ("max_authentication_age_seconds", max_authentication_age_seconds, False),
+            ("allowed_clock_skew_seconds", allowed_clock_skew_seconds, True),
+        ):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not isfinite(value)
+                or value < 0
+                or (not allow_zero and value == 0)
+            ):
+                raise ValueError(f"{name} must be finite and {'non-negative' if allow_zero else 'positive'}")
         if not isinstance(authenticated_at, datetime) or (
             authenticated_at.tzinfo is None or authenticated_at.utcoffset() is None
         ):
@@ -473,6 +491,9 @@ class DurableResourceAllocator:
                 "reason": reason.strip(),
                 "evidence": evidence.to_dict(),
                 "audit_event_id": audit_event_id,
+                "max_evidence_age_seconds": float(max_evidence_age_seconds),
+                "max_authentication_age_seconds": float(max_authentication_age_seconds),
+                "allowed_clock_skew_seconds": float(allowed_clock_skew_seconds),
             })
             return (event,)
 
@@ -670,8 +691,37 @@ class DurableResourceAllocator:
                     or not record["reason"].strip()
                     or not isinstance(record.get("audit_event_id"), str)
                     or not record["audit_event_id"].strip()
+                    or not isinstance(record.get("occurred_at"), str)
+                    or not isinstance(record.get("max_evidence_age_seconds"), (int, float))
+                    or isinstance(record.get("max_evidence_age_seconds"), bool)
+                    or not isfinite(record["max_evidence_age_seconds"])
+                    or record["max_evidence_age_seconds"] <= 0
+                    or not isinstance(record.get("max_authentication_age_seconds"), (int, float))
+                    or isinstance(record.get("max_authentication_age_seconds"), bool)
+                    or not isfinite(record["max_authentication_age_seconds"])
+                    or record["max_authentication_age_seconds"] <= 0
+                    or not isinstance(record.get("allowed_clock_skew_seconds"), (int, float))
+                    or isinstance(record.get("allowed_clock_skew_seconds"), bool)
+                    or not isfinite(record["allowed_clock_skew_seconds"])
+                    or record["allowed_clock_skew_seconds"] < 0
                 ):
                     raise ValueError("durable journal operator force-release audit is invalid")
+                try:
+                    event_at = datetime.fromisoformat(record["occurred_at"])
+                except ValueError as exc:
+                    raise ValueError("durable journal operator force-release timestamp is invalid") from exc
+                if event_at.tzinfo is None or event_at.utcoffset() is None:
+                    raise ValueError("durable journal operator force-release timestamp is naive")
+                evidence_age = (event_at - observed_at).total_seconds()
+                authentication_age = (event_at - authenticated_at).total_seconds()
+                skew = record["allowed_clock_skew_seconds"]
+                if (
+                    evidence_age < -skew
+                    or evidence_age > record["max_evidence_age_seconds"]
+                    or authentication_age < -skew
+                    or authentication_age > record["max_authentication_age_seconds"]
+                ):
+                    raise ValueError("durable journal operator force-release timestamps are stale or future-dated")
                 del state[lease_id]
                 del quarantined[lease_id]
             else:
