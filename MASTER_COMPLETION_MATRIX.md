@@ -1,18 +1,19 @@
-> **LIVE STATUS — 2026-11-21:** `main` is at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 merged as `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged as `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. The exact merge-commit check-run set for #272 is 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor). GitHub currently reports 0 open PRs. Eighteen historical closed-without-merge PRs remain subject to patch/ancestry reconciliation; do not cherry-pick them without verifying unique content. `main` branch protection and required status checks are disabled. WP-09G-A through D are integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B remains a draft pending owner acceptance, and WP-15C shared-shell implementation is not started. Overall repository status remains **INCOMPLETE**. Historical snapshots are retained for traceability. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-21
+## Live repository reconciliation — 2026-11-22
 
 **This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
 
-- `main` HEAD: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- PR #271 merge: `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`.
-- PR #272 merge: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- Exact post-merge CI on #272: 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor).
-- Open PRs: 0. Eighteen closed-without-merge PRs remain recorded; preliminary dispositions are in [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
-- `main` protection is disabled and required status checks are not enforced.
-- Tracked generated `__pycache__` / `.pyc` artifacts were observed in the recursive tree despite ignore rules; isolate cleanup into a dedicated PR.
+- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 merged; open PRs: 0.
+- Exact merge-SHA CI: repository-quality PASS; workflow-sanity PASS; python-tests PASS; windows-process-supervisor PASS.
+- Chromium E2E first attempt: 1/9 failed in FeatureHistory branch/fork/merge. Retry on the same SHA: CAD Generator 9/9 PASS and Control Center 4/4 PASS. No intervening code change; initial failure root cause UNKNOWN.
+- Main branch protection is disabled; required checks are not enforced.
+- Recursive tree: 698 entries; 223 tracked `__pycache__` / `.pyc` entries require dedicated cleanup.
+- WP-09G-A through D integrated; WP-09G-E remains open.
+- WP-15C shell is merged; WP-15B remains draft pending owner acceptance; real platform-wide backend integration remains open.
+- Overall repository status remains **INCOMPLETE**.
 
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
@@ -23,10 +24,10 @@
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
 | Hardware / EDA / Drivers | PARTIAL | Datasheet constraints, full PCB/library workflows, circuit simulation, BOM/footprint validation and safe device diagnostics |
 | Interchange | PARTIAL | Broader versioned profiles, fidelity/loss accounting and independent round-trip validation |
-| Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B draft awaits owner acceptance; WP-15C shared shell and real-backend UI not started |
+| Unified Control Center | PARTIAL | WP-15C local-first shell merged by PR #274; WP-15B draft awaits owner acceptance; platform-wide backend UI and WP-15D–J remain open |
 | Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
 
-**Lifecycle:** WP-09G-A through WP-09G-D are integrated through the completed runtime chain. WP-09G-E is NOT IMPLEMENTED / NOT ACCEPTED. WP-15A is an existing inventory, WP-15B is DRAFT, and WP-15C is NOT STARTED. The repository remains INCOMPLETE.
+**Lifecycle:** WP-09G-A through WP-09G-D are integrated; WP-09G-E authenticated operator recovery remains NOT IMPLEMENTED / NOT ACCEPTED. WP-15A inventory exists, WP-15B is DRAFT pending owner acceptance, and WP-15C local-first shell foundation is merged by PR #274; WP-15D–J platform-wide integration remains open. The repository remains INCOMPLETE.
 
 See [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
 
@@ -66,7 +67,7 @@ Evidence outcomes are separate: **PASS / FAIL / SKIPPED / UNKNOWN**. SKIPPED and
 | E. Physics / Simulation | PARTIAL | Central registry/adapter and reference-checked axial stress, ideal DC Ohm's law/power and linear thermal expansion solvers | FEA/FEM, CFD, multiphysics coupling, boundary-condition handling, convergence/uncertainty and specialist reference validation |
 | F. Hardware / Electronics / EDA | PARTIAL | Component/pin/net/schematic contracts, layout/SVG rendering and bounded static ERC | EDA symbol/library import and exchange, datasheet-backed electrical limits, power-domain checks, circuit simulation, BOM/footprint reconciliation and device diagnostics |
 | G. Module Runtime / Worker Execution | PARTIAL | Host-grant-gated trusted in-process dispatch, versioned Worker IPC, bounded stdin, one-shot WorkerIPCClient, ModuleRuntime supervised worker dispatch, host schema/grant admission, immutable cancellation handles, process-local lease retention/quarantine, POSIX supervisor and Windows Job Object containment | Implement durable lease/job journal and restart reconciliation; add OS identity-backed orphan cleanup; separately validate privilege, filesystem/network isolation and real OS CPU/memory/I/O enforcement |
-| H. Unified Control Center | PLANNED / DESIGN | WP-15 scope and navigation/user-journey design artifacts exist; specialist CAD workbench exists separately | Source-backed UI inventory acceptance, shared shell, capability catalogue, settings, diagnostics/jobs/audit, domain workbench integration, accessibility and browser E2E |
+| H. Unified Control Center | PARTIAL | WP-15C responsive local-first shell merged by PR #274; specialist CAD workbench and CAD-only health check remain separate | WP-15B owner acceptance, truthful workspace/module/tool/job/diagnostic/audit/permission/platform-health API integration, domain workbench integration, accessibility and release acceptance |
 | I. Platform-wide integration and release | INCOMPLETE | Individual domain APIs/workbenches and module/runtime foundations exist | Unified API/CLI and cross-domain orchestration, supported-platform matrix, security/license review, backup/restore, performance/resource tests, full E2E and formal release acceptance |
 
 ## 3. Runtime execution queue — highest current dependency priority
@@ -111,7 +112,7 @@ Evidence outcomes are separate: **PASS / FAIL / SKIPPED / UNKNOWN**. SKIPPED and
 ### Unified Control Center — WP-15
 1. WP-15A: inventory existing UI routes, components, APIs and tests. PR #247 is merged with exact-head and merge-SHA checks passing; owner acceptance of the inventory remains pending.
 2. WP-15B: review and accept navigation and representative user journeys. PR #251 contains the canonical draft, exact-head CI passed, and the PR remains DRAFT pending owner acceptance; no UX decision is approved by CI.
-3. WP-15C: build the shared design system and shell without duplicating specialist workbenches.
+3. WP-15C: shell foundation merged by PR #274; implement WP-15D onward against actual APIs without duplicating specialist workbenches.
 4. WP-15D/E: overview/workspace and truthful Modules/Tools/Functions catalogue.
 5. WP-15F/G: typed secure settings, jobs, diagnostics, activity and audit.
 6. WP-15H/I: integrate existing domain workbenches; accessibility, responsive and usability acceptance.

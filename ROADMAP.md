@@ -1,27 +1,28 @@
-> **LIVE STATUS — 2026-11-21:** `main` is at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 merged as `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged as `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. The exact merge-commit check-run set for #272 is 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor). GitHub currently reports 0 open PRs. Eighteen historical closed-without-merge PRs remain subject to patch/ancestry reconciliation; do not cherry-pick them without verifying unique content. `main` branch protection and required status checks are disabled. WP-09G-A through D are integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B remains a draft pending owner acceptance, and WP-15C shared-shell implementation is not started. Overall repository status remains **INCOMPLETE**. Historical snapshots are retained for traceability. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
 
 # Universal Platform — Roadmap
 
 Status: Proposed sequence. No phase is declared complete.
 
-## Continuous execution control — 2026-11-21
+## Continuous execution control — 2026-11-22
 
-The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) are the live execution records.
+The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Post-PR #274 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md) are the current execution records.
 
-- `main`: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; PR #271 and #272 are merged.
-- PR #272 post-merge CI: 4/4 PASS on the exact merge commit.
-- Open PRs: 0. Eighteen closed-without-merge PRs have preliminary successor/source dispositions; preserve all historical branches and records.
-- Branch protection and required status-check enforcement are disabled.
-- WP-09G-A through D are integrated; WP-09G-E operator recovery remains open.
-- WP-15A inventory exists; WP-15B remains a DRAFT pending owner acceptance; WP-15C shared shell and real-backend integration are not started.
-- CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability and security work remain partial.
-- Tracked Python bytecode artifacts were observed despite ignore rules; handle in a separate hygiene PR.
-- Local launch and Control Center browser acceptance are UNKNOWN until tested from a clean checkout.
+- `main`: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 are merged; open PRs: 0.
+- Exact merge-SHA CI: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor PASS.
+- Chromium E2E first attempt failed 1/9; exact-SHA retry passed 9/9 CAD Generator and 4/4 Control Center. Root cause of initial failure remains UNKNOWN.
+- Main branch protection and required status checks are disabled.
+- 223 tracked generated Python cache entries require a separate cleanup PR.
+- WP-09G-A through D integrated; WP-09G-E remains open.
+- WP-15C shell merged; real platform-wide Control Center integration remains incomplete.
+- CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability and security remain partial.
+- Clean Windows install and owner-side usability acceptance remain UNKNOWN.
+
 
 ### Next execution priorities
 
 1. Reconcile current documentation and historical PR/branch content without discarding unique work.
-2. Review WP-15B and implement WP-15C against the existing CAD workbench and actual API contracts.
+2. Review and accept WP-15B; implement WP-15D onward against actual workspace, module, job, diagnostics, audit and platform-health APIs.
 3. Complete WP-09G-E with authenticated operator approval, durable audit and failure-injection tests.
 4. Remove tracked generated artifacts through a dedicated, test-verified change.
 5. Continue engineering-domain increments and system integration.
@@ -764,6 +765,6 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
 
 
-## WP-15 — Modern Unified Control Center UI (PLANNED)
+## WP-15 — Modern Unified Control Center UI (PARTIAL)
 
-Deliver a coherent responsive Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, activity/audit and settings. Start with a source-backed inventory of existing UI/routes/APIs; reuse existing capabilities rather than duplicating them. Build a shared accessible design system and application shell, truthful capability catalogue, schema-backed secure settings, evidence-based status/diagnostics and end-to-end browser acceptance. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). This is a planned work package; no UI implementation or acceptance is claimed yet.
+WP-15A inventory exists; WP-15B navigation and user journeys remain a draft pending owner acceptance. WP-15C local-first responsive shell foundation is implemented and merged by PR #274 at `9dbc354596896614bfe63066afdfbdebd9071151`. It preserves the CAD Generator root route and adds `/control-center`, responsive navigation, accessibility foundations, in-memory theme switching and authenticated CAD-only health inspection. This is not platform-wide health or a complete Control Center. Next work is WP-15D onward: real workspace, module/tool/function, jobs, diagnostics, permissions/audit and platform-health integrations, with no invented data. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md).

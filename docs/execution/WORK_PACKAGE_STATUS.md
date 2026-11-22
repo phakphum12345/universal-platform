@@ -1,10 +1,10 @@
-> **LIVE STATUS — 2026-11-21:** `main` is `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; PR #271 and #272 merged; #272 post-merge CI 4/4 PASS. No open PRs. Eighteen closed-without-merge PRs remain preserved and have preliminary successor/source dispositions. Main branch protection and required status-check enforcement are disabled. WP-09G-A through D integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B is DRAFT pending owner acceptance, WP-15C not started. Repository status remains INCOMPLETE. See [Continuous Execution Audit](../audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md). Historical snapshots below are retained. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-21
+## Live work-package reconciliation — 2026-11-22
 
-**Main baseline:** `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 and #272 are merged. Exact post-merge CI on #272 is 4/4 PASS. There are 0 open PRs; 18 closed-without-merge PRs are retained and provisionally reconciled in the [Continuous Execution Audit](../audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md). Main branch protection is disabled and required status checks are not enforced.
+**Main baseline:** `9dbc354596896614bfe63066afdfbdebd9071151`. PRs #271–#274 merged; open PRs: 0. Exact post-merge checks: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor PASS. Chromium E2E retry on this SHA: CAD Generator 9/9 and Control Center 4/4 PASS after initial 1/9 failure; initial cause UNKNOWN. Main branch protection is disabled. 223 tracked generated Python cache entries require cleanup.
 
 **Repository status:** INCOMPLETE.
 
@@ -20,11 +20,11 @@
 | 08 | Drivers | PARTIAL | Integrate existing driver architecture safely; no physical I/O claim |
 | 09 | Module runtime | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery, durable approval/audit and failure-injection tests remain open |
 | 10 | System understanding | PARTIAL | Authorized discovery/indexing, provenance and governed adaptation E2E |
-| 11 | API/CLI/UI | PARTIAL | CAD workbench exists; shared Control Center and unified platform API/CLI remain open |
+| 11 | API/CLI/UI | PARTIAL | CAD workbench and WP-15C Control Center shell exist; unified platform API/CLI and cross-domain integration remain open |
 | 12 | Platform integration | INCOMPLETE | Cross-domain workflows and end-to-end acceptance |
-| 13 | Security/quality | PARTIAL / FAIL | Main branch protection disabled; general OS sandbox and full security governance remain unestablished |
-| 14 | Final verification | FAIL / INCOMPLETE | Full repository acceptance gates not met |
-| 15 | Modern Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B draft awaits owner acceptance; WP-15C shared shell and backend integration not started |
+| 13 | Security/quality | PARTIAL / FAIL | Main branch protection disabled; general OS sandbox and full security governance remain unestablished; generated cache hygiene open |
+| 14 | Final verification | FAIL / INCOMPLETE | Full repository acceptance gates not met; Chromium retry passed but first attempt failed and owner-side Windows acceptance is UNKNOWN |
+| 15 | Modern Unified Control Center | PARTIAL | WP-15C local-first shell merged; WP-15B draft awaits owner acceptance; platform-wide backend integration and WP-15D–J remain open |
 
 ### Current integration disposition
 
@@ -58,13 +58,13 @@ Historical work-package rows below are retained as a dated prior snapshot. See [
 | 06 | Hardware/electronics | PARTIAL | Hardware, schematic and conservative static ERC foundations exist; component intelligence, measured diagnostics and simulation remain open |
 | 07 | Schematic/PCB | PARTIAL | Schematic/netlist and layout foundations exist; complete PCB workflows and export/validation remain open |
 | 08 | Drivers | PARTIAL | Driver contracts and implementation exist; inventory/reuse existing Driver Generation; no duplicate generator or physical I/O capability is claimed |
-| 09 | Module runtime | PARTIAL | PR #244 Windows Job Objects, PR #245 versioned WorkerFrame and PR #248 bounded stdin are merged. WP-09E-B WorkerIPCClient is under exact-head validation in PR #252. WP-09F now adds a candidate ModuleRuntime-to-worker dispatch path with host-side input/output schema checks, host-grant admission, cancellation mapping and resource-lease quarantine on unconfirmed termination; exact-head CI is pending. Durable recovery, actual OS resource enforcement and security sandbox/isolation remain open. |
+| 09 | Module runtime | PARTIAL | WP-09G-A through D are integrated, including durable journal/allocator, process identity binding, start gate and startup reconciliation. WP-09G-E authenticated operator recovery, durable approval/audit and failure-injection tests remain open. OS sandboxing and OS CPU/memory/I/O enforcement are not established. |
 | 10 | System understanding | PARTIAL | Architecture/evidence contracts exist; authorized discovery, indexing and governed adaptation need end-to-end evidence |
 | 11 | API/CLI/UI | PARTIAL | CAD loopback HTTP API and local workbench exist; broader stable platform API/CLI/UI integration remains open |
 | 12 | Platform integration | PARTIAL | Several cross-module integrations exist; end-to-end user workflows and platform matrix remain open |
 | 13 | Security/quality | UNKNOWN / PARTIAL | Python CI and JS syntax checks exist; real Chromium E2E is established for CAD workbench; full dependency, license, secret and OS-isolation audits are not established |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository completion gates are not met; continue evidence collection and implementation |
-| 15 | Modern Unified Control Center UI | PLANNED / WP-15A INVENTORY DRAFTED / WP-15B IA DRAFTED | Source-backed UI inventory and canonical proposed IA/user journeys are drafted in [WP-15A](../ui/WP15A_UI_INVENTORY.md) and [WP-15B](../ui/WP-15B_NAVIGATION_USER_JOURNEYS.md). Both await owner review/acceptance; no shared shell or other Control Center implementation is claimed. The parallel `WP15B_CONTROL_CENTER_IA.md` file is retained only as a superseded audit pointer. Next: accept navigation, personas, entrypoint, browser and accessibility decisions before WP-15C. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
+| 15 | Modern Unified Control Center UI | PARTIAL / WP-15B DRAFT | WP-15C local-first shell foundation is merged by PR #274; WP-15B navigation/user journeys remain pending owner acceptance. WP-15D–J backend integrations, domain workbench integration, accessibility and release acceptance remain open. The parallel `WP15B_CONTROL_CENTER_IA.md` file is retained as a superseded audit pointer. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) |
 
 ## Latest verified implementation slices — 2026-11-10
 

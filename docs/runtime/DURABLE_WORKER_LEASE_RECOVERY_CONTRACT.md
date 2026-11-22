@@ -1,6 +1,17 @@
 # WP-09G — Durable Worker Lease and Crash-Recovery Contract
 
-## Implementation checkpoint — 2026-11-20
+## Live implementation reconciliation — 2026-11-22
+
+- **Main baseline:** `9dbc354596896614bfe63066afdfbdebd9071151`.
+- **WP-09G-A through D:** integrated on `main` through the durable runtime chain and PR #272 (merge commit `bb5d016a48bf8329136629dd0d7835e56fa0ece0`). The implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.
+- **WP-09G-E:** NOT IMPLEMENTED / NOT ACCEPTED. The durable allocator intentionally rejects ordinary release of quarantined leases with `quarantined lease requires audited operator recovery`; no authenticated operator recovery workflow, durable `LEASE_FORCE_RELEASED` event, or end-to-end operator audit reference is currently established.
+- **CI evidence for PR #272 merge SHA:** Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor passed 4/4 on the exact merge commit. This is integration evidence for the bounded WP-09G-A–D slice, not final repository acceptance.
+- **Non-claims:** No general OS sandbox, privilege separation, filesystem/network isolation, or OS CPU/memory/I/O enforcement is established.
+- **Next slice:** Implement WP-09G-E as a separate, reviewable increment with host-injected operator authentication/authorization, explicit lease/reason, fresh identity-bound liveness evidence, durable force-release and audit linkage, failure injection, and exact-head Windows/Python CI. Preserve quarantine and capacity accounting if authorization, liveness evidence, or durable audit persistence fails.
+
+The 2026-11-20 checkpoint below is retained as historical candidate evidence and is superseded by this live reconciliation.
+
+## Historical implementation checkpoint — 2026-11-20 (superseded)
 
 This section records candidate implementation state without changing the acceptance requirements below.
 
