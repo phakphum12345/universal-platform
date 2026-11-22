@@ -36,18 +36,20 @@ def resolve_data_directory(
         return Path(data_directory).expanduser().resolve()
     user_home = Path(home).expanduser() if home is not None else Path.home()
     is_windows = os.name == "nt" if windows is None else windows
-    if is_windows:
-        root = (
-            Path(local_app_data).expanduser()
-            if local_app_data is not None
-            else user_home / "AppData" / "Local"
-        )
+    local_root = (
+        Path(local_app_data).expanduser()
+        if local_app_data is not None and str(local_app_data).strip()
+        else None
+    )
+    xdg_root = (
+        Path(xdg_data_home).expanduser()
+        if xdg_data_home is not None and str(xdg_data_home).strip()
+        else None
+    )
+    if is_windows or local_root is not None:
+        root = local_root if local_root is not None else user_home / "AppData" / "Local"
     else:
-        root = (
-            Path(xdg_data_home).expanduser()
-            if xdg_data_home is not None
-            else user_home / ".local" / "share"
-        )
+        root = xdg_root if xdg_root is not None else user_home / ".local" / "share"
     return (root / "UniversalPlatform" / "CADGenerator").resolve()
 
 
