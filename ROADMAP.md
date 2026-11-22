@@ -765,6 +765,6 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 6. Continue WP-01–WP-14 work by dependency and evidence; repository-wide acceptance remains INCOMPLETE.
 
 
-## WP-15 — Modern Unified Control Center UI (PLANNED)
+## WP-15 — Modern Unified Control Center UI (PARTIAL)
 
-Deliver a coherent responsive Control Center for overview, workspace, modules, tools, functions, engineering workbenches, jobs, diagnostics, activity/audit and settings. Start with a source-backed inventory of existing UI/routes/APIs; reuse existing capabilities rather than duplicating them. Build a shared accessible design system and application shell, truthful capability catalogue, schema-backed secure settings, evidence-based status/diagnostics and end-to-end browser acceptance. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md). This is a planned work package; no UI implementation or acceptance is claimed yet.
+WP-15A inventory exists; WP-15B navigation and user journeys remain a draft pending owner acceptance. WP-15C local-first responsive shell foundation is implemented and merged by PR #274 at `9dbc354596896614bfe63066afdfbdebd9071151`. It preserves the CAD Generator root route and adds `/control-center`, responsive navigation, accessibility foundations, in-memory theme switching and authenticated CAD-only health inspection. This is not platform-wide health or a complete Control Center. Next work is WP-15D onward: real workspace, module/tool/function, jobs, diagnostics, permissions/audit and platform-health integrations, with no invented data. See [WP-15 Modern Unified Control Center UI](docs/ui/MODERN_UNIFIED_CONTROL_CENTER.md).
