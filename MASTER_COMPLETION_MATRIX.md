@@ -27,7 +27,7 @@
 | Unified Control Center | PARTIAL | WP-15C local-first shell merged by PR #274; WP-15B draft awaits owner acceptance; platform-wide backend UI and WP-15D–J remain open |
 | Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
 
-**Lifecycle:** WP-09G-A through WP-09G-D are integrated through the completed runtime chain. WP-09G-E is NOT IMPLEMENTED / NOT ACCEPTED. WP-15A is an existing inventory, WP-15B is DRAFT, and WP-15C is NOT STARTED. The repository remains INCOMPLETE.
+**Lifecycle:** WP-09G-A through WP-09G-D are integrated; WP-09G-E authenticated operator recovery remains NOT IMPLEMENTED / NOT ACCEPTED. WP-15A inventory exists, WP-15B is DRAFT pending owner acceptance, and WP-15C local-first shell foundation is merged by PR #274; WP-15D–J platform-wide integration remains open. The repository remains INCOMPLETE.
 
 See [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
 
