@@ -1,22 +1,23 @@
-> **LIVE STATUS — 2026-11-21:** `main` is at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 merged as `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged as `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. The exact merge-commit check-run set for #272 is 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor). GitHub currently reports 0 open PRs. Eighteen historical closed-without-merge PRs remain subject to patch/ancestry reconciliation; do not cherry-pick them without verifying unique content. `main` branch protection and required status checks are disabled. WP-09G-A through D are integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B remains a draft pending owner acceptance, and WP-15C shared-shell implementation is not started. Overall repository status remains **INCOMPLETE**. Historical snapshots are retained for traceability. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
 
 # Universal Platform
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status — 2026-11-21
+## Current status — 2026-11-22
 
 - Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
-- `main` HEAD: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- PR #271 merged at `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
-- Exact post-merge CI on #272: **4/4 PASS** (repository-quality, workflow-sanity, python-tests, windows-process-supervisor).
-- Open PRs: **0** at the latest GitHub API read. Eighteen closed-without-merge PRs remain historically recorded and have preliminary successor/source dispositions; preserve their branches and PR records.
-- `main` is not protected; required status-check enforcement is disabled. This is a governance gap, not a passing security control.
-- WP-09G-A through WP-09G-D are integrated. WP-09G-E authenticated operator recovery and durable approval/audit remain open.
-- WP-15A inventory exists; WP-15B canonical IA remains a DRAFT pending owner acceptance; WP-15C shared shell and real-backend Control Center are not implemented.
-- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security governance and platform-wide integration remain PARTIAL or INCOMPLETE.
-- The existing UI is the specialist CAD Generator workbench; local launch and browser acceptance on the owner's machine remain UNKNOWN.
-- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
+- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge).
+- PRs #271–#274 are merged; open PRs: **0**.
+- Exact post-merge CI: Repository Quality, Workflow Sanity, Python Tests, Windows Process Supervisor all PASS.
+- Chromium E2E: initial attempt 1/9 failed in FeatureHistory merge browser test; retry on the same SHA passed 9/9 CAD Generator and 4/4 Control Center. Root cause of the first failure is UNKNOWN.
+- `main` branch protection and required status-check enforcement are disabled.
+- Tracked generated Python artifacts: 223 `__pycache__` / `.pyc` tree entries; cleanup not yet performed.
+- WP-09G-A through D are integrated; WP-09G-E remains open.
+- WP-15C local-first Control Center shell is merged. Platform-wide APIs and remaining WP-15 screens are incomplete.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security governance and platform integration remain PARTIAL or INCOMPLETE.
+- Owner-side Windows clean-install and usability acceptance remain UNKNOWN.
+- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md).
 
 ## Initial implementation (active development)
 
