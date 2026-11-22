@@ -9,9 +9,9 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from secrets import token_urlsafe
-from collections.abc import Sequence
 
 from .cad_generator_http_api import (
     CADGeneratorHTTPServer,
