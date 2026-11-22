@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 from secrets import token_urlsafe
-from typing import Sequence
+from collections.abc import Sequence
 
 from .cad_generator_http_api import (
     CADGeneratorHTTPServer,
