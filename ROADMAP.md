@@ -6,16 +6,17 @@ Status: Proposed sequence. No phase is declared complete.
 
 ## Continuous execution control — 2026-11-22
 
-The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Post-PR #274 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md) are the current execution records.
+The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Live Main Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_LIVE_MAIN.md) are the current execution records.
 
-- `main`: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 are merged; open PRs: 0.
-- Exact merge-SHA CI: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor PASS.
-- Chromium E2E first attempt failed 1/9; exact-SHA retry passed 9/9 CAD Generator and 4/4 Control Center. Root cause of initial failure remains UNKNOWN.
+- `main`: `87c19a9752e43ea051dac0aa302fb85323d130ce`; PRs #271–#277 are merged; PR #278 and #279 are open at audit time.
+- Exact Main Repository Quality, Python Tests (1,219 passed / 6 skipped), Windows Process Supervisor and Workflow Sanity PASS.
+- PR #278 exact-head CI passed Python, Windows launcher tests, Geometry Batch Linux, and Chromium CAD Generator/Control Center; owner clean-install/usability acceptance remains UNKNOWN.
 - Main branch protection and required status checks are disabled.
-- 223 tracked generated Python cache entries require a separate cleanup PR.
-- WP-09G-A through D integrated; WP-09G-E remains open.
-- WP-15C shell merged; real platform-wide Control Center integration remains incomplete.
-- CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability and security remain partial.
+- No tracked Python bytecode/cache artifacts remain in the Main tree.
+- Cross-Shell Runtime Validation does not yet target Main; PR #279 adds Main triggers and is awaiting exact-head CI.
+- WP-09G-E host authentication/authorization integration remains open.
+- WP-15C shell is merged; WP-15B owner acceptance and WP-15D onward platform-wide backend integration remain open.
+- CAD/3D, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security and release acceptance remain partial.
 - Clean Windows install and owner-side usability acceptance remain UNKNOWN.
 
 
