@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22 (baseline `87c19a9752e43ea051dac0aa302fb85323d130ce`):** PRs #271–#277 are merged; there were 0 open PRs at this baseline. PR #276 post-merge CI passed 4/4; PR #277 post-merge Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor all PASS on its exact merge SHA. Tracked generated Python bytecode is now 0 files. Main branch protection remains disabled. WP-09G-E recovery code is integrated as a candidate, but a real host identity-provider adapter and Control Center/API integration are not yet configured; WP-09G-E is not accepted. WP-15C shell is merged; WP-15B owner acceptance and WP-15D–J remain open. Chromium E2E's same-SHA retry passed 13/13 after an initial 1/9 failure; the first failure's cause remains UNKNOWN. Overall repository status: **INCOMPLETE**.
 
 # Universal Platform
 
@@ -19,17 +19,17 @@ up-cad-generator
 ## Current status — 2026-11-22
 
 - Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
-- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge).
-- PRs #271–#274 are merged; open PRs: **0**.
-- Exact post-merge CI: Repository Quality, Workflow Sanity, Python Tests, Windows Process Supervisor all PASS.
-- Chromium E2E: initial attempt 1/9 failed in FeatureHistory merge browser test; retry on the same SHA passed 9/9 CAD Generator and 4/4 Control Center. Root cause of the first failure is UNKNOWN.
-- `main` branch protection and required status-check enforcement are disabled.
-- Tracked generated Python artifacts: 223 `__pycache__` / `.pyc` tree entries; cleanup not yet performed.
-- WP-09G-A through D are integrated; WP-09G-E remains open.
-- WP-15C local-first Control Center shell is merged. Platform-wide APIs and remaining WP-15 screens are incomplete.
+- Baseline `main` HEAD: `87c19a9752e43ea051dac0aa302fb85323d130ce` (PR #277 merge).
+- PRs #271–#277 are merged; there were **0 open PRs** at this baseline.
+- Exact post-merge CI on PR #277 merge SHA: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor all PASS. PR #276 post-merge CI also passed 4/4.
+- Tracked generated Python bytecode: **0** `.pyc/.pyo/__pycache__` paths after PR #276.
+- `main` branch protection and required status-check enforcement remain disabled.
+- WP-09G-A through D are integrated. WP-09G-E recovery code is integrated as an implementation candidate; a real host authentication/authorization adapter and Control Center/API integration remain unimplemented, so WP-09G-E is not accepted.
+- WP-15C local-first Control Center shell is merged. WP-15B navigation still awaits owner acceptance; WP-15D–J backend screens and integrations remain incomplete.
+- Chromium E2E: initial attempt 1/9 failed in FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. The original failure cause remains UNKNOWN.
 - CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security governance and platform integration remain PARTIAL or INCOMPLETE.
-- Owner-side Windows clean-install and usability acceptance remain UNKNOWN.
-- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md).
+- The local Windows launcher is proposed in the current branch; a clean install and owner usability check remain UNKNOWN.
+- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Post-PR #277 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md).
 
 ## Initial implementation (active development)
 

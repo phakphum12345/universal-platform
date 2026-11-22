@@ -1,8 +1,8 @@
-> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-22 (baseline `87c19a9752e43ea051dac0aa302fb85323d130ce`):** PRs #271–#277 merged; 0 open PRs at baseline. PR #276 and #277 post-merge CI PASS. Tracked Python bytecode: 0 paths. Main branch protection remains disabled. WP-09G-E code candidate is integrated but real host identity-provider and Control Center integration are still required; WP-15C shell is merged while WP-15B owner acceptance and WP-15D–J remain open. Overall repository status: **INCOMPLETE**. See [Post-PR #277 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md).
 
 # Documentation Index
 
-**Live repository reconciliation (2026-11-22):** `main` is `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 merged; 0 open PRs. Exact post-merge Python, Windows Process Supervisor, Repository Quality and Workflow Sanity checks PASS. Chromium E2E retry passed CAD Generator 9/9 and Control Center 4/4 on the same SHA after an initial 1/9 failure; initial cause UNKNOWN. Main branch protection is disabled. There are 223 tracked generated Python cache entries requiring cleanup. WP-09G-E remains open. WP-15C shell merged, while platform-wide backend integration remains incomplete. See [Post-PR #274 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md).
+**Live repository reconciliation (baseline 2026-11-22):** `main` is `87c19a9752e43ea051dac0aa302fb85323d130ce`; PRs #271–#277 merged; 0 open PRs at baseline. PR #276 and #277 exact post-merge CI PASS. Tracked generated Python cache paths: 0. Main branch protection remains disabled. WP-09G-E code candidate is integrated but real host authentication/authorization and Control Center/API integration remain required; WP-15C shell merged while WP-15B owner acceptance and WP-15D–J remain open. See [Post-PR #277 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md).
 
 **Repository:** `phakphum12345/universal-platform`  
 **Historical inventory baseline:** `9507b9fab758465763c60d02f8da83d7d8131d2d` (PR #50 head). The index was restored to the integration branch by PR #53 and extended with the spatial-joint reference contract in PR #54.  
@@ -146,6 +146,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Master File Plan](docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md) — planned file/module inventory.
 - [Engineering Vertical Slice Specification](docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md) — end-to-end slice acceptance.
 - [Phase 2 Numerical Reliability Plan](docs/roadmap/PHASE_2_NUMERICAL_RELIABILITY_PLAN.md) — numerical reliability work packages.
+
+- [Post-PR #277 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md) — merged baseline, exact CI, bytecode cleanup and remaining WP-09G/WP-15/governance gaps.
 
 ## Maintenance rules
 
