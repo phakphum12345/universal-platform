@@ -17,6 +17,7 @@ from universal_platform.runtime.process_reconciliation import (
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
 
+
 def capacity():
     return (ResourceMetric("cpu.cores", 2, "cores"), ResourceMetric("memory.bytes", 1024, "bytes"))
 

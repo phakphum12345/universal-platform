@@ -451,8 +451,6 @@ class DurableResourceAllocator:
             raise TypeError("evidence must be ProcessLivenessEvidence")
         if evidence.status is not ProcessLiveness.ABSENT:
             raise ValueError("operator force release requires ABSENT liveness evidence")
-        result: dict[str, str] = {}
-
         def update(records):
             self._validate_pool(records)
             state, quarantined = self._replay(records)
@@ -476,7 +474,6 @@ class DurableResourceAllocator:
                 "evidence": evidence.to_dict(),
                 "audit_event_id": audit_event_id,
             })
-            result["event_type"] = str(event["event_type"])
             return (event,)
 
         appended = self._journal.append_transaction(update)

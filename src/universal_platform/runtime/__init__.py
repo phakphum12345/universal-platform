@@ -1,4 +1,11 @@
 """Governed runtime resource management, supervision and recovery primitives."""
+from .operator_recovery import (
+    OperatorAuthorizationError,
+    OperatorAuthorizationPort,
+    OperatorPrincipal,
+    OperatorRecoveryResult,
+    OperatorRecoveryService,
+)
 from .process_identity import ProcessIdentity, capture_process_identity
 from .process_reconciliation import (
     ProcessIdentityInspector,
@@ -17,6 +24,11 @@ from .supervisor import (
 from .worker_ipc import WorkerIPCClient, WorkerIPCError
 
 __all__ = [
+    "OperatorAuthorizationError",
+    "OperatorAuthorizationPort",
+    "OperatorPrincipal",
+    "OperatorRecoveryResult",
+    "OperatorRecoveryService",
     "ProcessIdentity",
     "ProcessIdentityInspector",
     "ProcessLiveness",
