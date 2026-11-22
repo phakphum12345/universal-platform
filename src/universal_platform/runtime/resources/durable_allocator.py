@@ -411,6 +411,82 @@ class DurableResourceAllocator:
         self._journal.append_transaction(update)
         return bool(result["changed"])
 
+    def _force_release_quarantined(
+        self,
+        lease_id: str,
+        *,
+        operator_subject: str,
+        authentication_method: str,
+        authenticated_at: datetime,
+        authorization_reference: str,
+        permission: str,
+        reason: str,
+        evidence: ProcessLivenessEvidence,
+        audit_event_id: str,
+    ) -> str | None:
+        """Append an audited operator force-release event and return its chain hash.
+
+        This private persistence primitive is called only after the host-injected
+        authorization port and fresh liveness checks have succeeded. The journal
+        transaction rechecks quarantine and process identity while holding the
+        cross-process lock, so concurrent recovery attempts cannot double-release.
+        """
+        text_fields = (
+            ("lease_id", lease_id),
+            ("operator_subject", operator_subject),
+            ("authentication_method", authentication_method),
+            ("authorization_reference", authorization_reference),
+            ("permission", permission),
+            ("reason", reason),
+            ("audit_event_id", audit_event_id),
+        )
+        for name, value in text_fields:
+            if not isinstance(value, str) or not value.strip() or "\\x00" in value:
+                raise ValueError(f"{name} must be a non-empty NUL-free string")
+        if not isinstance(authenticated_at, datetime) or (
+            authenticated_at.tzinfo is None or authenticated_at.utcoffset() is None
+        ):
+            raise ValueError("authenticated_at must be timezone-aware")
+        if not isinstance(evidence, ProcessLivenessEvidence):
+            raise TypeError("evidence must be ProcessLivenessEvidence")
+        if evidence.status is not ProcessLiveness.ABSENT:
+            raise ValueError("operator force release requires ABSENT liveness evidence")
+        result: dict[str, str] = {}
+
+        def update(records):
+            self._validate_pool(records)
+            state, quarantined = self._replay(records)
+            lease = state.get(lease_id)
+            if lease is None or lease_id not in quarantined:
+                return ()
+            if lease.lease_kind != "supervised_worker" or lease.process_identity is None:
+                raise RuntimeError("operator force release requires a bound supervised worker lease")
+            if evidence.identity != lease.process_identity:
+                raise ValueError("operator force-release evidence does not match the recorded process identity")
+            event = self._event("LEASE_FORCE_RELEASED", {
+                "lease_id": lease_id,
+                "operator": {
+                    "subject": operator_subject,
+                    "authentication_method": authentication_method,
+                    "authenticated_at": authenticated_at.astimezone(UTC).isoformat(),
+                    "authorization_reference": authorization_reference,
+                },
+                "permission": permission,
+                "reason": reason.strip(),
+                "evidence": evidence.to_dict(),
+                "audit_event_id": audit_event_id,
+            })
+            result["event_type"] = str(event["event_type"])
+            return (event,)
+
+        appended = self._journal.append_transaction(update)
+        if not appended:
+            return None
+        audit_reference = appended[0].get("record_hash")
+        if not isinstance(audit_reference, str) or not audit_reference:
+            raise RuntimeError("durable operator audit event has no chain reference")
+        return audit_reference
+
     def active_leases(self, *, now: datetime | None = None) -> tuple[DurableResourceLease, ...]:
         captured = now or datetime.now(UTC)
         if captured.tzinfo is None or captured.utcoffset() is None:
@@ -555,6 +631,52 @@ class DurableResourceAllocator:
                     ):
                         raise ValueError("durable journal recovered-release evidence is invalid")
                 del state[lease_id]
+            elif event_type == "LEASE_FORCE_RELEASED":
+                if not isinstance(lease_id, str) or lease_id not in state or lease_id not in quarantined:
+                    raise ValueError("durable journal force-releases a lease that is not quarantined")
+                lease = state[lease_id]
+                evidence = record.get("evidence")
+                operator = record.get("operator")
+                observed_at = None
+                authenticated_at = None
+                if isinstance(evidence, dict) and isinstance(evidence.get("observed_at"), str):
+                    try:
+                        observed_at = datetime.fromisoformat(evidence["observed_at"])
+                    except ValueError:
+                        observed_at = None
+                if isinstance(operator, dict) and isinstance(operator.get("authenticated_at"), str):
+                    try:
+                        authenticated_at = datetime.fromisoformat(operator["authenticated_at"])
+                    except ValueError:
+                        authenticated_at = None
+                if (
+                    lease.lease_kind != "supervised_worker"
+                    or lease.process_identity is None
+                    or not isinstance(evidence, dict)
+                    or evidence.get("status") != ProcessLiveness.ABSENT.value
+                    or evidence.get("process_identity") != lease.process_identity.to_dict()
+                    or not isinstance(evidence.get("method"), str)
+                    or not evidence.get("method")
+                    or observed_at is None
+                    or observed_at.tzinfo is None
+                    or observed_at.utcoffset() is None
+                    or not isinstance(operator, dict)
+                    or any(
+                        not isinstance(operator.get(key), str) or not operator.get(key).strip()
+                        for key in ("subject", "authentication_method", "authorization_reference")
+                    )
+                    or authenticated_at is None
+                    or authenticated_at.tzinfo is None
+                    or authenticated_at.utcoffset() is None
+                    or record.get("permission") != "runtime.worker.force_release"
+                    or not isinstance(record.get("reason"), str)
+                    or not record["reason"].strip()
+                    or not isinstance(record.get("audit_event_id"), str)
+                    or not record["audit_event_id"].strip()
+                ):
+                    raise ValueError("durable journal operator force-release audit is invalid")
+                del state[lease_id]
+                del quarantined[lease_id]
             else:
                 raise ValueError(f"unsupported durable lease event: {event_type}")
         return state, quarantined
@@ -600,7 +722,7 @@ class DurableResourceAllocator:
 
     @staticmethod
     def _apply_event(state, quarantined, event):
-        if event["event_type"] in {"LEASE_RELEASED", "LEASE_RECOVERED_RELEASED"}:
+        if event["event_type"] in {"LEASE_RELEASED", "LEASE_RECOVERED_RELEASED", "LEASE_FORCE_RELEASED"}:
             state.pop(event["lease_id"], None)
             quarantined.pop(event["lease_id"], None)
 
