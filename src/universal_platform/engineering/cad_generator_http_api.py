@@ -297,6 +297,54 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if self.command == "GET" and path == "/health":
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
 
+        if self.command == "GET" and path == "/v1/platform/status":
+            return 200, {
+                "status": "PARTIAL",
+                "api_version": "1.0",
+                "components": [
+                    {
+                        "id": "cad-generator",
+                        "status": "READY",
+                        "evidence": "The authenticated platform status request reached the CAD Generator API host.",
+                    },
+                    {
+                        "id": "module-runtime",
+                        "status": "UNKNOWN",
+                        "reason": "ModuleRuntime is not wired into this CAD Generator server host.",
+                    },
+                    {
+                        "id": "workspaces",
+                        "status": "UNKNOWN",
+                        "reason": "No platform workspace service is configured on this host.",
+                    },
+                    {
+                        "id": "jobs",
+                        "status": "UNKNOWN",
+                        "reason": "No platform job service is configured on this host.",
+                    },
+                    {
+                        "id": "diagnostics",
+                        "status": "UNKNOWN",
+                        "reason": "No platform diagnostics aggregator is configured on this host.",
+                    },
+                    {
+                        "id": "audit-browser",
+                        "status": "UNKNOWN",
+                        "reason": "The local API audit log is append-only and has no platform audit query service.",
+                    },
+                    {
+                        "id": "physical-device-io",
+                        "status": "UNSUPPORTED",
+                        "reason": "This host does not expose physical device control.",
+                    },
+                ],
+                "limitations": [
+                    "This is a truthful integration inventory, not a platform-wide health guarantee.",
+                    "UNKNOWN components were not probed and must not be treated as READY.",
+                    "CAD Generator READY describes only this authenticated API host.",
+                ],
+            }
+
         if self.command == "POST" and path == "/v1/templates/polygon-extrusion":
             body = self._read_json()
             required = {"history_id", "points", "height"}

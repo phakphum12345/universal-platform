@@ -1,6 +1,6 @@
 # WP-15 — Modern Unified Control Center UI
 
-**Status:** PLANNED — requirements and acceptance design only. WP-15A inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); WP-15B IA and journeys are drafted in [WP-15B_NAVIGATION_USER_JOURNEYS.md](WP-15B_NAVIGATION_USER_JOURNEYS.md). Both await owner review/acceptance; no shared Control Center implementation or usability acceptance is claimed.  
+**Status:** PARTIAL — WP-15C local-first shell is integrated; platform-wide Control Center behavior and owner acceptance remain open. WP-15A inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); WP-15B IA and journeys remain drafts pending owner review/acceptance.  
 **Repository:** `phakphum12345/universal-platform`  
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
