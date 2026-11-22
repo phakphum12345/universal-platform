@@ -980,10 +980,9 @@ def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
             page.goto(base + "/control-center", wait_until="networkidle")
             page.locator("#service-token").fill(TOKEN)
             page.get_by_role("button", name="Check service").click()
-            page.wait_for_function(
-                "document.querySelector('#platform-overall-state').textContent.includes('PARTIAL')",
-                timeout=5000,
-            )
+            page.get_by_text(
+                "PARTIAL · Platform integration", exact=True
+            ).wait_for(state="visible", timeout=5000)
             assert page.locator("#service-state").inner_text() == "PASS · CAD API READY"
             assert page.locator("#platform-overall-state").inner_text() == "PARTIAL · Platform integration"
             assert page.locator('[data-component-id="cad-generator"] .component-status').inner_text() == "READY"
