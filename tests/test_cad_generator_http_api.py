@@ -208,6 +208,29 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert audit.verify()
 
 
+def test_platform_status_reports_only_verified_and_unknown_components(api):
+    base, audit, _ = api
+
+    status, payload = send(base, "/v1/platform/status")
+    assert status == 200
+    assert payload["status"] == "PARTIAL"
+    assert payload["api_version"] == "1.0"
+    components = {item["id"]: item for item in payload["components"]}
+    assert components["cad-generator"]["status"] == "READY"
+    assert components["module-runtime"]["status"] == "UNKNOWN"
+    assert components["workspaces"]["status"] == "UNKNOWN"
+    assert components["jobs"]["status"] == "UNKNOWN"
+    assert components["diagnostics"]["status"] == "UNKNOWN"
+    assert components["audit-browser"]["status"] == "UNKNOWN"
+    assert components["physical-device-io"]["status"] == "UNSUPPORTED"
+    assert any("UNKNOWN components" in item for item in payload["limitations"])
+
+    unauthorized_status, unauthorized = send(base, "/v1/platform/status", token=None)
+    assert unauthorized_status == 401
+    assert unauthorized["error"]["code"] == "UNAUTHORIZED"
+    assert audit.verify()
+
+
 def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
     base, audit, _ = api
     with urlopen(base + "/control-center", timeout=3) as response:
