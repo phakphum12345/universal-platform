@@ -2,12 +2,13 @@
 
 ## Live implementation reconciliation — 2026-11-22
 
-- **Main baseline:** `9dbc354596896614bfe63066afdfbdebd9071151`.
+- **Main baseline:** `2c8a1542f8d051a42348feeb7dd0ce55fc6b4607` (PR #278 merge; includes PR #279).
 - **WP-09G-A through D:** integrated on `main` through the durable runtime chain and PR #272 (merge commit `bb5d016a48bf8329136629dd0d7835e56fa0ece0`). The implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.
-- **WP-09G-E:** IMPLEMENTATION CANDIDATE IN PR (not integrated or accepted). The candidate adds a host-injected `authenticate_and_authorize` port, short-lived operator-authentication and process-liveness checks, identity-bound `ABSENT` evidence, a durable `LEASE_FORCE_RELEASED` journal event and a chain-hash audit reference. `PRESENT`, `UNKNOWN`, stale/mismatched evidence, authorization denial, and journal-write failure retain the quarantine. A production identity-provider adapter and host/API integration remain required; no mock authorizer is supplied as a production default.
-- **CI evidence for PR #272 merge SHA:** Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor passed 4/4 on the exact merge commit. This is integration evidence for the bounded WP-09G-A–D slice, not final repository acceptance.
+- **WP-09G-E implementation slice:** integrated by PR #277 (merge commit `87c19a9752e43ea051dac0aa302fb85323d130ce`). The service provides a host-injected `authenticate_and_authorize` port, freshness-bounded operator authentication and process-liveness evidence, identity-bound `ABSENT` proof, durable `LEASE_FORCE_RELEASED` journal event and chain-hash audit reference. PRESENT, UNKNOWN, stale/mismatched evidence, authorization denial and journal-write failure retain quarantine.
+- **WP-09G-E production acceptance remains OPEN:** the repository does not yet provide a trusted production identity-provider adapter or host/API wiring. No mock authorizer is a production default; the recovery service is not an exposed operator login or production recovery endpoint.
+- **CI evidence:** PR #277 merge SHA passed Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor. PR #279 enabled Cross-Shell validation; PR #278 then merged the local CAD Generator launcher. Verify post-merge CI on the current Main SHA before claiming Main CI acceptance.
 - **Non-claims:** No general OS sandbox, privilege separation, filesystem/network isolation, or OS CPU/memory/I/O enforcement is established.
-- **Next slice:** Implement WP-09G-E as a separate, reviewable increment with host-injected operator authentication/authorization, explicit lease/reason, fresh identity-bound liveness evidence, durable force-release and audit linkage, failure injection, and exact-head Windows/Python CI. Preserve quarantine and capacity accounting if authorization, liveness evidence, or durable audit persistence fails.
+- **Next slice:** integrate a real host identity-provider adapter and authorization decision into the trusted host/API boundary. Keep recovery unavailable when no trusted adapter is configured. Add API authorization, audit read-back and failure-injection tests. Preserve quarantine and capacity accounting if authorization, liveness evidence or durable audit persistence fails.
 
 The 2026-11-20 checkpoint below is retained as historical candidate evidence and is superseded by this live reconciliation.
 
