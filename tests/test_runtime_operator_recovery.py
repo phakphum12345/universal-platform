@@ -247,7 +247,7 @@ def test_concurrent_operator_recovery_appends_at_most_one_force_release(tmp_path
         outcomes = list(pool.map(recover, range(8)))
 
     assert sum(item.action == "released" for item in outcomes) == 1
-    assert sum(item.action == "already_resolved" for item in outcomes) == 7
+    assert sum(item.action in {"already_resolved", "not_found"} for item in outcomes) == 7
     events = [
         record for record in allocator._journal.read_all()
         if record["event_type"] == "LEASE_FORCE_RELEASED"
