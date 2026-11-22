@@ -40,6 +40,12 @@ The history store, artifact cache and audit database paths are separate explicit
 
 The bearer token must contain at least 32 UTF-8 bytes. Send it only in `Authorization: Bearer <token>`; query-string tokens, cookies and Basic authentication are not accepted. Keep it out of logs and client-visible URLs.
 
+
+
+## 2.1 Supported local launcher
+
+The package exposes `up-cad-generator` as a foreground launcher. It constructs the FeatureHistory store, FeatureArtifact cache and API audit log under the per-user data directory, uses loopback host `127.0.0.1`, selects a dynamic port by default and prints the actual local URLs. The bearer token is generated per process and displayed once unless `UP_CAD_BEARER_TOKEN` is supplied; environment-provided tokens are never echoed. Importing the launcher module does not open a socket. See [Windows Local Installation](../installation/WINDOWS_LOCAL_INSTALL.md) for PowerShell setup and operation.
+
 ## 3. Common request controls
 
 - IPv4 loopback peer address must be exactly `127.0.0.1`.
