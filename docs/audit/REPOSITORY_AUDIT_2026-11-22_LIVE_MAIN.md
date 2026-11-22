@@ -56,6 +56,8 @@ Recursive Git tree at Main SHA:
 
 `.github/workflows/cross-shell-runtime.yml` currently targets the requirements-development and cross-shell-validation branches, not `main`. PR #279 proposes adding `main` to push and pull-request triggers. Until that PR is merged and its four matrix jobs pass, Cross-Shell Runtime Validation on Main remains UNKNOWN / not configured.
 
+See [Main Branch Protection Policy](../governance/MAIN_BRANCH_PROTECTION.md) for the exact recommended settings and verification steps.
+
 ## Remaining completion gates
 
 1. Enable and verify Main branch protection and required status checks. The current GitHub connector exposed read-only inspection for branch protection; no settings write was performed.
