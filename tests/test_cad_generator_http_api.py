@@ -247,12 +247,18 @@ def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
     assert 'href="/" target="_blank"' in html
     assert 'disabled aria-describedby="planned-note"' in html
     assert "platform-wide health assessment" in html
+    assert 'id="platform-overall-state"' in html
+    assert 'id="platform-status-detail"' in html
+    assert 'id="platform-components"' in html
     assert "<iframe" not in html
 
     with urlopen(base + "/static/control_center.js", timeout=3) as response:
         script = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/javascript")
     assert 'fetch("/health"' in script
+    assert 'fetch("/v1/platform/status"' in script
+    assert "checkPlatformStatus(token)" in script
+    assert "setPlatformState(" in script
     assert 'credentials: "omit"' in script
     assert "localStorage" not in script
     assert "sessionStorage" not in script
@@ -960,4 +966,29 @@ def test_http_api_returns_structured_branch_merge_conflicts(api):
     assert conflict["error"]["conflicts"][0]["category"] == "node_content"
     assert service.generator_service.get_revision("history.http-conflict").revision == 2
     assert service.generator_service.get_revision("history.http-conflict.source").revision == 2
+    assert audit.verify()
+
+
+def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
+    playwright = pytest.importorskip("playwright.sync_api")
+    base, audit, _ = api
+
+    with playwright.sync_playwright() as browser_runtime:
+        browser = browser_runtime.chromium.launch()
+        page = browser.new_page()
+        try:
+            page.goto(base + "/control-center", wait_until="networkidle")
+            page.locator("#service-token").fill(TOKEN)
+            page.get_by_role("button", name="Check service").click()
+            page.get_by_text(
+                "PARTIAL · Platform integration", exact=True
+            ).wait_for(state="visible", timeout=5000)
+            assert page.locator("#service-state").inner_text() == "PASS · CAD API READY"
+            assert page.locator("#platform-overall-state").inner_text() == "PARTIAL · Platform integration"
+            assert page.locator('[data-component-id="cad-generator"] .component-status').inner_text() == "READY"
+            assert page.locator('[data-component-id="module-runtime"] .component-status').inner_text() == "UNKNOWN"
+            assert page.locator('[data-component-id="physical-device-io"] .component-status').inner_text() == "UNSUPPORTED"
+            assert "must not be treated as READY" in page.locator("#platform-status-detail").inner_text()
+        finally:
+            browser.close()
     assert audit.verify()
