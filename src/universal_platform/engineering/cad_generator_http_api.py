@@ -691,8 +691,11 @@ class CADGeneratorHTTPServer(HTTPServer):
         static_root = Path(__file__).with_name("static")
         self.static_assets = {
             "/": ("text/html; charset=utf-8", (static_root / "cad_generator.html").read_bytes()),
+            "/control-center": ("text/html; charset=utf-8", (static_root / "control_center.html").read_bytes()),
             "/static/cad_generator.css": ("text/css; charset=utf-8", (static_root / "cad_generator.css").read_bytes()),
             "/static/cad_generator.js": ("text/javascript; charset=utf-8", (static_root / "cad_generator.js").read_bytes()),
+            "/static/control_center.css": ("text/css; charset=utf-8", (static_root / "control_center.css").read_bytes()),
+            "/static/control_center.js": ("text/javascript; charset=utf-8", (static_root / "control_center.js").read_bytes()),
         }
         super().__init__(server_address, _CADGeneratorRequestHandler)
 
