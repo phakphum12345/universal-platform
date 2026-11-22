@@ -1,6 +1,6 @@
 # WP-15A — Existing UI Inventory and Route Map
 
-**Status:** INVENTORY COMPLETE FOR THE INSPECTED DEVELOPMENT-BRANCH SURFACES; NOT A CONTROL CENTER IMPLEMENTATION OR USER-ACCEPTED IA.  
+**Status:** INVENTORY BASELINE WITH WP-15C FOLLOW-UP — canonical CAD workbench and API inventory retained; a provisional shared-shell foundation is now added on the WP-15C feature branch. This is not owner-accepted IA or a completed Control Center.  
 **Repository:** `phakphum12345/universal-platform`  
 **Inspected ref:** `docs/phase-0-complete-requirements`  
 **Reference integration base observed in current PRs:** `a0bf54e5ccc0de4ee9682de4395391d1fa9a67e8`  
@@ -11,9 +11,9 @@
 
 ## 1. Executive inventory
 
-The inspected repository has one implemented browser workbench:
+The inspected repository has one implemented specialist browser workbench plus a provisional shared-shell entry point:
 
-- **CAD Generator workbench:** `src/universal_platform/engineering/static/cad_generator.html`
+- **Control Center shell (WP-15C foundation):** `src/universal_platform/engineering/static/control_center.html`, served at `/control-center` on the existing loopback CAD host; this is a navigation foundation, not a complete platform dashboard.\n- **CAD Generator workbench:** `src/universal_platform/engineering/static/cad_generator.html`
 - **Styles:** `src/universal_platform/engineering/static/cad_generator.css`
 - **Browser behavior:** `src/universal_platform/engineering/static/cad_generator.js`
 - **Loopback HTTP API and static asset host:** `src/universal_platform/engineering/cad_generator_http_api.py`
@@ -21,7 +21,7 @@ The inspected repository has one implemented browser workbench:
 - **Browser E2E:** `e2e/test_cad_generator_browser.py`
 - **HTTP/API tests:** `tests/test_cad_generator_http_api.py`
 
-The canonical UI is a specialist CAD/FeatureHistory workbench. The inspected source tree does **not** establish an existing shared Control Center shell, global navigation, overview dashboard, workspace/project manager, module/tool/function catalogue, unified settings, job centre, diagnostics centre or platform-wide activity/audit screen.
+The canonical specialist UI remains the CAD/FeatureHistory workbench. WP-15C adds a provisional shared shell at `/control-center`; global workspace/project manager, module/tool/function catalogue, unified settings, job centre, diagnostics centre and platform-wide activity/audit screen are still not implemented.
 
 Do not create a second CAD workbench. WP-15 should reuse this workbench and progressively host it inside a shared shell after the shell/API contracts are designed and accepted.
 
@@ -29,7 +29,7 @@ Do not create a second CAD workbench. WP-15 should reuse this workbench and prog
 
 | Surface | Source | Current behavior | Evidence boundary |
 |---|---|---|---|
-| CAD workbench document | `engineering/static/cad_generator.html` | Single-page specialist UI with connection, sketch, history, revision, branch, mesh and result panels | Implemented; no shared platform shell |
+| Control Center shell | `engineering/static/control_center.html/css/js` | Provisional responsive navigation shell, planned-area labels, CAD service health check and link to existing CAD workbench | WP-15C foundation; exact-head CI and owner acceptance pending |\n| CAD workbench document | `engineering/static/cad_generator.html` | Single-page specialist UI with connection, sketch, history, revision, branch, mesh and result panels | Implemented; preserve as canonical specialist workbench |
 | CAD styles | `engineering/static/cad_generator.css` | Dark visual theme, responsive two-column layouts, mobile breakpoint at 650px, focus/disabled states, sketch/mesh/feature-tree styles | Responsive CSS exists; accessibility acceptance is not established |
 | CAD browser controller | `engineering/static/cad_generator.js` | Bearer-token API client, sketch authoring, history/revision navigation, feature editing, branching/merge, mesh preview/measurement | Implemented for the bounded workflows listed below |
 | HTTP adapter | `engineering/cad_generator_http_api.py` | Loopback-only HTTP server, static assets, API routing, strict JSON request handling and audit logging | Local-only service; not a general platform API |
@@ -99,7 +99,7 @@ The route implementation is in `_CADGeneratorRequestHandler._dispatch` in `engin
 
 | Method | Route | Purpose | Authorization |
 |---|---|---|---|
-| GET | `/` | Serve CAD workbench HTML | Local-origin checks; static asset route does not require bearer token |
+| GET | `/` | Serve CAD workbench HTML | Local-origin checks; static asset route does not require bearer token |\n| GET | `/control-center` | Serve provisional Control Center shell | Same loopback and restrictive static-asset security boundary |\n| GET | `/static/control_center.css` | Serve Control Center stylesheet | Same loopback and restrictive static-asset security boundary |\n| GET | `/static/control_center.js` | Serve Control Center browser controller | Same loopback and restrictive static-asset security boundary |
 | GET | `/static/cad_generator.css` | Serve workbench CSS | Local-origin checks; static asset route does not require bearer token |
 | GET | `/static/cad_generator.js` | Serve workbench JavaScript | Local-origin checks; static asset route does not require bearer token |
 | GET | `/health` | CAD Generator readiness/version | Bearer token required |
