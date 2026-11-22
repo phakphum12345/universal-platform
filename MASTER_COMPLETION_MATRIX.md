@@ -24,7 +24,7 @@
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
 | Hardware / EDA / Drivers | PARTIAL | Datasheet constraints, full PCB/library workflows, circuit simulation, BOM/footprint validation and safe device diagnostics |
 | Interchange | PARTIAL | Broader versioned profiles, fidelity/loss accounting and independent round-trip validation |
-| Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B draft awaits owner acceptance; WP-15C shared shell and real-backend UI not started |
+| Unified Control Center | PARTIAL | WP-15C local-first shell merged by PR #274; WP-15B draft awaits owner acceptance; platform-wide backend UI and WP-15D–J remain open |
 | Platform integration / release | INCOMPLETE | Unified API/CLI/UI, cross-domain E2E, platform matrix, security/license review, backup/restore and release acceptance |
 
 **Lifecycle:** WP-09G-A through WP-09G-D are integrated through the completed runtime chain. WP-09G-E is NOT IMPLEMENTED / NOT ACCEPTED. WP-15A is an existing inventory, WP-15B is DRAFT, and WP-15C is NOT STARTED. The repository remains INCOMPLETE.
@@ -67,7 +67,7 @@ Evidence outcomes are separate: **PASS / FAIL / SKIPPED / UNKNOWN**. SKIPPED and
 | E. Physics / Simulation | PARTIAL | Central registry/adapter and reference-checked axial stress, ideal DC Ohm's law/power and linear thermal expansion solvers | FEA/FEM, CFD, multiphysics coupling, boundary-condition handling, convergence/uncertainty and specialist reference validation |
 | F. Hardware / Electronics / EDA | PARTIAL | Component/pin/net/schematic contracts, layout/SVG rendering and bounded static ERC | EDA symbol/library import and exchange, datasheet-backed electrical limits, power-domain checks, circuit simulation, BOM/footprint reconciliation and device diagnostics |
 | G. Module Runtime / Worker Execution | PARTIAL | Host-grant-gated trusted in-process dispatch, versioned Worker IPC, bounded stdin, one-shot WorkerIPCClient, ModuleRuntime supervised worker dispatch, host schema/grant admission, immutable cancellation handles, process-local lease retention/quarantine, POSIX supervisor and Windows Job Object containment | Implement durable lease/job journal and restart reconciliation; add OS identity-backed orphan cleanup; separately validate privilege, filesystem/network isolation and real OS CPU/memory/I/O enforcement |
-| H. Unified Control Center | PLANNED / DESIGN | WP-15 scope and navigation/user-journey design artifacts exist; specialist CAD workbench exists separately | Source-backed UI inventory acceptance, shared shell, capability catalogue, settings, diagnostics/jobs/audit, domain workbench integration, accessibility and browser E2E |
+| H. Unified Control Center | PARTIAL | WP-15C responsive local-first shell merged by PR #274; specialist CAD workbench and CAD-only health check remain separate | WP-15B owner acceptance, truthful workspace/module/tool/job/diagnostic/audit/permission/platform-health API integration, domain workbench integration, accessibility and release acceptance |
 | I. Platform-wide integration and release | INCOMPLETE | Individual domain APIs/workbenches and module/runtime foundations exist | Unified API/CLI and cross-domain orchestration, supported-platform matrix, security/license review, backup/restore, performance/resource tests, full E2E and formal release acceptance |
 
 ## 3. Runtime execution queue — highest current dependency priority
@@ -112,7 +112,7 @@ Evidence outcomes are separate: **PASS / FAIL / SKIPPED / UNKNOWN**. SKIPPED and
 ### Unified Control Center — WP-15
 1. WP-15A: inventory existing UI routes, components, APIs and tests. PR #247 is merged with exact-head and merge-SHA checks passing; owner acceptance of the inventory remains pending.
 2. WP-15B: review and accept navigation and representative user journeys. PR #251 contains the canonical draft, exact-head CI passed, and the PR remains DRAFT pending owner acceptance; no UX decision is approved by CI.
-3. WP-15C: build the shared design system and shell without duplicating specialist workbenches.
+3. WP-15C: shell foundation merged by PR #274; implement WP-15D onward against actual APIs without duplicating specialist workbenches.
 4. WP-15D/E: overview/workspace and truthful Modules/Tools/Functions catalogue.
 5. WP-15F/G: typed secure settings, jobs, diagnostics, activity and audit.
 6. WP-15H/I: integrate existing domain workbenches; accessibility, responsive and usability acceptance.
