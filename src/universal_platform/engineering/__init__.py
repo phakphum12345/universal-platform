@@ -599,3 +599,19 @@ from .physics_module_adapter import (
 
 __all__.extend(["PhysicsModuleBridge", "create_builtin_physics_module_bridge"])
 
+
+from .workspace_store import (
+    SQLiteWorkspaceStore,
+    WorkspaceNotFoundError,
+    WorkspaceRecord,
+    WorkspaceRevisionConflict,
+    WorkspaceStoreIntegrityError,
+)
+
+__all__.extend([
+    "SQLiteWorkspaceStore",
+    "WorkspaceNotFoundError",
+    "WorkspaceRecord",
+    "WorkspaceRevisionConflict",
+    "WorkspaceStoreIntegrityError",
+])
