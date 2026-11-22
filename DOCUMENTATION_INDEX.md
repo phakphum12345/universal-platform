@@ -129,6 +129,10 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Repository Capability Inventory](docs/audit/REPOSITORY_CAPABILITY_INVENTORY.md) — historical audit snapshot; use newer implementation status for current code state.
 - [Post-PR-1 Baseline Audit](docs/audit/POST_PR1_BASELINE_AUDIT.md) — historical baseline reconciliation.
 
+## Installation and local operation
+
+- [Windows Local Installation](docs/installation/WINDOWS_LOCAL_INSTALL.md) — install and run the CAD Generator and Control Center on loopback with dynamic ports and per-user SQLite data.
+
 ## Governance, integration, laboratory and operations
 
 - [Engineering Safety and Approval](docs/governance/ENGINEERING_SAFETY_AND_APPROVAL.md) — safety tiers and approval boundaries.
@@ -144,6 +148,8 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Master File Plan](docs/roadmap/ENGINEERING_MASTER_FILE_PLAN.md) — planned file/module inventory.
 - [Engineering Vertical Slice Specification](docs/roadmap/ENGINEERING_VERTICAL_SLICE_SPEC.md) — end-to-end slice acceptance.
 - [Phase 2 Numerical Reliability Plan](docs/roadmap/PHASE_2_NUMERICAL_RELIABILITY_PLAN.md) — numerical reliability work packages.
+
+- [Post-PR #277 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md) — merged baseline, exact CI, bytecode cleanup and remaining WP-09G/WP-15/governance gaps.
 
 ## Maintenance rules
 

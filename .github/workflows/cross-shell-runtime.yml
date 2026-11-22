@@ -3,10 +3,12 @@ name: Cross-Shell Runtime Validation
 on:
   push:
     branches:
+      - "main"
       - "docs/phase-0-complete-requirements"
       - "ci/cross-shell-runtime-validation"
   pull_request:
     branches:
+      - "main"
       - "docs/phase-0-complete-requirements"
   workflow_dispatch:
 
