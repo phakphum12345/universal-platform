@@ -6,7 +6,7 @@ A cross-platform, cross-disciplinary platform for learning, research, system und
 
 ## Windows local quick start
 
-The CAD Generator and local Control Center can be installed from this checkout with Python. See [Windows Local Installation](docs/installation/WINDOWS_LOCAL_INSTALL.md) for the loopback-only launcher, dynamic port, bearer-token and persistent-data instructions.
+The CAD Generator and local Control Center can be installed from this checkout with Python. See [Windows Local Installation](docs/installation/WINDOWS_LOCAL_INSTALL.md) for the loopback-only launcher, dynamic port, bearer-token and persistent-data instructions. Treat the one-time generated bearer token printed by the launcher as a secret: terminal transcripts, shell logging and redirected stdout may capture it.
 
 ```powershell
 py -3.12 -m venv .venv
