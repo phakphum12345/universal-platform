@@ -31,7 +31,7 @@ The skipped Python tests are reported as SKIPPED, not PASS.
 
 ## PR #278 exact-head evidence
 
-Head SHA: `9de9327cb44d19863585b9e484cdcdfd2e997347`.
+Tested code head SHA: `9de9327cb44d19863585b9e484cdcdfd2e997347`. A subsequent documentation-only token stdout-exposure clarification moved the current PR head to `185f91cc15286679bd9b9a66fec4f67eaa2f543e`; CI on that exact current head is pending.
 
 - Python Tests: PASS (1,226 passed, 6 skipped).
 - Repository Quality / Ruff / Dependency Audit: PASS.
@@ -40,6 +40,7 @@ Head SHA: `9de9327cb44d19863585b9e484cdcdfd2e997347`.
 - Chromium E2E: CAD Generator 9/9 PASS; Control Center 4/4 PASS.
 - Review submissions and inline review threads: none returned.
 - Owner clean-install and interactive usability acceptance: UNKNOWN / pending owner action.
+- The tested code baseline above predates a documentation-only warning that terminal transcripts, shell logging, process supervisors or redirected stdout may capture the one-time generated token. The warning is now present in the current PR head; the workflow rerun is not yet complete.
 - This audit does not declare the launcher accepted for production solely from CI.
 
 ## Repository tree
