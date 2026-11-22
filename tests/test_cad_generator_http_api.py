@@ -208,6 +208,48 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert audit.verify()
 
 
+def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
+    base, audit, _ = api
+    with urlopen(base + "/control-center", timeout=3) as response:
+        html = response.read().decode("utf-8")
+        assert response.status == 200
+        assert response.headers["Content-Type"].startswith("text/html")
+        assert response.headers["X-Frame-Options"] == "DENY"
+        assert response.headers["Referrer-Policy"] == "no-referrer"
+        assert "default-src 'none'" in response.headers["Content-Security-Policy"]
+        assert "Access-Control-Allow-Origin" not in response.headers
+    assert "Control Center" in html
+    assert 'id="primary-navigation"' in html
+    assert 'id="main-content"' in html
+    assert 'href="/" target="_blank"' in html
+    assert 'disabled aria-describedby="planned-note"' in html
+    assert "platform-wide health assessment" in html
+    assert "<iframe" not in html
+
+    with urlopen(base + "/static/control_center.js", timeout=3) as response:
+        script = response.read().decode("utf-8")
+        assert response.headers["Content-Type"].startswith("text/javascript")
+    assert 'fetch("/health"' in script
+    assert 'credentials: "omit"' in script
+    assert "localStorage" not in script
+    assert "sessionStorage" not in script
+    assert "innerHTML" not in script
+
+    with urlopen(base + "/static/control_center.css", timeout=3) as response:
+        stylesheet = response.read().decode("utf-8")
+        assert response.headers["Content-Type"].startswith("text/css")
+    assert "@media (max-width: 680px)" in stylesheet
+    assert "prefers-reduced-motion" in stylesheet
+    assert ":focus-visible" in stylesheet
+
+    # The existing root route remains the canonical CAD workbench.
+    with urlopen(base + "/", timeout=3) as response:
+        root_html = response.read().decode("utf-8")
+    assert "CAD Generator" in root_html
+    assert "/static/cad_generator.js" in root_html
+    assert audit.verify()
+
+
 def test_http_polygon_template_endpoint_generates_and_regenerates_a_profile(api):
     base, audit, _ = api
     status, template = send(
@@ -380,6 +422,7 @@ def test_ci_checks_cad_generator_javascript_syntax_without_external_dependencies
     workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "engineering-core.yml")
     content = workflow.read_text(encoding="utf-8")
     assert "node --check src/universal_platform/engineering/static/cad_generator.js" in content
+    assert "node --check src/universal_platform/engineering/static/control_center.js" in content
     assert "hashFiles('src/universal_platform/engineering/static/cad_generator.js') != ''" in content
 
 

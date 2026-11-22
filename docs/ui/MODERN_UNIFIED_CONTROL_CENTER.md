@@ -5,7 +5,7 @@
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
 
-## 1. Outcome
+## Current implementation boundary — 2026-11-22\n\nA first shell foundation is available at `/control-center` on the existing loopback CAD API host. It preserves the canonical CAD workbench at `/`, links to it in a separate tab, marks unsupported areas as disabled Planned entries, and can query only the existing authenticated CAD `/health` endpoint. It does not provide platform-wide health, workspaces, jobs, modules/tools/functions APIs, settings, diagnostics, audit browsing or cross-domain workbench integrations. WP-15B remains a draft; this implementation does not freeze its proposed information architecture. Exact-head CI and owner browser acceptance are still required.\n\n## 1. Outcome
 
 Deliver a modern, coherent Control Center through which an authorized user can discover, operate, configure and diagnose the real capabilities of Universal Platform. The experience must organize existing functions, tools, modules and settings without inventing capabilities or exposing unsafe operations.
 

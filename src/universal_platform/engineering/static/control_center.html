@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Local-first Universal Platform Control Center.">
+  <title>Universal Platform · Control Center</title>
+  <link rel="stylesheet" href="/static/control_center.css">
+  <script src="/static/control_center.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="primary-navigation" aria-label="Primary navigation">
+      <a class="brand" href="/control-center" aria-label="Universal Platform Control Center home">
+        <span class="brand-mark" aria-hidden="true">UP</span>
+        <span><strong>Universal Platform</strong><small>CONTROL CENTER</small></span>
+      </a>
+      <div class="nav-section-label">PLATFORM</div>
+      <nav class="navigation" aria-label="Platform">
+        <a class="nav-link active" href="#overview" aria-current="page"><span aria-hidden="true">⌂</span> Overview</a>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">▦</span> Workspaces <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">◇</span> Modules & tools <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">ƒ</span> Functions <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">◷</span> Jobs & activity <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">⌁</span> Diagnostics <span class="nav-state">Planned</span></button>
+      </nav>
+      <div class="nav-section-label">ENGINEERING</div>
+      <nav class="navigation" aria-label="Engineering workbenches">
+        <a class="nav-link" href="/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">▱</span> CAD Generator <span class="external-mark" aria-label="opens in new tab">↗</span></a>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">⌘</span> Mechanics <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">∿</span> Physics <span class="nav-state">Planned</span></button>
+        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">⌗</span> Hardware & EDA <span class="nav-state">Planned</span></button>
+      </nav>
+      <p class="sidebar-note" id="planned-note">Planned areas are not yet executable. The CAD Generator remains the existing specialist workbench.</p>
+      <div class="sidebar-footer"><span class="local-indicator" aria-hidden="true"></span> Local-only interface</div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <button id="navigation-toggle" class="icon-button navigation-toggle" type="button" aria-controls="primary-navigation" aria-expanded="false" aria-label="Open navigation">☰</button>
+        <div class="breadcrumbs"><span>Universal Platform</span><span aria-hidden="true">/</span><strong>Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="environment-label">LOCAL ENVIRONMENT</span>
+          <button id="theme-toggle" class="secondary-button" type="button" aria-pressed="false">Use light theme</button>
+        </div>
+      </header>
+
+      <main id="main-content" class="content" tabindex="-1">
+        <section class="page-heading" id="overview" aria-labelledby="page-title">
+          <div><p class="eyebrow">PLATFORM OVERVIEW</p><h1 id="page-title">Control Center</h1><p class="lede">A single entry point for the platform's verified tools and engineering workbenches.</p></div>
+          <span class="maturity-label">FOUNDATION · WP-15C</span>
+        </section>
+
+        <section class="notice" aria-labelledby="scope-heading">
+          <span class="notice-icon" aria-hidden="true">i</span>
+          <div><h2 id="scope-heading">Capability status is deliberately conservative</h2><p>This first shell is a navigation foundation, not a complete platform dashboard. Areas without a verified API or UI are marked Planned. The CAD service health below is not a platform-wide health assessment.</p></div>
+        </section>
+
+        <section class="section-block" aria-labelledby="service-heading">
+          <div class="section-heading"><div><p class="eyebrow">CONNECTED SERVICE</p><h2 id="service-heading">CAD Generator API</h2></div><span id="service-state" class="status-pill unknown" role="status" aria-live="polite">UNKNOWN · Not checked</span></div>
+          <div class="service-card">
+            <div class="service-description"><h3>Local CAD workbench service</h3><p>Health is read from the existing loopback API. No status is inferred when a connection has not been verified.</p></div>
+            <div class="service-connect">
+              <label for="service-token">Local bearer token</label>
+              <input id="service-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste local API token">
+              <div class="button-row"><button id="check-service" class="primary-button" type="button">Check service</button><button id="clear-token" class="secondary-button" type="button">Clear token</button></div>
+              <p class="field-note">Token is held in page memory only. It is not saved to storage, cookies or the URL. Refreshing clears it.</p>
+              <p id="service-detail" class="service-detail" role="status" aria-live="polite">No service check has been performed.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-block" aria-labelledby="workbench-heading">
+          <div class="section-heading"><div><p class="eyebrow">AVAILABLE WORKBENCH</p><h2 id="workbench-heading">Engineering</h2></div><span class="section-caption">1 existing browser workbench</span></div>
+          <a class="workbench-card" href="/" target="_blank" rel="noopener noreferrer">
+            <span class="workbench-icon" aria-hidden="true">▱</span>
+            <span class="workbench-copy"><strong>CAD Generator</strong><small>Polygon sketch · FeatureHistory · revisions · branches · mesh preview</small></span>
+            <span class="open-workbench">Open workbench ↗</span>
+          </a>
+        </section>
+
+        <section class="section-block" aria-labelledby="planned-heading">
+          <div class="section-heading"><div><p class="eyebrow">ROADMAP</p><h2 id="planned-heading">Platform areas in development</h2></div><span class="section-caption">Not executable yet</span></div>
+          <div class="planned-grid">
+            <article class="planned-card"><span class="planned-symbol" aria-hidden="true">▦</span><h3>Workspaces</h3><p>Unified project and workspace context.</p><span class="planned-tag">PLANNED</span></article>
+            <article class="planned-card"><span class="planned-symbol" aria-hidden="true">◇</span><h3>Modules & tools</h3><p>Source-backed catalogue and permission context.</p><span class="planned-tag">PLANNED</span></article>
+            <article class="planned-card"><span class="planned-symbol" aria-hidden="true">◷</span><h3>Jobs & diagnostics</h3><p>Runtime status, logs and evidence views.</p><span class="planned-tag">PLANNED</span></article>
+          </div>
+        </section>
+
+        <footer class="page-footer"><span>Universal Platform · Control Center foundation</span><span>No remote access · No physical device control</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

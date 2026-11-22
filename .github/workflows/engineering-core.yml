@@ -25,6 +25,9 @@ jobs:
       - name: Validate CAD Generator JavaScript syntax
         if: hashFiles('src/universal_platform/engineering/static/cad_generator.js') != ''
         run: node --check src/universal_platform/engineering/static/cad_generator.js
+      - name: Validate Control Center JavaScript syntax
+        if: hashFiles('src/universal_platform/engineering/static/control_center.js') != ''
+        run: node --check src/universal_platform/engineering/static/control_center.js
 
   python-tests:
     runs-on: ubuntu-latest
