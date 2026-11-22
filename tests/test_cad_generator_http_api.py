@@ -422,6 +422,7 @@ def test_ci_checks_cad_generator_javascript_syntax_without_external_dependencies
     workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "engineering-core.yml")
     content = workflow.read_text(encoding="utf-8")
     assert "node --check src/universal_platform/engineering/static/cad_generator.js" in content
+    assert "node --check src/universal_platform/engineering/static/control_center.js" in content
     assert "hashFiles('src/universal_platform/engineering/static/cad_generator.js') != ''" in content
 
 
