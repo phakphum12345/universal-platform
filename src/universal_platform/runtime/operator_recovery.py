@@ -40,7 +40,7 @@ class OperatorPrincipal:
             ("authentication_method", self.authentication_method),
             ("authorization_reference", self.authorization_reference),
         ):
-            if not isinstance(value, str) or not value.strip() or "\\x00" in value:
+            if not isinstance(value, str) or not value.strip() or "\x00" in value:
                 raise ValueError(f"{name} must be a non-empty NUL-free string")
         if (
             not isinstance(self.authenticated_at, datetime)
@@ -120,7 +120,7 @@ class OperatorRecoveryService:
     ) -> OperatorRecoveryResult:
         if not isinstance(lease_id, str) or not lease_id.strip():
             raise ValueError("lease_id must be a non-empty string")
-        if not isinstance(reason, str) or not reason.strip() or len(reason) > 2000 or "\\x00" in reason:
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 2000 or "\x00" in reason:
             raise ValueError("reason must be non-empty, NUL-free and at most 2000 characters")
         captured = now or datetime.now(UTC)
         if not isinstance(captured, datetime) or captured.tzinfo is None or captured.utcoffset() is None:

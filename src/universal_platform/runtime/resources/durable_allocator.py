@@ -298,7 +298,7 @@ class DurableResourceAllocator:
         if (
             not isinstance(current_host_instance_id, str)
             or not current_host_instance_id.strip()
-            or "\\x00" in current_host_instance_id
+            or "\x00" in current_host_instance_id
         ):
             raise ValueError("current_host_instance_id must be a non-empty NUL-free string")
         outcomes: list[WorkerReconciliationResult] = []
@@ -441,7 +441,7 @@ class DurableResourceAllocator:
             ("audit_event_id", audit_event_id),
         )
         for name, value in text_fields:
-            if not isinstance(value, str) or not value.strip() or "\\x00" in value:
+            if not isinstance(value, str) or not value.strip() or "\x00" in value:
                 raise ValueError(f"{name} must be a non-empty NUL-free string")
         if not isinstance(authenticated_at, datetime) or (
             authenticated_at.tzinfo is None or authenticated_at.utcoffset() is None

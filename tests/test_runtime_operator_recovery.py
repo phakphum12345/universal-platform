@@ -9,6 +9,7 @@ from universal_platform.runtime.operator_recovery import (
     OperatorPrincipal,
     OperatorRecoveryService,
 )
+from universal_platform.runtime.process_identity import ProcessIdentity
 from universal_platform.runtime.process_reconciliation import (
     ProcessLiveness,
     ProcessLivenessEvidence,
@@ -16,7 +17,21 @@ from universal_platform.runtime.process_reconciliation import (
 from universal_platform.runtime.resources.durable_allocator import DurableResourceAllocator
 from universal_platform.runtime.resources.models import ResourceMetric
 
-from test_runtime_durable_resource_allocator import capacity, worker_identity
+def capacity():
+    return (ResourceMetric("cpu.cores", 2, "cores"), ResourceMetric("memory.bytes", 1024, "bytes"))
+
+
+def worker_identity(*, pid=1234, worker_id="worker-1", host_instance_id="host-1"):
+    return ProcessIdentity(
+        platform="linux",
+        pid=pid,
+        creation_token=str(pid * 10),
+        host_boot_id="boot-token",
+        worker_id=worker_id,
+        host_instance_id=host_instance_id,
+        process_group_id=pid,
+        session_id=pid,
+    )
 
 
 class StaticAuthorizer:
@@ -70,7 +85,7 @@ def quarantined_worker(tmp_path, *, pool_id="operator-recovery"):
         worker_id="worker-1",
     )
     identity = worker_identity()
-    allocator.bind_process_identity(lease.lease_id, identity)
+    lease = allocator.bind_process_identity(lease.lease_id, identity)
     allocator.quarantine(lease.lease_id, "worker termination could not be confirmed")
     return allocator, lease, identity
 
@@ -213,6 +228,7 @@ def test_audit_append_failure_keeps_quarantine_and_capacity_charged(tmp_path, mo
     monkeypatch.setattr(allocator._journal, "append_transaction", fail_append)
     with pytest.raises(OSError, match="simulated"):
         service.recover(lease.lease_id, "audit write failure injection", object())
+    monkeypatch.undo()
 
     assert allocator.quarantined_leases()[0][0] == lease
     assert allocator.active_leases() == (lease,)
