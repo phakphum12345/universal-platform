@@ -1,41 +1,34 @@
-> **LIVE STATUS — 2026-11-21:** The current main-integration evidence is recorded in [Repository Audit 2026-11-21](docs/audit/REPOSITORY_AUDIT_2026-11-21_MAIN_INTEGRATION.md). PR #271 is OPEN and not merged; its exact head is `67bdc6411dd2e705684b0f15378ae5ed907636a2`, base `main` was `96e75010716226037893155b9fd4b13410fb0d6f`, and the latest PR-triggered Python engineering-core test job was still IN_PROGRESS at audit time. The owner has authorized merging completed, verified work into `main`, but this does not waive CI, diff, ancestry, security, or post-merge checks. Historical status snapshots below are retained for traceability and are not current status. SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-21:** `main` is at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 merged as `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged as `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. The exact merge-commit check-run set for #272 is 4/4 PASS (repository-quality, workflow-sanity, python-tests, windows-process-supervisor). GitHub currently reports 0 open PRs. Eighteen historical closed-without-merge PRs remain subject to patch/ancestry reconciliation; do not cherry-pick them without verifying unique content. `main` branch protection and required status checks are disabled. WP-09G-A through D are integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B remains a draft pending owner acceptance, and WP-15C shared-shell implementation is not started. Overall repository status remains **INCOMPLETE**. Historical snapshots are retained for traceability. SKIPPED and UNKNOWN are never PASS.
 
 # Universal Platform
 
 A cross-platform, cross-disciplinary platform for learning, research, system understanding, engineering, simulation, creation, and governed evolution.
 
-## Current status — 2026-11-20
+## Current status — 2026-11-21
 
-- Overall lifecycle: **INCOMPLETE**. This is an active development repository, not a release-accepted universal platform.
-- Active development branch: `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`. Development is 878 commits ahead / 0 behind; main is an ancestor.
-- GitHub reports `main` and development as `protected=false`; required status-check enforcement is off and repository rulesets are empty. Branch protection remains an owner/admin governance action.
-- Current PR inventory #1–#266: **239 merged, 18 closed without merge, 9 open (#258–#266)**. All nine are unmerged; no PR in the current runtime dependency chain has post-merge evidence.
-- PR #258 @ `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`: exact-head CI PASS; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS.
-- PR #259: audit/documentation refresh branch; the prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed (Python 1,150 passed / 4 skipped, Windows and workflow sanity PASS). This live documentation update advances the branch again; validate its new exact head before treating the PR as PASS. Historical README compatibility anchors are not current test counts.
-- PR #260 @ `47d2ac49eab69d9dd8c260d8803a73070c25aad1`: exact-head CI PASS; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS. It depends on #258.
-- PR #261 @ `3e8af697ead9050dd531f27ce8bbaef358145261`: Draft, exact-head CI PASS; immutable Linux/Windows process identity snapshot foundation. Depends on #260.
-- PR #262 @ `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`: Draft, exact-head CI PASS; durable process identity binding and journal replay. Depends on #261.
-- PR #263 @ `077edafe5c1e750be6270b28f98fd42430348a98`: Draft, exact-head CI PASS; Linux start gate and Windows suspended-process/Job Object hand-off. Python 1,179 passed / 5 skipped; Windows process supervisor 22 passed / 5 skipped; Windows journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 18 passed.
-- PR #264 @ `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`: Draft, exact-head CI PASS; WorkerIPC/ModuleRuntime binds OS identity before worker payload execution. Python 1,185 passed / 5 skipped; Windows supervisor 22 passed / 5 skipped; journal 20 passed / 1 skipped; durable allocator/ModuleRuntime 19 passed; WorkerIPC/ModuleRuntime integration 70 passed.
-- PR #265 @ `088db6ad3178ac02321012a50fb319f5996d2d52`: Draft process-liveness adapters; exact-head Python 1,194 passed / 6 skipped, Windows supervisor 22 passed / 5 skipped, journal 20 passed / 1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime 70 passed, process reconciliation 2 passed / 8 skipped, workflow sanity PASS.
-- PR #266: Draft durable allocator startup reconciliation; current exact-head CI is QUEUED. It depends on #265.
-- PR #258–#266 have no formal review submissions or unresolved review threads at the latest GitHub review query. Mergeability is reported clean/true; that is not approval.
-- WP-09G-A is integrated via #257. WP-09G-B is verified on #258/#260 but not integrated. WP-09G-C candidate implementation passes CI through #264 but remains unmerged. WP-09G-D is in progress (#265/#266); WP-09G-E operator recovery remains open.
-- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interchange and platform UI remain PARTIAL. CI currently lacks repository-wide lint/type-check/dependency-security gates. Local working-tree state is UNKNOWN to this GitHub-only audit.
-- No PR has been merged in this execution. No merge to `main`, deployment or paid infrastructure is implied.
-- Use the [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md) as the current evidence set.
+- Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
+- `main` HEAD: `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
+- PR #271 merged at `4f1b6ef7232e89bf504cfe3dd02996d1647539c1`; PR #272 merged at `bb5d016a48bf8329136629dd0d7835e56fa0ece0`.
+- Exact post-merge CI on #272: **4/4 PASS** (repository-quality, workflow-sanity, python-tests, windows-process-supervisor).
+- Open PRs: **0** at the latest GitHub API read. Eighteen closed-without-merge PRs remain historically recorded and have preliminary successor/source dispositions; preserve their branches and PR records.
+- `main` is not protected; required status-check enforcement is disabled. This is a governance gap, not a passing security control.
+- WP-09G-A through WP-09G-D are integrated. WP-09G-E authenticated operator recovery and durable approval/audit remain open.
+- WP-15A inventory exists; WP-15B canonical IA remains a DRAFT pending owner acceptance; WP-15C shared shell and real-backend Control Center are not implemented.
+- CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security governance and platform-wide integration remain PARTIAL or INCOMPLETE.
+- The existing UI is the specialist CAD Generator workbench; local launch and browser acceptance on the owner's machine remain UNKNOWN.
+- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Continuous Execution Audit](docs/audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md).
 
 ## Initial implementation (active development)
 
 
-The integration branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
+The main branch contains an incrementally implemented Python engineering core under src/universal_platform/engineering, including the metadata-only module registry added in PR #39. Mechanism topology, placements, generalized-coordinate parameterization, loop topology, mobility diagnostics and caller-driven kinematics are versioned contracts; each PR remains subject to exact-SHA CI.
 
 Current modules include:
 - SI-backed quantities with dimensional checks (limited initial unit registry).
 - Evidence and provenance contracts with explicit evidence kinds and statuses.
 - A fail-closed safety gate for offline engineering workflows.
-- A validated, metadata-only ModuleManifest/ModuleOperation registry with deterministic dependency ordering; no plugin code loading or invocation.
-- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses; no module runtime execution.
+- A validated ModuleManifest/ModuleOperation registry with deterministic dependency ordering, plus host-grant-gated trusted-handler and supervised-worker dispatch; this is not a general sandbox or arbitrary plugin execution environment.
+- Validated immutable ModuleRequest/ModuleResponse envelopes with JSON-safe payloads and explicit operational statuses, integrated with host-controlled trusted-handler and supervised-worker dispatch.
 - Provenance/evidence records with source SHA-256 references and conservative PASS/FAIL/SKIPPED/UNKNOWN aggregation (PR #42 merged).
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
@@ -333,7 +326,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 - Recursive Git tree at the integration HEAD: 392 blobs (156 Markdown, 202 Python, 28 JSON); response not truncated.
 - Local working-tree state: UNKNOWN; GitHub API access cannot inspect the user's local checkout.
 - PR #235–#240 are merged into the integration branch. Their exact merge SHAs and post-merge push workflow runs are recorded below.
-- PR #241 remains OPEN and unmerged; exact head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
+- Historical snapshot: PR #241 was OPEN and unmerged at that time; it was subsequently integrated into the accumulated baseline. Exact historical head `cb8ed040d3a7612468d08ddfe455e17fc2ada7b4`. Its PR workflow #43168390970 passed `windows-process-supervisor`, `python-tests`, and `workflow-sanity`. The Windows job runs the existing supervisor test file only; it does not implement Windows Job Objects or prove descendant process-tree cleanup.
 - PR #241 formal review submissions: 0; unresolved review threads: 0. The Codex review automation reported that it could not complete because its usage limit was reached. Review outcome is UNKNOWN, not PASS.
 - Post-merge CI on exact merge SHAs: PR #235 run #42835668819; #236 run #42879990889; #237 run #43031735312; #238 run #43136866268; #239 run #43138398688; #240 run #43168374709. Each run completed with `python-tests` and `workflow-sanity` PASS. The documentation-only marker step was SKIPPED where present and is not counted as PASS.
 - No claim is made here about local working-tree cleanliness, branch protection, full OS isolation, or repository completion.
@@ -359,7 +352,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ### Next dependency-ready work
 
-1. Keep PR #241 open and unmerged while documentation reconciliation is reviewed.
+1. Historical recommendation at that checkpoint: keep PR #241 open while documentation reconciliation is reviewed.
 2. Implement and test Windows Job Object containment in a separate implementation PR; do not treat the Windows CI-only PR as implementation.
 3. Define the worker protocol and connect ModuleRuntime to supervised workers with host-owned identity, deadlines and cancellation.
 4. Tie resource lease release to confirmed worker termination; test success, handler failure, timeout, cancellation and crash paths.

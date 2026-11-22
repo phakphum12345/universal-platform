@@ -1,11 +1,12 @@
-> **LIVE PR STATUS CORRECTION — 2026-11-20:** PRs #258, #260, #261 and #262 are MERGED; exact post-merge checks on #262 merge SHA `a799dc9289bbb674c81bd60cf8d6f4325c9a64b7` all PASS (`python-tests`, `windows-process-supervisor`, `workflow-sanity`). PRs #259 and #263–#268 remain OPEN (7 open PRs total). PR #259 exact-head checks all PASS and it has no formal review submissions or inline review threads; this audit PR is ready for merge after this correction. PRs #263–#266 and #268 have prior exact-head CI PASS evidence but remain Draft and must be revalidated after any base/head changes and merged in dependency order. PR #267 remains FAIL because `repository-quality` failed; do not mark it ready or merge until lint/security gates pass. No PR is authorized for promotion to `main`. SKIPPED remains distinct from PASS. Historical snapshots below are retained for traceability and must not be interpreted as live status.
+> **LIVE STATUS — 2026-11-21:** `main` is `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; PR #271 and #272 merged; #272 post-merge CI 4/4 PASS. No open PRs. Eighteen closed-without-merge PRs remain preserved and have preliminary successor/source dispositions. Main branch protection and required status-check enforcement are disabled. WP-09G-A through D integrated; WP-09G-E remains open. WP-15A inventory exists, WP-15B is DRAFT pending owner acceptance, WP-15C not started. Repository status remains INCOMPLETE. See [Continuous Execution Audit](../audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md). Historical snapshots below are retained. SKIPPED and UNKNOWN are never PASS.
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-20
+## Live work-package reconciliation — 2026-11-21
 
-**Development baseline:** `docs/phase-0-complete-requirements` @ `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; default `main` @ `96e75010716226037893155b9fd4b13410fb0d6f`. Development is 878 commits ahead / 0 behind. Both main and development branches have protection disabled; required checks are unenforced and no repository rulesets exist.  
-**Repository status:** INCOMPLETE. Current open PRs: #258–#266 (9 open; 239 merged, 18 closed without merge). No PR in this queue is merged.
+**Main baseline:** `bb5d016a48bf8329136629dd0d7835e56fa0ece0`. PR #271 and #272 are merged. Exact post-merge CI on #272 is 4/4 PASS. There are 0 open PRs; 18 closed-without-merge PRs are retained and provisionally reconciled in the [Continuous Execution Audit](../audit/REPOSITORY_AUDIT_2026-11-21_CONTINUOUS_EXECUTION.md). Main branch protection is disabled and required status checks are not enforced.
+
+**Repository status:** INCOMPLETE.
 
 | WP | Domain | Live status | Next acceptance work |
 |---|---|---|---|
@@ -17,33 +18,28 @@
 | 06 | Hardware/electronics | PARTIAL | Datasheet-backed limits, circuit simulation and diagnostics |
 | 07 | Schematic/PCB | PARTIAL | Full library, PCB, exchange and validation workflows |
 | 08 | Drivers | PARTIAL | Integrate existing driver architecture safely; no physical I/O claim |
-| 09 | Module runtime | IN PROGRESS | #258/#260 allocator foundation and ModuleRuntime integration pass exact-head CI; #261–#264 identity snapshot, durable binding, Linux/Windows start gate and WorkerIPC/ModuleRuntime callback pass exact-head CI but remain unmerged; #265 liveness adapter Python CI IN_PROGRESS; #266 startup reconciliation CI QUEUED; WP-09G-E operator recovery remains open |
+| 09 | Module runtime | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery, durable approval/audit and failure-injection tests remain open |
 | 10 | System understanding | PARTIAL | Authorized discovery/indexing, provenance and governed adaptation E2E |
 | 11 | API/CLI/UI | PARTIAL | CAD workbench exists; shared Control Center and unified platform API/CLI remain open |
 | 12 | Platform integration | INCOMPLETE | Cross-domain workflows and end-to-end acceptance |
-| 13 | Security/quality | PARTIAL / FAIL | Main/development branch protection disabled; no general OS sandbox; repository-wide lint/type/dependency-security gates absent |
+| 13 | Security/quality | PARTIAL / FAIL | Main branch protection disabled; general OS sandbox and full security governance remain unestablished |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository acceptance gates not met |
-| 15 | Modern Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B remains DRAFT pending owner acceptance; WP-15C+ not started |
+| 15 | Modern Unified Control Center | PLANNED / DESIGN | WP-15A inventory exists; WP-15B draft awaits owner acceptance; WP-15C shared shell and backend integration not started |
 
-### Current PR disposition
+### Current integration disposition
 
-| PR | Current disposition | Exact-head evidence |
+| Item | Current disposition | Evidence |
 |---|---|---|
-| #254 | MERGED to development | Merge SHA `f2ee9045c6316b2ff9026ea5196fedf1232f71a3` |
-| #256 | MERGED to development | Durable worker lease recovery design contract; merge SHA `fb47dc0a06b08bf63f1cfe318aa7a79065547b31` |
-| #257 | MERGED to development | Reusable JSONL journal; merge SHA/current HEAD `2eff621e4ff24e98250bc085b2c652cd366a5e2e`; current-head workflow checks PASS |
-| #258 | OPEN; not merged | Head `43aac3cbb3a42e8dd822ee5d56efcab1d1e01719`; Python 1,160 passed / 4 skipped; Windows supervisor and workflow sanity PASS |
-| #259 | OPEN; not merged | Prior verified head `a2bc0abc7efaefa68f9da4188bb17f1f3ee5b78a` passed; this live documentation update advances the branch and requires fresh exact-head CI |
-| #260 | OPEN; stacked on #258 | Head `47d2ac49eab69d9dd8c260d8803a73070c25aad1`; Python 1,166 passed / 4 skipped; Windows supervisor and workflow sanity PASS |
-| #261 | OPEN Draft; stacked on #260 | Head `3e8af697ead9050dd531f27ce8bbaef358145261`; exact-head Python, Windows and workflow sanity PASS |
-| #262 | OPEN Draft; stacked on #261 | Head `30c61a6715ac47b9bb583ee2de9603802ee7d2c3`; Python 1,176 passed / 4 skipped; Windows and workflow sanity PASS |
-| #263 | OPEN Draft; stacked on #262 | Head `077edafe5c1e750be6270b28f98fd42430348a98`; Python 1,179 passed / 5 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 18 passed; workflow sanity PASS |
-| #264 | OPEN Draft; stacked on #263 | Head `2b4ff7f014d8ee17e7f84bd623ca6d3322d7c6f9`; Python 1,185 passed / 5 skipped; Windows supervisor 22/5 skipped, journal 20/1 skipped, durable allocator/ModuleRuntime 19 passed, WorkerIPC/ModuleRuntime integration 70 passed; workflow sanity PASS |
-| #265 | OPEN Draft; stacked on #264 | Head `088db6ad3178ac02321012a50fb319f5996d2d52`; Python 1,194 passed / 6 skipped; Windows process reconciliation 2 passed / 8 skipped and other Windows jobs PASS |
-| #266 | OPEN Draft; stacked on #265 | Head `ed214969d9382e4dd343d24df0bd4d38d83e670b`; CI QUEUED |
-
-Latest review query for #258–#266 returned no formal review submissions and no unresolved review threads. All are mergeable; none is approved or merged by that fact. See [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](../engineering/TECHNICAL_DEBT.md).
-
+| PR #271 | MERGED to main | Merge SHA `4f1b6ef7232e89bf504cfe3dd02996d1647539c1` |
+| PR #272 | MERGED to main | Merge SHA `bb5d016a48bf8329136629dd0d7835e56fa0ece0`; post-merge CI 4/4 PASS |
+| PRs #262–#266 | Integrated through runtime dependency chain | Included via #272; #268 was merged into the feature chain |
+| PR #255 | Superseded by #256 | Do not merge stale branch |
+| PR #253 | Superseded by #254 | Current runtime dispatch implementation is on main |
+| PR #249 | Superseded by #251 | Canonical WP-15B document is on main |
+| PR #250 | Superseded by #252 | Worker IPC implementation is on main |
+| PR #229 | Test coverage present on main | Symmetric-difference and rational operation-matrix tests exist |
+| PR #193 | Contract retained and advanced | Current faceted B-rep Boolean contract exists on main |
+| PRs #100–#114 | Historical runtime/documentation branches | Current runtime adapter/recovery/resource/health code is present on main; no direct cherry-pick without a unique diff |
 
 Historical work-package rows below are retained as a dated prior snapshot. See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
 
