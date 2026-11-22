@@ -22,7 +22,7 @@ The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Post-PR #274 Au
 ### Next execution priorities
 
 1. Reconcile current documentation and historical PR/branch content without discarding unique work.
-2. Review WP-15B and implement WP-15C against the existing CAD workbench and actual API contracts.
+2. Review and accept WP-15B; implement WP-15D onward against actual workspace, module, job, diagnostics, audit and platform-health APIs.
 3. Complete WP-09G-E with authenticated operator approval, durable audit and failure-injection tests.
 4. Remove tracked generated artifacts through a dedicated, test-verified change.
 5. Continue engineering-domain increments and system integration.
