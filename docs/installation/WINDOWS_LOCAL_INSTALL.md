@@ -38,7 +38,7 @@ The launcher:
 - Binds only to `127.0.0.1`; there is no host/wildcard/LAN option.
 - Uses port `0` by default so Windows selects an available port. The actual port is printed at startup. A fixed port can be selected explicitly with `--port 8765`.
 - Opens no browser automatically. Copy the printed Control Center URL into your browser.
-- Generates a bearer token when `UP_CAD_BEARER_TOKEN` is not set. The token is printed once for the current process so it can be pasted into the Control Center's local token field. It is not written to a file, URL, cookie or log.
+- Generates a bearer token when `UP_CAD_BEARER_TOKEN` is not set. The token is printed once to stdout for the current process so it can be pasted into the Control Center's local token field. The launcher does not write it to an application file, URL, cookie or application audit log; however, terminal transcripts, shell logging, process supervisors or redirected stdout may capture it. Treat terminal output as secret and do not share it.
 - If `UP_CAD_BEARER_TOKEN` is supplied, it must contain at least 32 UTF-8 bytes and is not echoed to the console.
 - Stops and closes the listening socket when you press **Ctrl+C**.
 
