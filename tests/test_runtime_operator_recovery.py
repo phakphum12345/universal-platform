@@ -14,7 +14,9 @@ from universal_platform.runtime.process_reconciliation import (
     ProcessLiveness,
     ProcessLivenessEvidence,
 )
-from universal_platform.runtime.resources.durable_allocator import (\n    DurableResourceAllocator,\n)
+from universal_platform.runtime.resources.durable_allocator import (
+    DurableResourceAllocator,
+)
 from universal_platform.runtime.resources.models import ResourceMetric
 
 
