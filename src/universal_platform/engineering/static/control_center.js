@@ -29,6 +29,10 @@
   let savingWorkspace = false;
   let loadingWorkspaceId = null;
   let workspaceLoadSequence = 0;
+  const catalogueState = byId("catalog-state");
+  const moduleList = byId("module-list");
+  const toolList = byId("tool-list");
+  const functionList = byId("function-list");
 
   function setServiceState(kind, label, detail) {
     serviceState.className = "status-pill " + kind;
@@ -62,6 +66,133 @@
     workspaceState.className = "status-pill " + kind;
     workspaceState.textContent = label;
     workspaceDetail.textContent = detail;
+  }
+
+  function setCatalogueState(kind, label, detail) {
+    catalogueState.className = "status-pill " + kind;
+    catalogueState.textContent = label;
+    catalogueState.setAttribute("aria-label", detail);
+  }
+
+  function appendCatalogueEmpty(list, message) {
+    const item = document.createElement("li");
+    item.className = "catalog-empty";
+    item.textContent = message;
+    list.append(item);
+  }
+
+  function renderCatalogue(modules, functions, tools) {
+    moduleList.replaceChildren();
+    functionList.replaceChildren();
+    toolList.replaceChildren();
+
+    if (modules.length === 0) appendCatalogueEmpty(moduleList, "No modules are registered on this host.");
+    for (const module of modules) {
+      const item = document.createElement("li");
+      item.className = "catalog-item";
+      item.dataset.moduleId = module.module_id;
+      const heading = document.createElement("strong");
+      heading.textContent = module.module_id;
+      const metadata = document.createElement("p");
+      metadata.textContent = module.domain + " · v" + module.version + " · " + module.maturity;
+      const registration = document.createElement("p");
+      registration.className = "catalog-status";
+      registration.textContent = module.registration_status + " · " + module.execution_status.replaceAll("_", " ");
+      const operations = document.createElement("p");
+      operations.className = "catalog-note";
+      operations.textContent = "Operations: " + module.operations.map((operation) => operation.operation_id).join(", ");
+      item.append(heading, metadata, registration, operations);
+      moduleList.append(item);
+    }
+
+    if (functions.length === 0) appendCatalogueEmpty(functionList, "No module operations are registered.");
+    for (const entry of functions) {
+      const item = document.createElement("li");
+      item.className = "catalog-item";
+      item.dataset.functionId = entry.function_id;
+      const heading = document.createElement("strong");
+      heading.textContent = entry.function_id;
+      const metadata = document.createElement("p");
+      metadata.textContent = entry.domain + " · " + entry.operation.execution_kind + " · module v" + entry.module_version;
+      const permissions = document.createElement("p");
+      permissions.className = "catalog-note";
+      permissions.textContent = "Required permissions: " +
+        (entry.operation.required_permissions.length ? entry.operation.required_permissions.join(", ") : "none declared");
+      const execution = document.createElement("p");
+      execution.className = "catalog-status";
+      execution.textContent = entry.registration_status + " · " + entry.execution_status.replaceAll("_", " ");
+      const note = document.createElement("p");
+      note.className = "catalog-note";
+      note.textContent = "No execution action is available from the catalogue.";
+      item.append(heading, metadata, permissions, execution, note);
+      functionList.append(item);
+    }
+
+    if (tools.length === 0) {
+      appendCatalogueEmpty(toolList, "UNKNOWN · No separately governed tool registry is configured on this host.");
+    } else {
+      for (const tool of tools) {
+        const item = document.createElement("li");
+        item.className = "catalog-item";
+        const heading = document.createElement("strong");
+        heading.textContent = tool.tool_id;
+        const detail = document.createElement("p");
+        detail.textContent = tool.description || "No description supplied.";
+        item.append(heading, detail);
+        toolList.append(item);
+      }
+    }
+  }
+
+  async function loadCatalogue(token = activeToken) {
+    if (!token) {
+      setCatalogueState("unknown", "UNKNOWN · Authentication required", "Authenticate to read the local module catalogue.");
+      return;
+    }
+    setCatalogueState("unknown", "PENDING · Loading catalogue", "Reading registered module metadata from the authenticated local host.");
+    try {
+      const [moduleResult, functionResult, toolResult] = await Promise.all([
+        requestJson("/v1/modules", "GET", token),
+        requestJson("/v1/functions", "GET", token),
+        requestJson("/v1/tools", "GET", token)
+      ]);
+      for (const result of [moduleResult, functionResult, toolResult]) {
+        if (!result.response.ok) {
+          const message = result.payload?.error?.message || "The capability catalogue request failed.";
+          setCatalogueState("failed", "FAIL · HTTP " + result.response.status, message);
+          return;
+        }
+      }
+      const modules = moduleResult.payload.modules;
+      const functions = functionResult.payload.functions;
+      const tools = toolResult.payload.tools;
+      const validModules = moduleResult.payload.schema_version === "1.0" &&
+        Array.isArray(modules) && modules.every((item) => item &&
+          typeof item.module_id === "string" && typeof item.version === "string" &&
+          typeof item.domain === "string" && typeof item.maturity === "string" &&
+          item.registration_status === "REGISTERED" &&
+          item.execution_status === "NOT_ENABLED_BY_CATALOGUE" &&
+          Array.isArray(item.operations));
+      const validFunctions = functionResult.payload.schema_version === "1.0" &&
+        Array.isArray(functions) && functions.every((item) => item &&
+          typeof item.function_id === "string" && typeof item.module_id === "string" &&
+          item.operation && Array.isArray(item.operation.required_permissions) &&
+          item.execution_status === "NOT_ENABLED_BY_CATALOGUE");
+      const validTools = toolResult.payload.schema_version === "1.0" &&
+        Array.isArray(tools) && toolResult.payload.status === "UNKNOWN";
+      if (!validModules || !validFunctions || !validTools) {
+        setCatalogueState("unknown", "UNKNOWN · Invalid catalogue response", "The host returned data outside the supported metadata contract.");
+        return;
+      }
+      renderCatalogue(modules, functions, tools);
+      setCatalogueState(
+        "unknown",
+        "REGISTERED · " + modules.length + " module · " + functions.length + " function",
+        "Metadata is registered. This does not grant permissions or establish execution readiness. Tool availability remains UNKNOWN."
+      );
+    } catch (_error) {
+      setCatalogueState("failed", "FAIL · Catalogue request error", "The authenticated module and function catalogue could not be reached.");
+    }
   }
 
   async function requestJson(path, method, token, body) {
@@ -273,11 +404,12 @@
         const message = payload?.error?.message || "The service rejected the health request.";
         setServiceState("failed", "FAIL · HTTP " + response.status, message);
         setWorkspaceState("failed", "FAIL · Authentication", "The service rejected the supplied token.");
+        setCatalogueState("failed", "FAIL · Authentication", "The service rejected the supplied token.");
         return;
       }
       if (payload.status === "READY" && payload.service === "cad-generator" && payload.api_version === "1.0") {
         setServiceState("ready", "PASS · CAD API READY", "Verified CAD Generator API v" + payload.api_version + ". This does not establish platform-wide health.");
-        await Promise.all([checkPlatformStatus(token), loadWorkspaces(token)]);
+        await Promise.all([checkPlatformStatus(token), loadWorkspaces(token), loadCatalogue(token)]);
       } else {
         setServiceState("unknown", "UNKNOWN · Unexpected response", "The endpoint responded, but its payload did not match the known CAD health contract.");
       }
@@ -304,6 +436,10 @@
     setServiceState("unknown", "UNKNOWN · Not checked", "Local token cleared from this page's memory.");
     setPlatformState("unknown", "UNKNOWN · Not checked", "Platform status was cleared; run Check service to verify it again.");
     setWorkspaceState("unknown", "UNKNOWN · Not loaded", "The token was cleared; workspace data is no longer accessible.");
+    setCatalogueState("unknown", "UNKNOWN · Not loaded", "The token was cleared; catalogue data is no longer accessible.");
+    moduleList.replaceChildren();
+    functionList.replaceChildren();
+    toolList.replaceChildren();
     tokenInput.focus();
   });
 
