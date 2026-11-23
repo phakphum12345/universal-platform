@@ -256,8 +256,12 @@ def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
     with urlopen(base + "/static/control_center.js", timeout=3) as response:
         script = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/javascript")
-    assert 'fetch("/health"' in script
-    assert 'fetch("/v1/platform/status"' in script
+    assert 'requestJson("/health", "GET", token)' in script
+    assert 'requestJson("/v1/platform/status", "GET", token)' in script
+    assert 'requestJson("/v1/workspaces?limit=100", "GET", token)' in script
+    assert 'requestJson("/v1/workspaces", "POST", activeToken, body)' in script
+    assert '"/v1/workspaces/" + encodeURIComponent(selectedWorkspace.workspace_id)' in script
+    assert "localStorage" not in script
     assert "checkPlatformStatus(token)" in script
     assert "setPlatformState(" in script
     assert 'credentials: "omit"' in script
