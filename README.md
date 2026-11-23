@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows PASS on exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, cause UNKNOWN. PRs #280 and #287 remain open; #287 CI is running on its latest head, and #280 documentation content requires reconciliation. Overall status: **INCOMPLETE**; WP-15F–J, WP-09G security acceptance, cross-domain integration and domain capability gaps remain.
+> **VERIFIED IMPLEMENTATION BASELINE — 2026-11-24:** `main` was `2065b8a921dd5cdabbec007edf2af48f95d10761` after PR #290. PRs #288–#290 integrated the shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. The source audit and integration-document reconciliation are indexed under `docs/shared-backend/` and were introduced by PR #291. Overall status: **INCOMPLETE**; full source reconciliation, shared error contract, organization-admin client correlation, runtime port discovery, operational acceptance, WP-15F–J, WP-09G security acceptance and broader domain capability gaps remain.
 
 # Universal Platform
 
@@ -114,6 +114,7 @@ This remains an incremental engineering foundation, not a completed universal pl
 - [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md)
 - [System Intelligence](docs/architecture/SYSTEM_INTELLIGENCE.md)
 - [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md)
+- [Shared Zero-Cost Hybrid Backend](docs/shared-backend/README.md) — Laravel/Python domain boundaries, Flutter integration, shared API contracts and zero-cost policy.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md)
 
 ### Engineering intelligence

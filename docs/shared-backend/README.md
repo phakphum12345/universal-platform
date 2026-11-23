@@ -1,5 +1,7 @@
 # Shared Zero-Cost Hybrid Backend
 
+**Repository navigation:** [Documentation Index](../../DOCUMENTATION_INDEX.md) · [Repository README](../../README.md)
+
 **Status:** Proposed architecture; not an implementation or production-readiness claim.
 
 ## Scope
@@ -17,6 +19,7 @@ A shared integration architecture for:
 7. Treat all unverified implementation claims as UNKNOWN.
 
 ## Documents
+- [Verified source audit](SOURCE_AUDIT.md)
 - [Architecture](ARCHITECTURE.md)
 - [Requirements](REQUIREMENTS.md)
 - [API contract](API_CONTRACT.md)
