@@ -1231,7 +1231,7 @@ def test_control_center_browser_e2e_creates_lists_and_updates_workspaces(workspa
             assert updated_payload["workspace"]["revision"] == 2
             page.get_by_role("button", name="Browser E2E Workspace Updated").wait_for(timeout=5000)
             assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
-            assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
+            assert page.locator("#workspace-state").inner_text() == "READY · Saved"
         finally:
             browser.close()
     assert audit.verify()
