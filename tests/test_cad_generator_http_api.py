@@ -11,6 +11,7 @@ from universal_platform.engineering import (
     SQLiteCADAPIAuditLog,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
+    SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
 from universal_platform.engineering.feature_history import (
@@ -991,4 +992,144 @@ def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
             assert "must not be treated as READY" in page.locator("#platform-status-detail").inner_text()
         finally:
             browser.close()
+    assert audit.verify()
+
+
+@pytest.fixture
+def workspace_api(tmp_path):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "workspace-source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "workspace-artifacts.sqlite3"),
+    )
+    audit = SQLiteCADAPIAuditLog(tmp_path / "workspace-api-audit.sqlite3")
+    store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    server = create_cad_generator_http_server(
+        service,
+        audit_log=audit,
+        bearer_token=TOKEN,
+        workspace_store=store,
+    )
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}", audit, store
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
+
+
+def test_workspace_http_api_create_list_get_and_update(workspace_api):
+    base, audit, store = workspace_api
+    status, created = send(
+        base,
+        "/v1/workspaces",
+        method="POST",
+        body={
+            "name": "CAD Workspace",
+            "description": "Main design",
+            "metadata": {"domain": "cad", "tags": ["mechanics"]},
+        },
+    )
+    assert status == 201
+    record = created["workspace"]
+    assert record["name"] == "CAD Workspace"
+    assert record["revision"] == 1
+    workspace_id = record["workspace_id"]
+
+    status, listed = send(base, "/v1/workspaces?limit=10")
+    assert status == 200
+    assert listed["count"] == 1
+    assert listed["workspaces"][0]["workspace_id"] == workspace_id
+
+    status, fetched = send(base, f"/v1/workspaces/{workspace_id}")
+    assert status == 200
+    assert fetched["workspace"] == record
+
+    status, updated = send(
+        base,
+        f"/v1/workspaces/{workspace_id}",
+        method="PUT",
+        body={
+            "expected_revision": 1,
+            "name": "CAD Workspace Updated",
+            "description": "Updated",
+            "metadata": {"domain": "engineering"},
+        },
+    )
+    assert status == 200
+    assert updated["workspace"]["revision"] == 2
+    assert updated["workspace"]["name"] == "CAD Workspace Updated"
+    assert store.get(workspace_id).revision == 2
+    assert audit.verify()
+
+
+def test_workspace_http_api_requires_authentication_and_reports_verified_status(workspace_api):
+    base, audit, _store = workspace_api
+    status, unauthorized = send(base, "/v1/workspaces", token=None)
+    assert status == 401
+    assert unauthorized["error"]["code"] == "UNAUTHORIZED"
+
+    status, platform = send(base, "/v1/platform/status")
+    assert status == 200
+    components = {item["id"]: item for item in platform["components"]}
+    assert components["workspaces"]["status"] == "READY"
+    assert "authenticated read" in components["workspaces"]["evidence"]
+    assert platform["status"] == "PARTIAL"
+    assert audit.verify()
+
+
+def test_workspace_http_api_reports_not_found_and_revision_conflict(workspace_api):
+    base, audit, _store = workspace_api
+    status, created = send(
+        base, "/v1/workspaces", method="POST", body={"name": "Revision test"}
+    )
+    assert status == 201
+    workspace_id = created["workspace"]["workspace_id"]
+
+    status, missing = send(
+        base, "/v1/workspaces/00000000-0000-0000-0000-000000000000"
+    )
+    assert status == 404
+    assert missing["error"]["code"] == "WORKSPACE_NOT_FOUND"
+
+    status, conflict = send(
+        base,
+        f"/v1/workspaces/{workspace_id}",
+        method="PUT",
+        body={
+            "expected_revision": 9,
+            "name": "Stale update",
+            "description": "",
+            "metadata": {},
+        },
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "REVISION_CONFLICT"
+    assert audit.verify()
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "expected_code"),
+    [
+        ("/v1/workspaces", {"unexpected": True}, "INVALID_FIELDS"),
+        ("/v1/workspaces", {"name": "Bad", "metadata": []}, "INVALID_METADATA"),
+        ("/v1/workspaces?unknown=1", None, "INVALID_QUERY"),
+        ("/v1/workspaces?limit=501", None, "INVALID_LIMIT"),
+        ("/v1/workspaces/not-a-uuid", None, "INVALID_WORKSPACE_ID"),
+    ],
+)
+def test_workspace_http_api_rejects_invalid_requests(workspace_api, path, body, expected_code):
+    base, audit, _store = workspace_api
+    status, payload = send(base, path, method="POST" if body is not None else "GET", body=body)
+    assert status == 400
+    assert payload["error"]["code"] == expected_code
+    assert audit.verify()
+
+
+def test_workspace_http_api_does_not_expose_delete_or_accept_wrong_methods(workspace_api):
+    base, audit, _store = workspace_api
+    status, payload = send(base, "/v1/workspaces", method="DELETE")
+    assert status == 405
+    assert payload["error"]["code"] == "METHOD_NOT_ALLOWED"
     assert audit.verify()
