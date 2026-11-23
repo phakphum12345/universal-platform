@@ -1,0 +1,41 @@
+name: Shared Backend Documentation
+
+on:
+  pull_request:
+    paths:
+      - "docs/shared-backend/**"
+      - "scripts/validate_shared_backend_docs.py"
+      - ".github/workflows/shared-backend-docs.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/shared-backend/**"
+      - "scripts/validate_shared_backend_docs.py"
+      - ".github/workflows/shared-backend-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-backend-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate shared backend documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact event revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate documentation tree
+        run: python scripts/validate_shared_backend_docs.py
