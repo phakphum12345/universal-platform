@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-22:** Audited Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec` (PR #279 merge). PRs #271–#279 are merged; PR #278 and PR #280 are open at audit time. PR #279 exact-head Repository Quality, Engineering Core Tests and Cross-Shell (4/4) PASS. Post-merge Main workflows on this SHA are queued; post-merge CI remains UNKNOWN until completion. Previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce` core CI passed. PR #278 tested code baseline passed Python (1,226 passed / 6 skipped), Windows launcher (7 passed), Geometry Batch (Linux and Windows), and Chromium E2E (9 CAD Generator + 4 Control Center); current documentation-only PR head `280a24ebf69723319463dc689fc8d36da2dc173d` is awaiting rerun. Main branch protection remains disabled. No tracked Python cache artifacts remain. WP-09G-E production host authentication/authorization and WP-15 platform-wide Control Center integration remain open. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows PASS on exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, cause UNKNOWN. PRs #280 and #287 remain open; #287 CI is running on its latest head, and #280 documentation content requires reconciliation. Overall status: **INCOMPLETE**; WP-15F–J, WP-09G security acceptance, cross-domain integration and domain capability gaps remain.
 
 # Universal Platform
 
@@ -16,21 +16,21 @@ up-cad-generator
 ```
 
 
-## Current status — 2026-11-22
+## Historical status — 2026-11-22 (superseded)
 
 - Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
-- `main` HEAD at audit: `779b98b914e1bb953875268d77fe6c2c17c020ec` (PR #279 merge).
-- PRs #271–#279 are merged; PR #278 and PR #280 are open at audit time.
-- PR #279 exact-head Repository Quality, Engineering Core Tests and all four Cross-Shell jobs PASS; post-merge Main workflows are queued and remain UNKNOWN.
-- Previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce` core CI passed.
-- PR #278 tested code baseline passed Python 1,226 / 6 skipped, Windows launcher 7, Geometry Batch Linux/Windows, Chromium CAD Generator 9/9 and Control Center 4/4; current documentation-only head is awaiting exact-head rerun.
-- Main branch protection and required status-check enforcement remain disabled.
-- The Main tree has no tracked `__pycache__`, `.pyc` or `.pyo` artifacts.
-- WP-09G-A through E implementation slices are integrated; production host authentication/authorization adapter and host/API wiring for WP-09G-E remain open.
-- WP-15C local-first Control Center shell is merged. WP-15B owner acceptance and WP-15D onward platform-wide API integration remain incomplete.
+- Baseline `main` HEAD: `87c19a9752e43ea051dac0aa302fb85323d130ce` (PR #277 merge).
+- PRs #271–#277 are merged; there were **0 open PRs** at this baseline.
+- Exact post-merge CI on PR #277 merge SHA: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor all PASS. PR #276 post-merge CI also passed 4/4.
+- Tracked generated Python bytecode: **0** `.pyc/.pyo/__pycache__` paths after PR #276.
+- `main` branch protection and required status-check enforcement remain disabled.
+- WP-09G-A through D are integrated. WP-09G-E recovery code is integrated as an implementation candidate; a real host authentication/authorization adapter and Control Center/API integration remain unimplemented, so WP-09G-E is not accepted.
+- WP-15C local-first Control Center shell is merged. WP-15B navigation still awaits owner acceptance; WP-15D–J backend screens and integrations remain incomplete.
+- Chromium E2E: initial attempt 1/9 failed in FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. The original failure cause remains UNKNOWN.
 - CAD, Mechanics, Physics, Hardware/EDA/Drivers, Interoperability, security governance and platform integration remain PARTIAL or INCOMPLETE.
-- Owner-side Windows clean-install and usability acceptance remain UNKNOWN.
-- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md), [Live Main Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_LIVE_MAIN.md) and [Main Branch Protection Policy](docs/governance/MAIN_BRANCH_PROTECTION.md).
+- The local Windows launcher is proposed in the current branch; a clean install and owner usability check remain UNKNOWN.
+- See [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md), [Roadmap](ROADMAP.md), [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md), [Work Package Status](docs/execution/WORK_PACKAGE_STATUS.md), [Requirements Traceability](docs/traceability/REQUIREMENTS_TRACEABILITY_MATRIX.md) and [Post-PR #277 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR277.md).
+
 ## Initial implementation (active development)
 
 

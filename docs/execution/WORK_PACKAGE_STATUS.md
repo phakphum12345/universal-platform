@@ -1,12 +1,28 @@
-> **LIVE STATUS — 2026-11-22:** Audited against `main` HEAD `779b98b914e1bb953875268d77fe6c2c17c020ec` (PR #279 merge). PRs #271–#279 are merged; PR #278 (Windows local CAD Generator launcher) and PR #280 (live documentation reconciliation) are open at audit time. PR #279 exact-head CI passed Repository Quality, Engineering Core Tests and all four Cross-Shell jobs. Post-merge workflows on Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec` are queued; post-merge CI remains UNKNOWN until they finish. Previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce` had Repository Quality, Python Tests (1,219 passed / 6 skipped), Windows Process Supervisor and Workflow Sanity PASS. PR #278 tested code baseline `9de9327cb44d19863585b9e484cdcdfd2e997347` passed Python, Windows launcher, Geometry Batch and Chromium E2E; current PR head is `280a24ebf69723319463dc689fc8d36da2dc173d` after documentation-only token disclosure clarifications, and its exact-head rerun is pending. Owner clean-install/usability acceptance remains UNKNOWN. Main branch protection is disabled (`protected: false`); required status checks are not enforced. Recursive tree: 478 entries, 436 files, 173 Markdown files, 222 Python files, 116 Python test files, and no tracked `__pycache__`/`.pyc`/`.pyo` artifacts. Cross-Shell Runtime Validation now targets `main` via merged PR #279; exact post-merge run is pending. WP-09G-E host authentication/authorization integration and platform-wide WP-15 Control Center integration remain incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes PR #286 WP-15E catalogue. Post-merge Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4) are PASS; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PRs #280 and #287 are open; #287 checks are running on its latest head. Live branch audit covered 307 branches; no branch was deleted. Overall status: **INCOMPLETE**.
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-22
+## Live work-package reconciliation — 2026-11-23
 
-**Main baseline:** `779b98b914e1bb953875268d77fe6c2c17c020ec`. PRs #271–#279 merged; PR #278 and #280 open at audit time. PR #279 exact-head Repository Quality, Engineering Core Tests and Cross-Shell 4/4 PASS. Post-merge Main workflows are queued; status UNKNOWN. PR #278 code baseline passed its CI, but current documentation-only head rerun is pending; owner clean-install/usability acceptance UNKNOWN. Main branch protection is disabled. Main tree contains no tracked Python bytecode/cache artifacts. Cross-Shell Main CI is now configured.
+**Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 post-merge CI is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
 
-**Repository status:** INCOMPLETE. See [Live Main Audit](../audit/REPOSITORY_AUDIT_2026-11-22_LIVE_MAIN.md).
+| WP | Domain | Current status | Next acceptance work |
+|---|---|---|---|
+| 01 | Core architecture | PARTIAL | Branch protection, identity/authorization, threat model, secure config, audit and orchestration |
+| 02–03 | CAD / 3D Generator | PARTIAL | General topology/degeneracies, recompute propagation, curved geometry and neutral-format fidelity |
+| 04 | Mechanics | PARTIAL | General multi-loop/3D solving, singularity/redundancy and dynamics |
+| 05 | Physics | PARTIAL | Broader validated solvers, convergence, uncertainty and multiphysics coupling |
+| 06–08 | Hardware / EDA / Drivers | PARTIAL | Datasheet-backed limits, full PCB/library workflows, circuit simulation, diagnostics and safe driver lifecycle |
+| 09 | Module Runtime | PARTIAL | WP-09G host identity/authorization acceptance, durable audit/recovery and OS isolation/resource enforcement |
+| 10–12 | System understanding / API / Platform integration | PARTIAL / INCOMPLETE | Governed discovery, unified API/CLI, cross-domain workflows and end-to-end acceptance |
+| 13–14 | Security / Final verification | PARTIAL / INCOMPLETE | Enforced branch rules, security review, supported-platform matrix and release gates |
+| 15 | Unified Control Center | PARTIAL | WP-15A inventory, WP-15B draft, WP-15C shell, WP-15D workspace/status and WP-15E catalogue integrated; WP-15F–J remain open |
+
+## Historical work-package reconciliation — 2026-11-22 (superseded)
+
+**Main baseline:** `9dbc354596896614bfe63066afdfbdebd9071151`. PRs #271–#274 merged; open PRs: 0. Exact post-merge checks: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor PASS. Chromium E2E retry on this SHA: CAD Generator 9/9 and Control Center 4/4 PASS after initial 1/9 failure; initial cause UNKNOWN. Main branch protection is disabled. 223 tracked generated Python cache entries require cleanup.
+
+**Repository status:** INCOMPLETE.
 
 | WP | Domain | Live status | Next acceptance work |
 |---|---|---|---|
@@ -18,11 +34,11 @@
 | 06 | Hardware/electronics | PARTIAL | Datasheet-backed limits, circuit simulation and diagnostics |
 | 07 | Schematic/PCB | PARTIAL | Full library, PCB, exchange and validation workflows |
 | 08 | Drivers | PARTIAL | Integrate existing driver architecture safely; no physical I/O claim |
-| 09 | Module runtime | PARTIAL | WP-09G-A through D integrated; WP-09G-E host authentication/authorization adapter integration, production API wiring and acceptance remain open |
+| 09 | Module runtime | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery, durable approval/audit and failure-injection tests remain open |
 | 10 | System understanding | PARTIAL | Authorized discovery/indexing, provenance and governed adaptation E2E |
 | 11 | API/CLI/UI | PARTIAL | CAD workbench and WP-15C Control Center shell exist; unified platform API/CLI and cross-domain integration remain open |
 | 12 | Platform integration | INCOMPLETE | Cross-domain workflows and end-to-end acceptance |
-| 13 | Security/quality | PARTIAL / FAIL | Main branch protection disabled; Cross-Shell Main CI configured by PR #279; post-merge run pending; general OS sandbox and full security governance remain unestablished |
+| 13 | Security/quality | PARTIAL / FAIL | Main branch protection disabled; general OS sandbox and full security governance remain unestablished; generated cache hygiene open |
 | 14 | Final verification | FAIL / INCOMPLETE | Full repository acceptance gates not met; Chromium retry passed but first attempt failed and owner-side Windows acceptance is UNKNOWN |
 | 15 | Modern Unified Control Center | PARTIAL | WP-15C local-first shell merged; WP-15B draft awaits owner acceptance; platform-wide backend integration and WP-15D–J remain open |
 

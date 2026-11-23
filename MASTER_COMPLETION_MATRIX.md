@@ -1,18 +1,28 @@
-> **LIVE STATUS — 2026-11-22:** Audited against `main` HEAD `779b98b914e1bb953875268d77fe6c2c17c020ec` (PR #279 merge). PRs #271–#279 are merged; PR #278 (Windows local CAD Generator launcher) and PR #280 (live documentation reconciliation) are open at audit time. PR #279 exact-head CI passed Repository Quality, Engineering Core Tests and all four Cross-Shell jobs. Post-merge workflows on Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec` are queued; post-merge CI remains UNKNOWN until they finish. Previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce` had Repository Quality, Python Tests (1,219 passed / 6 skipped), Windows Process Supervisor and Workflow Sanity PASS. PR #278 tested code baseline `9de9327cb44d19863585b9e484cdcdfd2e997347` passed Python, Windows launcher, Geometry Batch and Chromium E2E; current PR head is `280a24ebf69723319463dc689fc8d36da2dc173d` after documentation-only token disclosure clarifications, and its exact-head rerun is pending. Owner clean-install/usability acceptance remains UNKNOWN. Main branch protection is disabled (`protected: false`); required status checks are not enforced. Recursive tree: 478 entries, 436 files, 173 Markdown files, 222 Python files, 116 Python test files, and no tracked `__pycache__`/`.pyc`/`.pyo` artifacts. Cross-Shell Runtime Validation now targets `main` via merged PR #279; exact post-merge run is pending. WP-09G-E host authentication/authorization integration and platform-wide WP-15 Control Center integration remain incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). WP-15E catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows are PASS on this exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, with the initial cause UNKNOWN. PRs #280 and #287 are OPEN; PR #287 CI is running on its current head. Live inventory after opening #287: 307 branches and 287 PRs (267 merged, 18 closed without merge, 2 open); 20 branches without a PR excluding main. Repository remains **INCOMPLETE**. See [2026-11-23 branch reconciliation audit](docs/audit/REPOSITORY_AUDIT_2026-11-23_BRANCH_RECONCILIATION.md).
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-22
+## Live repository reconciliation — 2026-11-23
 
-**This live snapshot supersedes the historical snapshots below.** Historical evidence is retained. See the [Live Main Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_LIVE_MAIN.md).
+- `main` HEAD: `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 squash merge).
+- PR #286 WP-15E module/function catalogue is integrated. PR #280 remains OPEN at head `1e28fd5c14a7676d677d99732b4646c7ac31e8a8`; compare against current Main `84cc7fa...` reports 31 commits ahead / 0 behind. Its branch is based on current Main, but its 10 documentation changes still contain older status snapshots and overlap the current audit; reconcile content before merge.
+- PR #286 exact-head CI: Repository Quality PASS, Engineering Core PASS, CAD Generator Browser E2E PASS, Cross-Shell Runtime Validation PASS (4/4 jobs). Post-merge workflows on exact Main SHA `84cc7fa...` are PASS; the first Browser E2E attempt failed 1/9 and its rerun passed, with cause UNKNOWN.
+- Pre-audit-PR snapshot: 306 branches, 286 PRs, 267 merged, 18 closed without merge, 1 open (#280), and 20 branches without a PR excluding `main`. The live count after opening #287 is 307 branches / 287 PRs, with #280 and #287 open.
+- Closed-unmerged branches and branch-only work were inspected for source/test/documentation counterparts; many are superseded or integrated by later PRs. Two old documentation-only branch deltas remain candidates for archival/reconciliation. No branch or file was deleted.
+- WP-15A inventory, WP-15B IA draft, WP-15C shell, WP-15D workspace/status foundation and WP-15E metadata catalogue are present; WP-15F–J remain open. Tools catalogue correctly reports UNKNOWN because no separate governed tool registry exists.
+- Repository maturity remains **INCOMPLETE**; see the detailed branch audit linked above.
 
-- `main` HEAD: `779b98b914e1bb953875268d77fe6c2c17c020ec`; PRs #271–#279 merged; PR #278 and #280 open at audit time.
-- Exact PR #279 CI: Repository Quality, Engineering Core Tests and Cross-Shell (4/4) PASS. Post-merge workflows on Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec` are queued; status UNKNOWN pending completion. Previous Main SHA `87c19a9752e43ea051dac0aa302fb85323d130ce` core CI passed.
-- PR #278 exact-head CI: Python 1,226 passed / 6 skipped; Windows launcher 7 passed; Geometry Batch Linux 33 passed; Chromium CAD Generator 9/9 and Control Center 4/4 PASS. Owner clean-install/usability acceptance remains UNKNOWN.
+## Historical snapshot — 2026-11-22 (superseded)
+
+**This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
+
+- `main` HEAD: `9dbc354596896614bfe63066afdfbdebd9071151`; PRs #271–#274 merged; open PRs: 0.
+- Exact merge-SHA CI: repository-quality PASS; workflow-sanity PASS; python-tests PASS; windows-process-supervisor PASS.
+- Chromium E2E first attempt: 1/9 failed in FeatureHistory branch/fork/merge. Retry on the same SHA: CAD Generator 9/9 PASS and Control Center 4/4 PASS. No intervening code change; initial failure root cause UNKNOWN.
 - Main branch protection is disabled; required checks are not enforced.
-- Recursive tree: 478 entries, 436 files, 173 Markdown files, 222 Python files, 116 Python test files; no tracked Python cache artifacts.
-- Cross-Shell Runtime Validation now targets Main after PR #279; exact post-merge run is pending.
-- WP-09G-E production host authentication/authorization integration and WP-15 platform-wide Control Center integration remain open.
+- Recursive tree: 698 entries; 223 tracked `__pycache__` / `.pyc` entries require dedicated cleanup.
+- WP-09G-A through D integrated; WP-09G-E remains open.
+- WP-15C shell is merged; WP-15B remains draft pending owner acceptance; real platform-wide backend integration remains open.
 - Overall repository status remains **INCOMPLETE**.
 
 | Workstream | Live maturity | Remaining acceptance boundary |

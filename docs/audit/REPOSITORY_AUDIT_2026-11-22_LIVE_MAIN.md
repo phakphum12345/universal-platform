@@ -76,3 +76,8 @@ See [Main Branch Protection Policy](../governance/MAIN_BRANCH_PROTECTION.md) for
 ## Overall assessment
 
 **INCOMPLETE.** Exact Main core CI is green, but repository governance, owner acceptance, cross-shell Main coverage, runtime authorization, platform-wide integration, and final system acceptance remain open. Historical snapshots are retained. SKIPPED and UNKNOWN are never PASS.
+
+
+---
+
+> **Historical snapshot notice (added during PR #280 reconciliation):** This file records the repository state observed on 2026-11-22 at Main SHA `779b98b914e1bb953875268d77fe6c2c17c020ec`. It is retained as a dated historical record only. It is not the current repository status; use `docs/audit/REPOSITORY_AUDIT_2026-11-23_BRANCH_RECONCILIATION.md` and the current Main status documents for present-day state.

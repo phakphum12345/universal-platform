@@ -2,11 +2,11 @@
 
 **Status:** Recommended configuration; not yet enabled on GitHub.
 **Target:** `main`
-**Audit baseline:** 2026-11-22
+**Audit baseline:** 2026-11-23
 
 ## Current finding
 
-The GitHub Branch API reports `protected: false` for `main`. No repository rulesets were returned. Required status checks are therefore not enforced by GitHub, even though the workflows run in pull requests.
+The GitHub Branch API most recently returned `protected: false` for `main` (verified 2026-11-23). Required status checks are therefore not enforced by GitHub, even though the workflows run in pull requests. This document is a recommendation only; no branch protection setting was changed by this audit.
 
 This document records the settings to apply. It does not claim that the settings have been changed.
 
