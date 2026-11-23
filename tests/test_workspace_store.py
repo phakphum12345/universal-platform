@@ -78,7 +78,7 @@ def test_workspace_missing_identifier_is_not_found(tmp_path):
         ("   ", ""),
         ("x" * 121, ""),
         ("Valid", "x" * 2001),
-        ("bad\x00name", ""),
+        ("bad\\x00name", ""),
     ],
 )
 def test_workspace_rejects_invalid_text(name, description, tmp_path):
@@ -95,7 +95,7 @@ def test_workspace_rejects_non_json_metadata_and_non_finite_values(tmp_path):
         store.create("Invalid", metadata={"not_finite": float("nan")})
     with pytest.raises(TypeError, match="keys must be strings"):
         store.create("Invalid", metadata={1: "coerced"})
-    with pytest.raises(ValueError, match="keys must be strings"):
+    with pytest.raises(TypeError, match="keys must be strings"):
         store.update(
             store.create("Valid").workspace_id,
             expected_revision=1,
