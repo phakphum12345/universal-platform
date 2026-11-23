@@ -56,7 +56,28 @@ class WorkspaceRecord:
         }
 
 
+def _validate_json_value(value: object, path: str = "metadata") -> None:
+    if value is None or isinstance(value, (str, bool, int)):
+        return
+    if isinstance(value, float):
+        if value != value or value in (float("inf"), float("-inf")):
+            raise ValueError(f"{path} must not contain non-finite numbers")
+        return
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            _validate_json_value(item, f"{path}[{index}]")
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ValueError(f"{path} object keys must be strings")
+            _validate_json_value(item, f"{path}.{key}")
+        return
+    raise ValueError(f"{path} must contain only JSON-compatible values")
+
+
 def _canonical_json(value: object) -> str:
+    _validate_json_value(value)
     return json.dumps(
         value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
         allow_nan=False,
@@ -65,7 +86,7 @@ def _canonical_json(value: object) -> str:
 
 def _validate_text(value: object, field: str, maximum: int, *, required: bool) -> str:
     if not isinstance(value, str):
-        raise ValueError(f"{field} must be a string")
+        raise TypeError(f"{field} must be a string")
     normalized = value.strip()
     if required and not normalized:
         raise ValueError(f"{field} must not be empty")
@@ -161,11 +182,11 @@ class SQLiteWorkspaceStore:
         if metadata is None:
             metadata = {}
         if not isinstance(metadata, dict):
-            raise ValueError("metadata must be an object")
+            raise TypeError("metadata must be an object")
         try:
             metadata_json = _canonical_json(metadata)
         except (TypeError, ValueError) as exc:
-            raise ValueError("metadata must contain finite JSON-compatible values") from exc
+            raise ValueError("metadata must contain only valid JSON values") from exc
 
         workspace_id = str(uuid4())
         now = datetime.now(UTC).isoformat()
