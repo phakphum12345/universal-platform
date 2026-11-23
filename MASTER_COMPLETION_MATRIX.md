@@ -1,8 +1,18 @@
-> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 WP-15E catalogue is merged; PR #280 remains open and requires reconciliation against current main. Exact PR-head checks for #286: Repository Quality, Engineering Core, CAD Browser E2E and Cross-Shell all PASS; post-merge main workflows are still running/queued and are not yet PASS. Branch inventory: 306 branches (including main), 266 merged-PR branches, 18 closed-unmerged PR branches, 1 open PR branch and 20 branches without a PR (excluding main). Repository remains **INCOMPLETE**. See [2026-11-23 branch reconciliation audit](docs/audit/REPOSITORY_AUDIT_2026-11-23_BRANCH_RECONCILIATION.md).
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-22
+## Live repository reconciliation — 2026-11-23
+
+- `main` HEAD: `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 squash merge).
+- PR #286 WP-15E module/function catalogue is integrated; PR #280 is the sole open PR and is 30 commits ahead / 3 behind its merge base comparison with the previous main baseline; it must be reconciled before merge.
+- PR #286 exact-head CI: Repository Quality PASS, Engineering Core PASS, CAD Generator Browser E2E PASS, Cross-Shell Runtime Validation PASS (4/4 jobs). Post-merge workflows on `84cc7fa...` are queued/in progress; post-merge acceptance remains UNKNOWN.
+- 306 branches: 266 associated with merged PRs, 18 associated with closed-unmerged PRs, 1 associated with open PR #280, and 20 branches without a PR excluding `main`.
+- Closed-unmerged branches and branch-only work were inspected for source/test/documentation counterparts; many are superseded or integrated by later PRs. Two old documentation-only branch deltas remain candidates for archival/reconciliation. No branch or file was deleted.
+- WP-15A inventory, WP-15B IA draft, WP-15C shell, WP-15D workspace/status foundation and WP-15E metadata catalogue are present; WP-15F–J remain open. Tools catalogue correctly reports UNKNOWN because no separate governed tool registry exists.
+- Repository maturity remains **INCOMPLETE**; see the detailed branch audit linked above.
+
+## Historical snapshot — 2026-11-22 (superseded)
 
 **This live snapshot supersedes the historical snapshots below.** Historical evidence is retained.
 
