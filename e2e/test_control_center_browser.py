@@ -180,8 +180,8 @@ def test_control_center_creates_lists_and_updates_durable_workspaces(control_cen
     page.get_by_role("button", name="Create workspace").click()
     page.get_by_role("button", name="Browser Workspace").wait_for()
 
-    page.get_by_role("button", name="Browser Workspace").click()
     page.locator("#workspace-editor").wait_for(state="visible")
+    page.get_by_text("Selected revision 1. Updates use optimistic revision checks.", exact=True).wait_for()
     page.locator("#workspace-edit-name").fill("Browser Workspace Updated")
     assert page.locator("#workspace-edit-name").input_value() == "Browser Workspace Updated"
     workspace_id = page.locator("#workspace-list [data-workspace-id]").get_attribute("data-workspace-id")
