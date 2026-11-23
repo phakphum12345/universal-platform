@@ -1133,3 +1133,34 @@ def test_workspace_http_api_does_not_expose_delete_or_accept_wrong_methods(works
     assert status == 405
     assert payload["error"]["code"] == "METHOD_NOT_ALLOWED"
     assert audit.verify()
+
+
+def test_control_center_browser_e2e_creates_lists_and_updates_workspaces(workspace_api):
+    playwright = pytest.importorskip("playwright.sync_api")
+    base, audit, _store = workspace_api
+
+    with playwright.sync_playwright() as browser_runtime:
+        browser = browser_runtime.chromium.launch()
+        page = browser.new_page()
+        try:
+            page.goto(base + "/control-center", wait_until="networkidle")
+            page.locator("#service-token").fill(TOKEN)
+            page.get_by_role("button", name="Check service").click()
+            page.get_by_text("READY · 0 loaded", exact=True).wait_for(timeout=5000)
+
+            page.locator("#workspace-name").fill("Browser E2E Workspace")
+            page.locator("#workspace-description").fill("Created through Control Center")
+            page.locator("#workspace-metadata").fill('{"source":"browser-e2e"}')
+            page.get_by_role("button", name="Create workspace").click()
+            page.get_by_role("button", name="Browser E2E Workspace").wait_for(timeout=5000)
+
+            page.get_by_role("button", name="Browser E2E Workspace").click()
+            page.locator("#workspace-editor").wait_for(state="visible", timeout=5000)
+            page.locator("#workspace-edit-name").fill("Browser E2E Workspace Updated")
+            page.get_by_role("button", name="Save changes").click()
+            page.get_by_role("button", name="Browser E2E Workspace Updated").wait_for(timeout=5000)
+            assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
+            assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
+        finally:
+            browser.close()
+    assert audit.verify()
