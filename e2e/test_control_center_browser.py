@@ -242,3 +242,25 @@ def test_control_center_disables_workspace_create_while_request_is_pending(contr
     assert len(store.list(limit=10)) == 1
     assert audit.verify()
     assert page_errors == []
+
+
+def test_control_center_loads_workspaces_beyond_first_page(control_center):
+    page, _context, _base, audit, page_errors, store = control_center
+    for index in range(101):
+        store.create(f"Paged workspace {index:03d}")
+
+    page.locator("#service-token").fill(TOKEN)
+    page.locator("#check-service").click()
+    page.get_by_text("READY · 100 loaded", exact=True).wait_for(timeout=5000)
+    assert page.locator("#workspace-list [data-workspace-id]").count() == 100
+    assert page.get_by_role("button", name="Load older workspaces").is_visible()
+
+    page.get_by_role("button", name="Load older workspaces").click()
+    page.get_by_text("READY · 101 loaded", exact=True).wait_for(timeout=5000)
+    buttons = page.locator("#workspace-list [data-workspace-id]")
+    assert buttons.count() == 101
+    ids = [buttons.nth(index).get_attribute("data-workspace-id") for index in range(101)]
+    assert len(set(ids)) == 101
+    assert page.get_by_role("button", name="Load older workspaces").is_hidden()
+    assert audit.verify()
+    assert page_errors == []
