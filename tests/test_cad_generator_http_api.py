@@ -241,7 +241,9 @@ def test_authenticated_module_function_and_tool_catalogues_are_metadata_only(api
     assert status == 200
     assert functions["count"] == 1
     assert functions["functions"][0]["function_id"] == MODULE_ID + ":" + SOLVE_OPERATION
-    assert functions["functions"][0]["operation"]["required_permissions"] == ["engineering.physics.solve"]
+    assert functions["functions"][0]["operation"]["required_permissions"] == [
+        "engineering.physics.solve"
+    ]
     assert functions["functions"][0]["execution_status"] == "NOT_ENABLED_BY_CATALOGUE"
 
     status, tools = send(base, "/v1/tools")
