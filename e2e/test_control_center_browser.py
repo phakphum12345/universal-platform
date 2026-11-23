@@ -17,6 +17,7 @@ from universal_platform.engineering import (
     SQLiteCADAPIAuditLog,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
+    SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
 
@@ -30,11 +31,13 @@ def control_center(tmp_path):
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "api-audit.sqlite3")
+    workspace_store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
     server = create_cad_generator_http_server(
         service,
         audit_log=audit,
         bearer_token=TOKEN,
         max_request_bytes=32_768,
+        workspace_store=workspace_store,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -162,3 +165,26 @@ def test_health_connection_failure_is_reported_as_fail_not_ready(control_center)
     page.get_by_text("FAIL · Connection error").wait_for()
     assert page.locator("#service-state").inner_text().startswith("FAIL")
     assert page_errors == []
+
+
+def test_control_center_creates_lists_and_updates_durable_workspaces(control_center):
+    page, _context, _base, audit, page_errors = control_center
+    page.locator("#service-token").fill(TOKEN)
+    page.locator("#check-service").click()
+    page.get_by_text("READY · 0 loaded", exact=True).wait_for()
+
+    page.locator("#workspace-name").fill("Browser Workspace")
+    page.locator("#workspace-description").fill("Created through the Control Center")
+    page.locator("#workspace-metadata").fill('{"kind":"engineering","source":"browser"}')
+    page.get_by_role("button", name="Create workspace").click()
+    page.get_by_role("button", name="Browser Workspace").wait_for()
+
+    page.get_by_role("button", name="Browser Workspace").click()
+    page.locator("#workspace-editor").wait_for(state="visible")
+    page.locator("#workspace-edit-name").fill("Browser Workspace Updated")
+    page.get_by_role("button", name="Save changes").click()
+    page.get_by_role("button", name="Browser Workspace Updated").wait_for()
+    assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
+    assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
+    assert page_errors == []
+    assert audit.verify()
