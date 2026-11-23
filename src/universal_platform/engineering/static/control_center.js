@@ -27,6 +27,8 @@
   let workspaceHasMore = false;
   let creatingWorkspace = false;
   let savingWorkspace = false;
+  let loadingWorkspaceId = null;
+  let workspaceLoadSequence = 0;
 
   function setServiceState(kind, label, detail) {
     serviceState.className = "status-pill " + kind;
@@ -196,9 +198,12 @@
   }
 
   async function loadWorkspace(workspaceId) {
-    if (!activeToken) return;
+    if (!activeToken || loadingWorkspaceId === workspaceId) return;
+    const loadSequence = ++workspaceLoadSequence;
+    loadingWorkspaceId = workspaceId;
     try {
       const { response, payload } = await requestJson("/v1/workspaces/" + encodeURIComponent(workspaceId), "GET", activeToken);
+      if (loadSequence !== workspaceLoadSequence) return;
       if (!response.ok) {
         setWorkspaceState("failed", "FAIL · HTTP " + response.status, payload?.error?.message || "Workspace could not be loaded.");
         return;
@@ -221,7 +226,11 @@
         button.setAttribute("aria-pressed", String(button.dataset.workspaceId === record.workspace_id));
       }
     } catch (_error) {
-      setWorkspaceState("failed", "FAIL · Connection error", "The selected workspace could not be loaded.");
+      if (loadSequence === workspaceLoadSequence) {
+        setWorkspaceState("failed", "FAIL · Connection error", "The selected workspace could not be loaded.");
+      }
+    } finally {
+      if (loadSequence === workspaceLoadSequence) loadingWorkspaceId = null;
     }
   }
 
