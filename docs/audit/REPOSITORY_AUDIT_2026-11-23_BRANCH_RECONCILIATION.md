@@ -34,7 +34,7 @@ After the inventory snapshot, this audit created branch `docs/reconcile-main-bra
 
 - `main` HEAD is `84cc7fa88161818f240619393dd1482e170fec2e`.
 - PR #286 — [Authenticated module and function catalogue](https://github.com/phakphum12345/universal-platform/pull/286) — **MERGED** at `84cc7fa88161818f240619393dd1482e170fec2e`.
-- PR #280 — [Live repository status reconciliation](https://github.com/phakphum12345/universal-platform/pull/280) — **OPEN**. Its head `074757f95d302f87967b4ef6c6563a224e4e98a7` was authored against an older main baseline. The compare against current main `84cc7fa88161818f240619393dd1482e170fec2e` reports 30 commits ahead and 4 behind. Its changes must be refreshed before merge.
+- PR #280 — [Live repository status reconciliation](https://github.com/phakphum12345/universal-platform/pull/280) — **OPEN** at head `1e28fd5c14a7676d677d99732b4646c7ac31e8a8`. A fresh compare against current Main `84cc7fa88161818f240619393dd1482e170fec2e` reports 31 commits ahead / 0 behind, so the branch is based on current Main. Its 10 changed files are documentation-only, but their status text still refers to the older `779b98...` baseline and overlaps this audit; reconcile content and rerun CI before merge.
 - No branch or file was deleted, no history was rewritten, and no force push was used in this audit.
 
 ## PR #286 evidence
@@ -50,7 +50,7 @@ Exact PR-head SHA: `dcc14c36117c60e6a3fd104cd614ad1577f46502`.
 
 Reviews: none returned. Inline review threads: none returned. PR was mergeable and open at the final pre-merge check. It was squash-merged using the expected head SHA.
 
-Post-merge workflows on `84cc7fa88161818f240619393dd1482e170fec2e` were queued/in progress at the audit snapshot. **Post-merge CI is UNKNOWN until all applicable runs complete successfully.** The successful PR-head workflows are not a substitute for post-merge evidence.
+Post-merge workflows on `84cc7fa88161818f240619393dd1482e170fec2e` have now completed PASS for Repository Quality, Engineering Core, CAD Generator Browser E2E (rerun) and Cross-Shell (4/4). The first CAD Browser E2E attempt failed 1/9; the same-SHA rerun passed, and the initial failure cause remains UNKNOWN.
 
 ## Closed-without-merge PR reconciliation
 
@@ -99,12 +99,12 @@ All 20 branches remain untouched. A diverged branch comparison alone does not pr
 
 ## Open documentation PR #280
 
-PR #280 includes useful documentation material, notably `docs/governance/MAIN_BRANCH_PROTECTION.md` and a live audit document, but its root status updates refer to an older main SHA and older PR state. The branch is not safe to merge as-is.
+PR #280 includes useful documentation material, notably `docs/governance/MAIN_BRANCH_PROTECTION.md` and a live audit document. Its branch is now based on current Main (31 ahead / 0 behind), but its status snapshots refer to the older `779b98...` baseline and its ten changed files overlap the present audit. It is not safe to merge until the content is reconciled and exact-head CI is verified.
 
 The branch-protection policy document is a recommendation only. The last live check found main branch protection disabled; required checks were not enforced by GitHub. The policy has been copied to this audit branch for review and must not be described as an applied setting.
 
 Required next steps for PR #280:
-1. Rebase/reconcile against current `main` without force-pushing or discarding unique content.
+1. Keep the current Main base (already 0 commits behind); reconcile documentation content against current `main` without force-pushing or discarding unique material.
 2. Refresh every live SHA, PR count, workflow result, branch count and WP status in the affected documents.
 3. Preserve historical snapshots under explicit historical headings.
 4. Run exact-head CI and inspect review submissions/threads.
