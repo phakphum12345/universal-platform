@@ -24,17 +24,17 @@ from .cad_generator_templates import build_polygon_extrusion_history
 from .errors import InvalidModelError
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history import FeatureKind, FeatureNode
-from .workspace_store import (
-    SQLiteWorkspaceStore,
-    WorkspaceNotFoundError,
-    WorkspaceRevisionConflict,
-    WorkspaceStoreIntegrityError,
-)
 from .feature_history_store import (
     FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
+)
+from .workspace_store import (
+    SQLiteWorkspaceStore,
+    WorkspaceNotFoundError,
+    WorkspaceRevisionConflict,
+    WorkspaceStoreIntegrityError,
 )
 
 _HISTORY_ID = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
