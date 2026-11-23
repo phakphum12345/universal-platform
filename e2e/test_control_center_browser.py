@@ -22,7 +22,9 @@ from universal_platform.engineering import (
     SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
-from universal_platform.engineering.physics_module_adapter import create_builtin_physics_module_bridge
+from universal_platform.engineering.physics_module_adapter import (
+    create_builtin_physics_module_bridge,
+)
 
 TOKEN = "control-center-browser-token-" + ("x" * 40)
 
@@ -106,6 +108,7 @@ def test_control_center_lists_registered_modules_and_functions_without_execution
     assert "No separately governed tool registry" in page.locator("#tool-list").inner_text()
     assert page.locator("#module-list button, #function-list button").count() == 0
     assert page_errors == []
+
 
 def test_mobile_navigation_and_keyboard_skip_link(control_center):
     page, _context, _base, _audit, page_errors, _store = control_center
