@@ -30,6 +30,13 @@ from .feature_history_store import (
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
 )
+from .module_registry import ModuleRegistry
+from .workspace_store import (
+    SQLiteWorkspaceStore,
+    WorkspaceNotFoundError,
+    WorkspaceRevisionConflict,
+    WorkspaceStoreIntegrityError,
+)
 
 _HISTORY_ID = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 _MAX_BODY_DEFAULT = 1_048_576
@@ -288,8 +295,8 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         return value
 
     def _dispatch(self) -> tuple[int, dict[str, Any]]:
-        if self.command not in {"GET", "POST"}:
-            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Only GET and POST are supported")
+        if self.command not in {"GET", "POST", "PUT"}:
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Only GET, POST and PUT are supported")
         parsed = urlsplit(self.path)
         path = unquote(parsed.path)
         if parsed.query and self.command != "GET":
@@ -297,7 +304,119 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if self.command == "GET" and path == "/health":
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
 
+        catalogue_collection_paths = {"/v1/modules", "/v1/functions", "/v1/tools"}
+        if (path in catalogue_collection_paths or path.startswith("/v1/modules/")) and self.command != "GET":
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "The capability catalogue is read-only")
+        if self.command == "GET" and path in catalogue_collection_paths and parsed.query:
+            raise _HTTPError(400, "UNEXPECTED_QUERY", "Capability catalogue routes do not accept query parameters")
+
+        if self.command == "GET" and path == "/v1/modules":
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            modules = [
+                {
+                    **manifest.to_dict(),
+                    "registration_status": "REGISTERED",
+                    "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                }
+                for manifest in registry.list_modules()
+            ]
+            try:
+                dependency_order = list(registry.dependency_order())
+                dependency_status = "PASS"
+                dependency_reason = None
+            except InvalidModelError:
+                dependency_order = None
+                dependency_status = "FAIL"
+                dependency_reason = "The registered module dependency graph is invalid."
+            return 200, {
+                "schema_version": registry.SCHEMA_VERSION,
+                "modules": modules,
+                "count": len(modules),
+                "dependency_order": dependency_order,
+                "dependency_status": dependency_status,
+                "dependency_reason": dependency_reason,
+                "limitations": [
+                    "The catalogue exposes validated metadata only; it does not load or invoke module code.",
+                    "Registration does not grant permissions or establish runtime readiness.",
+                    "Execution requires a separately configured and host-authorized runtime.",
+                ],
+            }
+
+        if self.command == "GET" and path.startswith("/v1/modules/"):
+            if parsed.query:
+                raise _HTTPError(400, "UNEXPECTED_QUERY", "Module detail routes do not accept query parameters")
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            module_id = path[len("/v1/modules/"):]
+            if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", module_id):
+                raise _HTTPError(400, "INVALID_MODULE_ID", "module_id must be a stable lowercase identifier")
+            try:
+                manifest = registry.get(module_id)
+            except InvalidModelError as exc:
+                raise _HTTPError(404, "MODULE_NOT_FOUND", "The requested module is not registered") from exc
+            return 200, {
+                "module": manifest.to_dict(),
+                "registration_status": "REGISTERED",
+                "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                "limitations": [
+                    "This endpoint returns module metadata only.",
+                    "No permission grant, code loading or operation invocation is performed.",
+                ],
+            }
+
+        if self.command == "GET" and path == "/v1/functions":
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            functions = []
+            for manifest in registry.list_modules():
+                for operation in sorted(manifest.operations, key=lambda item: item.operation_id):
+                    functions.append({
+                        "function_id": f"{manifest.module_id}:{operation.operation_id}",
+                        "module_id": manifest.module_id,
+                        "module_version": manifest.version,
+                        "domain": manifest.domain,
+                        "maturity": manifest.maturity,
+                        "operation": operation.to_dict(),
+                        "registration_status": "REGISTERED",
+                        "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                    })
+            return 200, {
+                "schema_version": registry.SCHEMA_VERSION,
+                "functions": functions,
+                "count": len(functions),
+                "limitations": [
+                    "Functions are declared module operations, not remotely invokable endpoints.",
+                    "No UI action can grant permissions or bypass the host runtime.",
+                ],
+            }
+
+        if self.command == "GET" and path == "/v1/tools":
+            return 200, {
+                "schema_version": "1.0",
+                "status": "UNKNOWN",
+                "tools": [],
+                "count": 0,
+                "reason": "No separately governed tool registry is configured on this host.",
+                "limitations": ["No tools are advertised as executable."],
+            }
+
         if self.command == "GET" and path == "/v1/platform/status":
+            workspace_component = {
+                "id": "workspaces",
+                "status": "UNKNOWN",
+                "reason": "No platform workspace service is configured on this host.",
+            }
+            if self.server.workspace_store is not None:
+                self.server.workspace_store.list(limit=1)
+                workspace_component = {
+                    "id": "workspaces",
+                    "status": "READY",
+                    "evidence": "The configured durable workspace metadata store completed an authenticated read.",
+                }
             return 200, {
                 "status": "PARTIAL",
                 "api_version": "1.0",
@@ -312,11 +431,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                         "status": "UNKNOWN",
                         "reason": "ModuleRuntime is not wired into this CAD Generator server host.",
                     },
-                    {
-                        "id": "workspaces",
-                        "status": "UNKNOWN",
-                        "reason": "No platform workspace service is configured on this host.",
-                    },
+                    workspace_component,
                     {
                         "id": "jobs",
                         "status": "UNKNOWN",
@@ -344,6 +459,83 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                     "CAD Generator READY describes only this authenticated API host.",
                 ],
             }
+
+        if path == "/v1/workspaces":
+            store = self.server.workspace_store
+            if store is None:
+                raise _HTTPError(503, "WORKSPACE_STORE_UNAVAILABLE", "Workspace storage is not configured on this host")
+            if self.command == "GET":
+                query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+                if set(query) - {"limit", "offset"} or any(len(values) != 1 for values in query.values()):
+                    raise _HTTPError(400, "INVALID_QUERY", "Only one optional limit and offset parameter are supported")
+                raw_limit = query.get("limit", ["100"])[0]
+                raw_offset = query.get("offset", ["0"])[0]
+                try:
+                    limit = int(raw_limit)
+                    offset = int(raw_offset)
+                except ValueError as exc:
+                    raise _HTTPError(400, "INVALID_PAGINATION", "limit and offset must be decimal integers") from exc
+                if str(limit) != raw_limit or not 1 <= limit <= 500:
+                    raise _HTTPError(400, "INVALID_LIMIT", "limit must be an integer from 1 through 500")
+                if str(offset) != raw_offset or not 0 <= offset <= 1_000_000:
+                    raise _HTTPError(400, "INVALID_OFFSET", "offset must be an integer from 0 through 1000000")
+                records = store.list(limit=limit, offset=offset)
+                return 200, {
+                    "workspaces": [record.to_dict() for record in records],
+                    "count": len(records),
+                    "limit": limit,
+                    "offset": offset,
+                    "has_more": len(records) == limit,
+                }
+            if self.command == "POST":
+                body = self._read_json()
+                allowed = {"name", "description", "metadata"}
+                if not {"name"} <= set(body) or set(body) - allowed:
+                    raise _HTTPError(400, "INVALID_FIELDS", "Workspace creation requires name and optional description and metadata")
+                if "description" in body and not isinstance(body["description"], str):
+                    raise _HTTPError(400, "INVALID_DESCRIPTION", "description must be a string")
+                if "metadata" in body and not isinstance(body["metadata"], dict):
+                    raise _HTTPError(400, "INVALID_METADATA", "metadata must be an object")
+                record = store.create(
+                    body["name"],
+                    description=body.get("description", ""),
+                    metadata=body.get("metadata"),
+                )
+                return 201, {"workspace": record.to_dict()}
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Use GET or POST on the workspace collection")
+
+        workspace_prefix = "/v1/workspaces/"
+        if path.startswith(workspace_prefix):
+            store = self.server.workspace_store
+            if store is None:
+                raise _HTTPError(503, "WORKSPACE_STORE_UNAVAILABLE", "Workspace storage is not configured on this host")
+            workspace_id = path[len(workspace_prefix):]
+            if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", workspace_id):
+                raise _HTTPError(400, "INVALID_WORKSPACE_ID", "workspace_id must be a canonical UUID")
+            if self.command == "GET":
+                if parsed.query:
+                    raise _HTTPError(400, "UNEXPECTED_QUERY", "Workspace item routes do not accept query parameters")
+                return 200, {"workspace": store.get(workspace_id).to_dict()}
+            if self.command == "PUT":
+                if parsed.query:
+                    raise _HTTPError(400, "UNEXPECTED_QUERY", "Workspace item routes do not accept query parameters")
+                body = self._read_json()
+                required = {"expected_revision", "name", "description", "metadata"}
+                if set(body) != required:
+                    raise _HTTPError(400, "INVALID_FIELDS", "Workspace update requires exactly expected_revision, name, description and metadata")
+                if not isinstance(body["description"], str):
+                    raise _HTTPError(400, "INVALID_DESCRIPTION", "description must be a string")
+                if not isinstance(body["metadata"], dict):
+                    raise _HTTPError(400, "INVALID_METADATA", "metadata must be an object")
+                record = store.update(
+                    workspace_id,
+                    expected_revision=body["expected_revision"],
+                    name=body["name"],
+                    description=body["description"],
+                    metadata=body["metadata"],
+                )
+                return 200, {"workspace": record.to_dict()}
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Use GET or PUT on a workspace item")
 
         if self.command == "POST" and path == "/v1/templates/polygon-extrusion":
             body = self._read_json()
@@ -676,16 +868,19 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         except FeatureHistoryNavigationUnavailable as exc:
             status, outcome = 409, exc.code
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except FeatureHistoryRevisionConflict as exc:
+        except (FeatureHistoryRevisionConflict, WorkspaceRevisionConflict) as exc:
             status, outcome = 409, "REVISION_CONFLICT"
             payload = {"error": {"code": outcome, "message": str(exc)}}
+        except WorkspaceNotFoundError:
+            status, outcome = 404, "WORKSPACE_NOT_FOUND"
+            payload = {"error": {"code": outcome, "message": "Workspace was not found"}}
         except KeyError:
             status, outcome = 404, "NOT_FOUND"
             payload = {"error": {"code": outcome, "message": "History or revision was not found"}}
         except (InvalidModelError, ValueError, TypeError) as exc:
             status, outcome = 400, "INVALID_REQUEST"
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError):
+        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError, WorkspaceStoreIntegrityError):
             status, outcome = 500, "STORAGE_INTEGRITY_ERROR"
             payload = {"error": {"code": outcome, "message": "Stored engineering data failed integrity validation"}}
         except Exception:  # noqa: BLE001
@@ -730,9 +925,13 @@ class CADGeneratorHTTPServer(HTTPServer):
         self, server_address: tuple[str, int], generator_service: CADGeneratorService,
         audit_log: SQLiteCADAPIAuditLog, bearer_token: str, max_request_bytes: int,
         request_timeout_seconds: float,
+        workspace_store: SQLiteWorkspaceStore | None = None,
+        module_registry: ModuleRegistry | None = None,
     ):
         self.generator_service = generator_service
         self.audit_log = audit_log
+        self.workspace_store = workspace_store
+        self.module_registry = module_registry
         self.bearer_token = bearer_token
         self.max_request_bytes = max_request_bytes
         self.request_timeout_seconds = request_timeout_seconds
@@ -757,12 +956,18 @@ def create_cad_generator_http_server(
     port: int = 0,
     max_request_bytes: int = _MAX_BODY_DEFAULT,
     request_timeout_seconds: float = 5.0,
+    workspace_store: SQLiteWorkspaceStore | None = None,
+    module_registry: ModuleRegistry | None = None,
 ) -> CADGeneratorHTTPServer:
     """Create (but do not start) a loopback-only server; port 0 selects dynamically."""
     if not isinstance(generator_service, CADGeneratorService):
         raise TypeError("generator_service must be a CADGeneratorService")
     if not isinstance(audit_log, SQLiteCADAPIAuditLog):
         raise TypeError("audit_log must be a SQLiteCADAPIAuditLog")
+    if workspace_store is not None and not isinstance(workspace_store, SQLiteWorkspaceStore):
+        raise TypeError("workspace_store must be a SQLiteWorkspaceStore or None")
+    if module_registry is not None and not isinstance(module_registry, ModuleRegistry):
+        raise TypeError("module_registry must be a ModuleRegistry or None")
     if not isinstance(bearer_token, str) or len(bearer_token.encode("utf-8")) < 32:
         raise ValueError("bearer_token must contain at least 32 UTF-8 bytes")
     if host != "127.0.0.1":
@@ -775,7 +980,8 @@ def create_cad_generator_http_server(
         raise ValueError("request_timeout_seconds must be greater than 0 and at most 30")
     return CADGeneratorHTTPServer(
         (host, port), generator_service, audit_log, bearer_token,
-        max_request_bytes, float(request_timeout_seconds),
+        max_request_bytes, float(request_timeout_seconds), workspace_store,
+        module_registry,
     )
 
 

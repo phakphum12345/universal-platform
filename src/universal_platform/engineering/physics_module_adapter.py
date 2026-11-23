@@ -131,6 +131,7 @@ class PhysicsModuleBridge:
 
     runtime: ModuleRuntime
     solvers: PhysicsSolverRegistry
+    registry: ModuleRegistry
 
     def invoke(self, request: ModuleRequest) -> ModuleResponse:
         return self.runtime.invoke(request)
@@ -232,4 +233,4 @@ def create_builtin_physics_module_bridge(
         }
 
     runtime.register_handler(MODULE_ID, SOLVE_OPERATION, solve_handler)
-    return PhysicsModuleBridge(runtime=runtime, solvers=solvers)
+    return PhysicsModuleBridge(runtime=runtime, solvers=solvers, registry=modules)

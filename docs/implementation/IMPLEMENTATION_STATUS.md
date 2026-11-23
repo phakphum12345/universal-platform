@@ -1527,7 +1527,7 @@ This section supersedes earlier "latest" headers in this file. Historical checkp
 
 ## WP-15 — Modern Unified Control Center UI
 
-Status: PARTIAL. WP-15A inventory exists; WP-15B navigation/user journeys remain a draft pending owner acceptance. WP-15C local-first responsive shell foundation is merged by PR #274 at `9dbc354596896614bfe63066afdfbdebd9071151`. It preserves the CAD Generator root route and adds `/control-center`, responsive navigation, accessibility foundations, in-memory theme switching and authenticated CAD-only health inspection. Platform-wide health, workspace/modules/tools/functions/jobs/diagnostics/permissions/audit integrations and WP-15D–J acceptance remain incomplete. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md).
+Status: PARTIAL. WP-15A inventory exists; WP-15B navigation/user journeys remain a draft pending owner acceptance. WP-15C shell foundation is merged; WP-15D workspace storage and authenticated CRUD are present on current Main. This feature branch proposes the first WP-15E metadata-only catalogue slice: authenticated module/function read APIs, a built-in Physics manifest registration and Control Center rendering. It does not load or invoke module code, grant permissions, or make tools executable; the tools registry remains UNKNOWN. WP-15F unified settings, WP-15G diagnostics/activity, WP-15H workbench integration, WP-15I acceptance and WP-15J hardening remain open. See [WP-15 specification](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) and [WP-15E catalogue contract](../ui/WP15E_MODULES_TOOLS_FUNCTIONS_CATALOGUE.md).
 
 ## Current execution checkpoint — 2026-11-19
 
