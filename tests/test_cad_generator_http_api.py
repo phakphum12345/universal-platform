@@ -1214,8 +1214,8 @@ def test_control_center_browser_e2e_creates_lists_and_updates_workspaces(workspa
             page.get_by_role("button", name="Create workspace").click()
             page.get_by_role("button", name="Browser E2E Workspace").wait_for(timeout=5000)
 
-            page.get_by_role("button", name="Browser E2E Workspace").click()
             page.locator("#workspace-editor").wait_for(state="visible", timeout=5000)
+            page.get_by_text("Selected revision 1. Updates use optimistic revision checks.", exact=True).wait_for(timeout=5000)
             page.locator("#workspace-edit-name").fill("Browser E2E Workspace Updated")
             assert page.locator("#workspace-edit-name").input_value() == "Browser E2E Workspace Updated"
             workspace_id = page.locator("#workspace-list [data-workspace-id]").get_attribute("data-workspace-id")
