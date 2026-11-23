@@ -7,11 +7,12 @@ Run with:
 """
 from __future__ import annotations
 
+import json
 import time
 from threading import Thread
 
 import pytest
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 from universal_platform.engineering import (
     CADGeneratorService,
@@ -226,9 +227,7 @@ def test_control_center_preserves_conflicted_draft_until_explicit_reload(control
     assert page.get_by_role("button", name="Reload latest").is_visible()
 
     page.get_by_role("button", name="Reload latest").click()
-    page.wait_for_function(
-        "document.querySelector('#workspace-edit-name').value === 'External update'"
-    )
+    expect(page.locator("#workspace-edit-name")).to_have_value("External update")
     assert page.locator("#workspace-edit-name").input_value() == "External update"
     assert page.get_by_role("button", name="Reload latest").is_hidden()
     assert audit.verify()
@@ -243,7 +242,7 @@ def test_control_center_disables_workspace_create_while_request_is_pending(contr
     page.locator("#workspace-name").fill("Only once")
     page.route("**/v1/workspaces", lambda route: (time.sleep(0.4), route.continue_()))
     page.get_by_role("button", name="Create workspace").click()
-    page.wait_for_function("document.querySelector('#workspace-create').disabled")
+    expect(page.locator("#workspace-create")).to_be_disabled()
     page.locator("#workspace-create").evaluate("(button) => button.click()")
     page.get_by_role("button", name="Only once").wait_for()
     assert len(store.list(limit=10)) == 1
