@@ -219,14 +219,18 @@ class SQLiteWorkspaceStore:
             raise WorkspaceNotFoundError(workspace_id)
         return self._decode(row)
 
-    def list(self, *, limit: int = 100) -> tuple[WorkspaceRecord, ...]:
+    def list(
+        self, *, limit: int = 100, offset: int = 0
+    ) -> tuple[WorkspaceRecord, ...]:
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 500:
             raise ValueError("limit must be an integer from 1 through 500")
+        if isinstance(offset, bool) or not isinstance(offset, int) or not 0 <= offset <= 1_000_000:
+            raise ValueError("offset must be an integer from 0 through 1000000")
         with self._lock, closing(self._connect()) as connection:
             rows = connection.execute(
                 "SELECT * FROM workspaces "
-                "ORDER BY updated_at DESC, workspace_id LIMIT ?",
-                (limit,),
+                "ORDER BY updated_at DESC, workspace_id LIMIT ? OFFSET ?",
+                (limit, offset),
             ).fetchall()
         return tuple(self._decode(row) for row in rows)
 

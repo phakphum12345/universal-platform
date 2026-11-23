@@ -11,6 +11,7 @@ from universal_platform.engineering import (
     SQLiteCADAPIAuditLog,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
+    SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
 from universal_platform.engineering.feature_history import (
@@ -255,8 +256,14 @@ def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
     with urlopen(base + "/static/control_center.js", timeout=3) as response:
         script = response.read().decode("utf-8")
         assert response.headers["Content-Type"].startswith("text/javascript")
-    assert 'fetch("/health"' in script
-    assert 'fetch("/v1/platform/status"' in script
+    assert 'requestJson("/health", "GET", token)' in script
+    assert 'requestJson("/v1/platform/status", "GET", token)' in script
+    assert '"/v1/workspaces?limit=100&offset=" + requestedOffset' in script
+    assert 'requestJson("/v1/workspaces", "POST", activeToken, body)' in script
+    assert '"/v1/workspaces/" + encodeURIComponent(selectedWorkspace.workspace_id)' in script
+    assert '"/v1/workspaces/" + encodeURIComponent(workspaceId), "GET", activeToken' in script
+    assert "Verified by a follow-up read." in script
+    assert "localStorage" not in script
     assert "checkPlatformStatus(token)" in script
     assert "setPlatformState(" in script
     assert 'credentials: "omit"' in script
@@ -989,6 +996,242 @@ def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
             assert page.locator('[data-component-id="module-runtime"] .component-status').inner_text() == "UNKNOWN"
             assert page.locator('[data-component-id="physical-device-io"] .component-status').inner_text() == "UNSUPPORTED"
             assert "must not be treated as READY" in page.locator("#platform-status-detail").inner_text()
+        finally:
+            browser.close()
+    assert audit.verify()
+
+
+@pytest.fixture
+def workspace_api(tmp_path):
+    service = CADGeneratorService(
+        SQLiteFeatureHistoryStore(tmp_path / "workspace-source.sqlite3"),
+        SQLiteFeatureArtifactCache(tmp_path / "workspace-artifacts.sqlite3"),
+    )
+    audit = SQLiteCADAPIAuditLog(tmp_path / "workspace-api-audit.sqlite3")
+    store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    server = create_cad_generator_http_server(
+        service,
+        audit_log=audit,
+        bearer_token=TOKEN,
+        workspace_store=store,
+    )
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}", audit, store
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
+
+
+def test_workspace_http_api_create_list_get_and_update(workspace_api):
+    base, audit, store = workspace_api
+    status, created = send(
+        base,
+        "/v1/workspaces",
+        method="POST",
+        body={
+            "name": "CAD Workspace",
+            "description": "Main design",
+            "metadata": {"domain": "cad", "tags": ["mechanics"]},
+        },
+    )
+    assert status == 201
+    record = created["workspace"]
+    assert record["name"] == "CAD Workspace"
+    assert record["revision"] == 1
+    workspace_id = record["workspace_id"]
+
+    status, listed = send(base, "/v1/workspaces?limit=10")
+    assert status == 200
+    assert listed["count"] == 1
+    assert listed["workspaces"][0]["workspace_id"] == workspace_id
+
+    status, fetched = send(base, f"/v1/workspaces/{workspace_id}")
+    assert status == 200
+    assert fetched["workspace"] == record
+
+    status, updated = send(
+        base,
+        f"/v1/workspaces/{workspace_id}",
+        method="PUT",
+        body={
+            "expected_revision": 1,
+            "name": "CAD Workspace Updated",
+            "description": "Updated",
+            "metadata": {"domain": "engineering"},
+        },
+    )
+    assert status == 200
+    assert updated["workspace"]["revision"] == 2
+    assert updated["workspace"]["name"] == "CAD Workspace Updated"
+    assert store.get(workspace_id).revision == 2
+
+    status, persisted = send(base, f"/v1/workspaces/{workspace_id}")
+    assert status == 200
+    assert persisted["workspace"]["name"] == "CAD Workspace Updated"
+    assert persisted["workspace"]["description"] == "Updated"
+    assert persisted["workspace"]["revision"] == 2
+
+    status, updated_list = send(base, "/v1/workspaces?limit=10&offset=0")
+    assert status == 200
+    assert updated_list["workspaces"][0]["name"] == "CAD Workspace Updated"
+    assert updated_list["has_more"] is False
+    assert updated_list["offset"] == 0
+    assert updated_list["limit"] == 10
+    assert audit.verify()
+
+
+def test_workspace_http_api_paginates_without_hiding_older_records(workspace_api):
+    base, audit, _store = workspace_api
+    created_ids = set()
+    for index in range(5):
+        status, created = send(
+            base, "/v1/workspaces", method="POST",
+            body={"name": f"Workspace {index}"},
+        )
+        assert status == 201
+        created_ids.add(created["workspace"]["workspace_id"])
+
+    status, first = send(base, "/v1/workspaces?limit=2&offset=0")
+    assert status == 200
+    assert first["count"] == 2
+    assert first["offset"] == 0
+    assert first["has_more"] is True
+
+    status, second = send(base, "/v1/workspaces?limit=2&offset=2")
+    assert status == 200
+    assert second["count"] == 2
+    assert second["offset"] == 2
+    assert second["has_more"] is True
+
+    status, third = send(base, "/v1/workspaces?limit=2&offset=4")
+    assert status == 200
+    assert third["count"] == 1
+    assert third["offset"] == 4
+    assert third["has_more"] is False
+
+    returned_ids = {
+        item["workspace_id"]
+        for page in (first, second, third)
+        for item in page["workspaces"]
+    }
+    assert returned_ids == created_ids
+    status, invalid = send(base, "/v1/workspaces?offset=1000001")
+    assert status == 400
+    assert invalid["error"]["code"] == "INVALID_OFFSET"
+    assert audit.verify()
+
+
+def test_workspace_http_api_requires_authentication_and_reports_verified_status(workspace_api):
+    base, audit, _store = workspace_api
+    status, unauthorized = send(base, "/v1/workspaces", token=None)
+    assert status == 401
+    assert unauthorized["error"]["code"] == "UNAUTHORIZED"
+
+    status, platform = send(base, "/v1/platform/status")
+    assert status == 200
+    components = {item["id"]: item for item in platform["components"]}
+    assert components["workspaces"]["status"] == "READY"
+    assert "authenticated read" in components["workspaces"]["evidence"]
+    assert platform["status"] == "PARTIAL"
+    assert audit.verify()
+
+
+def test_workspace_http_api_reports_not_found_and_revision_conflict(workspace_api):
+    base, audit, _store = workspace_api
+    status, created = send(
+        base, "/v1/workspaces", method="POST", body={"name": "Revision test"}
+    )
+    assert status == 201
+    workspace_id = created["workspace"]["workspace_id"]
+
+    status, missing = send(
+        base, "/v1/workspaces/00000000-0000-0000-0000-000000000000"
+    )
+    assert status == 404
+    assert missing["error"]["code"] == "WORKSPACE_NOT_FOUND"
+
+    status, conflict = send(
+        base,
+        f"/v1/workspaces/{workspace_id}",
+        method="PUT",
+        body={
+            "expected_revision": 9,
+            "name": "Stale update",
+            "description": "",
+            "metadata": {},
+        },
+    )
+    assert status == 409
+    assert conflict["error"]["code"] == "REVISION_CONFLICT"
+    assert audit.verify()
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "expected_code"),
+    [
+        ("/v1/workspaces", {"unexpected": True}, "INVALID_FIELDS"),
+        ("/v1/workspaces", {"name": "Bad", "metadata": []}, "INVALID_METADATA"),
+        ("/v1/workspaces?unknown=1", None, "INVALID_QUERY"),
+        ("/v1/workspaces?limit=501", None, "INVALID_LIMIT"),
+        ("/v1/workspaces/not-a-uuid", None, "INVALID_WORKSPACE_ID"),
+    ],
+)
+def test_workspace_http_api_rejects_invalid_requests(workspace_api, path, body, expected_code):
+    base, audit, _store = workspace_api
+    status, payload = send(base, path, method="POST" if body is not None else "GET", body=body)
+    assert status == 400
+    assert payload["error"]["code"] == expected_code
+    assert audit.verify()
+
+
+def test_workspace_http_api_does_not_expose_delete_or_accept_wrong_methods(workspace_api):
+    base, audit, _store = workspace_api
+    status, payload = send(base, "/v1/workspaces", method="DELETE")
+    assert status == 405
+    assert payload["error"]["code"] == "METHOD_NOT_ALLOWED"
+    assert audit.verify()
+
+
+def test_control_center_browser_e2e_creates_lists_and_updates_workspaces(workspace_api):
+    playwright = pytest.importorskip("playwright.sync_api")
+    base, audit, _store = workspace_api
+
+    with playwright.sync_playwright() as browser_runtime:
+        browser = browser_runtime.chromium.launch()
+        page = browser.new_page()
+        try:
+            page.goto(base + "/control-center", wait_until="networkidle")
+            page.locator("#service-token").fill(TOKEN)
+            page.get_by_role("button", name="Check service").click()
+            page.get_by_text("READY · 0 loaded", exact=True).wait_for(timeout=5000)
+
+            page.locator("#workspace-name").fill("Browser E2E Workspace")
+            page.locator("#workspace-description").fill("Created through Control Center")
+            page.locator("#workspace-metadata").fill('{"source":"browser-e2e"}')
+            page.get_by_role("button", name="Create workspace").click()
+            page.get_by_role("button", name="Browser E2E Workspace").wait_for(timeout=5000)
+
+            page.locator("#workspace-editor").wait_for(state="visible", timeout=5000)
+            page.get_by_text("Selected revision 1. Updates use optimistic revision checks.", exact=True).wait_for(timeout=5000)
+            page.locator("#workspace-edit-name").fill("Browser E2E Workspace Updated")
+            page.locator("#workspace-list [data-workspace-id]").click()
+            assert page.locator("#workspace-edit-name").input_value() == "Browser E2E Workspace Updated"
+            assert page.locator("#workspace-edit-name").input_value() == "Browser E2E Workspace Updated"
+            workspace_id = page.locator("#workspace-list [data-workspace-id]").get_attribute("data-workspace-id")
+            with page.expect_response(
+                lambda response: response.request.method == "PUT" and response.url.endswith("/v1/workspaces/" + workspace_id)
+            ) as update_response:
+                page.get_by_role("button", name="Save changes").click()
+            assert json.loads(update_response.value.request.post_data)["name"] == "Browser E2E Workspace Updated"
+            updated_payload = update_response.value.json()
+            assert updated_payload["workspace"]["name"] == "Browser E2E Workspace Updated"
+            assert updated_payload["workspace"]["revision"] == 2
+            page.get_by_role("button", name="Browser E2E Workspace Updated").wait_for(timeout=5000)
+            assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
+            assert page.locator("#workspace-state").inner_text() == "READY · Saved"
         finally:
             browser.close()
     assert audit.verify()

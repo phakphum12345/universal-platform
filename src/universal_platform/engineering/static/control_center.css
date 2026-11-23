@@ -151,3 +151,19 @@ input { width: 100%; min-height: 39px; padding: 9px 11px; border: 1px solid var(
 .component-status.fail { border-color: var(--danger); color: var(--danger); }
 .component-row p { clear: both; margin: 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; }
 @media (max-width: 680px) { .component-grid { grid-template-columns: 1fr; } }
+
+
+.workspace-card { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; padding: 20px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); }
+.workspace-card > .service-detail { grid-column: 1 / -1; margin: 0; }
+.workspace-create, .workspace-list-panel, .workspace-editor { display: grid; align-content: start; gap: 8px; min-width: 0; }
+.workspace-create h3, .workspace-list-panel h3, .workspace-editor h3 { margin: 0 0 4px; }
+.workspace-create label, .workspace-editor label { color: var(--muted); font-size: 10px; font-weight: 700; }
+.workspace-create textarea, .workspace-editor textarea { width: 100%; min-height: 78px; resize: vertical; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--page); color: var(--text); font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.workspace-list { display: grid; align-content: start; gap: 7px; max-height: 320px; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.workspace-select { display: grid; gap: 5px; width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-raised); color: var(--text); text-align: left; cursor: pointer; }
+.workspace-select[aria-pressed="true"] { border-color: var(--accent); }
+.workspace-select strong { font-size: 11px; overflow-wrap: anywhere; }
+.workspace-select small, .workspace-empty { color: var(--muted); font-size: 9px; overflow-wrap: anywhere; }
+.workspace-editor { grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--line); }
+.workspace-editor[hidden] { display: none; }
+@media (max-width: 680px) { .workspace-card { grid-template-columns: 1fr; } }

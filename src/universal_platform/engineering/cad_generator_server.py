@@ -21,6 +21,7 @@ from .cad_generator_http_api import (
 from .cad_generator_service import CADGeneratorService
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history_store import SQLiteFeatureHistoryStore
+from .workspace_store import SQLiteWorkspaceStore
 
 
 def resolve_data_directory(
@@ -88,6 +89,7 @@ def create_local_server(
     history_store = SQLiteFeatureHistoryStore(data_path / "feature-history.sqlite3")
     artifact_cache = SQLiteFeatureArtifactCache(data_path / "feature-artifacts.sqlite3")
     audit_log = SQLiteCADAPIAuditLog(data_path / "cad-api-audit.sqlite3")
+    workspace_store = SQLiteWorkspaceStore(data_path / "workspaces.sqlite3")
     service = CADGeneratorService(history_store, artifact_cache)
     server = create_cad_generator_http_server(
         service,
@@ -95,6 +97,7 @@ def create_local_server(
         bearer_token=token,
         host="127.0.0.1",
         port=selected_port,
+        workspace_store=workspace_store,
     )
     return server, token, generated_token, data_path
 
