@@ -1209,7 +1209,14 @@ def test_control_center_browser_e2e_creates_lists_and_updates_workspaces(workspa
             page.get_by_role("button", name="Browser E2E Workspace").click()
             page.locator("#workspace-editor").wait_for(state="visible", timeout=5000)
             page.locator("#workspace-edit-name").fill("Browser E2E Workspace Updated")
-            page.get_by_role("button", name="Save changes").click()
+            workspace_id = page.locator("#workspace-list [data-workspace-id]").get_attribute("data-workspace-id")
+            with page.expect_response(
+                lambda response: response.request.method == "PUT" and response.url.endswith("/v1/workspaces/" + workspace_id)
+            ) as update_response:
+                page.get_by_role("button", name="Save changes").click()
+            updated_payload = update_response.value.json()
+            assert updated_payload["workspace"]["name"] == "Browser E2E Workspace Updated"
+            assert updated_payload["workspace"]["revision"] == 2
             page.get_by_role("button", name="Browser E2E Workspace Updated").wait_for(timeout=5000)
             assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
             assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
