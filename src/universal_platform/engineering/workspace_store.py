@@ -12,6 +12,7 @@ import sqlite3
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from math import isfinite
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -60,7 +61,7 @@ def _validate_json_value(value: object, path: str = "metadata") -> None:
     if value is None or isinstance(value, (str, bool, int)):
         return
     if isinstance(value, float):
-        if value != value or value in (float("inf"), float("-inf")):
+        if not isfinite(value):
             raise ValueError(f"{path} must not contain non-finite numbers")
         return
     if isinstance(value, list):
@@ -70,7 +71,7 @@ def _validate_json_value(value: object, path: str = "metadata") -> None:
     if isinstance(value, dict):
         for key, item in value.items():
             if not isinstance(key, str):
-                raise ValueError(f"{path} object keys must be strings")
+                raise TypeError(f"{path} object keys must be strings")
             _validate_json_value(item, f"{path}.{key}")
         return
     raise ValueError(f"{path} must contain only JSON-compatible values")
