@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286 WP-15E catalogue merge. Exact PR-head checks PASS: Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell (4/4). Post-merge workflows are still running/queued. PR #280 remains open for stale documentation reconciliation. Overall status: **INCOMPLETE**; WP-15F–J, WP-09G security acceptance, cross-domain integration and domain capability gaps remain.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows PASS on exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, cause UNKNOWN. PRs #280 and #287 remain open; #287 CI is running on its latest head, and #280 documentation content requires reconciliation. Overall status: **INCOMPLETE**; WP-15F–J, WP-09G security acceptance, cross-domain integration and domain capability gaps remain.
 
 # Universal Platform
 
