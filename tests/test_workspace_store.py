@@ -78,7 +78,7 @@ def test_workspace_missing_identifier_is_not_found(tmp_path):
         ("   ", ""),
         ("x" * 121, ""),
         ("Valid", "x" * 2001),
-        ("bad\\x00name", ""),
+        ("bad\x00name", ""),
     ],
 )
 def test_workspace_rejects_invalid_text(name, description, tmp_path):
