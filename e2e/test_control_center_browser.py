@@ -221,7 +221,9 @@ def test_control_center_preserves_conflicted_draft_until_explicit_reload(control
     assert page.get_by_role("button", name="Reload latest").is_visible()
 
     page.get_by_role("button", name="Reload latest").click()
-    page.locator("#workspace-edit-name").wait_for()
+    page.wait_for_function(
+        "document.querySelector('#workspace-edit-name').value === 'External update'"
+    )
     assert page.locator("#workspace-edit-name").input_value() == "External update"
     assert page.get_by_role("button", name="Reload latest").is_hidden()
     assert audit.verify()
