@@ -183,10 +183,7 @@ class SQLiteWorkspaceStore:
             metadata = {}
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be an object")
-        try:
-            metadata_json = _canonical_json(metadata)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("metadata must contain only valid JSON values") from exc
+        metadata_json = _canonical_json(metadata)
 
         workspace_id = str(uuid4())
         now = datetime.now(UTC).isoformat()
@@ -256,11 +253,8 @@ class SQLiteWorkspaceStore:
         if metadata is None:
             metadata = {}
         if not isinstance(metadata, dict):
-            raise ValueError("metadata must be an object")
-        try:
-            metadata_json = _canonical_json(metadata)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("metadata must contain finite JSON-compatible values") from exc
+            raise TypeError("metadata must be an object")
+        metadata_json = _canonical_json(metadata)
 
         now = datetime.now(UTC).isoformat()
         with self._lock, closing(self._connect()) as connection:
