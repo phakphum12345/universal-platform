@@ -261,6 +261,8 @@ def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
     assert '"/v1/workspaces?limit=100&offset=" + requestedOffset' in script
     assert 'requestJson("/v1/workspaces", "POST", activeToken, body)' in script
     assert '"/v1/workspaces/" + encodeURIComponent(selectedWorkspace.workspace_id)' in script
+    assert '"/v1/workspaces/" + encodeURIComponent(workspaceId), "GET", activeToken' in script
+    assert "Verified by a follow-up read." in script
     assert "localStorage" not in script
     assert "checkPlatformStatus(token)" in script
     assert "setPlatformState(" in script
@@ -1065,6 +1067,12 @@ def test_workspace_http_api_create_list_get_and_update(workspace_api):
     assert updated["workspace"]["revision"] == 2
     assert updated["workspace"]["name"] == "CAD Workspace Updated"
     assert store.get(workspace_id).revision == 2
+
+    status, persisted = send(base, f"/v1/workspaces/{workspace_id}")
+    assert status == 200
+    assert persisted["workspace"]["name"] == "CAD Workspace Updated"
+    assert persisted["workspace"]["description"] == "Updated"
+    assert persisted["workspace"]["revision"] == 2
 
     status, updated_list = send(base, "/v1/workspaces?limit=10&offset=0")
     assert status == 200
