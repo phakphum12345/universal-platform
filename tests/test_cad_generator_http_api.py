@@ -14,11 +14,6 @@ from universal_platform.engineering import (
     SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
-from universal_platform.engineering.physics_module_adapter import (
-    MODULE_ID,
-    SOLVE_OPERATION,
-    create_builtin_physics_module_bridge,
-)
 from universal_platform.engineering.feature_history import (
     FeatureHistory,
     FeatureKind,
@@ -32,6 +27,11 @@ from universal_platform.engineering.parametric_sketch import (
 )
 from universal_platform.engineering.parametric_sketch import (
     SketchConstraintKind as Kind,
+)
+from universal_platform.engineering.physics_module_adapter import (
+    MODULE_ID,
+    SOLVE_OPERATION,
+    create_builtin_physics_module_bridge,
 )
 
 TOKEN = "local-test-token-" + ("x" * 40)
@@ -258,7 +258,14 @@ def test_authenticated_module_function_and_tool_catalogues_are_metadata_only(api
     status, unauthorized = send(base, "/v1/modules", token=None)
     assert status == 401
     assert unauthorized["error"]["code"] == "UNAUTHORIZED"
+    status, read_only = send(base, "/v1/modules", method="POST", body={})
+    assert status == 405
+    assert read_only["error"]["code"] == "METHOD_NOT_ALLOWED"
+    status, bad_query = send(base, "/v1/modules?unexpected=true")
+    assert status == 400
+    assert bad_query["error"]["code"] == "UNEXPECTED_QUERY"
     assert audit.verify()
+
 
 def test_platform_status_reports_only_verified_and_unknown_components(api):
     base, audit, _ = api
@@ -1060,11 +1067,13 @@ def workspace_api(tmp_path):
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "workspace-api-audit.sqlite3")
     store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    physics_bridge = create_builtin_physics_module_bridge()
     server = create_cad_generator_http_server(
         service,
         audit_log=audit,
         bearer_token=TOKEN,
         workspace_store=store,
+        module_registry=physics_bridge.registry,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
