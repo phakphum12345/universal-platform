@@ -24,6 +24,12 @@ from .cad_generator_templates import build_polygon_extrusion_history
 from .errors import InvalidModelError
 from .feature_artifact_store import FeatureArtifactCacheIntegrityError
 from .feature_history import FeatureKind, FeatureNode
+from .workspace_store import (
+    SQLiteWorkspaceStore,
+    WorkspaceNotFoundError,
+    WorkspaceRevisionConflict,
+    WorkspaceStoreIntegrityError,
+)
 from .feature_history_store import (
     FeatureHistoryMergeConflictError,
     FeatureHistoryNavigationUnavailable,
@@ -288,8 +294,8 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         return value
 
     def _dispatch(self) -> tuple[int, dict[str, Any]]:
-        if self.command not in {"GET", "POST"}:
-            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Only GET and POST are supported")
+        if self.command not in {"GET", "POST", "PUT"}:
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Only GET, POST and PUT are supported")
         parsed = urlsplit(self.path)
         path = unquote(parsed.path)
         if parsed.query and self.command != "GET":
@@ -298,6 +304,18 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
 
         if self.command == "GET" and path == "/v1/platform/status":
+            workspace_component = {
+                "id": "workspaces",
+                "status": "UNKNOWN",
+                "reason": "No platform workspace service is configured on this host.",
+            }
+            if self.server.workspace_store is not None:
+                self.server.workspace_store.list(limit=1)
+                workspace_component = {
+                    "id": "workspaces",
+                    "status": "READY",
+                    "evidence": "The configured durable workspace metadata store completed an authenticated read.",
+                }
             return 200, {
                 "status": "PARTIAL",
                 "api_version": "1.0",
@@ -312,11 +330,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                         "status": "UNKNOWN",
                         "reason": "ModuleRuntime is not wired into this CAD Generator server host.",
                     },
-                    {
-                        "id": "workspaces",
-                        "status": "UNKNOWN",
-                        "reason": "No platform workspace service is configured on this host.",
-                    },
+                    workspace_component,
                     {
                         "id": "jobs",
                         "status": "UNKNOWN",
@@ -344,6 +358,73 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                     "CAD Generator READY describes only this authenticated API host.",
                 ],
             }
+
+        if path == "/v1/workspaces":
+            store = self.server.workspace_store
+            if store is None:
+                raise _HTTPError(503, "WORKSPACE_STORE_UNAVAILABLE", "Workspace storage is not configured on this host")
+            if self.command == "GET":
+                query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+                if set(query) - {"limit"} or any(len(values) != 1 for values in query.values()):
+                    raise _HTTPError(400, "INVALID_QUERY", "Only one optional limit query parameter is supported")
+                raw_limit = query.get("limit", ["100"])[0]
+                try:
+                    limit = int(raw_limit)
+                except ValueError as exc:
+                    raise _HTTPError(400, "INVALID_LIMIT", "limit must be an integer from 1 through 500") from exc
+                if str(limit) != raw_limit or not 1 <= limit <= 500:
+                    raise _HTTPError(400, "INVALID_LIMIT", "limit must be an integer from 1 through 500")
+                records = store.list(limit=limit)
+                return 200, {"workspaces": [record.to_dict() for record in records], "count": len(records)}
+            if self.command == "POST":
+                body = self._read_json()
+                allowed = {"name", "description", "metadata"}
+                if not {"name"} <= set(body) or set(body) - allowed:
+                    raise _HTTPError(400, "INVALID_FIELDS", "Workspace creation requires name and optional description and metadata")
+                if "description" in body and not isinstance(body["description"], str):
+                    raise _HTTPError(400, "INVALID_DESCRIPTION", "description must be a string")
+                if "metadata" in body and not isinstance(body["metadata"], dict):
+                    raise _HTTPError(400, "INVALID_METADATA", "metadata must be an object")
+                record = store.create(
+                    body["name"],
+                    description=body.get("description", ""),
+                    metadata=body.get("metadata"),
+                )
+                return 201, {"workspace": record.to_dict()}
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Use GET or POST on the workspace collection")
+
+        workspace_prefix = "/v1/workspaces/"
+        if path.startswith(workspace_prefix):
+            store = self.server.workspace_store
+            if store is None:
+                raise _HTTPError(503, "WORKSPACE_STORE_UNAVAILABLE", "Workspace storage is not configured on this host")
+            workspace_id = path[len(workspace_prefix):]
+            if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", workspace_id):
+                raise _HTTPError(400, "INVALID_WORKSPACE_ID", "workspace_id must be a canonical UUID")
+            if self.command == "GET":
+                if parsed.query:
+                    raise _HTTPError(400, "UNEXPECTED_QUERY", "Workspace item routes do not accept query parameters")
+                return 200, {"workspace": store.get(workspace_id).to_dict()}
+            if self.command == "PUT":
+                if parsed.query:
+                    raise _HTTPError(400, "UNEXPECTED_QUERY", "Workspace item routes do not accept query parameters")
+                body = self._read_json()
+                required = {"expected_revision", "name", "description", "metadata"}
+                if set(body) != required:
+                    raise _HTTPError(400, "INVALID_FIELDS", "Workspace update requires exactly expected_revision, name, description and metadata")
+                if not isinstance(body["description"], str):
+                    raise _HTTPError(400, "INVALID_DESCRIPTION", "description must be a string")
+                if not isinstance(body["metadata"], dict):
+                    raise _HTTPError(400, "INVALID_METADATA", "metadata must be an object")
+                record = store.update(
+                    workspace_id,
+                    expected_revision=body["expected_revision"],
+                    name=body["name"],
+                    description=body["description"],
+                    metadata=body["metadata"],
+                )
+                return 200, {"workspace": record.to_dict()}
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Use GET or PUT on a workspace item")
 
         if self.command == "POST" and path == "/v1/templates/polygon-extrusion":
             body = self._read_json()
@@ -676,16 +757,19 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         except FeatureHistoryNavigationUnavailable as exc:
             status, outcome = 409, exc.code
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except FeatureHistoryRevisionConflict as exc:
+        except (FeatureHistoryRevisionConflict, WorkspaceRevisionConflict) as exc:
             status, outcome = 409, "REVISION_CONFLICT"
             payload = {"error": {"code": outcome, "message": str(exc)}}
+        except WorkspaceNotFoundError:
+            status, outcome = 404, "WORKSPACE_NOT_FOUND"
+            payload = {"error": {"code": outcome, "message": "Workspace was not found"}}
         except KeyError:
             status, outcome = 404, "NOT_FOUND"
             payload = {"error": {"code": outcome, "message": "History or revision was not found"}}
         except (InvalidModelError, ValueError, TypeError) as exc:
             status, outcome = 400, "INVALID_REQUEST"
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError):
+        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError, WorkspaceStoreIntegrityError):
             status, outcome = 500, "STORAGE_INTEGRITY_ERROR"
             payload = {"error": {"code": outcome, "message": "Stored engineering data failed integrity validation"}}
         except Exception:  # noqa: BLE001
@@ -730,9 +814,11 @@ class CADGeneratorHTTPServer(HTTPServer):
         self, server_address: tuple[str, int], generator_service: CADGeneratorService,
         audit_log: SQLiteCADAPIAuditLog, bearer_token: str, max_request_bytes: int,
         request_timeout_seconds: float,
+        workspace_store: SQLiteWorkspaceStore | None = None,
     ):
         self.generator_service = generator_service
         self.audit_log = audit_log
+        self.workspace_store = workspace_store
         self.bearer_token = bearer_token
         self.max_request_bytes = max_request_bytes
         self.request_timeout_seconds = request_timeout_seconds
@@ -757,12 +843,15 @@ def create_cad_generator_http_server(
     port: int = 0,
     max_request_bytes: int = _MAX_BODY_DEFAULT,
     request_timeout_seconds: float = 5.0,
+    workspace_store: SQLiteWorkspaceStore | None = None,
 ) -> CADGeneratorHTTPServer:
     """Create (but do not start) a loopback-only server; port 0 selects dynamically."""
     if not isinstance(generator_service, CADGeneratorService):
         raise TypeError("generator_service must be a CADGeneratorService")
     if not isinstance(audit_log, SQLiteCADAPIAuditLog):
         raise TypeError("audit_log must be a SQLiteCADAPIAuditLog")
+    if workspace_store is not None and not isinstance(workspace_store, SQLiteWorkspaceStore):
+        raise TypeError("workspace_store must be a SQLiteWorkspaceStore or None")
     if not isinstance(bearer_token, str) or len(bearer_token.encode("utf-8")) < 32:
         raise ValueError("bearer_token must contain at least 32 UTF-8 bytes")
     if host != "127.0.0.1":
@@ -775,7 +864,7 @@ def create_cad_generator_http_server(
         raise ValueError("request_timeout_seconds must be greater than 0 and at most 30")
     return CADGeneratorHTTPServer(
         (host, port), generator_service, audit_log, bearer_token,
-        max_request_bytes, float(request_timeout_seconds),
+        max_request_bytes, float(request_timeout_seconds), workspace_store,
     )
 
 
