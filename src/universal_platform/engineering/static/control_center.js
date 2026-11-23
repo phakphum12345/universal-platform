@@ -280,6 +280,10 @@
     selectedWorkspace = null;
     workspaceEditor.hidden = true;
     workspaceList.replaceChildren();
+    workspaceReloadButton.hidden = true;
+    workspaceMoreButton.hidden = true;
+    workspaceOffset = 0;
+    workspaceHasMore = false;
     setServiceState("unknown", "UNKNOWN · Not checked", "Local token cleared from this page's memory.");
     setPlatformState("unknown", "UNKNOWN · Not checked", "Platform status was cleared; run Check service to verify it again.");
     setWorkspaceState("unknown", "UNKNOWN · Not loaded", "The token was cleared; workspace data is no longer accessible.");
