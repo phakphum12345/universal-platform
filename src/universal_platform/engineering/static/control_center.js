@@ -377,19 +377,32 @@
         setWorkspaceState("unknown", "UNKNOWN · Invalid update response", "The server response did not confirm the requested workspace revision.");
         return;
       }
-      selectedWorkspace = payload.workspace;
-      byId("workspace-edit-state").textContent = "Saved revision " + selectedWorkspace.revision + ".";
+      const workspaceId = selectedWorkspace.workspace_id;
+      const { response: verifyResponse, payload: verifyPayload } = await requestJson(
+        "/v1/workspaces/" + encodeURIComponent(workspaceId), "GET", activeToken
+      );
+      const persistedWorkspace = verifyPayload?.workspace;
+      if (!verifyResponse.ok || !persistedWorkspace ||
+          persistedWorkspace.workspace_id !== workspaceId ||
+          persistedWorkspace.name !== payload.workspace.name ||
+          persistedWorkspace.description !== payload.workspace.description ||
+          persistedWorkspace.revision !== payload.workspace.revision) {
+        setWorkspaceState("unknown", "UNKNOWN · Persistence verification failed", "The update response was received, but a follow-up read did not confirm the saved workspace. The editor draft has been retained.");
+        return;
+      }
+      selectedWorkspace = persistedWorkspace;
+      byId("workspace-edit-state").textContent = "Saved revision " + selectedWorkspace.revision + ". Verified by a follow-up read.";
       workspaceReloadButton.hidden = true;
-      setWorkspaceState("ready", "READY · Saved", "Workspace changes were persisted to local SQLite storage.");
-      const current = [...workspaceList.querySelectorAll("[data-workspace-id]")].map((button) => ({
-        workspace_id: button.dataset.workspaceId,
-        name: button.querySelector("strong")?.textContent || "",
-        revision: Number((button.querySelector("small")?.textContent || "").match(/Revision (\d+)/)?.[1] || 1)
-      }));
-      const updated = current.filter((item) => item.workspace_id !== selectedWorkspace.workspace_id);
-      updated.unshift(selectedWorkspace);
-      renderWorkspaces(updated);
-      await loadWorkspaces();
+      setWorkspaceState("ready", "READY · Saved", "The updated workspace was read back from local SQLite storage.");
+      const selectedButton = workspaceList.querySelector(
+        '[data-workspace-id="' + CSS.escape(workspaceId) + '"]'
+      );
+      if (selectedButton) {
+        const name = selectedButton.querySelector("strong");
+        const details = selectedButton.querySelector("small");
+        if (name) name.textContent = selectedWorkspace.name;
+        if (details) details.textContent = "Revision " + selectedWorkspace.revision + " · " + workspaceId;
+      }
     } catch (error) {
       setWorkspaceState("failed", "FAIL · Invalid input", error.message);
     } finally {
