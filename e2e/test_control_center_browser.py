@@ -8,6 +8,7 @@ Run with:
 from __future__ import annotations
 
 from threading import Thread
+import time
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -51,7 +52,7 @@ def control_center(tmp_path):
         base = f"http://127.0.0.1:{server.server_port}"
         try:
             page.goto(base + "/control-center", wait_until="domcontentloaded")
-            yield page, context, base, audit, page_errors
+            yield page, context, base, audit, page_errors, workspace_store
         finally:
             context.close()
             browser.close()
@@ -61,7 +62,7 @@ def control_center(tmp_path):
 
 
 def test_control_center_renders_accessible_shell_and_preserves_cad_workbench(control_center):
-    page, _context, base, _audit, page_errors = control_center
+    page, _context, base, _audit, page_errors, _store = control_center
 
     assert page.title() == "Universal Platform · Control Center"
     assert page.get_by_role("heading", name="Control Center").is_visible()
@@ -84,7 +85,7 @@ def test_control_center_renders_accessible_shell_and_preserves_cad_workbench(con
 
 
 def test_mobile_navigation_and_keyboard_skip_link(control_center):
-    page, _context, _base, _audit, page_errors = control_center
+    page, _context, _base, _audit, page_errors, _store = control_center
     page.set_viewport_size({"width": 390, "height": 844})
 
     toggle = page.locator("#navigation-toggle")
@@ -119,7 +120,7 @@ def _base_url(page):
 
 
 def test_theme_switch_and_authenticated_health_states_do_not_persist_token(control_center):
-    page, context, _base, audit, page_errors = control_center
+    page, context, _base, audit, page_errors, _store = control_center
 
     theme = page.locator("#theme-toggle")
     theme.click()
@@ -168,7 +169,7 @@ def test_health_connection_failure_is_reported_as_fail_not_ready(control_center)
 
 
 def test_control_center_creates_lists_and_updates_durable_workspaces(control_center):
-    page, _context, _base, audit, page_errors = control_center
+    page, _context, _base, audit, page_errors, store = control_center
     page.locator("#service-token").fill(TOKEN)
     page.locator("#check-service").click()
     page.get_by_text("READY · 0 loaded", exact=True).wait_for()
@@ -182,20 +183,62 @@ def test_control_center_creates_lists_and_updates_durable_workspaces(control_cen
     page.get_by_role("button", name="Browser Workspace").click()
     page.locator("#workspace-editor").wait_for(state="visible")
     page.locator("#workspace-edit-name").fill("Browser Workspace Updated")
-    responses = []
-    page.on("response", lambda response: responses.append((response.url, response.status)))
-    page.get_by_role("button", name="Save changes").click()
-    page.wait_for_timeout(750)
-    if page.get_by_role("button", name="Browser Workspace Updated").count() == 0:
-        pytest.fail(
-            "Workspace update did not render; "
-            f"workspace_state={page.locator('#workspace-state').inner_text()!r}; "
-            f"workspace_detail={page.locator('#workspace-detail').inner_text()!r}; "
-            f"editor_state={page.locator('#workspace-edit-state').inner_text()!r}; "
-            f"list={page.locator('#workspace-list').inner_text()!r}; "
-            f"responses={responses!r}; page_errors={page_errors!r}"
-        )
+    workspace_id = page.locator("#workspace-list [data-workspace-id]").get_attribute("data-workspace-id")
+    with page.expect_response(
+        lambda response: response.request.method == "PUT" and response.url.endswith("/v1/workspaces/" + workspace_id)
+    ) as update_response:
+        page.get_by_role("button", name="Save changes").click()
+    payload = update_response.value.json()
+    assert payload["workspace"]["name"] == "Browser Workspace Updated"
+    assert payload["workspace"]["revision"] == 2
+    page.get_by_role("button", name="Browser Workspace Updated").wait_for(timeout=5000)
     assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
     assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
     assert page_errors == []
     assert audit.verify()
+
+
+def test_control_center_preserves_conflicted_draft_until_explicit_reload(control_center):
+    page, _context, _base, audit, page_errors, store = control_center
+    record = store.create("Original workspace", description="Initial")
+    page.locator("#service-token").fill(TOKEN)
+    page.locator("#check-service").click()
+    page.get_by_role("button", name="Original workspace").wait_for()
+    page.get_by_role("button", name="Original workspace").click()
+    page.locator("#workspace-editor").wait_for(state="visible")
+    page.locator("#workspace-edit-name").fill("Unsaved local draft")
+
+    store.update(
+        record.workspace_id,
+        expected_revision=1,
+        name="External update",
+        description="Changed by another client",
+        metadata={"source": "other-client"},
+    )
+    page.get_by_role("button", name="Save changes").click()
+    page.get_by_text("FAIL · Revision conflict").wait_for()
+    assert page.locator("#workspace-edit-name").input_value() == "Unsaved local draft"
+    assert page.get_by_role("button", name="Reload latest").is_visible()
+
+    page.get_by_role("button", name="Reload latest").click()
+    page.locator("#workspace-edit-name").wait_for()
+    assert page.locator("#workspace-edit-name").input_value() == "External update"
+    assert page.get_by_role("button", name="Reload latest").is_hidden()
+    assert audit.verify()
+    assert page_errors == []
+
+
+def test_control_center_disables_workspace_create_while_request_is_pending(control_center):
+    page, _context, _base, audit, page_errors, store = control_center
+    page.locator("#service-token").fill(TOKEN)
+    page.locator("#check-service").click()
+    page.get_by_text("READY · 0 loaded", exact=True).wait_for()
+    page.locator("#workspace-name").fill("Only once")
+    page.route("**/v1/workspaces", lambda route: (time.sleep(0.4), route.continue_()))
+    page.get_by_role("button", name="Create workspace").click()
+    page.wait_for_function("document.querySelector('#workspace-create').disabled")
+    page.locator("#workspace-create").evaluate("(button) => button.click()")
+    page.get_by_role("button", name="Only once").wait_for()
+    assert len(store.list(limit=10)) == 1
+    assert audit.verify()
+    assert page_errors == []
