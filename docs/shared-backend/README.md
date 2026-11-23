@@ -1,5 +1,7 @@
 # Shared Zero-Cost Hybrid Backend
 
+**Repository navigation:** [Documentation Index](../../DOCUMENTATION_INDEX.md) · [Repository README](../../README.md)
+
 **Status:** Proposed architecture; not an implementation or production-readiness claim.
 
 ## Scope
