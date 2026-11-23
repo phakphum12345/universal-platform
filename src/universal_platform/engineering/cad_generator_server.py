@@ -21,8 +21,8 @@ from .cad_generator_http_api import (
 from .cad_generator_service import CADGeneratorService
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history_store import SQLiteFeatureHistoryStore
-from .workspace_store import SQLiteWorkspaceStore
 from .physics_module_adapter import create_builtin_physics_module_bridge
+from .workspace_store import SQLiteWorkspaceStore
 
 
 def resolve_data_directory(
