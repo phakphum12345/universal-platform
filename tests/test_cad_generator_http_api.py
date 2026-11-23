@@ -258,7 +258,7 @@ def test_control_center_shell_is_served_locally_without_changing_cad_root(api):
         assert response.headers["Content-Type"].startswith("text/javascript")
     assert 'requestJson("/health", "GET", token)' in script
     assert 'requestJson("/v1/platform/status", "GET", token)' in script
-    assert 'requestJson("/v1/workspaces?limit=100", "GET", token)' in script
+    assert '"/v1/workspaces?limit=100&offset=" + requestedOffset' in script
     assert 'requestJson("/v1/workspaces", "POST", activeToken, body)' in script
     assert '"/v1/workspaces/" + encodeURIComponent(selectedWorkspace.workspace_id)' in script
     assert "localStorage" not in script
@@ -1065,6 +1065,54 @@ def test_workspace_http_api_create_list_get_and_update(workspace_api):
     assert updated["workspace"]["revision"] == 2
     assert updated["workspace"]["name"] == "CAD Workspace Updated"
     assert store.get(workspace_id).revision == 2
+
+    status, updated_list = send(base, "/v1/workspaces?limit=10&offset=0")
+    assert status == 200
+    assert updated_list["workspaces"][0]["name"] == "CAD Workspace Updated"
+    assert updated_list["has_more"] is False
+    assert updated_list["offset"] == 0
+    assert updated_list["limit"] == 10
+    assert audit.verify()
+
+
+def test_workspace_http_api_paginates_without_hiding_older_records(workspace_api):
+    base, audit, _store = workspace_api
+    created_ids = set()
+    for index in range(5):
+        status, created = send(
+            base, "/v1/workspaces", method="POST",
+            body={"name": f"Workspace {index}"},
+        )
+        assert status == 201
+        created_ids.add(created["workspace"]["workspace_id"])
+
+    status, first = send(base, "/v1/workspaces?limit=2&offset=0")
+    assert status == 200
+    assert first["count"] == 2
+    assert first["offset"] == 0
+    assert first["has_more"] is True
+
+    status, second = send(base, "/v1/workspaces?limit=2&offset=2")
+    assert status == 200
+    assert second["count"] == 2
+    assert second["offset"] == 2
+    assert second["has_more"] is True
+
+    status, third = send(base, "/v1/workspaces?limit=2&offset=4")
+    assert status == 200
+    assert third["count"] == 1
+    assert third["offset"] == 4
+    assert third["has_more"] is False
+
+    returned_ids = {
+        item["workspace_id"]
+        for page in (first, second, third)
+        for item in page["workspaces"]
+    }
+    assert returned_ids == created_ids
+    status, invalid = send(base, "/v1/workspaces?offset=1000001")
+    assert status == 400
+    assert invalid["error"]["code"] == "INVALID_OFFSET"
     assert audit.verify()
 
 
