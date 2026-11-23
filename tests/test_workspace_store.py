@@ -114,6 +114,25 @@ def test_workspace_list_limit_is_bounded(tmp_path):
             store.list(limit=invalid)
 
 
+def test_workspace_list_offset_returns_stable_non_overlapping_pages(tmp_path):
+    store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    created = [store.create(f"Workspace {index}") for index in range(5)]
+
+    first = store.list(limit=2, offset=0)
+    second = store.list(limit=2, offset=2)
+    third = store.list(limit=2, offset=4)
+
+    assert len(first) == 2
+    assert len(second) == 2
+    assert len(third) == 1
+    assert {item.workspace_id for item in first + second + third} == {
+        item.workspace_id for item in created
+    }
+    for invalid in (-1, 1_000_001, True, 1.5):
+        with pytest.raises(ValueError, match="offset"):
+            store.list(offset=invalid)
+
+
 def test_concurrent_workspace_creates_keep_all_records(tmp_path):
     store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
     with ThreadPoolExecutor(max_workers=8) as pool:
