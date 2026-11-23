@@ -10,6 +10,7 @@ Use explicit versioned contracts for new cross-service interfaces. Do not rename
 
 - `X-Request-ID` is the canonical request-correlation header.
 - A caller may supply an ID matching `[A-Za-z0-9._-]{8,128}`; services must reject malformed values and generate a new opaque ID.
+- The canonical machine-readable definition is `schemas/shared/request-id.schema.json`; implementation validators and client tests must remain compatible with this schema.
 - Every JSON response must return the effective ID in the `X-Request-ID` response header.
 - A JSON body may also include `request_id` for compatibility and diagnostics. It is not required on every endpoint.
 - Laravel currently echoes the effective ID in the response header; its health and diagnostics responses also include `request_id` in the body.

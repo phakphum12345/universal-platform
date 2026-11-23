@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/phakphum12345/universal-platform/schemas/shared/request-id.schema.json",
+  "title": "Shared API Request Correlation ID",
+  "description": "Opaque diagnostic correlation identifier accepted in the X-Request-ID header.",
+  "type": "string",
+  "minLength": 8,
+  "maxLength": 128,
+  "pattern": "^[A-Za-z0-9._-]{8,128}$"
+}
