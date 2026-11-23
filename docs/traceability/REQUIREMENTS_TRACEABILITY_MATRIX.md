@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes WP-15E authenticated read-only module/function catalogue (PR #286). Exact PR-head CI passed Repository Quality, Engineering Core, CAD Browser E2E and Cross-Shell 4/4; post-merge CI is still running/queued. PR #280 remains open and stale against current main. Repository maturity remains INCOMPLETE; implementation, verification, integration and owner acceptance are tracked separately.
+> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes WP-15E authenticated read-only module/function catalogue (PR #286). Exact PR-head and post-merge CI passed Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell 4/4 on exact Main SHA `84cc7fa...`; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PR #280 remains open; its branch is based on current Main, but its documentation content needs reconciliation. Repository maturity remains INCOMPLETE; implementation, verification, integration and owner acceptance are tracked separately.
 
 # Requirements Traceability Matrix
 
