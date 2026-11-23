@@ -7,7 +7,7 @@
 - **WP-09G-E implementation slice:** integrated by PR #277; it provides a host-injected `authenticate_and_authorize` port, short-lived operator authentication and process-liveness checks, identity-bound `ABSENT` evidence, durable `LEASE_FORCE_RELEASED` journal event and chain-hash audit reference.
 - **WP-09G-E acceptance remains OPEN:** production host identity-provider and trusted authorization wiring, operator-facing API integration and owner acceptance are not established by the in-process port alone.
 - **Security boundary remains PARTIAL:** process supervision/Job Objects are not a general sandbox; privilege, filesystem/network isolation and OS CPU/RAM/I/O enforcement are not established.
-- **CI:** PR #286 post-merge workflows are still pending at this audit snapshot; this does not alter WP-09G acceptance.
+- **CI:** PR #286 post-merge workflows on exact Main SHA `84cc7fa...` are PASS for Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4). The first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN; this does not alter WP-09G acceptance.
 
 ## Historical implementation reconciliation — 2026-11-22 (superseded)
 
