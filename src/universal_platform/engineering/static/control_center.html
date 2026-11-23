@@ -20,7 +20,7 @@
       <div class="nav-section-label">PLATFORM</div>
       <nav class="navigation" aria-label="Platform">
         <a class="nav-link active" href="#overview" aria-current="page"><span aria-hidden="true">⌂</span> Overview</a>
-        <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">▦</span> Workspaces <span class="nav-state">Planned</span></button>
+        <a class="nav-link" href="#workspaces-section"><span aria-hidden="true">▦</span> Workspaces <span class="nav-state">Local</span></a>
         <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">◇</span> Modules & tools <span class="nav-state">Planned</span></button>
         <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">ƒ</span> Functions <span class="nav-state">Planned</span></button>
         <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">◷</span> Jobs & activity <span class="nav-state">Planned</span></button>
@@ -83,6 +83,41 @@
           </div>
         </section>
 
+        <section class="section-block" id="workspaces-section" aria-labelledby="workspaces-heading">
+          <div class="section-heading">
+            <div><p class="eyebrow">LOCAL PROJECT DATA</p><h2 id="workspaces-heading">Workspaces</h2></div>
+            <span id="workspace-state" class="status-pill unknown" role="status" aria-live="polite">UNKNOWN · Not loaded</span>
+          </div>
+          <div class="workspace-card">
+            <p id="workspace-detail" class="service-detail" role="status" aria-live="polite">Check the authenticated service above to load locally stored workspaces.</p>
+            <div class="workspace-create">
+              <h3>Create workspace</h3>
+              <label for="workspace-name">Name</label>
+              <input id="workspace-name" maxlength="120" autocomplete="off" placeholder="e.g. CAD prototype">
+              <label for="workspace-description">Description</label>
+              <input id="workspace-description" maxlength="2000" autocomplete="off" placeholder="Optional description">
+              <label for="workspace-metadata">Metadata (JSON object)</label>
+              <textarea id="workspace-metadata" rows="3" spellcheck="false">{}</textarea>
+              <button id="workspace-create" class="primary-button" type="button">Create workspace</button>
+            </div>
+            <div class="workspace-list-panel">
+              <h3>Saved workspaces</h3>
+              <ul id="workspace-list" class="workspace-list" aria-label="Saved workspaces"></ul>
+            </div>
+            <div id="workspace-editor" class="workspace-editor" hidden>
+              <h3>Edit selected workspace</h3>
+              <p id="workspace-edit-state" class="service-detail" role="status" aria-live="polite"></p>
+              <label for="workspace-edit-name">Name</label>
+              <input id="workspace-edit-name" maxlength="120" autocomplete="off">
+              <label for="workspace-edit-description">Description</label>
+              <input id="workspace-edit-description" maxlength="2000" autocomplete="off">
+              <label for="workspace-edit-metadata">Metadata (JSON object)</label>
+              <textarea id="workspace-edit-metadata" rows="3" spellcheck="false"></textarea>
+              <button id="workspace-save" class="primary-button" type="button">Save changes</button>
+            </div>
+          </div>
+        </section>
+
         <section class="section-block" aria-labelledby="workbench-heading">
           <div class="section-heading"><div><p class="eyebrow">AVAILABLE WORKBENCH</p><h2 id="workbench-heading">Engineering</h2></div><span class="section-caption">1 existing browser workbench</span></div>
           <a class="workbench-card" href="/" target="_blank" rel="noopener noreferrer">
@@ -95,7 +130,6 @@
         <section class="section-block" aria-labelledby="planned-heading">
           <div class="section-heading"><div><p class="eyebrow">ROADMAP</p><h2 id="planned-heading">Platform areas in development</h2></div><span class="section-caption">Not executable yet</span></div>
           <div class="planned-grid">
-            <article class="planned-card"><span class="planned-symbol" aria-hidden="true">▦</span><h3>Workspaces</h3><p>Unified project and workspace context.</p><span class="planned-tag">PLANNED</span></article>
             <article class="planned-card"><span class="planned-symbol" aria-hidden="true">◇</span><h3>Modules & tools</h3><p>Source-backed catalogue and permission context.</p><span class="planned-tag">PLANNED</span></article>
             <article class="planned-card"><span class="planned-symbol" aria-hidden="true">◷</span><h3>Jobs & diagnostics</h3><p>Runtime status, logs and evidence views.</p><span class="planned-tag">PLANNED</span></article>
           </div>
