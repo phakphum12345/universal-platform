@@ -30,13 +30,13 @@ from .feature_history_store import (
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
 )
+from .module_registry import ModuleRegistry
 from .workspace_store import (
     SQLiteWorkspaceStore,
     WorkspaceNotFoundError,
     WorkspaceRevisionConflict,
     WorkspaceStoreIntegrityError,
 )
-from .module_registry import ModuleRegistry
 
 _HISTORY_ID = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 _MAX_BODY_DEFAULT = 1_048_576
