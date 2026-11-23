@@ -293,7 +293,11 @@
   workspaceMoreButton.addEventListener("click", async () => {
     if (!workspaceHasMore || workspaceMoreButton.disabled) return;
     workspaceMoreButton.disabled = true;
-    await loadWorkspaces(activeToken, { append: true });
+    try {
+      await loadWorkspaces(activeToken, { append: true });
+    } finally {
+      workspaceMoreButton.disabled = false;
+    }
   });
 
   workspaceReloadButton.addEventListener("click", async () => {
