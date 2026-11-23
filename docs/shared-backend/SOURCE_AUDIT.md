@@ -97,7 +97,7 @@ Do not bind this service to `0.0.0.0`, a LAN address, a Tailscale address, or a 
 ### Other HTTP integrations
 
 - `GoogleApiClient` is a transport wrapper for external Google APIs, not a Calendar or Engineering backend client.
-- `ResearchOsCalendarBridgeContract` is a contract-only helper with no network I/O or server implementation. It declares loopback host `127.0.0.1` and a default port of `8765`. Treat that as a legacy contract detail, not as the shared backend port or a fixed-port requirement. Any future bridge must use explicit runtime discovery and a separately approved security boundary.
+- `ResearchOsCalendarBridgeContract` is a contract-only helper with no network I/O or server implementation. Calendar PR #177 removed its default port and now requires a caller-supplied runtime-discovered port, validates the TCP port range, and constrains sync IDs to safe path segments. The actual bridge server and port-discovery mechanism are still not implemented; do not assume a fixed port or public listener.
 
 ## 4. Confirmed architecture boundaries
 
