@@ -93,7 +93,7 @@ def test_workspace_rejects_non_json_metadata_and_non_finite_values(tmp_path):
         store.create("Invalid", metadata=["not", "an", "object"])
     with pytest.raises(ValueError, match="valid JSON"):
         store.create("Invalid", metadata={"not_finite": float("nan")})
-    with pytest.raises(ValueError, match="keys must be strings"):
+    with pytest.raises(TypeError, match="keys must be strings"):
         store.create("Invalid", metadata={1: "coerced"})
     with pytest.raises(ValueError, match="keys must be strings"):
         store.update(
