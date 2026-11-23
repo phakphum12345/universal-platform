@@ -159,7 +159,12 @@
       setWorkspaceState("unknown", "UNKNOWN · Authentication required", "Enter the local bearer token and check the service before loading workspaces.");
       return;
     }
-    if (!append) workspaceOffset = 0;
+    if (!append) {
+      workspaceOffset = 0;
+      workspaceHasMore = false;
+      workspaceMoreButton.hidden = true;
+      workspaceMoreButton.disabled = true;
+    }
     setWorkspaceState("unknown", "PENDING · Loading", "Reading workspace metadata from the local SQLite store.");
     try {
       const requestedOffset = append ? workspaceOffset : 0;
