@@ -1,6 +1,15 @@
 # WP-09G — Durable Worker Lease and Crash-Recovery Contract
 
-## Live implementation reconciliation — 2026-11-22
+## Live implementation reconciliation — 2026-11-23
+
+- **Current Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge).
+- **WP-09G-A through D:** integrated on `main` through the durable runtime chain and PR #272; implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.
+- **WP-09G-E implementation slice:** integrated by PR #277; it provides a host-injected `authenticate_and_authorize` port, short-lived operator authentication and process-liveness checks, identity-bound `ABSENT` evidence, durable `LEASE_FORCE_RELEASED` journal event and chain-hash audit reference.
+- **WP-09G-E acceptance remains OPEN:** production host identity-provider and trusted authorization wiring, operator-facing API integration and owner acceptance are not established by the in-process port alone.
+- **Security boundary remains PARTIAL:** process supervision/Job Objects are not a general sandbox; privilege, filesystem/network isolation and OS CPU/RAM/I/O enforcement are not established.
+- **CI:** PR #286 post-merge workflows on exact Main SHA `84cc7fa...` are PASS for Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4). The first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN; this does not alter WP-09G acceptance.
+
+## Historical implementation reconciliation — 2026-11-22 (superseded)
 
 - **Main baseline:** `2c8a1542f8d051a42348feeb7dd0ce55fc6b4607` (PR #278 merge; includes PR #279).
 - **WP-09G-A through D:** integrated on `main` through the durable runtime chain and PR #272 (merge commit `bb5d016a48bf8329136629dd0d7835e56fa0ece0`). The implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.

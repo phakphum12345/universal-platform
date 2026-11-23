@@ -1,10 +1,18 @@
-> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is merged. Post-merge CI on exact Main SHA PASS across Repository Quality, Engineering Core, CAD Generator Browser E2E (rerun) and Cross-Shell; initial Browser E2E failure remains cause UNKNOWN. PRs #280 and #287 are open; #287 checks are pending on its latest head, while #280 documentation content must be reconciled. Live inventory: 307 branches, 287 PRs; no branch was deleted. Overall status remains **INCOMPLETE**.
 
 # Universal Platform — Roadmap
 
 Status: Proposed sequence. No phase is declared complete.
 
-## Continuous execution control — 2026-11-22
+## Continuous execution control — 2026-11-23
+
+- `main`: `84cc7fa88161818f240619393dd1482e170fec2e`, PR #286 WP-15E merged.
+- PR #286 exact-head CI passed Repository Quality, Engineering Core, CAD Generator Browser E2E and all four Cross-Shell jobs. Post-merge workflows are not yet complete.
+- PR #280 is still open at head `1e28fd5...`; its branch is based on current Main (31 ahead / 0 behind), but the documentation content still reflects an older status snapshot and overlaps PR #287. Reconcile content before merge.
+- 306 branches were inventoried. 18 closed-unmerged PRs and 20 branches without a PR were checked for later source/documentation counterparts; preserve branch history and do not delete them as cleanup.
+- Next execution priorities: complete post-merge CI; reconcile PR #280 and current documentation; continue WP-15F settings, WP-15G diagnostics/audit, WP-15H workbench integration, WP-15I accessibility/usability and WP-15J release hardening; complete WP-09G security/identity acceptance; then continue domain-level CAD, Mechanics, Physics, Hardware/EDA and interoperability gaps.
+
+## Historical execution snapshot — 2026-11-22 (superseded)
 
 The [Master Completion Matrix](MASTER_COMPLETION_MATRIX.md) and [Post-PR #274 Audit](docs/audit/REPOSITORY_AUDIT_2026-11-22_POST_PR274.md) are the current execution records.
 

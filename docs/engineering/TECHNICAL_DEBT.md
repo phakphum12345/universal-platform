@@ -1,9 +1,17 @@
 # Technical Debt Register — 2026-11-20
 
 **Repository:** `phakphum12345/universal-platform`  
-**Baseline:** Development branch `docs/phase-0-complete-requirements` at `2eff621e4ff24e98250bc085b2c652cd366a5e2e`  
+**Current main baseline:** `main` at `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). Historical Development-branch findings below must be reconciled before reuse.  
 **Related live audit:** [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md)  
 **Status:** OPEN — this register records verified gaps and evidence debt; it is not a claim that all possible debt has been discovered.
+
+## Live reconciliation — 2026-11-23
+
+- WP-15E authenticated read-only module/function catalogue is integrated by PR #286. Its tools endpoint truthfully returns UNKNOWN because a separate governed tool registry does not exist.
+- PR #286 exact-head CI passed Repository Quality, Engineering Core, CAD Generator Browser E2E and all four Cross-Shell jobs. Post-merge CI on exact Main SHA `84cc7fa...` is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
+- PR #280 remains open at head `1e28fd5...`; its branch is based on current Main (31 ahead / 0 behind), but its documentation content still reflects an older snapshot and overlaps PR #287, so reconcile content before merge.
+- Main branch protection was last observed disabled; required checks are not enforced by GitHub. Verify the live settings before closing GOV-001.
+- Current major debt remains: platform-wide Control Center WP-15F–J, WP-09G identity/security acceptance and OS isolation, cross-domain orchestration, general CAD/Mechanics/Physics/Hardware capability gaps, and full release acceptance.
 
 ## Severity and state
 

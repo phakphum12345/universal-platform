@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-22 (baseline `87c19a9752e43ea051dac0aa302fb85323d130ce`):** PRs #271–#277 are merged; there were 0 open PRs at this baseline. PR #276 post-merge CI passed 4/4; PR #277 post-merge Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor all PASS on its exact merge SHA. Tracked generated Python bytecode is now 0 files. Main branch protection remains disabled. WP-09G-E recovery code is integrated as a candidate, but a real host identity-provider adapter and Control Center/API integration are not yet configured; WP-09G-E is not accepted. WP-15C shell is merged; WP-15B owner acceptance and WP-15D–J remain open. Chromium E2E's same-SHA retry passed 13/13 after an initial 1/9 failure; the first failure's cause remains UNKNOWN. Overall repository status: **INCOMPLETE**.
+> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows PASS on exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, cause UNKNOWN. PRs #280 and #287 remain open; #287 CI is running on its latest head, and #280 documentation content requires reconciliation. Overall status: **INCOMPLETE**; WP-15F–J, WP-09G security acceptance, cross-domain integration and domain capability gaps remain.
 
 # Universal Platform
 
@@ -16,7 +16,7 @@ up-cad-generator
 ```
 
 
-## Current status — 2026-11-22
+## Historical status — 2026-11-22 (superseded)
 
 - Overall lifecycle: **INCOMPLETE**; this is not a release-accepted universal platform.
 - Baseline `main` HEAD: `87c19a9752e43ea051dac0aa302fb85323d130ce` (PR #277 merge).

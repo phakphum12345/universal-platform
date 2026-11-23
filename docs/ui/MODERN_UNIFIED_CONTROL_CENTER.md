@@ -1,13 +1,13 @@
 # WP-15 — Modern Unified Control Center UI
 
-**Status:** PARTIAL — WP-15C shell, WP-15D workspace foundations are integrated; the first WP-15E module/function catalogue slice is proposed in the current change set; unified settings, jobs/diagnostics, workbench integration and owner acceptance remain open. WP-15A inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); WP-15B IA and journeys remain drafts pending owner review/acceptance.  
+**Status:** PARTIAL — WP-15C shell, WP-15D workspace foundations and the first WP-15E authenticated read-only module/function catalogue slice are integrated by PR #286; unified settings, jobs/diagnostics, workbench integration and owner acceptance remain open. WP-15A inventory is drafted in [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md); WP-15B IA and journeys remain drafts pending owner review/acceptance.  
 **Repository:** `phakphum12345/universal-platform`  
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
 
 ## Current implementation boundary — 2026-11-23
 
-The /control-center shell remains hosted by the authenticated IPv4-loopback CAD API and preserves the canonical CAD workbench at /. Workspaces use the configured durable SQLite store. This change set proposes authenticated read-only module and function catalogue endpoints and Control Center rendering for registered metadata; it is not merged to main yet. The local launcher registers the validated built-in physics module manifest. Catalogue entries are metadata only: they do not load code, grant permissions, invoke operations or establish runtime readiness. The tools endpoint explicitly reports UNKNOWN because no separately governed tool registry is configured. Jobs, diagnostics, audit browsing, unified settings and cross-domain workbench integration remain open. WP-15B remains a draft pending owner review. Exact-head CI and owner browser acceptance are required.
+The /control-center shell remains hosted by the authenticated IPv4-loopback CAD API and preserves the canonical CAD workbench at /. Workspaces use the configured durable SQLite store. PR #286 integrates authenticated read-only module and function catalogue endpoints and Control Center rendering for registered metadata. The local launcher registers the validated built-in physics module manifest. Catalogue entries are metadata only: they do not load code, grant permissions, invoke operations or establish runtime readiness. The tools endpoint explicitly reports UNKNOWN because no separately governed tool registry is configured. Jobs, diagnostics, audit browsing, unified settings and cross-domain workbench integration remain open. WP-15B remains a draft pending owner review. PR #286 exact-head CI passed; post-merge CI and owner browser acceptance remain separate gates.
 
 ## 1. Outcome
 
@@ -108,7 +108,7 @@ For every setting define owner/scope, type, default, validation, allowed values/
 2. **WP-15B — IA and interaction specification:** proposed in [WP-15B_NAVIGATION_USER_JOURNEYS.md](WP-15B_NAVIGATION_USER_JOURNEYS.md); this remains a draft until the owner accepts navigation, personas, entrypoint, responsive behavior, accessibility target and representative user journeys before WP-15C.
 3. **WP-15C — Design system and application shell:** tokens, accessible primitives, responsive shell, navigation, command palette and global status.
 4. **WP-15D — Overview and workspace:** health, recent activity, projects/tasks and evidence links.
-5. **WP-15E — Functions/tools/modules catalogue:** first metadata-only slice is proposed for the validated built-in physics module and its declared operation, pending exact-head CI and merge; separate tool registry, richer discovery, lifecycle/authorization views and owner acceptance remain open.
+5. **WP-15E — Functions/tools/modules catalogue:** first authenticated read-only metadata slice for the validated built-in physics module and its declared operation is integrated by PR #286; separate tool registry, richer discovery, lifecycle/authorization views and owner acceptance remain open.
 6. **WP-15F — Unified settings:** next work package; typed schemas, effective values, validation, secure secret handling, audit and migration/rollback.
 7. **WP-15G — Diagnostics and activity:** jobs, logs, status provenance, approvals and audit.
 8. **WP-15H — Workbench integration:** connect existing CAD/Mechanics/Physics/Hardware workbenches using shared shell and consistent contracts; preserve specialist functionality.

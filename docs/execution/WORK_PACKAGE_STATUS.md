@@ -1,8 +1,24 @@
-> **LIVE STATUS — 2026-11-22:** `main` is `9dbc354596896614bfe63066afdfbdebd9071151` (PR #274 merge). PRs #271–#274 are merged; open PRs: 0. Exact post-merge checks on this SHA: Repository Quality PASS, Workflow Sanity PASS, Python Tests PASS, Windows Process Supervisor PASS. Chromium E2E initially failed 1/9 on FeatureHistory branch/fork/merge; retry on the same SHA passed CAD Generator 9/9 and Control Center 4/4. No code changed between attempts; the first failure remains an intermittent/unexplained CI event, not a proven product defect or proven harmless flake. Main branch protection is disabled (`protected: false`; required status checks not enforced). Tracked generated Python artifacts remain (223 `__pycache__` / `.pyc` tree entries) and require a dedicated hygiene PR. WP-09G-E remains open. WP-15C shell foundation is merged; platform-wide Control Center integration remains incomplete. Overall repository status: **INCOMPLETE**. Historical snapshots are retained; SKIPPED and UNKNOWN are never PASS.
+> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes PR #286 WP-15E catalogue. Post-merge Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4) are PASS; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PRs #280 and #287 are open; #287 checks are running on its latest head. Live branch audit covered 307 branches; no branch was deleted. Overall status: **INCOMPLETE**.
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-22
+## Live work-package reconciliation — 2026-11-23
+
+**Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 post-merge CI is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
+
+| WP | Domain | Current status | Next acceptance work |
+|---|---|---|---|
+| 01 | Core architecture | PARTIAL | Branch protection, identity/authorization, threat model, secure config, audit and orchestration |
+| 02–03 | CAD / 3D Generator | PARTIAL | General topology/degeneracies, recompute propagation, curved geometry and neutral-format fidelity |
+| 04 | Mechanics | PARTIAL | General multi-loop/3D solving, singularity/redundancy and dynamics |
+| 05 | Physics | PARTIAL | Broader validated solvers, convergence, uncertainty and multiphysics coupling |
+| 06–08 | Hardware / EDA / Drivers | PARTIAL | Datasheet-backed limits, full PCB/library workflows, circuit simulation, diagnostics and safe driver lifecycle |
+| 09 | Module Runtime | PARTIAL | WP-09G host identity/authorization acceptance, durable audit/recovery and OS isolation/resource enforcement |
+| 10–12 | System understanding / API / Platform integration | PARTIAL / INCOMPLETE | Governed discovery, unified API/CLI, cross-domain workflows and end-to-end acceptance |
+| 13–14 | Security / Final verification | PARTIAL / INCOMPLETE | Enforced branch rules, security review, supported-platform matrix and release gates |
+| 15 | Unified Control Center | PARTIAL | WP-15A inventory, WP-15B draft, WP-15C shell, WP-15D workspace/status and WP-15E catalogue integrated; WP-15F–J remain open |
+
+## Historical work-package reconciliation — 2026-11-22 (superseded)
 
 **Main baseline:** `9dbc354596896614bfe63066afdfbdebd9071151`. PRs #271–#274 merged; open PRs: 0. Exact post-merge checks: Repository Quality, Workflow Sanity, Python Tests and Windows Process Supervisor PASS. Chromium E2E retry on this SHA: CAD Generator 9/9 and Control Center 4/4 PASS after initial 1/9 failure; initial cause UNKNOWN. Main branch protection is disabled. 223 tracked generated Python cache entries require cleanup.
 
