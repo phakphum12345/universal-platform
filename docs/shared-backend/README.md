@@ -17,6 +17,7 @@ A shared integration architecture for:
 7. Treat all unverified implementation claims as UNKNOWN.
 
 ## Documents
+- [Verified source audit](SOURCE_AUDIT.md)
 - [Architecture](ARCHITECTURE.md)
 - [Requirements](REQUIREMENTS.md)
 - [API contract](API_CONTRACT.md)
