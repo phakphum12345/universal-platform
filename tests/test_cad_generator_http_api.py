@@ -1,9 +1,9 @@
 import json
-from uuid import UUID
 from pathlib import Path
 from threading import Thread
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+from uuid import UUID
 
 import pytest
 
