@@ -103,6 +103,7 @@
             <div class="workspace-list-panel">
               <h3>Saved workspaces</h3>
               <ul id="workspace-list" class="workspace-list" aria-label="Saved workspaces"></ul>
+              <button id="workspace-load-more" class="secondary-button" type="button" hidden>Load older workspaces</button>
             </div>
             <div id="workspace-editor" class="workspace-editor" hidden>
               <h3>Edit selected workspace</h3>
@@ -113,7 +114,10 @@
               <input id="workspace-edit-description" maxlength="2000" autocomplete="off">
               <label for="workspace-edit-metadata">Metadata (JSON object)</label>
               <textarea id="workspace-edit-metadata" rows="3" spellcheck="false"></textarea>
-              <button id="workspace-save" class="primary-button" type="button">Save changes</button>
+              <div class="button-row">
+                <button id="workspace-save" class="primary-button" type="button">Save changes</button>
+                <button id="workspace-reload" class="secondary-button" type="button" hidden>Reload latest</button>
+              </div>
             </div>
           </div>
         </section>
