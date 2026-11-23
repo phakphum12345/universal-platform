@@ -6,7 +6,7 @@
 
 - Universal Platform source-audit baseline: `main` SHA `2065b8a921dd5cdabbec007edf2af48f95d10761`.
 - Calendar source-audit baseline: `main` SHA `dcb51b6ad7db3540eea7152949556465ea67256c`.
-- Calendar current `main` after PR #176: `65321c02374b59fc588d8917c3b3c4ddc8d51b0f`.
+- Calendar current `main` after PR #177: `8be364f2a37dbfcd4e15bc7ea016cf4c67db4751` (includes PR #176).
 
 ## Source audit completed so far
 
