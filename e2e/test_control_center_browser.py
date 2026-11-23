@@ -22,6 +22,9 @@ from universal_platform.engineering import (
     SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
+from universal_platform.engineering.physics_module_adapter import (
+    create_builtin_physics_module_bridge,
+)
 
 TOKEN = "control-center-browser-token-" + ("x" * 40)
 
@@ -34,12 +37,14 @@ def control_center(tmp_path):
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "api-audit.sqlite3")
     workspace_store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    physics_bridge = create_builtin_physics_module_bridge()
     server = create_cad_generator_http_server(
         service,
         audit_log=audit,
         bearer_token=TOKEN,
         max_request_bytes=32_768,
         workspace_store=workspace_store,
+        module_registry=physics_bridge.registry,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -83,6 +88,28 @@ def test_control_center_renders_accessible_shell_and_preserves_cad_workbench(con
     assert popup.url == base + "/"
     assert "CAD Generator" in popup.title()
     popup.close()
+
+
+def test_control_center_lists_registered_modules_and_functions_without_execution_controls(
+    control_center,
+):
+    page, _context, _base, _audit, page_errors, _store = control_center
+    page.locator("#service-token").fill(TOKEN)
+    page.locator("#check-service").click()
+    page.get_by_text("REGISTERED · 1 module · 1 function", exact=True).wait_for()
+    module = page.locator("#module-list [data-module-id='org.universal.physics']")
+    assert module.is_visible()
+    assert "VALIDATED" in module.inner_text()
+    assert "NOT ENABLED BY CATALOGUE" in module.inner_text()
+    function = page.locator(
+        "#function-list [data-function-id='org.universal.physics:physics.solve']"
+    )
+    assert function.is_visible()
+    assert "engineering.physics.solve" in function.inner_text()
+    assert "No execution action is available" in function.inner_text()
+    assert "No separately governed tool registry" in page.locator("#tool-list").inner_text()
+    assert page.locator("#module-list button, #function-list button").count() == 0
+    assert page_errors == []
 
 
 def test_mobile_navigation_and_keyboard_skip_link(control_center):

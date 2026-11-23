@@ -30,6 +30,7 @@ from .feature_history_store import (
     FeatureHistoryRevisionConflict,
     FeatureHistoryStoreIntegrityError,
 )
+from .module_registry import ModuleRegistry
 from .workspace_store import (
     SQLiteWorkspaceStore,
     WorkspaceNotFoundError,
@@ -302,6 +303,106 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             raise _HTTPError(400, "UNEXPECTED_QUERY", "Query parameters are only accepted on GET")
         if self.command == "GET" and path == "/health":
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
+
+        catalogue_collection_paths = {"/v1/modules", "/v1/functions", "/v1/tools"}
+        if (path in catalogue_collection_paths or path.startswith("/v1/modules/")) and self.command != "GET":
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "The capability catalogue is read-only")
+        if self.command == "GET" and path in catalogue_collection_paths and parsed.query:
+            raise _HTTPError(400, "UNEXPECTED_QUERY", "Capability catalogue routes do not accept query parameters")
+
+        if self.command == "GET" and path == "/v1/modules":
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            modules = [
+                {
+                    **manifest.to_dict(),
+                    "registration_status": "REGISTERED",
+                    "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                }
+                for manifest in registry.list_modules()
+            ]
+            try:
+                dependency_order = list(registry.dependency_order())
+                dependency_status = "PASS"
+                dependency_reason = None
+            except InvalidModelError:
+                dependency_order = None
+                dependency_status = "FAIL"
+                dependency_reason = "The registered module dependency graph is invalid."
+            return 200, {
+                "schema_version": registry.SCHEMA_VERSION,
+                "modules": modules,
+                "count": len(modules),
+                "dependency_order": dependency_order,
+                "dependency_status": dependency_status,
+                "dependency_reason": dependency_reason,
+                "limitations": [
+                    "The catalogue exposes validated metadata only; it does not load or invoke module code.",
+                    "Registration does not grant permissions or establish runtime readiness.",
+                    "Execution requires a separately configured and host-authorized runtime.",
+                ],
+            }
+
+        if self.command == "GET" and path.startswith("/v1/modules/"):
+            if parsed.query:
+                raise _HTTPError(400, "UNEXPECTED_QUERY", "Module detail routes do not accept query parameters")
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            module_id = path[len("/v1/modules/"):]
+            if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", module_id):
+                raise _HTTPError(400, "INVALID_MODULE_ID", "module_id must be a stable lowercase identifier")
+            try:
+                manifest = registry.get(module_id)
+            except InvalidModelError as exc:
+                raise _HTTPError(404, "MODULE_NOT_FOUND", "The requested module is not registered") from exc
+            return 200, {
+                "module": manifest.to_dict(),
+                "registration_status": "REGISTERED",
+                "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                "limitations": [
+                    "This endpoint returns module metadata only.",
+                    "No permission grant, code loading or operation invocation is performed.",
+                ],
+            }
+
+        if self.command == "GET" and path == "/v1/functions":
+            registry = self.server.module_registry
+            if registry is None:
+                raise _HTTPError(503, "MODULE_REGISTRY_UNAVAILABLE", "No module registry is configured on this host")
+            functions = []
+            for manifest in registry.list_modules():
+                for operation in sorted(manifest.operations, key=lambda item: item.operation_id):
+                    functions.append({
+                        "function_id": f"{manifest.module_id}:{operation.operation_id}",
+                        "module_id": manifest.module_id,
+                        "module_version": manifest.version,
+                        "domain": manifest.domain,
+                        "maturity": manifest.maturity,
+                        "operation": operation.to_dict(),
+                        "registration_status": "REGISTERED",
+                        "execution_status": "NOT_ENABLED_BY_CATALOGUE",
+                    })
+            return 200, {
+                "schema_version": registry.SCHEMA_VERSION,
+                "functions": functions,
+                "count": len(functions),
+                "limitations": [
+                    "Functions are declared module operations, not remotely invokable endpoints.",
+                    "No UI action can grant permissions or bypass the host runtime.",
+                ],
+            }
+
+        if self.command == "GET" and path == "/v1/tools":
+            return 200, {
+                "schema_version": "1.0",
+                "status": "UNKNOWN",
+                "tools": [],
+                "count": 0,
+                "reason": "No separately governed tool registry is configured on this host.",
+                "limitations": ["No tools are advertised as executable."],
+            }
 
         if self.command == "GET" and path == "/v1/platform/status":
             workspace_component = {
@@ -825,10 +926,12 @@ class CADGeneratorHTTPServer(HTTPServer):
         audit_log: SQLiteCADAPIAuditLog, bearer_token: str, max_request_bytes: int,
         request_timeout_seconds: float,
         workspace_store: SQLiteWorkspaceStore | None = None,
+        module_registry: ModuleRegistry | None = None,
     ):
         self.generator_service = generator_service
         self.audit_log = audit_log
         self.workspace_store = workspace_store
+        self.module_registry = module_registry
         self.bearer_token = bearer_token
         self.max_request_bytes = max_request_bytes
         self.request_timeout_seconds = request_timeout_seconds
@@ -854,6 +957,7 @@ def create_cad_generator_http_server(
     max_request_bytes: int = _MAX_BODY_DEFAULT,
     request_timeout_seconds: float = 5.0,
     workspace_store: SQLiteWorkspaceStore | None = None,
+    module_registry: ModuleRegistry | None = None,
 ) -> CADGeneratorHTTPServer:
     """Create (but do not start) a loopback-only server; port 0 selects dynamically."""
     if not isinstance(generator_service, CADGeneratorService):
@@ -862,6 +966,8 @@ def create_cad_generator_http_server(
         raise TypeError("audit_log must be a SQLiteCADAPIAuditLog")
     if workspace_store is not None and not isinstance(workspace_store, SQLiteWorkspaceStore):
         raise TypeError("workspace_store must be a SQLiteWorkspaceStore or None")
+    if module_registry is not None and not isinstance(module_registry, ModuleRegistry):
+        raise TypeError("module_registry must be a ModuleRegistry or None")
     if not isinstance(bearer_token, str) or len(bearer_token.encode("utf-8")) < 32:
         raise ValueError("bearer_token must contain at least 32 UTF-8 bytes")
     if host != "127.0.0.1":
@@ -875,6 +981,7 @@ def create_cad_generator_http_server(
     return CADGeneratorHTTPServer(
         (host, port), generator_service, audit_log, bearer_token,
         max_request_bytes, float(request_timeout_seconds), workspace_store,
+        module_registry,
     )
 
 

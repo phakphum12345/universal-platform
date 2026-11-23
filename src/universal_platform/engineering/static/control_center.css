@@ -167,3 +167,17 @@ input { width: 100%; min-height: 39px; padding: 9px 11px; border: 1px solid var(
 .workspace-editor { grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--line); }
 .workspace-editor[hidden] { display: none; }
 @media (max-width: 680px) { .workspace-card { grid-template-columns: 1fr; } }
+
+
+.catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.catalog-panel { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.catalog-panel h3 { margin: 0 0 7px; font-size: 12px; }
+.catalog-note { margin: 0 0 10px; color: var(--muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.catalog-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.catalog-item { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-raised); overflow-wrap: anywhere; }
+.catalog-item > strong { display: block; font-size: 11px; }
+.catalog-item > p { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.catalog-item > .catalog-status { color: var(--warning); font-weight: 700; }
+.catalog-item > .catalog-note { margin-top: 6px; }
+.catalog-empty { padding: 12px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+@media (max-width: 680px) { .catalog-grid { grid-template-columns: 1fr; } }

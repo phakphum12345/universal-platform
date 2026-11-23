@@ -28,6 +28,11 @@ from universal_platform.engineering.parametric_sketch import (
 from universal_platform.engineering.parametric_sketch import (
     SketchConstraintKind as Kind,
 )
+from universal_platform.engineering.physics_module_adapter import (
+    MODULE_ID,
+    SOLVE_OPERATION,
+    create_builtin_physics_module_bridge,
+)
 
 TOKEN = "local-test-token-" + ("x" * 40)
 
@@ -67,9 +72,11 @@ def api(tmp_path):
         SQLiteFeatureArtifactCache(tmp_path / "artifacts.sqlite3"),
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "api-audit.sqlite3")
+    physics_bridge = create_builtin_physics_module_bridge()
     server = create_cad_generator_http_server(
         service, audit_log=audit, bearer_token=TOKEN,
         max_request_bytes=32_768,
+        module_registry=physics_bridge.registry,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -206,6 +213,58 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     status, health = send(base, "/health", extra_headers={"Origin": base})
     assert status == 200
     assert health["status"] == "READY"
+    assert audit.verify()
+
+
+def test_authenticated_module_function_and_tool_catalogues_are_metadata_only(api):
+    base, audit, _ = api
+
+    status, payload = send(base, "/v1/modules")
+    assert status == 200
+    assert payload["schema_version"] == "1.0"
+    assert payload["count"] == 1
+    assert payload["dependency_status"] == "PASS"
+    module = payload["modules"][0]
+    assert module["module_id"] == MODULE_ID
+    assert module["registration_status"] == "REGISTERED"
+    assert module["execution_status"] == "NOT_ENABLED_BY_CATALOGUE"
+    assert module["operations"][0]["operation_id"] == SOLVE_OPERATION
+    assert any("does not load or invoke" in item for item in payload["limitations"])
+
+    status, detail = send(base, "/v1/modules/" + MODULE_ID)
+    assert status == 200
+    assert detail["module"]["module_id"] == MODULE_ID
+    assert detail["registration_status"] == "REGISTERED"
+    assert detail["execution_status"] == "NOT_ENABLED_BY_CATALOGUE"
+
+    status, functions = send(base, "/v1/functions")
+    assert status == 200
+    assert functions["count"] == 1
+    assert functions["functions"][0]["function_id"] == MODULE_ID + ":" + SOLVE_OPERATION
+    assert functions["functions"][0]["operation"]["required_permissions"] == [
+        "engineering.physics.solve"
+    ]
+    assert functions["functions"][0]["execution_status"] == "NOT_ENABLED_BY_CATALOGUE"
+
+    status, tools = send(base, "/v1/tools")
+    assert status == 200
+    assert tools["status"] == "UNKNOWN"
+    assert tools["tools"] == []
+    assert "No separately governed tool registry" in tools["reason"]
+
+    status, missing = send(base, "/v1/modules/org.unknown.module")
+    assert status == 404
+    assert missing["error"]["code"] == "MODULE_NOT_FOUND"
+
+    status, unauthorized = send(base, "/v1/modules", token=None)
+    assert status == 401
+    assert unauthorized["error"]["code"] == "UNAUTHORIZED"
+    status, read_only = send(base, "/v1/modules", method="POST", body={})
+    assert status == 405
+    assert read_only["error"]["code"] == "METHOD_NOT_ALLOWED"
+    status, bad_query = send(base, "/v1/modules?unexpected=true")
+    assert status == 400
+    assert bad_query["error"]["code"] == "UNEXPECTED_QUERY"
     assert audit.verify()
 
 
@@ -1009,11 +1068,13 @@ def workspace_api(tmp_path):
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "workspace-api-audit.sqlite3")
     store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
+    physics_bridge = create_builtin_physics_module_bridge()
     server = create_cad_generator_http_server(
         service,
         audit_log=audit,
         bearer_token=TOKEN,
         workspace_store=store,
+        module_registry=physics_bridge.registry,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()

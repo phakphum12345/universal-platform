@@ -21,6 +21,7 @@ from .cad_generator_http_api import (
 from .cad_generator_service import CADGeneratorService
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history_store import SQLiteFeatureHistoryStore
+from .physics_module_adapter import create_builtin_physics_module_bridge
 from .workspace_store import SQLiteWorkspaceStore
 
 
@@ -91,6 +92,7 @@ def create_local_server(
     audit_log = SQLiteCADAPIAuditLog(data_path / "cad-api-audit.sqlite3")
     workspace_store = SQLiteWorkspaceStore(data_path / "workspaces.sqlite3")
     service = CADGeneratorService(history_store, artifact_cache)
+    physics_bridge = create_builtin_physics_module_bridge()
     server = create_cad_generator_http_server(
         service,
         audit_log=audit_log,
@@ -98,6 +100,7 @@ def create_local_server(
         host="127.0.0.1",
         port=selected_port,
         workspace_store=workspace_store,
+        module_registry=physics_bridge.registry,
     )
     return server, token, generated_token, data_path
 
