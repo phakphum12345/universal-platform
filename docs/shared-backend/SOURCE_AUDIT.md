@@ -12,7 +12,7 @@ These are the source snapshots inspected before the implementation changes in th
 | `phakphum12345/universal-platform` | `main` | `2065b8a921dd5cdabbec007edf2af48f95d10761` |
 | `phakphum12345/phakphum-calendar` | `main` | `dcb51b6ad7db3540eea7152949556465ea67256c` |
 
-Calendar PR #176 has since merged to Calendar `main` as `65321c02374b59fc588d8917c3b3c4ddc8d51b0f`. Its resulting implementation is recorded below.
+Calendar PR #176 and PR #177 have since merged to Calendar `main`; the current main SHA is `8be364f2a37dbfcd4e15bc7ea016cf4c67db4751`. Their resulting implementation is recorded below.
 
 ## 1. Laravel Calendar API
 
