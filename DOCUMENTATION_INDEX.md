@@ -1,4 +1,4 @@
-> **CURRENT MAIN STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). WP-15E authenticated read-only module/function catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows are PASS on this exact Main SHA; the first CAD Browser E2E attempt failed 1/9 and its rerun passed, with the initial cause still UNKNOWN. PRs #280 and #287 are OPEN; PR #287 checks are running on its current head, while PR #280's documentation content still needs reconciliation although its branch is based on current Main. Main branch protection is disabled (`protected: false`). Repository-wide status remains **INCOMPLETE**.
+> **CURRENT MAIN STATUS — 2026-11-24:** `main` is `2065b8a921dd5cdabbec007edf2af48f95d10761` (PR #290 merge). PRs #288–#290 are merged: shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. PR #291 is open for source-audit and integration-document reconciliation; its latest exact-head CI is pending. Repository-wide status remains **INCOMPLETE**.
 
 
 # Documentation Index
@@ -53,7 +53,18 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md) — module metadata, request/response and authority boundary.
 - [Frame-bound Coordinate Contract](docs/architecture/FRAMED_COORDINATE_CONTRACT.md) — framed points and displacement vectors.
 - [System Intelligence](docs/architecture/SYSTEM_INTELLIGENCE.md) — authorized discovery and adaptation workflow.
-- [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md) — proposed cross-interface task envelope and lifecycle.
+- [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md)
+- [Shared Zero-Cost Hybrid Backend](docs/shared-backend/README.md) — category index for Laravel/Python ownership, Flutter integration, contracts, security, cost policy and operations.
+- [Verified Shared Backend Source Audit](docs/shared-backend/SOURCE_AUDIT.md) — source-backed API routes, authentication, persistence and network boundaries. — proposed cross-interface task envelope and lifecycle.
+
+## Shared backend architecture and integration
+
+- [Shared Backend Documentation Index](docs/shared-backend/README.md) — entry point for the zero-cost hybrid Laravel/Python architecture.
+- [Shared Backend Architecture](docs/shared-backend/ARCHITECTURE.md) — domain ownership, API boundaries, data isolation and local-first deployment.
+- [Shared API Contract](docs/shared-backend/API_CONTRACT.md) — versioning, request correlation, response and error conventions.
+- [Verified Source Audit](docs/shared-backend/SOURCE_AUDIT.md) — inspected Laravel, Python and Flutter implementation boundaries.
+- [Shared Backend Implementation Status](docs/shared-backend/IMPLEMENTATION_STATUS.md) — evidence-only status for implemented and outstanding work.
+- [Shared Backend Requirements Traceability](docs/shared-backend/REQUIREMENTS_TRACEABILITY.md) — PASS/FAIL/SKIPPED/UNKNOWN evidence mapping.
 
 ## Engineering intelligence, physics and calculation
 
