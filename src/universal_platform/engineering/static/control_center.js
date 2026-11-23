@@ -197,8 +197,9 @@
     }
   }
 
-  async function loadWorkspace(workspaceId) {
+  async function loadWorkspace(workspaceId, { force = false } = {}) {
     if (!activeToken || loadingWorkspaceId === workspaceId) return;
+    if (!force && selectedWorkspace?.workspace_id === workspaceId && !workspaceEditor.hidden) return;
     const loadSequence = ++workspaceLoadSequence;
     loadingWorkspaceId = workspaceId;
     try {
@@ -292,6 +293,8 @@
     tokenInput.value = "";
     activeToken = null;
     selectedWorkspace = null;
+    workspaceLoadSequence += 1;
+    loadingWorkspaceId = null;
     workspaceEditor.hidden = true;
     workspaceList.replaceChildren();
     workspaceReloadButton.hidden = true;
@@ -318,7 +321,7 @@
     if (!selectedWorkspace || !activeToken) return;
     workspaceReloadButton.disabled = true;
     try {
-      await loadWorkspace(selectedWorkspace.workspace_id);
+      await loadWorkspace(selectedWorkspace.workspace_id, { force: true });
     } finally {
       workspaceReloadButton.disabled = false;
     }
