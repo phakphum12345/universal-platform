@@ -2,23 +2,16 @@
 """Validate the shared-backend documentation tree without modifying files."""
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path("docs/shared-backend")
 EXPECTED = (
-    "README.md",
-    "ARCHITECTURE.md",
-    "REQUIREMENTS.md",
-    "API_CONTRACT.md",
-    "SECURITY.md",
-    "DATA_ARCHITECTURE.md",
-    "IMPLEMENTATION_PLAN.md",
-    "TEST_STRATEGY.md",
-    "ZERO_COST_POLICY.md",
-    "REQUIREMENTS_TRACEABILITY.md",
-    "IMPLEMENTATION_STATUS.md",
-    "DECISIONS.md",
+    "README.md", "ARCHITECTURE.md", "REQUIREMENTS.md", "API_CONTRACT.md",
+    "SECURITY.md", "DATA_ARCHITECTURE.md", "IMPLEMENTATION_PLAN.md",
+    "TEST_STRATEGY.md", "ZERO_COST_POLICY.md", "REQUIREMENTS_TRACEABILITY.md",
+    "IMPLEMENTATION_STATUS.md", "DECISIONS.md",
     "INTEGRATION/FLUTTER_INTEGRATION.md",
     "INTEGRATION/LARAVEL_INTEGRATION.md",
     "INTEGRATION/PYTHON_INTEGRATION.md",
@@ -46,7 +39,7 @@ def main() -> int:
         if not raw:
             errors.append(f"empty: {path.as_posix()}")
             continue
-        if raw.startswith(b"\\xef\\xbb\\xbf"):
+        if raw.startswith(b"\xef\xbb\xbf"):
             errors.append(f"UTF-8 BOM found: {path.as_posix()}")
         try:
             content = raw.decode("utf-8")
@@ -63,27 +56,23 @@ def main() -> int:
         for path in ROOT.rglob("*.md")
         if path.is_file()
     }
-    unexpected = sorted(actual - expected_set)
     missing = sorted(expected_set - actual)
+    unexpected = sorted(actual - expected_set)
     if missing:
         errors.append("missing expected files: " + ", ".join(missing))
     if unexpected:
         errors.append("unexpected Markdown files (review inventory): " + ", ".join(unexpected))
 
-    # Check local Markdown links. External URLs, mailto links, and pure anchors are ignored.
-    import re
-
     for relative in EXPECTED:
         path = ROOT / relative
         if not path.is_file():
             continue
-        text = path.read_text(encoding="utf-8")
-        for target in re.findall(r"\\[[^\\]]+\\]\\(([^)]+)\\)", text):
+        content = path.read_text(encoding="utf-8")
+        for target in re.findall(r"\]\(([^)]+)\)", content):
             target = target.strip().split("#", 1)[0]
             if not target or "://" in target or target.startswith("mailto:"):
                 continue
-            resolved = (path.parent / target).resolve()
-            if not resolved.exists():
+            if not (path.parent / target).resolve().exists():
                 errors.append(f"broken local link in {relative}: {target}")
 
     if errors:
@@ -94,7 +83,7 @@ def main() -> int:
 
     print(f"PASS: validated {len(EXPECTED)} Markdown files")
     print("PASS: UTF-8 without BOM, non-empty files, headings, and local links")
-    print("NOTE: this workflow validates documentation only; it does not prove backend implementation.")
+    print("NOTE: documentation validation does not prove backend implementation.")
     return 0
 
 
