@@ -216,7 +216,6 @@ def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
     assert audit.verify()
 
 
-
 def test_authenticated_module_function_and_tool_catalogues_are_metadata_only(api):
     base, audit, _ = api
 
