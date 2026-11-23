@@ -379,7 +379,7 @@
       const current = [...workspaceList.querySelectorAll("[data-workspace-id]")].map((button) => ({
         workspace_id: button.dataset.workspaceId,
         name: button.querySelector("strong")?.textContent || "",
-        revision: Number((button.querySelector("small")?.textContent || "").match(/Revision (\\d+)/)?.[1] || 1)
+        revision: Number((button.querySelector("small")?.textContent || "").match(/Revision (\d+)/)?.[1] || 1)
       }));
       const updated = current.filter((item) => item.workspace_id !== selectedWorkspace.workspace_id);
       updated.unshift(selectedWorkspace);
