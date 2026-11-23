@@ -8,7 +8,7 @@
 
 ## Executive result
 
-**No — not every branch has been merged into `main`.** The repository had 306 branches including `main`. Branches must not be equated with PRs: squash merges preserve the feature changes but do not make the original feature-branch head commit an ancestor of `main`.
+**No — not every branch has been merged into `main`.** The pre-audit-PR inventory snapshot had 306 branches including `main`. This snapshot was taken before creating the dedicated audit branch for PR #287. Branches must not be equated with PRs: squash merges preserve the feature changes but do not make the original feature-branch head commit an ancestor of `main`.
 
 At the time of this audit, the PR inventory was:
 
@@ -19,7 +19,7 @@ At the time of this audit, the PR inventory was:
 | Open | 1 | PR #280, documentation reconciliation |
 | **Total PRs** | **286** | All PRs returned by the repository's paginated PR API |
 
-The branch inventory was:
+The branch inventory at the pre-audit-PR snapshot was:
 
 | Branch group | Count |
 |---|---:|
@@ -28,7 +28,7 @@ The branch inventory was:
 | Branches without an associated PR, excluding `main` | 20 |
 | **Total** | **306** |
 
-The PR and branch counts are not one-to-one: more than one PR can reference a branch, and a branch can remain after its PR has merged or closed.
+After the inventory snapshot, this audit created branch `docs/reconcile-main-branch-audit-2026-11-23` and opened PR #287. Therefore the live repository now has 307 branches and 287 PRs: 267 merged, 18 closed without merge, and 2 open (#280 and #287). The baseline counts above intentionally exclude this audit PR. The PR and branch counts are not one-to-one: more than one PR can reference a branch, and a branch can remain after its PR has merged or closed.
 
 ## Main and current PRs
 
