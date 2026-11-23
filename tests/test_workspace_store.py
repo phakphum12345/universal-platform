@@ -91,7 +91,7 @@ def test_workspace_rejects_non_json_metadata_and_non_finite_values(tmp_path):
     store = SQLiteWorkspaceStore(tmp_path / "workspaces.sqlite3")
     with pytest.raises(TypeError, match="metadata must be an object"):
         store.create("Invalid", metadata=["not", "an", "object"])
-    with pytest.raises(ValueError, match="valid JSON"):
+    with pytest.raises(ValueError, match="non-finite numbers"):
         store.create("Invalid", metadata={"not_finite": float("nan")})
     with pytest.raises(TypeError, match="keys must be strings"):
         store.create("Invalid", metadata={1: "coerced"})
