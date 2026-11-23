@@ -19,8 +19,14 @@
   const workspaceEditor = byId("workspace-editor");
   const workspaceCreateButton = byId("workspace-create");
   const workspaceSaveButton = byId("workspace-save");
+  const workspaceReloadButton = byId("workspace-reload");
+  const workspaceMoreButton = byId("workspace-load-more");
   let activeToken = null;
   let selectedWorkspace = null;
+  let workspaceOffset = 0;
+  let workspaceHasMore = false;
+  let creatingWorkspace = false;
+  let savingWorkspace = false;
 
   function setServiceState(kind, label, detail) {
     serviceState.className = "status-pill " + kind;
@@ -119,9 +125,9 @@
     return metadata;
   }
 
-  function renderWorkspaces(records) {
-    workspaceList.replaceChildren();
-    if (records.length === 0) {
+  function renderWorkspaces(records, { append = false } = {}) {
+    if (!append) workspaceList.replaceChildren();
+    if (records.length === 0 && !append && workspaceOffset === 0) {
       const empty = document.createElement("li");
       empty.className = "workspace-empty";
       empty.textContent = "No workspaces have been created yet.";
@@ -129,6 +135,8 @@
       return;
     }
     for (const record of records) {
+      const existing = workspaceList.querySelector('[data-workspace-id="' + CSS.escape(record.workspace_id) + '"]');
+      if (existing) existing.closest("li")?.remove();
       const item = document.createElement("li");
       const select = document.createElement("button");
       select.type = "button";
@@ -146,27 +154,37 @@
     }
   }
 
-  async function loadWorkspaces(token = activeToken) {
+  async function loadWorkspaces(token = activeToken, { append = false } = {}) {
     if (!token) {
       setWorkspaceState("unknown", "UNKNOWN · Authentication required", "Enter the local bearer token and check the service before loading workspaces.");
       return;
     }
+    if (!append) workspaceOffset = 0;
     setWorkspaceState("unknown", "PENDING · Loading", "Reading workspace metadata from the local SQLite store.");
     try {
-      const { response, payload } = await requestJson("/v1/workspaces?limit=100", "GET", token);
+      const requestedOffset = append ? workspaceOffset : 0;
+      const { response, payload } = await requestJson(
+        "/v1/workspaces?limit=100&offset=" + requestedOffset, "GET", token
+      );
       if (!response.ok) {
         const message = payload?.error?.message || "Workspace list request failed.";
         setWorkspaceState("failed", "FAIL · HTTP " + response.status, message);
         return;
       }
       if (!Array.isArray(payload.workspaces) || payload.count !== payload.workspaces.length ||
+          payload.limit !== 100 || payload.offset !== requestedOffset ||
+          typeof payload.has_more !== "boolean" ||
           !payload.workspaces.every((item) => item && typeof item.workspace_id === "string" &&
             typeof item.name === "string" && Number.isInteger(item.revision))) {
         setWorkspaceState("unknown", "UNKNOWN · Invalid response", "The workspace endpoint returned data outside the supported response contract.");
         return;
       }
-      renderWorkspaces(payload.workspaces);
-      setWorkspaceState("ready", "READY · " + payload.count + " loaded", "Workspace records were read from the configured local SQLite store.");
+      renderWorkspaces(payload.workspaces, { append });
+      workspaceOffset = requestedOffset + payload.count;
+      workspaceHasMore = payload.has_more;
+      workspaceMoreButton.hidden = !workspaceHasMore;
+      workspaceMoreButton.disabled = false;
+      setWorkspaceState("ready", "READY · " + workspaceOffset + " loaded", "Workspace records were read from the configured local SQLite store.");
     } catch (_error) {
       setWorkspaceState("failed", "FAIL · Connection error", "The workspace API could not be reached.");
     }
@@ -193,7 +211,10 @@
       byId("workspace-edit-metadata").value = JSON.stringify(record.metadata, null, 2);
       byId("workspace-edit-state").textContent = "Selected revision " + record.revision + ". Updates use optimistic revision checks.";
       workspaceEditor.hidden = false;
-      await loadWorkspaces();
+      workspaceReloadButton.hidden = true;
+      for (const button of workspaceList.querySelectorAll("[data-workspace-id]")) {
+        button.setAttribute("aria-pressed", String(button.dataset.workspaceId === record.workspace_id));
+      }
     } catch (_error) {
       setWorkspaceState("failed", "FAIL · Connection error", "The selected workspace could not be loaded.");
     }
@@ -265,11 +286,30 @@
     tokenInput.focus();
   });
 
+  workspaceMoreButton.addEventListener("click", async () => {
+    if (!workspaceHasMore || workspaceMoreButton.disabled) return;
+    workspaceMoreButton.disabled = true;
+    await loadWorkspaces(activeToken, { append: true });
+  });
+
+  workspaceReloadButton.addEventListener("click", async () => {
+    if (!selectedWorkspace || !activeToken) return;
+    workspaceReloadButton.disabled = true;
+    try {
+      await loadWorkspace(selectedWorkspace.workspace_id);
+    } finally {
+      workspaceReloadButton.disabled = false;
+    }
+  });
+
   workspaceCreateButton.addEventListener("click", async () => {
     if (!activeToken) {
       setWorkspaceState("unknown", "UNKNOWN · Authentication required", "Check the service before creating a workspace.");
       return;
     }
+    if (creatingWorkspace) return;
+    creatingWorkspace = true;
+    workspaceCreateButton.disabled = true;
     try {
       const body = {
         name: byId("workspace-name").value,
@@ -289,11 +329,16 @@
       await loadWorkspace(payload.workspace.workspace_id);
     } catch (error) {
       setWorkspaceState("failed", "FAIL · Invalid input", error.message);
+    } finally {
+      creatingWorkspace = false;
+      workspaceCreateButton.disabled = false;
     }
   });
 
   workspaceSaveButton.addEventListener("click", async () => {
-    if (!activeToken || !selectedWorkspace) return;
+    if (!activeToken || !selectedWorkspace || savingWorkspace) return;
+    savingWorkspace = true;
+    workspaceSaveButton.disabled = true;
     try {
       const body = {
         expected_revision: selectedWorkspace.revision,
@@ -306,20 +351,37 @@
         "PUT", activeToken, body
       );
       if (response.status === 409) {
-        setWorkspaceState("failed", "FAIL · Revision conflict", "This workspace changed elsewhere. Reload it before saving again.");
-        await loadWorkspace(selectedWorkspace.workspace_id);
+        setWorkspaceState("failed", "FAIL · Revision conflict", "Your draft is preserved. Another client saved a newer revision; use Reload latest to replace this draft explicitly.");
+        workspaceReloadButton.hidden = false;
         return;
       }
       if (!response.ok) {
         setWorkspaceState("failed", "FAIL · HTTP " + response.status, payload?.error?.message || "Workspace update failed.");
         return;
       }
+      if (!payload.workspace || payload.workspace.workspace_id !== selectedWorkspace.workspace_id ||
+          payload.workspace.name !== body.name || payload.workspace.revision !== body.expected_revision + 1) {
+        setWorkspaceState("unknown", "UNKNOWN · Invalid update response", "The server response did not confirm the requested workspace revision.");
+        return;
+      }
       selectedWorkspace = payload.workspace;
       byId("workspace-edit-state").textContent = "Saved revision " + selectedWorkspace.revision + ".";
+      workspaceReloadButton.hidden = true;
       setWorkspaceState("ready", "READY · Saved", "Workspace changes were persisted to local SQLite storage.");
+      const current = [...workspaceList.querySelectorAll("[data-workspace-id]")].map((button) => ({
+        workspace_id: button.dataset.workspaceId,
+        name: button.querySelector("strong")?.textContent || "",
+        revision: Number((button.querySelector("small")?.textContent || "").match(/Revision (\\d+)/)?.[1] || 1)
+      }));
+      const updated = current.filter((item) => item.workspace_id !== selectedWorkspace.workspace_id);
+      updated.unshift(selectedWorkspace);
+      renderWorkspaces(updated);
       await loadWorkspaces();
     } catch (error) {
       setWorkspaceState("failed", "FAIL · Invalid input", error.message);
+    } finally {
+      savingWorkspace = false;
+      workspaceSaveButton.disabled = false;
     }
   });
 
