@@ -304,6 +304,12 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if self.command == "GET" and path == "/health":
             return 200, {"status": "READY", "service": "cad-generator", "api_version": "1.0"}
 
+        catalogue_collection_paths = {"/v1/modules", "/v1/functions", "/v1/tools"}
+        if (path in catalogue_collection_paths or path.startswith("/v1/modules/")) and self.command != "GET":
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "The capability catalogue is read-only")
+        if self.command == "GET" and path in catalogue_collection_paths and parsed.query:
+            raise _HTTPError(400, "UNEXPECTED_QUERY", "Capability catalogue routes do not accept query parameters")
+
         if self.command == "GET" and path == "/v1/modules":
             registry = self.server.module_registry
             if registry is None:
