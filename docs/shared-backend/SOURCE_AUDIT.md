@@ -5,12 +5,14 @@
 
 ## Repository baselines
 
+These are the source snapshots inspected before the implementation changes in this workstream:
+
 | Repository | Branch | SHA observed |
 |---|---|---|
 | `phakphum12345/universal-platform` | `main` | `2065b8a921dd5cdabbec007edf2af48f95d10761` |
 | `phakphum12345/phakphum-calendar` | `main` | `dcb51b6ad7db3540eea7152949556465ea67256c` |
 
-Calendar PR #176 was still under validation during this audit. Its proposed changes are not treated as merged evidence.
+Calendar PR #176 has since merged to Calendar `main` as `65321c02374b59fc588d8917c3b3c4ddc8d51b0f`. Its resulting implementation is recorded below.
 
 ## 1. Laravel Calendar API
 
@@ -23,7 +25,7 @@ The inspected route surface includes:
 - Public operational endpoints: `GET /api/v1/health` and `GET /api/v1/ready`.
 - Client diagnostics: `POST /api/v1/diagnostics/client-errors`, throttled separately.
 - Google-account authenticated endpoints: `/me`, organizations, join requests, organization members and membership audit, push subscriptions, shift policies, and shift transactions.
-- The authenticated route group uses a Google-account middleware and a request throttle. It does not share the Python CAD bearer token.
+- The authenticated route group uses Google-account middleware and request throttling. It does not share the Python CAD bearer token.
 
 ### Authentication and request correlation
 
@@ -32,17 +34,18 @@ The inspected route surface includes:
 - The middleware accepts `X-Request-ID` only when it matches `[A-Za-z0-9._-]{8,128}`; otherwise it generates a UUID.
 - The effective ID is stored on the request and returned in the `X-Request-ID` response header.
 - Health and client-diagnostics responses also include `request_id` in their JSON body.
+- Calendar PR #176 added regression coverage for valid correlation on auth failures and replacement of malformed IDs.
 
-### Browser CORS baseline
+### Browser CORS
 
-At the audited Calendar `main` SHA:
+At the audited source SHA, allowed methods were `GET`, `POST`, `PUT`, and `OPTIONS`. The organization-admin gateway uses `PATCH` and `DELETE`, so those browser preflights were not covered by that baseline.
 
-- Allowed origins are configured through `FRONTEND_ALLOWED_ORIGINS`, with localhost and the GitHub Pages origin as defaults.
-- `X-Request-ID` is already an allowed request header and an exposed response header.
-- Allowed methods were `GET`, `POST`, `PUT`, and `OPTIONS`.
-- The existing organization-admin Flutter gateway uses `PATCH` and `DELETE`; therefore the audited CORS method list did not yet cover those browser preflights.
+Calendar PR #176 is now merged and:
 
-Calendar PR #176 adds `PATCH` and `DELETE` to the allowlist and regression tests for the membership preflight and readable correlation response header. This remains pending until that PR is merged.
+- Adds `PATCH` and `DELETE` to the CORS method allowlist.
+- Keeps `X-Request-ID` in allowed request headers and exposed response headers.
+- Adds tests for PATCH/DELETE preflight and browser access to the correlation response header.
+- Preserves explicit origin allowlisting and bearer authentication; CORS does not grant authorization.
 
 ## 2. Python Engineering API
 
@@ -75,7 +78,7 @@ The built-in physics module bridge provides registry metadata. The platform stat
 
 ### Request correlation
 
-The Python API accepts only bounded request IDs matching `[A-Za-z0-9._-]{8,128}`, generates a UUID for missing or malformed values, writes the ID into audit events and JSON bodies, and returns it in the response header. This runtime behavior was merged in Universal Platform PR #289.
+The Python API accepts bounded request IDs matching `[A-Za-z0-9._-]{8,128}`, generates a UUID for missing or malformed values, writes the ID into audit events and JSON bodies, and returns it in the response header. This runtime behavior was merged in Universal Platform PR #289. The canonical schema is `schemas/shared/request-id.schema.json`.
 
 ### Boundary decision
 
@@ -86,14 +89,15 @@ Do not bind this service to `0.0.0.0`, a LAN address, a Tailscale address, or a 
 ### Calendar API clients
 
 - `ShiftTransactionApiClient` uses `ORGANIZATION_API_BASE_URL` and a Google ID-token provider for Calendar API calls.
-- `HttpOrganizationAdminGateway` uses the same configured API origin and Google ID-token authentication. Its membership operations include `PATCH` and `DELETE`.
-- The inspected main-branch clients did not yet consistently send a per-request correlation ID. Calendar PR #176 adds this to the shift-transaction client, preserves the response correlation ID on API exceptions, and rejects non-loopback cleartext HTTP origins.
-- The organization-admin gateway is being changed in a separate active PR; do not modify its branch as a side effect of this work. Reconcile it after that PR is resolved.
+- Calendar PR #176 is merged: the shift-transaction client generates a distinct opaque ID per request, sends `X-Request-ID`, and retains the response correlation ID on API exceptions.
+- The same client requires HTTPS for non-loopback API origins. HTTP is allowed only for `localhost`, `127.0.0.1`, and `::1` local development.
+- `HttpOrganizationAdminGateway` uses the same configured API origin and Google ID-token authentication. Its membership operations include `PATCH` and `DELETE`; reconcile its request-correlation behavior after the separate active PR that changes this gateway is resolved.
+- The Calendar API CORS configuration now permits the correlation header and membership write preflights, while authorization remains enforced by Laravel.
 
 ### Other HTTP integrations
 
 - `GoogleApiClient` is a transport wrapper for external Google APIs, not a Calendar or Engineering backend client.
-- `ResearchOsCalendarBridgeContract` is a contract-only helper with no network I/O or server implementation. It currently declares loopback host `127.0.0.1` and a default port of `8765`. Treat that as a legacy contract detail, not as the shared backend port or a fixed-port requirement. Any future bridge must use explicit runtime discovery and a separately approved security boundary.
+- `ResearchOsCalendarBridgeContract` is a contract-only helper with no network I/O or server implementation. It declares loopback host `127.0.0.1` and a default port of `8765`. Treat that as a legacy contract detail, not as the shared backend port or a fixed-port requirement. Any future bridge must use explicit runtime discovery and a separately approved security boundary.
 
 ## 4. Confirmed architecture boundaries
 
@@ -104,19 +108,18 @@ Do not bind this service to `0.0.0.0`, a LAN address, a Tailscale address, or a 
 | Persistence | Laravel-owned database and migrations | Per-user SQLite stores |
 | Network default | Configured HTTPS API origin; local development may use loopback | Loopback-only local host |
 | Port policy | Configured origin; no shared fixed port | OS-selected port by default |
-| Correlation | `X-Request-ID` middleware | `X-Request-ID` validation and response echo |
+| Correlation | `X-Request-ID` middleware and Flutter client | `X-Request-ID` validation and response echo |
 
 Do not merge these databases, credentials, migrations, or authorization systems. The shared layer is limited to agreed metadata, schemas, error conventions and integration documentation.
 
 ## 5. Verified gaps and next implementation order
 
-1. Complete and merge Calendar PR #176 only after its exact-head required workflows pass.
-2. Reconcile request-correlation behavior in the organization-admin gateway after its active PR is resolved.
-3. Define a shared error schema for new integrations while preserving Laravel's existing validation response format.
-4. Inventory and document domain-owned OpenAPI contracts; do not claim a generated specification is authoritative until checked against route behavior and tests.
-5. Add client-level contract tests for both APIs using local/mock transports. Do not create a new cloud gateway or shared database.
-6. Keep cross-service end-to-end tests limited to actual approved call paths; the current architecture does not require Laravel to call Python.
-7. Complete operational evidence for backup, restore, local startup, shutdown, port discovery and audit retention before any production-readiness claim.
+1. Reconcile request-correlation behavior in the organization-admin gateway after its active PR is resolved.
+2. Define a shared error schema for new integrations while preserving Laravel's existing validation response format.
+3. Inventory and document domain-owned OpenAPI contracts; do not claim a generated specification is authoritative until checked against route behavior and tests.
+4. Add client-level contract tests for both APIs using local/mock transports. Do not create a new cloud gateway or shared database.
+5. Keep cross-service end-to-end tests limited to actual approved call paths; the current architecture does not require Laravel to call Python.
+6. Complete operational evidence for backup, restore, local startup, shutdown, port discovery and audit retention before any production-readiness claim.
 
 ## 6. Non-goals for this audit
 
