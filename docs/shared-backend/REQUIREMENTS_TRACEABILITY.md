@@ -18,7 +18,7 @@ Statuses are evidence-based. PASS is used only for the narrow behavior that was 
 | FR-010a Request-correlation and CORS regression tests | TEST_STRATEGY.md | Calendar PR #176 and Python PRs #289/#290 passed their exact-head tests and gates at the recorded merge SHAs | PASS |
 | FR-010b Cross-service end-to-end workflow | TEST_STRATEGY.md | No direct Laravel-to-Python call path is part of the approved architecture; no cross-service E2E was executed | SKIPPED |
 | NFR-001 No new unapproved paid services | ZERO_COST_POLICY.md | No paid service or cloud infrastructure was added in the reviewed PRs; a full account-level cost audit remains | UNKNOWN |
-| NFR-002 Dynamic endpoint configuration | ARCHITECTURE.md | Python launcher uses port 0; legacy Research OS bridge contract still declares default port 8765 and requires separate reconciliation | UNKNOWN |
+| NFR-002 Dynamic endpoint configuration | ARCHITECTURE.md | Python launcher uses port 0; Calendar PR #177 removed the bridge helper's default port and requires a caller-supplied discovered port; actual bridge server/discovery remains unimplemented | UNKNOWN |
 | NFR-003 Python loopback default | SECURITY.md | Python launcher binds to 127.0.0.1 and does not expose a public listener | PASS |
 | NFR-004 Identity boundary | SECURITY.md | Google ID tokens remain Laravel-only; Python uses a separate local bearer token; no credential forwarding was introduced | PASS |
 
