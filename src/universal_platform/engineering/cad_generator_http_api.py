@@ -365,17 +365,27 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                 raise _HTTPError(503, "WORKSPACE_STORE_UNAVAILABLE", "Workspace storage is not configured on this host")
             if self.command == "GET":
                 query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
-                if set(query) - {"limit"} or any(len(values) != 1 for values in query.values()):
-                    raise _HTTPError(400, "INVALID_QUERY", "Only one optional limit query parameter is supported")
+                if set(query) - {"limit", "offset"} or any(len(values) != 1 for values in query.values()):
+                    raise _HTTPError(400, "INVALID_QUERY", "Only one optional limit and offset parameter are supported")
                 raw_limit = query.get("limit", ["100"])[0]
+                raw_offset = query.get("offset", ["0"])[0]
                 try:
                     limit = int(raw_limit)
+                    offset = int(raw_offset)
                 except ValueError as exc:
-                    raise _HTTPError(400, "INVALID_LIMIT", "limit must be an integer from 1 through 500") from exc
+                    raise _HTTPError(400, "INVALID_PAGINATION", "limit and offset must be decimal integers") from exc
                 if str(limit) != raw_limit or not 1 <= limit <= 500:
                     raise _HTTPError(400, "INVALID_LIMIT", "limit must be an integer from 1 through 500")
-                records = store.list(limit=limit)
-                return 200, {"workspaces": [record.to_dict() for record in records], "count": len(records)}
+                if str(offset) != raw_offset or not 0 <= offset <= 1_000_000:
+                    raise _HTTPError(400, "INVALID_OFFSET", "offset must be an integer from 0 through 1000000")
+                records = store.list(limit=limit, offset=offset)
+                return 200, {
+                    "workspaces": [record.to_dict() for record in records],
+                    "count": len(records),
+                    "limit": limit,
+                    "offset": offset,
+                    "has_more": len(records) == limit,
+                }
             if self.command == "POST":
                 body = self._read_json()
                 allowed = {"name", "description", "metadata"}
