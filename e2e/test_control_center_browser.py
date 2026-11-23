@@ -162,7 +162,7 @@ def test_health_connection_failure_is_reported_as_fail_not_ready(control_center)
     page.locator("#service-token").fill(TOKEN)
     page.route("**/health", lambda route: route.abort("failed"))
     page.locator("#check-service").click()
-    page.get_by_text("FAIL · Connection error").wait_for()
+    page.locator("#service-state").get_by_text("FAIL · Connection error").wait_for()
     assert page.locator("#service-state").inner_text().startswith("FAIL")
     assert page_errors == []
 
@@ -182,8 +182,19 @@ def test_control_center_creates_lists_and_updates_durable_workspaces(control_cen
     page.get_by_role("button", name="Browser Workspace").click()
     page.locator("#workspace-editor").wait_for(state="visible")
     page.locator("#workspace-edit-name").fill("Browser Workspace Updated")
+    responses = []
+    page.on("response", lambda response: responses.append((response.url, response.status)))
     page.get_by_role("button", name="Save changes").click()
-    page.get_by_role("button", name="Browser Workspace Updated").wait_for()
+    page.wait_for_timeout(750)
+    if page.get_by_role("button", name="Browser Workspace Updated").count() == 0:
+        pytest.fail(
+            "Workspace update did not render; "
+            f"workspace_state={page.locator('#workspace-state').inner_text()!r}; "
+            f"workspace_detail={page.locator('#workspace-detail').inner_text()!r}; "
+            f"editor_state={page.locator('#workspace-edit-state').inner_text()!r}; "
+            f"list={page.locator('#workspace-list').inner_text()!r}; "
+            f"responses={responses!r}; page_errors={page_errors!r}"
+        )
     assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
     assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
     assert page_errors == []
