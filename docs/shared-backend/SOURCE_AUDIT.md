@@ -56,7 +56,7 @@ The inspected implementation is the **CAD Generator HTTP API**, not a general-pu
 Its local launcher:
 
 - Binds to IPv4 loopback `127.0.0.1` only.
-- Defaults to port `0`, allowing the operating system to select an available port.
+- Defaults to port `0`, allowing the operating system to select an available port. The launcher permits an explicit port override only when a caller deliberately requests one; it does not reserve a fixed default.
 - Generates a high-entropy bearer token when one is not supplied through `UP_CAD_BEARER_TOKEN`.
 - Stores per-user SQLite data for feature history, feature artifacts, API audit records and workspaces.
 - Does not start a socket merely by importing the launcher module.
