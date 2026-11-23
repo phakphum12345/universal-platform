@@ -1,10 +1,10 @@
-> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes PR #286 WP-15E catalogue. PR #286 exact-head checks PASS across Repository Quality, Engineering Core, CAD Browser E2E and Cross-Shell (4/4); post-merge CI remains UNKNOWN while running. PR #280 remains open for stale documentation reconciliation. Repository-wide branch audit covered 306 branches; no branch was deleted. Overall status: **INCOMPLETE**.
+> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes PR #286 WP-15E catalogue. Post-merge Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4) are PASS; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PRs #280 and #287 are open; #287 checks are running on its latest head. Live branch audit covered 307 branches; no branch was deleted. Overall status: **INCOMPLETE**.
 
 # Work Package Status Register
 
 ## Live work-package reconciliation — 2026-11-23
 
-**Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 exact-head CI passed all four workflow groups; post-merge CI remains pending.
+**Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 post-merge CI is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
 
 | WP | Domain | Current status | Next acceptance work |
 |---|---|---|---|
