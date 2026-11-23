@@ -7,8 +7,8 @@ Run with:
 """
 from __future__ import annotations
 
-from threading import Thread
 import time
+from threading import Thread
 
 import pytest
 from playwright.sync_api import sync_playwright
