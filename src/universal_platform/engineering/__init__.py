@@ -601,17 +601,17 @@ __all__.extend(["PhysicsModuleBridge", "create_builtin_physics_module_bridge"])
 
 
 from .workspace_store import (
-    SQLiteWorkspaceStore as SQLiteWorkspaceStore,
-    WorkspaceNotFoundError as WorkspaceNotFoundError,
-    WorkspaceRecord as WorkspaceRecord,
-    WorkspaceRevisionConflict as WorkspaceRevisionConflict,
-    WorkspaceStoreIntegrityError as WorkspaceStoreIntegrityError,
+    SQLiteWorkspaceStore,
+    WorkspaceNotFoundError,
+    WorkspaceRecord,
+    WorkspaceRevisionConflict,
+    WorkspaceStoreIntegrityError,
 )
 
-__all__.extend([
+__all__ += [
     "SQLiteWorkspaceStore",
     "WorkspaceNotFoundError",
     "WorkspaceRecord",
     "WorkspaceRevisionConflict",
     "WorkspaceStoreIntegrityError",
-])
+]
