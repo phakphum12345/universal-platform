@@ -34,7 +34,7 @@ The PR and branch counts are not one-to-one: more than one PR can reference a br
 
 - `main` HEAD is `84cc7fa88161818f240619393dd1482e170fec2e`.
 - PR #286 — [Authenticated module and function catalogue](https://github.com/phakphum12345/universal-platform/pull/286) — **MERGED** at `84cc7fa88161818f240619393dd1482e170fec2e`.
-- PR #280 — [Live repository status reconciliation](https://github.com/phakphum12345/universal-platform/pull/280) — **OPEN**. Its head `074757f95d302f87967b4ef6c6563a224e4e98a7` was authored against an older main baseline. The compare against the previous main baseline reported 30 commits ahead and 3 behind; after PR #286, it must be compared again and refreshed before merge.
+- PR #280 — [Live repository status reconciliation](https://github.com/phakphum12345/universal-platform/pull/280) — **OPEN**. Its head `074757f95d302f87967b4ef6c6563a224e4e98a7` was authored against an older main baseline. The compare against current main `84cc7fa88161818f240619393dd1482e170fec2e` reports 30 commits ahead and 4 behind. Its changes must be refreshed before merge.
 - No branch or file was deleted, no history was rewritten, and no force push was used in this audit.
 
 ## PR #286 evidence
