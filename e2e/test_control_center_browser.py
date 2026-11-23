@@ -90,9 +90,9 @@ def test_control_center_renders_accessible_shell_and_preserves_cad_workbench(con
     popup.close()
 
 
-
-
-def test_control_center_lists_registered_modules_and_functions_without_execution_controls(control_center):
+def test_control_center_lists_registered_modules_and_functions_without_execution_controls(
+    control_center,
+):
     page, _context, _base, _audit, page_errors, _store = control_center
     page.locator("#service-token").fill(TOKEN)
     page.locator("#check-service").click()
@@ -101,7 +101,9 @@ def test_control_center_lists_registered_modules_and_functions_without_execution
     assert module.is_visible()
     assert "VALIDATED" in module.inner_text()
     assert "NOT ENABLED BY CATALOGUE" in module.inner_text()
-    function = page.locator("#function-list [data-function-id='org.universal.physics:physics.solve']")
+    function = page.locator(
+        "#function-list [data-function-id='org.universal.physics:physics.solve']"
+    )
     assert function.is_visible()
     assert "engineering.physics.solve" in function.inner_text()
     assert "No execution action is available" in function.inner_text()
