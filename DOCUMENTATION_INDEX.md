@@ -1,4 +1,4 @@
-> **CURRENT MAIN STATUS — 2026-11-24:** `main` is `2065b8a921dd5cdabbec007edf2af48f95d10761` (PR #290 merge). PRs #288–#290 are merged: shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. PR #291 is open for source-audit and integration-document reconciliation; its latest exact-head CI is pending. Repository-wide status remains **INCOMPLETE**.
+> **VERIFIED MAIN BASELINE — 2026-11-24:** `main` was `2065b8a921dd5cdabbec007edf2af48f95d10761` after PR #290. PRs #288–#290 integrated the shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. The shared-backend source audit and integration documents are indexed below. Repository-wide status remains **INCOMPLETE**.
 
 
 # Documentation Index
