@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 from pathlib import Path
 from threading import Thread
 from urllib.error import HTTPError
@@ -102,6 +103,38 @@ def send(base, path, *, method="GET", body=None, token=TOKEN, extra_headers=None
             return response.status, json.loads(response.read())
     except HTTPError as exc:
         return exc.code, json.loads(exc.read())
+
+
+def test_request_id_is_propagated_and_invalid_values_are_replaced(api):
+    base, _, _ = api
+    supplied = "calendar-request-123"
+    request = Request(
+        base + "/health",
+        headers={
+            "Authorization": f"Bearer {TOKEN}",
+            "Origin": base,
+            "X-Request-ID": supplied,
+        },
+    )
+    with urlopen(request, timeout=3) as response:
+        payload = json.loads(response.read())
+        assert response.headers["X-Request-ID"] == supplied
+        assert payload["request_id"] == supplied
+
+    invalid_request = Request(
+        base + "/health",
+        headers={
+            "Authorization": f"Bearer {TOKEN}",
+            "Origin": base,
+            "X-Request-ID": "bad",
+        },
+    )
+    with urlopen(invalid_request, timeout=3) as response:
+        payload = json.loads(response.read())
+        generated = response.headers["X-Request-ID"]
+        assert generated != "bad"
+        assert str(UUID(generated)) == generated
+        assert payload["request_id"] == generated
 
 
 def test_local_authoring_ui_is_served_same_origin_without_exposing_cors(api):
