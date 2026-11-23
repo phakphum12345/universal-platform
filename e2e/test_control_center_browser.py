@@ -199,7 +199,7 @@ def test_control_center_creates_lists_and_updates_durable_workspaces(control_cen
     page.get_by_role("button", name="Browser Workspace Updated").wait_for(timeout=5000)
     assert "revision 2" in page.locator("#workspace-edit-state").inner_text().lower()
     assert "verified by a follow-up read" in page.locator("#workspace-edit-state").inner_text().lower()
-    assert page.locator("#workspace-state").inner_text() == "READY · 1 loaded"
+    assert page.locator("#workspace-state").inner_text() == "READY · Saved"
     assert page_errors == []
     assert audit.verify()
 
