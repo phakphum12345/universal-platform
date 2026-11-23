@@ -159,7 +159,7 @@ def test_theme_switch_and_authenticated_health_states_do_not_persist_token(contr
 
 
 def test_health_connection_failure_is_reported_as_fail_not_ready(control_center):
-    page, _context, _base, _audit, page_errors = control_center
+    page, _context, _base, _audit, page_errors, _store = control_center
     page.locator("#service-token").fill(TOKEN)
     page.route("**/health", lambda route: route.abort("failed"))
     page.locator("#check-service").click()
