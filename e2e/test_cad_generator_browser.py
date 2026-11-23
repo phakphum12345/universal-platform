@@ -11,7 +11,7 @@ import json
 from threading import Thread
 
 import pytest
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_playwright
 
 from universal_platform.engineering import (
     CADGeneratorService,
@@ -526,7 +526,16 @@ def test_feature_history_branch_merge_conflicts_are_shown_in_workbench(workbench
         "history.browser-e2e.conflict"
     )
     page.get_by_role("button", name="Merge selected branch").click()
-    page.get_by_text("Merge blocked by 1 conflict(s).").wait_for()
+    try:
+        page.get_by_text("Merge blocked by 1 conflict(s).").wait_for(timeout=5000)
+    except PlaywrightTimeoutError:
+        pytest.fail(
+            "Expected one merge conflict; "
+            f"branch_state={page.locator('#branch-state').inner_text()!r}; "
+            f"branch_conflicts={page.locator('#branch-conflicts').inner_text()!r}; "
+            f"result={page.locator('#result').inner_text()!r}; "
+            f"revision_state={page.locator('#revision-state').inner_text()!r}"
+        )
     assert "node_content" in page.locator("#branch-conflicts").inner_text()
     assert service.history_store.load("history.browser-e2e").revision == 2
     assert service.history_store.load("history.browser-e2e.conflict").revision == 2
