@@ -373,7 +373,7 @@
         return;
       }
       if (!payload.workspace || payload.workspace.workspace_id !== selectedWorkspace.workspace_id ||
-          payload.workspace.name !== body.name || payload.workspace.revision !== body.expected_revision + 1) {
+          payload.workspace.name !== body.name.trim() || payload.workspace.revision !== body.expected_revision + 1) {
         setWorkspaceState("unknown", "UNKNOWN · Invalid update response", "The server response did not confirm the requested workspace revision.");
         return;
       }
