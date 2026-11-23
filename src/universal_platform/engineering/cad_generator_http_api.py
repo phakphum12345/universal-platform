@@ -39,6 +39,7 @@ from .workspace_store import (
 )
 
 _HISTORY_ID = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+_REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{8,128}$")
 _MAX_BODY_DEFAULT = 1_048_576
 _AUDIT_SCHEMA_VERSION = 1
 
@@ -232,13 +233,16 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(content)
         self.close_connection = True
 
-    def _send_json(self, status: int, payload: dict[str, Any]) -> None:
+    def _send_json(
+        self, status: int, payload: dict[str, Any], *, request_id: str
+    ) -> None:
         encoded = _canonical_json(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Request-ID", request_id)
         self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(encoded)
@@ -820,7 +824,12 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         raise _HTTPError(404, "NOT_FOUND", "Route was not found")
 
     def _handle_request(self) -> None:
-        request_id = str(uuid4())
+        supplied_request_id = self.headers.get("X-Request-ID", "")
+        request_id = (
+            supplied_request_id
+            if _REQUEST_ID.fullmatch(supplied_request_id)
+            else str(uuid4())
+        )
         path = urlsplit(self.path).path
         peer = self.client_address[0]
         audit = self.server.audit_log
@@ -833,7 +842,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             self._send_json(503, {
                 "error": {"code": "AUDIT_UNAVAILABLE", "message": "Audit storage is unavailable"},
                 "request_id": request_id,
-            })
+            }, request_id=request_id)
             return
 
         status = 500
@@ -904,7 +913,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         if static_asset is not None:
             self._send_static(status, static_asset, request_id)
             return
-        self._send_json(status, payload)
+        self._send_json(status, payload, request_id=request_id)
 
 
 class _HTTPError(Exception):

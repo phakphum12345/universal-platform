@@ -6,16 +6,18 @@ Define inter-service compatibility without imposing a new gateway or replacing e
 ## Versioning
 Use explicit versioned contracts for new cross-service interfaces. Do not rename or break existing Calendar or Engineering endpoints as part of documentation work.
 
-## Proposed response envelope
-Success:
-```json
-{"success":true,"data":{},"meta":{"request_id":"opaque-id","contract_version":"1"}}
-```
-Error:
-```json
-{"success":false,"error":{"code":"VALIDATION_ERROR","message":"Request validation failed"},"meta":{"request_id":"opaque-id","contract_version":"1"}}
-```
-These are proposed examples, not claims about current API responses.
+## Current cross-service correlation contract
+
+- `X-Request-ID` is the canonical request-correlation header.
+- A caller may supply an ID matching `[A-Za-z0-9._-]{8,128}`; services must reject malformed values and generate a new opaque ID.
+- Every JSON response must return the effective ID in the `X-Request-ID` response header.
+- A JSON body may also include `request_id` for compatibility and diagnostics. It is not required on every endpoint.
+- Laravel currently echoes the effective ID in the response header; its health and diagnostics responses also include `request_id` in the body.
+- The Python CAD Generator API includes `request_id` in JSON bodies and now echoes the same ID in the response header.
+- Existing success payloads remain domain-specific. Do not wrap or rename them as part of correlation support.
+- Errors should expose a stable machine-readable `error.code` and user-safe `error.message` where the endpoint currently supports that shape. Laravel validation responses retain Laravel's established validation format until a versioned migration is designed.
+
+This contract is additive and does not change authentication, authorization, route paths, payload ownership, or persistence.
 
 ## Conventions
 - JSON UTF-8; explicit nullability and timestamp/time-zone semantics.
