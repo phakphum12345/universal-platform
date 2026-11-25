@@ -5,9 +5,9 @@
 **Work package:** WP-15  
 **Owner decision:** Use a unified, responsive Control Center as the primary human-facing surface, while keeping domain workbenches focused on their specialist workflows.
 
-## Current implementation boundary — 2026-11-23
+## Current implementation boundary — 2026-11-25
 
-The /control-center shell remains hosted by the authenticated IPv4-loopback CAD API and preserves the canonical CAD workbench at /. Workspaces use the configured durable SQLite store. PR #286 integrates authenticated read-only module and function catalogue endpoints and Control Center rendering for registered metadata. The local launcher registers the validated built-in physics module manifest. Catalogue entries are metadata only: they do not load code, grant permissions, invoke operations or establish runtime readiness. The tools endpoint explicitly reports UNKNOWN because no separately governed tool registry is configured. Jobs, diagnostics, audit browsing, unified settings and cross-domain workbench integration remain open. WP-15B remains a draft pending owner review. PR #286 exact-head CI passed; post-merge CI and owner browser acceptance remain separate gates.
+The /control-center shell remains hosted by the authenticated IPv4-loopback CAD API and preserves the canonical CAD workbench at /. Workspaces use the configured durable SQLite store. PR #286 integrates authenticated read-only module and function catalogue endpoints and Control Center rendering for registered metadata. The local launcher registers the validated built-in physics module manifest. Catalogue entries are metadata only: they do not load code, grant permissions, invoke operations or establish runtime readiness. The tools endpoint explicitly reports UNKNOWN because no separately governed tool registry is configured. Jobs, diagnostics, audit browsing, unified settings and cross-domain workbench integration remain open. WP-15B remains a draft pending owner review. PR #286 is merged; the current PR #292 documentation reconciliation does not revalidate PR #286 CI. Owner browser acceptance remains a separate gate.
 
 ## 1. Outcome
 
