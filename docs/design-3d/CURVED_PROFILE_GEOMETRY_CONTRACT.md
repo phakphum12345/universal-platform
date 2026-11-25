@@ -1,6 +1,6 @@
 # Curved Profile Geometry Contract
 
-**Status:** PR #58 implementation candidate. Acceptance is limited to circular-arc profile edges in analytic extrusion; no B-rep or Boolean kernel is implied.
+**Status:** IMPLEMENTED / INTEGRATED — PR #58 merged 2026-11-06. Acceptance remains limited to circular-arc profile edges in analytic extrusion; no B-rep or Boolean kernel is implied.
 
 ## 1. Representation
 
