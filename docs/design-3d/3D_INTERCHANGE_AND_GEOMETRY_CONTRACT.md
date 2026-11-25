@@ -21,7 +21,7 @@ Distinguish analytic primitives, boundary representation (B-rep), parametric fea
 ## Candidate formats
 - STEP: candidate for solid/assembly interchange; exact application protocol and metadata mapping remain to be selected.
 - STL: tessellated surface; generally does not preserve units, materials or feature history reliably.
-- 3MF: additive manufacturing package candidate; validate units, materials and build metadata.
+- 3MF: bounded single-mesh solid import/export is implemented by PR #97; assembly, material/build metadata fidelity and broader package semantics still require separate validation.
 - OBJ: mesh interchange candidate; assembly/material semantics vary by implementation.
 - DXF/SVG: 2D geometry/document exchange; not a substitute for a 3D solid model.
 
