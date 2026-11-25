@@ -13,7 +13,7 @@
 | 04 | Mechanics | PARTIAL | General multi-loop/3D solving, singularity/redundancy and dynamics |
 | 05 | Physics | PARTIAL | Broader validated solvers, convergence, uncertainty and multiphysics coupling |
 | 06–08 | Hardware / EDA / Drivers | PARTIAL | Datasheet-backed limits, full PCB/library workflows, circuit simulation, diagnostics and safe driver lifecycle |
-| 09 | Module Runtime | PARTIAL | WP-09G host identity/authorization acceptance, durable audit/recovery and OS isolation/resource enforcement |
+| 09 | Module Runtime | PARTIAL | WP-09G-E production identity-provider/API wiring and owner acceptance; durable worker lease/reconciliation implementation is integrated, while OS isolation/resource enforcement remains open |
 | 10–12 | System understanding / API / Platform integration | PARTIAL / INCOMPLETE | Governed discovery, unified API/CLI, cross-domain workflows and end-to-end acceptance |
 | 13–14 | Security / Final verification | PARTIAL / INCOMPLETE | Enforced branch rules, security review, supported-platform matrix and release gates |
 | 15 | Unified Control Center | PARTIAL | WP-15A inventory, WP-15B draft, WP-15C shell, WP-15D workspace/status and WP-15E catalogue integrated; WP-15F–J remain open |
