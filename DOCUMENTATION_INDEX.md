@@ -1,4 +1,4 @@
-> **VERIFIED MAIN BASELINE — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #288–#291 integrated shared-backend architecture, request correlation, Request ID schema and Laravel/Python source-audit documentation. Repository-wide status remains **INCOMPLETE**.
+> **VERIFIED MAIN BASELINE — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #288–#291 integrated shared-backend architecture, request correlation, Request ID schema and Laravel/Python source-audit documentation. Documentation reconciliation PR #292 is OPEN / Draft and not merged. Repository-wide status remains **INCOMPLETE**.
 
 
 # Documentation Index
