@@ -1,6 +1,6 @@
 # Faceted B-rep Polygonal Mesh Triangulation Contract
 
-**Status:** IMPLEMENTED — PR #182 merged to the integration branch.  
+**Status:** IMPLEMENTED / INTEGRATED — bounded polygonal single-shell B-rep-to-mesh triangulation merged in PR #182 (`9c84d4d94030c0e3084d7a288064491d8160a71f`).  
 **Input profile:** `FACETED_POLYGONAL_PLANAR_SHELL_V2`.  
 **Output:** Validated `TriangleMesh` with `source_kind=IMPORTED_BREP`.
 
