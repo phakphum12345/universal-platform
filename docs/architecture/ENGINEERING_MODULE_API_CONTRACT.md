@@ -1,6 +1,6 @@
 # Engineering Module API Contract
 
-**Status:** PROPOSED invocation contract; metadata registry subset implemented in PR #39
+**Status:** PARTIAL — metadata registry (PR #39), request/response envelopes (PR #41), coordinate/quantity/evidence contracts, host-grant-gated ModuleRuntime dispatch (PR #235) and supervised WorkerIPC dispatch (PR #254) are implemented. The complete universal invocation envelope and cross-domain orchestration remain PROPOSED / INCOMPLETE.
 
 ## 1. Purpose
 
