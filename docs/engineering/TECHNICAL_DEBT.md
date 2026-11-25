@@ -7,7 +7,7 @@
 
 ## Live reconciliation — 2026-11-25
 
-- Main is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #280 and #287–#291 are merged; PR #258–#266 are also merged. Repository inventory at this audit: 273 merged PRs, 18 closed without merge, 0 open PRs.
+- Main is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #280 and #287–#291 are merged; PR #258–#266 are also merged. Pre-PR-#292 inventory snapshot: 273 merged PRs, 18 closed without merge, 0 open PRs; current documentation reconciliation PR #292 is OPEN / Draft and not merged.
 - PR #286 integrated the WP-15E authenticated read-only module/function catalogue. Its tools endpoint remains UNKNOWN because a separate governed tool registry does not exist.
 - PRs #258–#266 integrated the durable allocator, identity/process-binding, worker start-gate, liveness and startup-recovery slices. This does not close WP-09G-E: authenticated/audited operator recovery, end-to-end acceptance and OS isolation/resource enforcement remain open.
 - PR #288–#291 integrated shared-backend architecture, request correlation, Request ID schema and Laravel/Python source audit/documentation reconciliation.
