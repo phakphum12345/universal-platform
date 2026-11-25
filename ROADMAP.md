@@ -1,16 +1,17 @@
-> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` after PR #286. WP-15E metadata catalogue is merged. Post-merge CI on exact Main SHA PASS across Repository Quality, Engineering Core, CAD Generator Browser E2E (rerun) and Cross-Shell; initial Browser E2E failure remains cause UNKNOWN. PRs #280 and #287 are open; #287 checks are pending on its latest head, while #280 documentation content must be reconciled. Live inventory: 307 branches, 287 PRs; no branch was deleted. Overall status remains **INCOMPLETE**.
+> **LIVE STATUS — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #280, #287–#291 are merged; the repository audit reports 273 merged PRs, 18 closed without merge and 0 open PRs. No exact-SHA post-merge CI result for `24dbf3851cb64e7827234675a832e5abf1876b38` is asserted here; verify workflow evidence separately. Overall status remains **INCOMPLETE**.
 
 # Universal Platform — Roadmap
 
 Status: Proposed sequence. No phase is declared complete.
 
-## Continuous execution control — 2026-11-23
+## Continuous execution control — 2026-11-25
 
-- `main`: `84cc7fa88161818f240619393dd1482e170fec2e`, PR #286 WP-15E merged.
-- PR #286 exact-head CI passed Repository Quality, Engineering Core, CAD Generator Browser E2E and all four Cross-Shell jobs. Post-merge workflows are not yet complete.
-- PR #280 is still open at head `1e28fd5...`; its branch is based on current Main (31 ahead / 0 behind), but the documentation content still reflects an older status snapshot and overlaps PR #287. Reconcile content before merge.
-- 306 branches were inventoried. 18 closed-unmerged PRs and 20 branches without a PR were checked for later source/documentation counterparts; preserve branch history and do not delete them as cleanup.
-- Next execution priorities: complete post-merge CI; reconcile PR #280 and current documentation; continue WP-15F settings, WP-15G diagnostics/audit, WP-15H workbench integration, WP-15I accessibility/usability and WP-15J release hardening; complete WP-09G security/identity acceptance; then continue domain-level CAD, Mechanics, Physics, Hardware/EDA and interoperability gaps.
+- `main`: `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge).
+- PR #280 and PR #287–#291 are MERGED. PR #288 added shared hybrid-backend architecture; #289 request correlation; #290 machine-readable Request ID schema; #291 Laravel/Python source audit and documentation reconciliation.
+- PR inventory at the 2026-11-25 repository audit: 273 merged, 18 closed without merge, 0 open. No branch deletion is authorized by this reconciliation.
+- Exact post-merge CI on the current Main SHA is **UNKNOWN** in this documentation patch; do not infer PASS from PR merge status.
+- Next priorities: reconcile remaining documentation and source evidence; continue WP-15F–J; complete WP-09G identity/security acceptance; then address domain-level CAD, Mechanics, Physics, Hardware/EDA and interoperability gaps.
+
 
 ## Historical execution snapshot — 2026-11-22 (superseded)
 
