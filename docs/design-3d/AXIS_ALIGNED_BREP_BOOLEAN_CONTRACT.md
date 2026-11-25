@@ -1,6 +1,6 @@
 # Axis-Aligned Faceted B-rep Boolean Contract v1.0
 
-**Status:** Bounded first 3D Boolean implementation; PR candidate `feat/axis-aligned-brep-boolean-v1`.  
+**Status:** IMPLEMENTED / INTEGRATED — bounded axis-aligned faceted B-rep Boolean operations merged in PR #118 (`0b7e9b4a649a8b3dcf4512cd5172640979115ed4`). Support is limited to the documented axis-aligned box-grid profile; this is not a general 3D Boolean kernel.  
 **Algorithm:** `exact-axis-aligned-brep-box-grid-v1`.
 
 ## 1. Supported inputs

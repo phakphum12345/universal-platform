@@ -1,6 +1,6 @@
 # Electrical Rule Checking Contract
 
-**Status:** Static ERC ruleset v1.0 implementation candidate (PR #60). This is conservative offline design linting, not a circuit simulator, standards-compliance engine, or safety certification.
+**Status:** IMPLEMENTED / INTEGRATED — PR #60 merged 2026-11-06. This remains conservative offline design linting, not a circuit simulator, standards-compliance engine, or safety certification.
 
 ## 1. Purpose and inputs
 

@@ -1,6 +1,6 @@
 # WP-15C — Control Center Shell Implementation Record
 
-**Status:** PARTIAL IMPLEMENTATION — PR validation pending. This is not WP-15 completion or owner usability acceptance.  
+**Status:** PARTIAL IMPLEMENTATION — integrated by PR #286; WP-15 completion and owner usability acceptance remain open. The merged shell is a technical foundation, not platform-wide UI acceptance.  
 **Work package:** WP-15C  
 **Parent:** [Modern Unified Control Center](MODERN_UNIFIED_CONTROL_CENTER.md)  
 **Existing UI inventory:** [WP15A_UI_INVENTORY.md](WP15A_UI_INVENTORY.md)  

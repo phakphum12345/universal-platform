@@ -1,10 +1,7 @@
 # Feature History and Regeneration Contract v1.0
 
-**Status:** Bounded implementation — PR #93 merged to integration.  
-**Merge SHA:** `0983de4c8839070e2a27cd7b8e704f975d176abf`.  
-**Exact PR-head CI:** run #42263173745 — both required jobs PASS, 636 tests.  
-**Post-merge CI:** run #42263296016 — both required jobs PASS, 636 tests.  
-**Main:** unchanged at `96e75010716226037893155b9fd4b13410fb0d6f`.
+**Status:** Bounded FeatureHistory regeneration and persistence workflow IMPLEMENTED / INTEGRATED. PR #93 established the initial deterministic evaluator; PRs #131–#134 added strict artifact rehydration, local artifact caching and a separate-process source-revision/cache reopen acceptance workflow. Suppression (PRs #163/#165/#166), Undo/Redo (PRs #169–#171), presentation reorder (PRs #173/#174) and branch/fork/merge (PRs #176–#180) are separate integrated capabilities; they do not make this a general CAD editor or geometry kernel.  
+**Initial PR #93 merge SHA:** `0983de4c8839070e2a27cd7b8e704f975d176abf` (historical initial-slice evidence).
 
 ## 1. Purpose
 
@@ -53,9 +50,9 @@ Only hard-coded, allow-listed operations execute. Feature parameters are data, n
 
 ## 6. Explicit limitations
 
-Not yet implemented: combined durable source-revision plus artifact-cache workflow acceptance, cache eviction/retention and backup automation, end-to-end feature suppression (backend model/editor/regeneration implemented by PR #163 at merge `e6a6196aeaa84fca2eff8ce2f0417cc0a4014c2b`; revision-safe service/API/workbench integration remains open), rollback/branch/merge editing, interactive GUI, constraints/parameter expression language, feature migration tooling, generalized B-rep, arbitrary 3D Boolean, STEP/3MF, assembly-level feature contexts, or manufacturing/certification validation. Incremental recomputation remains fingerprint-based: without an optional artifact cache, reuse is process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`; with a cache, only exact algorithm-version-aware computation signatures are reused.
+Not yet implemented: cache eviction/retention and backup automation, a full interactive CAD geometry editor, a general feature-parameter expression language, feature migration tooling, generalized B-rep surfaces, arbitrary 3D Boolean operations, STEP/3MF round-trip fidelity, assembly-level feature contexts, or manufacturing/certification validation. Bounded source-revision/cache reopen acceptance is implemented by PR #134; suppression/unsuppression by PRs #163/#165/#166; Undo/Redo by PRs #169–#171; presentation reorder by PRs #173/#174; and branch/fork/merge by PRs #176–#180. Incremental recomputation remains fingerprint-based: without an optional artifact cache, reuse is process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`; with a cache, only exact algorithm-version-aware computation signatures are reused. Incremental recomputation remains fingerprint-based: without an optional artifact cache, reuse is process-local and requires an explicitly supplied prior successful `FeatureRegenerationResult`; with a cache, only exact algorithm-version-aware computation signatures are reused.
 
-The sketch-to-region converter accepts closed straight-edge and circular-arc loops through bounded polygonal tessellation (PR #128); exact analytic curved topology is not provided. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. The current extrusion and mesh operations retain their documented straight-edged limits.
+The sketch-to-region converter accepts closed straight-edge and circular-arc loops through bounded polygonal tessellation (PR #128); exact analytic curved topology is not provided. The bounded planar Boolean engine preserves unambiguous point-only contacts as separate simple regions under PR #95; ambiguous branching, coincident outgoing directions and invalid hole topology remain fail-closed. Analytic profile extrusion supports circular-arc boundaries (PR #58), while mesh tessellation approximates supported arcs under explicit chordal tolerance (PR #70). PlanarRegion-to-solid extrusion remains straight-edged only; none of these paths provides general curved B-rep or 3D Boolean operations.
 
 ## 7. Acceptance evidence
 

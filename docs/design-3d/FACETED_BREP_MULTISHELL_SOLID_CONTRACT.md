@@ -1,6 +1,6 @@
 # Faceted B-rep Multi-Shell Solid Contract v1.0
 
-**Status:** IMPLEMENTED — PR #184 merged to the integration branch.  
+**Status:** IMPLEMENTED / INTEGRATED — bounded outer-shell plus cavity-shell aggregate merged in PR #184 (`db7ce54efe3d9334b87b3902a14b089b6ce67ebd`).  
 **Profile:** `FACETED_MULTI_SHELL_SOLID_V1`.  
 **Component profile:** `FACETED_POLYGONAL_PLANAR_SHELL_V2`.
 

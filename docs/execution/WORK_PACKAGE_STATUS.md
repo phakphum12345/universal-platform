@@ -1,10 +1,10 @@
-> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes PR #286 WP-15E catalogue. Post-merge Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4) are PASS; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PRs #280 and #287 are open; #287 checks are running on its latest head. Live branch audit covered 307 branches; no branch was deleted. Overall status: **INCOMPLETE**.
+> **LIVE STATUS — 2026-11-25:** Main `24dbf3851cb64e7827234675a832e5abf1876b38` includes PR #291. PR #280 and #287–#291 are merged; PRs #258–#266 are also integrated. Pre-PR-#292 inventory snapshot: 273 merged PRs, 18 closed without merge, 0 open PRs; current documentation reconciliation PR #292 is OPEN / Draft and not merged. Exact-SHA post-merge CI on current Main is **UNKNOWN** pending workflow verification. Overall status: **INCOMPLETE**.
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-23
+## Live work-package reconciliation — 2026-11-25
 
-**Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). PR #286 post-merge CI is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
+**Main baseline:** `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge). PR #280 and #287–#291 are merged; PRs #258–#266 are integrated. Exact-SHA post-merge CI on this Main baseline is UNKNOWN pending workflow verification.
 
 | WP | Domain | Current status | Next acceptance work |
 |---|---|---|---|
@@ -13,7 +13,7 @@
 | 04 | Mechanics | PARTIAL | General multi-loop/3D solving, singularity/redundancy and dynamics |
 | 05 | Physics | PARTIAL | Broader validated solvers, convergence, uncertainty and multiphysics coupling |
 | 06–08 | Hardware / EDA / Drivers | PARTIAL | Datasheet-backed limits, full PCB/library workflows, circuit simulation, diagnostics and safe driver lifecycle |
-| 09 | Module Runtime | PARTIAL | WP-09G host identity/authorization acceptance, durable audit/recovery and OS isolation/resource enforcement |
+| 09 | Module Runtime | PARTIAL | WP-09G-E production identity-provider/API wiring and owner acceptance; durable worker lease/reconciliation implementation is integrated, while OS isolation/resource enforcement remains open |
 | 10–12 | System understanding / API / Platform integration | PARTIAL / INCOMPLETE | Governed discovery, unified API/CLI, cross-domain workflows and end-to-end acceptance |
 | 13–14 | Security / Final verification | PARTIAL / INCOMPLETE | Enforced branch rules, security review, supported-platform matrix and release gates |
 | 15 | Unified Control Center | PARTIAL | WP-15A inventory, WP-15B draft, WP-15C shell, WP-15D workspace/status and WP-15E catalogue integrated; WP-15F–J remain open |
@@ -57,7 +57,7 @@
 | PR #193 | Contract retained and advanced | Current faceted B-rep Boolean contract exists on main |
 | PRs #100–#114 | Historical runtime/documentation branches | Current runtime adapter/recovery/resource/health code is present on main; no direct cherry-pick without a unique diff |
 
-Historical work-package rows below are retained as a dated prior snapshot. See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+Historical work-package rows below are retained as a dated prior snapshot. See [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](../engineering/TECHNICAL_DEBT.md).
 
 **Baseline integration branch:** `docs/phase-0-complete-requirements`  
 **Last verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge)  

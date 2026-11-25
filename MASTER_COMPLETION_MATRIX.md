@@ -1,16 +1,17 @@
-> **LIVE STATUS — 2026-11-23:** `main` is `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). WP-15E catalogue is integrated. Post-merge Repository Quality, Engineering Core, CAD Generator Browser E2E and Cross-Shell workflows are PASS on this exact Main SHA; the first Browser E2E attempt failed 1/9 and its rerun passed, with the initial cause UNKNOWN. PRs #280 and #287 are OPEN; PR #287 CI is running on its current head. Live inventory after opening #287: 307 branches and 287 PRs (267 merged, 18 closed without merge, 2 open); 20 branches without a PR excluding main. Repository remains **INCOMPLETE**. See [2026-11-23 branch reconciliation audit](docs/audit/REPOSITORY_AUDIT_2026-11-23_BRANCH_RECONCILIATION.md).
+> **LIVE STATUS — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #280 and #287–#291 are merged. Pre-PR-#292 inventory snapshot: 273 merged PRs, 18 closed without merge, 0 open PRs; current documentation reconciliation PR #292 is OPEN / Draft and not merged. Exact-SHA post-merge CI on this Main SHA is not asserted here and remains **UNKNOWN** pending workflow verification. Repository remains **INCOMPLETE**. See [2026-11-23 branch reconciliation audit](docs/audit/REPOSITORY_AUDIT_2026-11-23_BRANCH_RECONCILIATION.md) as historical evidence.
 
 # Universal Platform — Master Completion Matrix
 
-## Live repository reconciliation — 2026-11-23
+## Live repository reconciliation — 2026-11-25
 
-- `main` HEAD: `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 squash merge).
-- PR #286 WP-15E module/function catalogue is integrated. PR #280 remains OPEN at head `1e28fd5c14a7676d677d99732b4646c7ac31e8a8`; compare against current Main `84cc7fa...` reports 31 commits ahead / 0 behind. Its branch is based on current Main, but its 10 documentation changes still contain older status snapshots and overlap the current audit; reconcile content before merge.
-- PR #286 exact-head CI: Repository Quality PASS, Engineering Core PASS, CAD Generator Browser E2E PASS, Cross-Shell Runtime Validation PASS (4/4 jobs). Post-merge workflows on exact Main SHA `84cc7fa...` are PASS; the first Browser E2E attempt failed 1/9 and its rerun passed, with cause UNKNOWN.
-- Pre-audit-PR snapshot: 306 branches, 286 PRs, 267 merged, 18 closed without merge, 1 open (#280), and 20 branches without a PR excluding `main`. The live count after opening #287 is 307 branches / 287 PRs, with #280 and #287 open.
-- Closed-unmerged branches and branch-only work were inspected for source/test/documentation counterparts; many are superseded or integrated by later PRs. Two old documentation-only branch deltas remain candidates for archival/reconciliation. No branch or file was deleted.
-- WP-15A inventory, WP-15B IA draft, WP-15C shell, WP-15D workspace/status foundation and WP-15E metadata catalogue are present; WP-15F–J remain open. Tools catalogue correctly reports UNKNOWN because no separate governed tool registry exists.
-- Repository maturity remains **INCOMPLETE**; see the detailed branch audit linked above.
+- `main` HEAD: `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge).
+- PR #280 and PR #287–#291 are MERGED. PR #288–#291 deliver shared backend architecture, request correlation, Request ID schema and Laravel/Python source audit/documentation reconciliation.
+- Repository inventory: 273 merged PRs, 18 closed without merge, 0 open PRs. No branch or file deletion is part of this reconciliation.
+- Exact post-merge CI on `24dbf3851cb64e7827234675a832e5abf1876b38`: **UNKNOWN** in this audit; merge state is not CI evidence.
+- WP-15 remains PARTIAL; WP-15F–J remain open. Tools catalogue still reports UNKNOWN where no separate governed tool registry exists.
+- WP-09G security/identity and durable recovery acceptance remain distinct from the fact that PRs #258–#266 merged.
+- Repository maturity remains **INCOMPLETE**.
+
 
 ## Historical snapshot — 2026-11-22 (superseded)
 
@@ -28,7 +29,7 @@
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
 | Core architecture / governance | PARTIAL | Branch protection, identity/authorization, threat model, secure configuration, audit, migration/rollback and platform orchestration |
-| Runtime / Worker | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery and durable approval/audit remain open; general sandbox and OS resource enforcement are not established |
+| Runtime / Worker | PARTIAL | WP-09G-A through D integrated by PR #272; WP-09G-E recovery-service slice integrated by PR #277, but production identity-provider/API wiring and owner acceptance remain open; general sandbox and OS resource enforcement are not established |
 | CAD / Geometry / Generator | PARTIAL | General topology/degeneracies, curved geometry, recompute propagation, broader interoperability and independent adversarial references |
 | Mechanics / Kinematics | PARTIAL | General multi-loop/3D configuration solving, singularity/redundancy analysis, dynamics and contact |
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |

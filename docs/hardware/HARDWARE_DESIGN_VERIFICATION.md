@@ -1,8 +1,8 @@
 # Hardware Design Verification
 
-**Status:** PROPOSED  
+**Status:** PROPOSED specification with PARTIAL implemented evidence.  
 **Requirement:** HWR-006  
-**Implementation:** NOT IMPLEMENTED / NOT VERIFIED
+**Implementation:** PARTIAL — normalized schematic connectivity (PR #46), deterministic SVG rendering (PR #59) and conservative static ERC v1.0 (PR #60) are integrated. Datasheet-backed electrical limits, full component/footprint verification, simulation, driver validation and physical verification remain NOT IMPLEMENTED / NOT VERIFIED.
 
 ## 1. Purpose
 

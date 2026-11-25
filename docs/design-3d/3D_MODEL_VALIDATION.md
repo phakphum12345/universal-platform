@@ -38,4 +38,4 @@ Model identifier/revision; input files and hashes; CAD tool/kernel version; chec
 - Triangle-triangle self-intersection detection, arbitrary mesh repair, external CAD application reopen, manufacturing checks and physical validation remain UNKNOWN or NOT IMPLEMENTED. No overall model-validity PASS may be inferred from structural mesh validation alone.
 
 
-- PR #78 specifies a separate exact-predicate triangle-mesh intersection analysis; no geometric intersection result is available until its implementation and independent reference corpus pass.
+- PR #80 implements the separate exact-rational `analyze_mesh_intersections` API with deterministic AABB sweep-and-prune, exact predicates and fail-closed pair limits. Exact PR-head workflow-sanity and Python tests passed (550 tests); post-merge CI on the exact merge SHA is UNKNOWN. `MeshTopologyAnalysis.self_intersection_status` remains UNKNOWN in schema v1.0 for compatibility; callers must inspect the separate analysis result.

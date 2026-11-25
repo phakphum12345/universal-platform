@@ -1,6 +1,6 @@
 # FeatureHistory Presentation Reordering Contract
 
-**Status:** Backend editor, revision-safe service and strict loopback API implementation submitted in PR #173; workbench controls and browser acceptance remain a separate slice.  
+**Status:** Bounded presentation reordering IMPLEMENTED / INTEGRATED by PR #173 (revision-safe backend/service/API) and PR #174 (workbench controls and browser acceptance). Reordering changes stored presentation order only; deterministic dependency-derived execution order is unchanged.  
 **Scope:** Reorder the FeatureHistory tree's stored presentation sequence without changing dependency edges or regeneration execution order.
 
 ## Invariants

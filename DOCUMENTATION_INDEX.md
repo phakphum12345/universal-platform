@@ -1,4 +1,4 @@
-> **VERIFIED MAIN BASELINE — 2026-11-24:** `main` was `2065b8a921dd5cdabbec007edf2af48f95d10761` after PR #290. PRs #288–#290 integrated the shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. The shared-backend source audit and integration documents are indexed below. Repository-wide status remains **INCOMPLETE**.
+> **VERIFIED MAIN BASELINE — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #288–#291 integrated shared-backend architecture, request correlation, Request ID schema and Laravel/Python source-audit documentation. Documentation reconciliation PR #292 is OPEN / Draft and not merged. Repository-wide status remains **INCOMPLETE**.
 
 
 # Documentation Index
@@ -21,7 +21,7 @@
 - **UNKNOWN** — available evidence is insufficient to classify the implementation.
 - **PASS / FAIL / SKIPPED / UNKNOWN** are evidence outcomes, not maturity labels. A documentation statement or successful workflow alone does not establish physical or engineering validity.
 
-The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Latest integration snapshot for this index update: `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`; PR #218 exact-head and post-merge workflow-sanity, Python and Chromium E2E checks PASS. PR #219 exact-head and post-merge workflow-sanity/Python checks PASS. PR #217 exact-head workflow-sanity/Python checks PASS and is merged; post-merge Python CI is IN_PROGRESS at this snapshot. PRs #200–#219 add bounded exact global arrangement, independent coverage certification, material classification, Boolean selection, shell assembly, CAD Generator orchestration, coplanar-contact isolation and aggregate resource budgets. The current binary64 B-rep rejects non-lossless rational coordinates; see [Exact Rational Faceted Output Contract](docs/design-3d/EXACT_RATIONAL_FACETED_OUTPUT_CONTRACT.md). General arbitrary-faceted Boolean and the overall repository remain PARTIAL / INCOMPLETE. Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and is unchanged; ahead/behind count is not asserted in this snapshot. Current inventory at documentation audit head `ffd6b9bd57d86bbb91bc90c23a1573cd09908428`: 373 blobs, 150 Markdown, 191 Python, 26 JSON files and 100 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation and multi-shell outer/cavity composition are PASS for their bounded adapters; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
+The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [Engineering Requirements Traceability](docs/traceability/ENGINEERING_REQUIREMENTS_TRACEABILITY.md) are the source-of-truth records for code maturity and test evidence. Historical documentation baselines remain pinned in their respective audit entries. Historical index snapshot (2026-11-08; superseded): `972f5d5787cb0f70c3f3200dd942f6b8329f08bf`; PR #218 exact-head and post-merge workflow-sanity, Python and Chromium E2E checks PASS. PR #219 exact-head and post-merge workflow-sanity/Python checks PASS. PR #217 exact-head workflow-sanity/Python checks PASS and is merged; post-merge Python CI is IN_PROGRESS at this snapshot. PRs #200–#219 add bounded exact global arrangement, independent coverage certification, material classification, Boolean selection, shell assembly, CAD Generator orchestration, coplanar-contact isolation and aggregate resource budgets. The current binary64 B-rep rejects non-lossless rational coordinates; see [Exact Rational Faceted Output Contract](docs/design-3d/EXACT_RATIONAL_FACETED_OUTPUT_CONTRACT.md). General arbitrary-faceted Boolean and the overall repository remain PARTIAL / INCOMPLETE. Main remains `96e75010716226037893155b9fd4b13410fb0d6f` and is unchanged; ahead/behind count is not asserted in this snapshot. Current inventory at documentation audit head `ffd6b9bd57d86bbb91bc90c23a1573cd09908428`: 373 blobs, 150 Markdown, 191 Python, 26 JSON files and 100 Python test files (recursive tree not truncated). FeatureHistory editing, suppression, Undo/Redo, reorder and branch/fork/merge are PASS for bounded workflows; polygonal B-rep mesh triangulation and multi-shell outer/cavity composition are PASS for their bounded adapters; generalized CAD geometry, physics, EDA, secure runtime and overall repository completion remain INCOMPLETE.
 
 ## Repository-level product and governance
 
@@ -47,15 +47,15 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Policy-Gated Module Runtime](docs/architecture/POLICY_GATED_MODULE_RUNTIME.md) — host permission checks, trusted handlers, supervised worker dispatch, schema validation, cancellation, lease quarantine and explicit security limits.
 - [Runtime Resource Adapter and Recovery](docs/architecture/RESOURCE_ADAPTER_RECOVERY.md) — resource registry, log-driven recovery, process supervision, evidence integrity, adapter routing, quota leases and remaining durable-recovery/security gates.
 - [Windows Job Object Containment Contract](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md) — race-free suspended startup, Job Object lifecycle, termination semantics and Windows acceptance gates; bounded implementation merged in PR #244.
-- [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — function-by-function behavior, tests, failure paths, lease boundaries and remaining runtime integration work.
+- [WP-09 Runtime Function Audit](docs/runtime/WP09_RUNTIME_FUNCTION_AUDIT.md) — historical function-by-function source audit pinned to an older baseline; use the Durable Worker Lease and Crash-Recovery Contract for current WP-09G status.
 - [Worker IPC Protocol](docs/runtime/WINDOWS_JOB_OBJECT_CONTAINMENT_CONTRACT.md#worker-ipc-envelope-requirements) — versioned bounded worker frame contract and integration gates.
 - [Engineering Data Model](docs/architecture/ENGINEERING_DATA_MODEL.md) — engineering entities, revisions, units and provenance.
 - [Engineering Module API Contract](docs/architecture/ENGINEERING_MODULE_API_CONTRACT.md) — module metadata, request/response and authority boundary.
 - [Frame-bound Coordinate Contract](docs/architecture/FRAMED_COORDINATE_CONTRACT.md) — framed points and displacement vectors.
 - [System Intelligence](docs/architecture/SYSTEM_INTELLIGENCE.md) — authorized discovery and adaptation workflow.
-- [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md)
+- [Universal Command System](docs/architecture/UNIVERSAL_COMMAND_SYSTEM.md) — proposed cross-interface task envelope and lifecycle.
 - [Shared Zero-Cost Hybrid Backend](docs/shared-backend/README.md) — category index for Laravel/Python ownership, Flutter integration, contracts, security, cost policy and operations.
-- [Verified Shared Backend Source Audit](docs/shared-backend/SOURCE_AUDIT.md) — source-backed API routes, authentication, persistence and network boundaries. — proposed cross-interface task envelope and lifecycle.
+- [Verified Shared Backend Source Audit](docs/shared-backend/SOURCE_AUDIT.md) — source-backed API routes, authentication, persistence and network boundaries.
 
 ## Shared backend architecture and integration
 
@@ -83,7 +83,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [CAD-neutral Primitive Geometry](docs/engineering/CAD_NEUTRAL_PRIMITIVE_GEOMETRY.md) — analytic primitives, straight/curved profile extrusion and known CAD-kernel boundaries.
 
 - [FeatureHistory Suppression Contract](docs/design-3d/FEATURE_HISTORY_SUPPRESSION_CONTRACT.md) — end-to-end suppression semantics, v1.0/v1.1 compatibility, API/UI and acceptance evidence.
-- [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — proposed persistent, append-only undo/redo semantics and acceptance gates; design only.
+- [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — bounded end-to-end persistent Undo/Redo workflow integrated through PRs #169–#171.
 - [CAD Generator HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — authenticated loopback endpoints, strict request schemas and revision-safe editing.
 
 ## 3D design, geometry, mechanisms and manufacturing
@@ -96,8 +96,9 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [3D Model Validation](docs/design-3d/3D_MODEL_VALIDATION.md) — geometry, assembly and engineering validation layers.
 - [Deterministic Primitive Triangle Mesh Contract](docs/design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md) — implemented Box/Cylinder and straight/arc profile tessellation, including polygonal holes, with structural validation scope.
 - [Binary STL Interchange](docs/design-3d/STL_INTERCHANGE_CONTRACT.md) — implemented binary export and metadata sidecar; arbitrary import remains open.
-- [Mesh Geometric Topology Analysis](docs/design-3d/MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) — implemented diagnostic layer; self-intersection remains open.
-- [Mesh Triangle Intersection](docs/design-3d/MESH_TRIANGLE_INTERSECTION_CONTRACT.md) — implemented additive exact-rational intersection analysis; topology v1.0 remains backward compatible.
+- [3MF Core Mesh Interchange](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md) — bounded single-mesh solid import/export; assembly/material/build-metadata fidelity remains open.
+- [Mesh Geometric Topology Analysis](docs/design-3d/MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) — implemented structural/topology diagnostics; its v1.0 self-intersection field remains UNKNOWN, with a separate analysis API documented below.
+- [Mesh Triangle Intersection](docs/design-3d/MESH_TRIANGLE_INTERSECTION_CONTRACT.md) — implemented separate exact-rational self-intersection analysis API (PR #80); topology schema v1.0 retains its UNKNOWN field for backward compatibility.
 - [3D Motion and Mechanism Reference Cases](docs/design-3d/3D_MOTION_AND_MECHANISM_REFERENCE_CASES.md) — deterministic mechanism fixtures.
 - [CAD to Manufacturing Pipeline](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md) — proposed manufacturing artifact workflow.
 - [Structural and Civil Design](docs/design-3d/STRUCTURAL_AND_CIVIL_DESIGN.md) — proposed structural/civil engineering scope.
@@ -240,7 +241,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the same-origin local FeatureHistory workbench, token handling, CSP and capability boundaries.
 - Static UI assets: `src/universal_platform/engineering/static/cad_generator.html`, `cad_generator.css`, `cad_generator.js`.
-- The current workbench edits FeatureHistory JSON and manages revisions; graphical sketch editing and a CAD viewport remain OPEN.
+- The current workbench edits FeatureHistory JSON, manages immutable revisions and includes bounded SVG straight-polygon sketch authoring plus mesh preview; a full parametric CAD editor and general 3D viewport remain OPEN.
 
 
 ## Visual polygon sketch editor — PR #142
@@ -298,20 +299,20 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — append-only revision restore model, persistent stacks, expected-revision safety and workbench rules.
 - [Post-PR #171 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR171.md) — exact merge SHA and post-merge Python, Chromium and workflow-sanity evidence.
-- Undo/Redo is PASS for this bounded FeatureHistory workflow. Presentation reordering is separately PASS under PRs #173–#174; graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
+- Undo/Redo is PASS for this bounded FeatureHistory workflow. Presentation reordering is separately PASS under PRs #173–#174, and branch/fork/merge is PASS under PRs #176–#180; recompute propagation and general CAD-kernel capabilities remain OPEN.
 
 
 ## FeatureHistory Presentation Reordering — PRs #173–#174
 
 - [FeatureHistory Reordering Contract](docs/design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md) — dependency-safe presentation order, immutable revision and unchanged execution order.
 - [Post-PR #174 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR174.md) — exact PR-head and post-merge Python, Chromium and workflow-sanity evidence.
-- FeatureHistory presentation reordering is PASS for the bounded workflow. Graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
+- FeatureHistory presentation reordering is PASS for the bounded workflow. Branch/fork/merge is separately PASS for the bounded workflow; recompute propagation and general CAD-kernel capabilities remain OPEN.
 
 
-## FeatureHistory Branch and Merge — design contract
+## FeatureHistory Branch and Merge — integrated bounded workflow
 
-- [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — independent branch history identities, exact fork provenance, conservative three-way merge, conflict rules and atomic append-only merge requirements.
-- **Status:** PARTIAL — PR #176 implements local immutable branch/fork storage and PR #177 adds pure three-way merge analysis. PR #178 implements transactional merge append/provenance, PR #179 adds strict branch/fork/merge API routes and PR #180 completes the workbench controls and Chromium branch/merge acceptance. **Status: PASS** for the bounded FeatureHistory branch/fork/merge workflow; broader CAD and repository requirements remain OPEN.
+- [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — integrated bounded branch/fork, conservative three-way merge, transactional persistence, loopback API and workbench controls.
+- **Status:** IMPLEMENTED / INTEGRATED — PRs #176–#180 deliver immutable branch/fork storage, conservative three-way merge analysis, transactional append/provenance, strict loopback API routes and workbench controls. Exact-head and post-merge CI passed for the bounded workflow; broader CAD and repository requirements remain OPEN.
 
 - [Post-PR #176 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR176.md) — exact branch/fork PR-head and post-merge Python, Chromium and workflow-sanity evidence.
 

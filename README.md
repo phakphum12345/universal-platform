@@ -1,4 +1,4 @@
-> **VERIFIED IMPLEMENTATION BASELINE — 2026-11-24:** `main` was `2065b8a921dd5cdabbec007edf2af48f95d10761` after PR #290. PRs #288–#290 integrated the shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema. The source audit and integration-document reconciliation are indexed under `docs/shared-backend/` and were introduced by PR #291. Overall status: **INCOMPLETE**; full source reconciliation, shared error contract, organization-admin client correlation, runtime port discovery, operational acceptance, WP-15F–J, WP-09G security acceptance and broader domain capability gaps remain.
+> **VERIFIED IMPLEMENTATION BASELINE — 2026-11-25:** `main` is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PRs #258–#266, #280, and #287–#291 are merged. PRs #288–#290 integrated the shared hybrid-backend architecture, Python request correlation and machine-readable Request ID schema; PR #291 added the Laravel/Python source audit and integration-document reconciliation. Repository inventory on the `main` baseline before opening this reconciliation: 273 merged PRs, 18 closed without merge, 0 open PRs. Current documentation reconciliation is tracked in Draft PR #292 (OPEN, not merged). Overall status: **INCOMPLETE**; full source reconciliation, shared error contract, organization-admin client correlation, runtime port discovery, operational acceptance, WP-15F–J, WP-09G security acceptance and broader domain capability gaps remain.
 
 # Universal Platform
 
@@ -46,10 +46,10 @@ Current modules include:
 - Versioned rigid-transform/frame-graph exchange with explicit length units (PR #43 merged).
 - Versioned Quantity snapshots with SI value, dimension and source-unit lineage (PR #44 merged).
 - Frame-bound spatial points and displacement vectors with point/vector-correct transforms (PR #45 merged).
-- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged), deterministic offline SVG layout renderer (PR #59), and conservative static ERC v1.0 candidate (PR #60); no circuit simulation or physical verification.
+- Normalized hardware schematic component/pin/net connectivity model (PR #46 merged), deterministic offline SVG layout renderer (PR #59 merged), and conservative static ERC v1.0 checks (PR #60 merged); no circuit simulation, standards-compliance engine or physical verification.
 - Hardware driver interface declarations and schematic pin bindings (PR #47 merged; metadata only).
 - Frame-aware analytic Box/Cylinder primitives with deterministic serialization, SI properties and transformed bounds (PR #48 merged; not a general CAD kernel).
-- Straight-sided polygon profile extrusion with validation, SI volume/surface area, deterministic serialization and transformed bounds (PR #49 merged at `bfc3e6585106c73b29297cbda2ab9ec9d50340db`; final head `38a800d033ebbba19e1120c8cd3a47ade4088526`, run #356 / `42178039043` PASS, 416 tests; post-merge run #381 / `42186896757` PASS, 416 tests).
+- Analytic profile extrusion: PR #49 adds straight-edged profiles; PR #52 adds polygonal through-holes and inner-wall surface area; PR #58 adds circular-arc edges and curved through-holes with analytic measures. The bounded curved-topology validation uses deterministic tessellation; these features do not constitute a general B-rep or 3D Boolean kernel.
 - A small dense linear solver with partial pivoting and residual checks.
 - Scalar constraint evaluation with explicit UNKNOWN handling.
 - Assembly occurrence/joint contracts and nominal joint-DOF bookkeeping.

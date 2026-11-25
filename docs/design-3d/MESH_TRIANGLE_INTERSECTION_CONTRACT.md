@@ -1,6 +1,6 @@
 # Triangle-Mesh Self-Intersection Contract
 
-**Status:** Design contract for a separate geometric-intersection analysis API. PR #77's MeshTopologyAnalysis.self_intersection_status remains UNKNOWN; topology diagnostics must not be treated as evidence that a mesh is free of geometric intersections.
+**Status:** IMPLEMENTED / INTEGRATED — separate exact-rational `analyze_mesh_intersections` API and `MeshIntersectionAnalysis` v1.0 implemented by PR #80 (`cb91c7c49406fd02324be6b30d5570e821b4d503`). Exact PR head `009ab1b24578579c0f6c6bbf3d4f8e3ee42fc181` passed workflow-sanity and Python tests (550 passed); post-merge CI on the exact merge SHA was not returned and remains UNKNOWN. `MeshTopologyAnalysis.self_intersection_status` in schema v1.0 intentionally remains UNKNOWN for backward compatibility.
 
 ## 1. Purpose and API boundary
 
@@ -81,8 +81,8 @@ The API must not silently suppress a pair merely because it shares an index.
 
 ## 8. Integration with topology analysis
 
-PR #77's MeshTopologyAnalysis.self_intersection_status remains UNKNOWN for backward-compatible schema v1.0. A future version may include a reference to a separate MeshIntersectionAnalysis result, but must not silently change v1.0 semantics. Overall mesh acceptance requires both structural/topology evidence and a completed intersection analysis; the two results remain independently inspectable.
+PR #77's `MeshTopologyAnalysis.self_intersection_status` remains UNKNOWN for backward-compatible schema v1.0. PR #80 implements the separate `MeshIntersectionAnalysis` API; callers must explicitly invoke it and retain its result alongside structural/topology evidence. Do not silently reinterpret the v1.0 field or infer overall model validity from either result alone.
 
 ## 9. Explicit non-claims
 
-This contract does not implement self-intersection detection, mesh repair, welding, snapping, Boolean operations, B-rep validity, collision/contact simulation, manufacturing checks, physical validation or certification.
+This API implements bounded self-intersection diagnostics only. It does not repair, weld, snap, mutate or simplify meshes; perform Boolean operations; certify general B-rep validity; simulate collision/contact; validate manufacturing; or establish physical safety/certification.

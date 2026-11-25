@@ -1,6 +1,6 @@
 # Engineering Module API Contract
 
-**Status:** PROPOSED invocation contract; metadata registry subset implemented in PR #39
+**Status:** PARTIAL — metadata registry (PR #39), request/response envelopes (PR #41), coordinate/quantity/evidence contracts, host-grant-gated ModuleRuntime dispatch (PR #235) and supervised WorkerIPC dispatch (PR #254) are implemented. The complete universal invocation envelope and cross-domain orchestration remain PROPOSED / INCOMPLETE.
 
 ## 1. Purpose
 
@@ -67,7 +67,7 @@ This is a metadata registry only. It does not load or invoke code, enforce permi
 
 ModuleRequest and ModuleResponse are immutable data-contract records. Nested JSON objects and arrays are detached and frozen on construction; `to_dict()` returns deterministic JSON-compatible snapshots. Non-finite numbers, unsupported Python objects, malformed identifiers/schema versions, invalid resource limits, duplicate tuple metadata and invalid status/error-code combinations fail closed.
 
-The envelopes do not load modules, execute operations, enforce permissions, or grant authority. Runtime invocation remains a separate reviewed work package.
+The envelopes themselves do not load modules, execute operations, enforce permissions, or grant authority. Runtime invocation is implemented separately by host-grant-gated ModuleRuntime dispatch (PR #235) and supervised WorkerIPC dispatch (PR #254). These are trusted host-controlled execution paths, not arbitrary plugin loading or a general OS sandbox; durable lease recovery and security acceptance are tracked separately under WP-09G.
 
 
 ## Evidence and provenance contract
@@ -94,14 +94,14 @@ The engineering package exports BoxSolid, CylinderSolid, FramedBounds3 and Primi
 
 ## Profile extrusion (PR #49)
 
-The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. Profiles are immutable simple polygons extruded along local +Z with explicit height/unit. The model rejects self-intersection and degenerate area.
+The primitive geometry layer also exports Vec2 and ExtrudedProfileSolid. PR #49 introduced straight-edged extrusion, PR #52 added polygonal through-hole loops, and PR #58 added bounded circular-arc edges and curved through-holes with analytic area/perimeter/volume/surface-area calculations. Curved topology validation uses deterministic arc tessellation; this is not an exact B-rep or general 3D Boolean kernel.
 
 
 ## CAD Generator application service (PR #136)
 
 A transport-neutral in-process `CADGeneratorService` now provides the CAD-specific application boundary over versioned FeatureHistory documents, the local SQLite revision store, the validated FeatureArtifact cache and the allow-listed regeneration engine. The service supports typed and strict snapshot writes, explicit revision reads, regeneration and a provenance-bearing response envelope. It is exported from `universal_platform.engineering`.
 
-The service does not expose a transport and does not grant network authority. HTTP/CLI/UI remain OPEN. Any future listener must define authentication, authorization, request-size/time limits, audit evidence, cancellation, structured errors and loopback-only default binding. Remote access must be an explicit, separately reviewed capability.
+The service remains transport-neutral and does not itself grant network authority. PR #138 adds the authenticated loopback-only HTTP transport; PR #140 adds the same-origin local FeatureHistory workbench; PR #142 adds a bounded straight-polygon sketch authoring workflow. Any additional listener or remote access must define authentication, authorization, request-size/time limits, audit evidence, cancellation, structured errors and a separately reviewed network boundary.
 
 
 ## CAD Generator local HTTP transport (PR #138)
@@ -115,7 +115,7 @@ This is a local development interface, not a remote service or production authen
 
 The local HTTP server serves packaged same-origin HTML/CSS/JS for a FeatureHistory JSON/revision workbench. The page supports bearer-token connection, source JSON editing/paste, immutable revision append, revision list/load and exact-revision regeneration. Static files are restricted to the validated loopback origin and protected by a restrictive CSP; API requests still require the bearer token. The token is not persisted by the UI.
 
-This interface is not a graphical sketch editor, CAD viewport or visual modelling tool. Interactive geometry authoring remains a separate requirement. See the local UI section in the [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
+This interface includes a bounded SVG polygon sketch workflow added by PR #142, but it is not a full parametric CAD editor or general 3D viewport. Arc authoring, dimensional/automatic constraint editing, general 3D modelling and full assembly authoring remain separate requirements. See the local UI section in the [CAD Generator Loopback HTTP API Contract](../design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md).
 
 
 ## Bounded visual polygon sketch workflow (PR #142)

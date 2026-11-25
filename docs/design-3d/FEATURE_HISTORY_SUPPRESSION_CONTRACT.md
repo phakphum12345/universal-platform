@@ -1,6 +1,6 @@
-# FeatureHistory Suppression Contract — Proposed Schema v1.1
+# FeatureHistory Suppression Contract — Schema v1.1
 
-**Status:** Backend model/editor/regeneration IMPLEMENTED by PR #163; revision-safe service/API operations are in PR #165 pending CI/merge; workbench integration remains open.  
+**Status:** End-to-end bounded suppression/unsuppression workflow IMPLEMENTED / INTEGRATED by PRs #163, #165 and #166 (backend, revision-safe service/API and workbench/browser acceptance). Branch/merge history and Undo/Redo are separate capabilities.  
 **Depends on:** FeatureHistory v1.0, immutable revision store, revision-safe edit API, local workbench and real-browser E2E gate.  
 **Purpose:** Define suppression and unsuppression semantics before changing source schemas, persistence, regeneration or UI behavior.
 

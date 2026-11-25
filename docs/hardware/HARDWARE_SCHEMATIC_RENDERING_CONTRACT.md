@@ -1,6 +1,6 @@
 # Hardware Schematic Rendering Contract
 
-**Status:** PR #59 implementation candidate. This is a deterministic offline symbol/layout renderer, not an electrical verification engine.
+**Status:** IMPLEMENTED / INTEGRATED — PR #59 merged 2026-11-06. This is a deterministic offline symbol/layout renderer, not an electrical verification engine.
 
 ## 1. Separation of concerns
 

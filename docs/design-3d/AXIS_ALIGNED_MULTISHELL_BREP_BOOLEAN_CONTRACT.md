@@ -1,6 +1,6 @@
 # Axis-Aligned Multi-Shell B-rep Boolean Contract v1.0
 
-**Status:** IMPLEMENTED — PR #191 merged to the integration branch.  
+**Status:** IMPLEMENTED / INTEGRATED — PR #191 merged (`20e03675ec1000bd2bbcfaf251df4790305f2c0c`). This remains bounded axis-aligned multi-shell Boolean support, not a general arbitrary-geometry kernel.  
 **Algorithm:** `exact-axis-aligned-multishell-brep-box-grid-v1`.
 
 ## 1. Supported inputs

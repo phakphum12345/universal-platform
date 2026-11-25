@@ -57,4 +57,4 @@ PR #48 introduces versioned BoxSolid and CylinderSolid records, explicit units, 
 
 ## Profile extrusion
 
-PR #49 adds a straight extrusion of a simple 2D polygon in a named frame. The implementation computes polygon area/perimeter, prism volume/surface area and transformed AABBs. Curved boundaries, holes and Boolean operations are not implemented.
+PR #49 adds straight-edged profile extrusion in a named frame, with polygon area/perimeter, prism volume/surface area and transformed AABBs. PR #52 adds polygonal through-hole loops and includes inner-wall area in the analytic surface calculation. PR #58 adds bounded circular-arc profile edges and curved through-hole loops with analytic area/perimeter/volume/surface-area calculations; topology validation uses deterministic arc tessellation and is not an exact B-rep operation. These increments do not provide a general 3D Boolean or B-rep CAD kernel.

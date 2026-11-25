@@ -2,7 +2,7 @@
 
 **Status:** PROPOSED  
 **Requirement:** HWR-005  
-**Implementation:** PARTIAL — normalized SchematicModel connectivity graph implemented in PR #46 and driver interface/pin binding metadata implemented in PR #47; schematic rendering and executable driver integration remain NOT IMPLEMENTED / NOT VERIFIED
+**Implementation:** PARTIAL — normalized SchematicModel connectivity graph (PR #46), metadata-only driver interface/pin binding (PR #47), deterministic SVG layout rendering (PR #59) and conservative static ERC v1.0 (PR #60) are integrated. EDA import/export, executable driver integration, firmware/device I/O and full hardware validation remain NOT IMPLEMENTED / NOT VERIFIED.
 
 ## 1. Purpose
 

@@ -1,6 +1,6 @@
 # Exact Rational Faceted Output Contract
 
-**Status:** PARTIAL — PR #221 adds the bounded single-outer-shell exact-rational artifact profile. Boolean shell-assembly integration, cavity semantics and universal degeneracy certification remain incomplete.  
+**Status:** PARTIAL — PR #221 adds the bounded exact-rational faceted artifact profile; PRs #223–#225 integrate exact-rational Boolean generation and bounded multi-shell output; PR #228 integrates the invocation-wide Boolean resource ledger. General branching/tangency/degeneracy coverage and unrestricted arbitrary-faceted Boolean acceptance remain incomplete.  
 **Target profile:** `RATIONAL_FACETED_SOLID_V1`.  
 **Compatibility:** additive profile; existing binary64 `TriangleMesh`, `BRepSolid` and `BRepMultiShellSolid` formats remain unchanged.
 
@@ -120,16 +120,12 @@ The v1 implementation deliberately accepts exactly one connected OUTER shell.
 Cavities, nested positive material islands, branching, some vertex-contact
 configurations, and arbitrary degeneracy semantics are not certified. The
 pairwise SAT scan is a bounded conservative check, not a universal proof for
-all possible faceted shell configurations. The artifact is not yet consumed
-by `assemble_boolean_shells` or `CADGeneratorService`; those integrations
-remain required before rational Boolean results can be emitted end-to-end.
+all possible faceted shell configurations. This was the PR #221 initial-slice boundary. PRs #223–#225 subsequently integrated exact-rational Boolean generation, bounded multi-shell assembly and a CADGeneratorService result path.
 
-PR #221 acceptance requires exact-head CI and post-merge CI. A passing
-tetrahedral rational round-trip fixture establishes only the implemented
-single-shell profile, not unrestricted arbitrary-faceted Boolean support.
+At the PR #221 initial slice, a passing tetrahedral rational round-trip fixture established only the single-shell profile, not unrestricted arbitrary-faceted Boolean support. Later PRs #223–#225 added the bounded generator/multi-shell paths described below.
 
 
-## 10. Resource-preflight implementation update — PR #222
+## 10. Resource-preflight evidence update — PR #222
 
 The v1 implementation now enforces the following parser-side bounds before retaining parsed geometry:
 
@@ -140,4 +136,12 @@ The v1 implementation now enforces the following parser-side bounds before retai
 - Solid ID, frame ID, unit, source ID, provenance record count, and aggregate metadata characters have explicit limits.
 - The JSON Schema now expresses the individual metadata and provenance-count ceilings; aggregate character and rational-bit budgets remain runtime validation rules.
 
-These changes preserve the v1 serialized field names and rational pair representation. Canonical v1 round-trip compatibility remains covered by the existing tetrahedron fixture and is included in the current engineering test workflow. Exact-head CI is still required before marking this implementation slice PASS.
+These changes preserve the v1 serialized field names and rational pair representation. Canonical v1 round-trip compatibility remains covered by the existing tetrahedron fixture and is included in the engineering test workflow. PR #222 is the documentation checkpoint for parser-side bounds, not independent implementation or CI evidence.
+
+
+## 11. Generator, multi-shell and invocation-wide resource integration — PRs #223–#228
+
+- PR #223 integrates the exact-rational Boolean generator output path (merge SHA `40168a0ede4aaa187fd626453c712940a2d1e0c8`).
+- PRs #224 and #225 extend the result path to bounded exact-rational multi-shell output (merge SHAs `54e02966590bd9c766fe751a468e7578dcf9646e` and `520c8b24f74b7e66ced7872ef067e6dddf9b4f63`).
+- PR #228 integrates one `BooleanResourceLedger` per invocation across arrangement, coverage, selection, classification and shell assembly (merge SHA `86338231badc850a642e9aa347a3cbedb1e27e01`). Exact PR-head `python-tests`, `workflow-sanity` and `chromium-e2e` passed; no post-merge workflow run was returned for the exact merge SHA, so post-merge CI remains UNKNOWN.
+- These increments close the bounded exact-output, multi-shell and cross-stage resource-accounting implementation steps. They do not establish arbitrary faceted topology, all degeneracy handling, or full Boolean Kernel acceptance.

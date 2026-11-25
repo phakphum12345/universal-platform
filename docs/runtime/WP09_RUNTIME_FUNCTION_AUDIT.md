@@ -1,5 +1,7 @@
 # WP-09 Runtime Function-by-Function Audit
 
+> **Historical source audit — superseded for current integration status:** This function-by-function review is pinned to the older `c3d9800ebb46caff38bf18c13142e218ee2c6c63` baseline and its original implementation branch. Its function-level observations are historical; do not use its old WP-09C/WP-09D status as current branch state. For current WP-09G integration and acceptance boundaries, see [Durable Worker Lease and Crash-Recovery Contract](DURABLE_WORKER_LEASE_RECOVERY_CONTRACT.md): WP-09G-A–D are integrated by PR #272, the WP-09G-E implementation slice by PR #277, and production acceptance remains OPEN.
+
 **Repository:** `phakphum12345/universal-platform`  
 **Audit baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63`  
 **Implementation branch:** `feat/wp-09-windows-job-object`  
