@@ -1,9 +1,18 @@
 # Arbitrary Faceted B-rep Boolean Contract
 
-**Status:** PARTIAL — PRs #195–#212 implement bounded exact intersection/fragment primitives, global multi-mesh arrangement, independent coverage certification, fail-closed material classification, Boolean boundary selection, shell assembly and CAD Generator execution for supported faceted cases. General arbitrary-topology Boolean remains incomplete.  
+**Status:** PARTIAL — bounded multi-mesh arrangement, independent coverage certification, fail-closed classification, boundary selection, shell assembly and CAD Generator execution are integrated; PRs #223–#225 add a separate bounded exact-rational result path and PR #228 adds invocation-wide resource accounting. General arbitrary-topology Boolean remains incomplete.  
 **Target profile:** `FACETED_BREP_BOOLEAN_V1`.  
 **Predecessor:** axis-aligned single-shell and multi-shell box-grid adapters in PR #191.  
-**Design baseline:** integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec` (post-PR #192 documentation reconciliation).
+**Original design baseline:** integration SHA `2e436b34150b9e068d0a1b38a8841d5c6c0e6eec` (post-PR #192 documentation reconciliation; historical).
+
+## Live integration reconciliation — 2026-11-25
+
+- **Current Main:** `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge). This contract's detailed implementation history below is retained; this live note summarizes later integration.
+- PR #195 implements exact transverse triangle-intersection segment extraction (merge SHA `79cb8cce7686734e4be21a5ab0d2ff6a4ce2397b`). PRs #197, #199–#203, #209–#219 add bounded fragment splitting, global arrangement, coverage, classification, selection, shell assembly, multi-mesh execution and fail-closed contact/resource handling.
+- PRs #223–#225 integrate exact-rational Boolean generation and bounded multi-shell output; PR #228 integrates the invocation-wide `BooleanResourceLedger` across arrangement, coverage, selection, classification and shell assembly.
+- The legacy binary64 B-rep path still rejects non-lossless rational coordinates. The separate `RATIONAL_FACETED_SOLID_V1` path supports bounded exact-rational output, including multi-shell results; it does not certify arbitrary branching, tangencies, nested material islands or all degeneracies.
+- PR #228 exact-head `python-tests`, `workflow-sanity` and `chromium-e2e` passed; post-merge CI on its exact merge SHA was not returned. Exact-SHA post-merge CI on current Main is UNKNOWN in this reconciliation.
+- Overall arbitrary-faceted Boolean acceptance remains PARTIAL / INCOMPLETE; no claim of unrestricted general CAD kernel support is made.
 
 ## 1. Purpose and non-goals
 
@@ -41,7 +50,7 @@ Each output component must represent a closed material region with one outer she
 
 ### Gate A — pairwise intersection arrangement (first code slice)
 
-- **Implemented sub-step:** PR candidate adds `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` for exact-rational endpoints of a proper transverse triangle-pair crossing. It canonicalizes source triangle order and endpoint order, validates the exact segment, serializes rational coordinates strictly, and rejects coplanar/contact/degenerate cases. This primitive does not split triangles and does not implement Boolean operations.
+- **Implemented sub-step — PR #195:** `TriangleIntersectionSegment` and `extract_transverse_triangle_intersection` provide exact-rational endpoints for a proper transverse triangle-pair crossing. The implementation canonicalizes source triangle and endpoint order, validates/serializes the exact segment, and rejects coplanar/contact/degenerate cases. This primitive does not split triangles or independently implement Boolean operations.
 - Implemented bounded sub-step: PR #197 splits one source triangle by one properly intersecting cutter plane with exact clipping, deterministic triangulation, source-winding preservation and exact area conservation.
 - Implemented bounded sub-step: PR #199 applies ordered exact-rational planes to each source triangle without float round-tripping, records per-plane side provenance, preserves winding, checks exact area conservation and enforces per-call fragment/rational-bit ceilings.
 - Gate A bounded implementation: PRs #200–#203 add global exact vertex/edge topology, T-junction diagnostics, independent exact coverage certification and aggregate arrangement budgets. PR #209 converts registered T-junctions into conforming facets; PR #210 orchestrates all-source supporting-plane arrangement for multiple meshes. PR #212 hardens the coverage oracle against non-coplanar fragments that could otherwise look identical after projection.
