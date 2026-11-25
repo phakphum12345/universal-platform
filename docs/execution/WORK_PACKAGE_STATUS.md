@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-25:** Main `24dbf3851cb64e7827234675a832e5abf1876b38` includes PR #291. PR #280 and #287–#291 are merged; PRs #258–#266 are also integrated. Repository inventory: 273 merged PRs, 18 closed without merge, 0 open PRs. Exact-SHA post-merge CI on current Main is **UNKNOWN** pending workflow verification. Overall status: **INCOMPLETE**.
+> **LIVE STATUS — 2026-11-25:** Main `24dbf3851cb64e7827234675a832e5abf1876b38` includes PR #291. PR #280 and #287–#291 are merged; PRs #258–#266 are also integrated. Pre-PR-#292 inventory snapshot: 273 merged PRs, 18 closed without merge, 0 open PRs; current documentation reconciliation PR #292 is OPEN / Draft and not merged. Exact-SHA post-merge CI on current Main is **UNKNOWN** pending workflow verification. Overall status: **INCOMPLETE**.
 
 # Work Package Status Register
 
