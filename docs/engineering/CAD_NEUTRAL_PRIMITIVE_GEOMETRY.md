@@ -54,7 +54,7 @@ See [2D Convex Profile Boolean Topology Contract](../design-3d/CAD_2D_BOOLEAN_TO
 
 See [Deterministic Primitive Triangle Mesh Contract](../design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md). BoxSolid emits an exact 8-vertex/12-triangle closed surface. CylinderSolid emits deterministic polygonal rings and cap fans under an explicit radial chordal tolerance. PR #66 adds ear-clipped caps and side walls for straight-edged concave/convex ExtrudedProfileSolid inputs; PR #68 adds ear-clipped cap regions with bridged polygonal holes and correctly oriented inner walls (514-test post-merge CI PASS). Meshes retain source-local frame/unit and a SHA-256 source geometry digest; validation checks face indices, degenerate triangles, edge manifold counts, directed winding and positive signed volume.
 
-Non-circular/spline ExtrudedProfileSolid meshes, general mesh self-intersection, mesh repair, B-rep, 3D Booleans and STEP/STL/3MF interchange remain unsupported.
+Non-circular/spline ExtrudedProfileSolid meshes and mesh repair remain unsupported. A separate exact-rational `analyze_mesh_intersections` API provides bounded self-intersection diagnostics (PR #80), but does not repair geometry. Faceted B-rep and bounded 3D Boolean operations are implemented in separate contracts (PRs #117–#118, #191 and #195–#228) with strict input/topology/resource limits. Binary STL export (PR #74) and bounded 3MF single-mesh import/export (PR #97) are implemented; STEP exchange and broader assembly/material/fidelity validation remain open.
 
 
 ## 8. PlanarRegion Boolean-to-solid adapter (PR #84, #87, #88)
