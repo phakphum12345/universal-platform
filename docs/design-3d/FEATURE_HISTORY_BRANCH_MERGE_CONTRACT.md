@@ -1,6 +1,6 @@
 # FeatureHistory Branch and Merge Contract
 
-**Status:** Design contract — implementation not yet claimed.  
+**Status:** Bounded end-to-end branch/fork/merge workflow IMPLEMENTED / INTEGRATED by PRs #176–#180 (immutable branch creation, conservative three-way merge analysis, transactional merge, loopback API and workbench controls). Conflict handling is intentionally conservative; this is not a general CAD geometry-editing or collaborative real-time merge system.  
 **Scope:** First bounded branch/fork and three-way merge workflow for immutable FeatureHistory revisions.
 
 ## 1. Goals
