@@ -1,6 +1,6 @@
 # Exact Rational Faceted Output Contract
 
-**Status:** PARTIAL — PR #221 adds the bounded single-outer-shell exact-rational artifact profile. Boolean shell-assembly integration, cavity semantics and universal degeneracy certification remain incomplete.  
+**Status:** PARTIAL — PR #221 adds the bounded exact-rational faceted artifact profile and PR #225 integrates bounded exact-rational multi-shell Boolean output. General branching/tangency/degeneracy coverage, complete invocation-wide resource accounting and unrestricted arbitrary-faceted Boolean acceptance remain incomplete.  
 **Target profile:** `RATIONAL_FACETED_SOLID_V1`.  
 **Compatibility:** additive profile; existing binary64 `TriangleMesh`, `BRepSolid` and `BRepMultiShellSolid` formats remain unchanged.
 
