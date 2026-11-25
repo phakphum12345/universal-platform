@@ -4,7 +4,7 @@
 
 ## Resource model
 
-Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. Durable resource persistence and distributed resource leases are not implemented.
+Each registered resource has a stable resource ID, kind, adapter ID, required capabilities, lifecycle state and generation counter. Unit-bearing metrics are grouped into timestamped, sequenced snapshots. The in-process registry serializes updates, rejects stale lifecycle transitions and non-monotonic snapshots. General ResourceRegistry persistence and distributed multi-host resource leases are not implemented. Durable supervised-worker leases are provided by the separate host-injected DurableResourceAllocator/WP-09G path; this does not make the full resource registry durable.
 
 ## Resource health monitoring
 
@@ -16,7 +16,7 @@ ResourceSnapshotCollector registers a metric provider per resource, collects uni
 
 ## Resource quota allocation and leases
 
-ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. Runtime worker leases are held until supervisor cleanup is confirmed; unconfirmed termination quarantines a lease and prevents ordinary TTL expiry/release. If quarantine metadata recording fails, ModuleRuntime still withholds release and reports the retained active lease for manual inspection. The allocator remains process-local; it does not discover host capacity, enforce OS-level CPU/memory limits, coordinate multiple processes/machines or persist leases across restarts.
+The default ResourceAllocator provides an in-memory quota pool with typed, unit-bearing capacity metrics. Allocation is atomic within one process, validates metric names and units, rejects overcommit, and returns an owner-bound lease with an expiry timestamp. A separate host-injected DurableResourceAllocator, integrated through the ResourceAllocatorPort, persists supervised-worker lease admission/release in a shared append-only journal, supports cross-process admission and reconciles worker identity/liveness on startup (WP-09G-A–D, PR #272). The durable path is opt-in; the default in-memory allocator remains process-local. Worker leases are held until supervisor cleanup or verified restart-reconciliation evidence permits release; unconfirmed termination/liveness quarantines the lease. WP-09G-E adds a bounded audited force-release service, but production identity-provider/API wiring and owner acceptance remain open. Neither allocator enforces OS-level CPU/memory limits or discovers actual host capacity.
 
 ## Log-driven diagnosis
 
@@ -78,11 +78,11 @@ AdapterReplacementCoordinator only operates while the resource is in SLEEP. It c
 
 ## Remaining gates
 
-1. Persistent resource registry, durable leases and cross-process concurrency control.
+1. Persistent ResourceRegistry state and cross-process resource lifecycle/adapter coordination. Durable supervised-worker leases, shared-journal admission and startup reconciliation are integrated under WP-09G-A–D; the default ResourceAllocator remains in-memory.
 2. Stream log sources, cursoring, rotation, retention and robust cross-source correlation.
 3. OS sandbox implementation for untrusted repair and worker code; process-tree containment exists but is not a sandbox.
 4. OS-enforced CPU/memory/disk/network quotas and broader resource telemetry collectors.
-5. Checkpoint/restore, heartbeat, crash restart policy and lifecycle integration with ResourceRegistry/RecoveryCoordinator.
+5. Checkpoint/restore, heartbeat and crash restart/replay policy, plus full lifecycle integration between durable worker leases and ResourceRegistry/RecoveryCoordinator. Startup lease reconciliation is implemented; automatic worker restart/replay is not.
 6. Cross-process adapter routing, active-task transfer, durable route state and production canary traffic policy; local policy-gated fallback and in-process route replacement are implemented.
 7. Distributed/remote evidence replication, signatures, key management and retention policy; local cross-process locking and hash chaining are implemented in the current evidence-store increment.
 8. Human approval and permission integration for source/dependency changes.
