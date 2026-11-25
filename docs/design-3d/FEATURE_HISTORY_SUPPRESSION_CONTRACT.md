@@ -1,4 +1,4 @@
-# FeatureHistory Suppression Contract — Proposed Schema v1.1
+# FeatureHistory Suppression Contract — Schema v1.1
 
 **Status:** End-to-end bounded suppression/unsuppression workflow IMPLEMENTED / INTEGRATED by PRs #163, #165 and #166 (backend, revision-safe service/API and workbench/browser acceptance). Branch/merge history and Undo/Redo are separate capabilities.  
 **Depends on:** FeatureHistory v1.0, immutable revision store, revision-safe edit API, local workbench and real-browser E2E gate.  
