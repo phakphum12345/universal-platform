@@ -240,7 +240,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [CAD Generator Loopback HTTP API Contract](docs/design-3d/CAD_GENERATOR_HTTP_API_CONTRACT.md) — includes the same-origin local FeatureHistory workbench, token handling, CSP and capability boundaries.
 - Static UI assets: `src/universal_platform/engineering/static/cad_generator.html`, `cad_generator.css`, `cad_generator.js`.
-- The current workbench edits FeatureHistory JSON and manages revisions; graphical sketch editing and a CAD viewport remain OPEN.
+- The current workbench edits FeatureHistory JSON, manages immutable revisions and includes bounded SVG straight-polygon sketch authoring plus mesh preview; a full parametric CAD editor and general 3D viewport remain OPEN.
 
 
 ## Visual polygon sketch editor — PR #142
@@ -298,20 +298,20 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 
 - [FeatureHistory Undo/Redo Contract](docs/design-3d/FEATURE_HISTORY_UNDO_REDO_CONTRACT.md) — append-only revision restore model, persistent stacks, expected-revision safety and workbench rules.
 - [Post-PR #171 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR171.md) — exact merge SHA and post-merge Python, Chromium and workflow-sanity evidence.
-- Undo/Redo is PASS for this bounded FeatureHistory workflow. Presentation reordering is separately PASS under PRs #173–#174; graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
+- Undo/Redo is PASS for this bounded FeatureHistory workflow. Presentation reordering is separately PASS under PRs #173–#174, and branch/fork/merge is PASS under PRs #176–#180; recompute propagation and general CAD-kernel capabilities remain OPEN.
 
 
 ## FeatureHistory Presentation Reordering — PRs #173–#174
 
 - [FeatureHistory Reordering Contract](docs/design-3d/FEATURE_HISTORY_REORDER_CONTRACT.md) — dependency-safe presentation order, immutable revision and unchanged execution order.
 - [Post-PR #174 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR174.md) — exact PR-head and post-merge Python, Chromium and workflow-sanity evidence.
-- FeatureHistory presentation reordering is PASS for the bounded workflow. Graph branch/merge, recompute propagation and general CAD-kernel capabilities remain OPEN.
+- FeatureHistory presentation reordering is PASS for the bounded workflow. Branch/fork/merge is separately PASS for the bounded workflow; recompute propagation and general CAD-kernel capabilities remain OPEN.
 
 
-## FeatureHistory Branch and Merge — design contract
+## FeatureHistory Branch and Merge — integrated bounded workflow
 
-- [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — independent branch history identities, exact fork provenance, conservative three-way merge, conflict rules and atomic append-only merge requirements.
-- **Status:** PARTIAL — PR #176 implements local immutable branch/fork storage and PR #177 adds pure three-way merge analysis. PR #178 implements transactional merge append/provenance, PR #179 adds strict branch/fork/merge API routes and PR #180 completes the workbench controls and Chromium branch/merge acceptance. **Status: PASS** for the bounded FeatureHistory branch/fork/merge workflow; broader CAD and repository requirements remain OPEN.
+- [FeatureHistory Branch and Merge Contract](docs/design-3d/FEATURE_HISTORY_BRANCH_MERGE_CONTRACT.md) — integrated bounded branch/fork, conservative three-way merge, transactional persistence, loopback API and workbench controls.
+- **Status:** IMPLEMENTED / INTEGRATED — PRs #176–#180 deliver immutable branch/fork storage, conservative three-way merge analysis, transactional append/provenance, strict loopback API routes and workbench controls. Exact-head and post-merge CI passed for the bounded workflow; broader CAD and repository requirements remain OPEN.
 
 - [Post-PR #176 Repository Audit](docs/audit/REPOSITORY_AUDIT_2026-11-08_POST_PR176.md) — exact branch/fork PR-head and post-merge Python, Chromium and workflow-sanity evidence.
 
