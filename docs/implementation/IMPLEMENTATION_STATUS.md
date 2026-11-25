@@ -31,7 +31,7 @@
 - Versioned JSON-compatible solver result snapshots via `NonlinearSolveResult.to_dict()`; not-computed rank/scale diagnostics are represented as null.
 - Hard/soft scalar constraint evaluation with explicit UNKNOWN for missing variables.
 - Analytic Box/Cylinder geometry primitives and bounds; not a CAD kernel.
-- Straight-sided polygon profile extrusion with optional through-hole loops, strict topology validation, net area/perimeter, SI volume/surface area including inner walls, deterministic backward-compatible v1.0 snapshots and public package exports (PR #52 merged).
+- Analytic profile extrusion with straight-edged profiles and polygonal through-holes (PR #52), plus circular-arc outer/hole boundaries with analytic area/perimeter/volume/surface-area calculations (PR #58); deterministic arc tessellation is used for topology validation and curved mesh sampling (PR #70). This remains a bounded analytic extrusion/mesh adapter, not a general B-rep or 3D Boolean kernel.
 - Assembly occurrence/joint data contracts, identity/reference checks, normalized axes, finite/ordered limits and nominal joint DOF bookkeeping.
 - Versioned normalized mechanism schema v1.2: stable-ID links, eight joint kinds, frame/geometry references, explicit placements and generalized-coordinate/joint parameterization records. Joint schema capability remains SCHEMA_ONLY; no general solver support is implied.
 - Dependency-free rigid coordinate transforms with frame-checked composition, inversion, point/vector transforms and transformed axis-aligned bounds.
