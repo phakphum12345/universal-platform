@@ -2,7 +2,7 @@
 
 # Work Package Status Register
 
-## Live work-package reconciliation — 2026-11-23
+## Live work-package reconciliation — 2026-11-25
 
 **Main baseline:** `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge). PR #280 and #287–#291 are merged; PRs #258–#266 are integrated. Exact-SHA post-merge CI on this Main baseline is UNKNOWN pending workflow verification.
 
