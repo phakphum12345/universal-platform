@@ -156,10 +156,10 @@ The rational bit budget and early-work preflight now extend beyond the standalon
 - Boundary selection preflights total mesh input rational bits, shares the coverage pair-check counter across source faces, explicitly rejects exhausted remaining pair budget, and charges source/fragment rational bits against one operation-level aggregate budget.
 - Regression tests cover classifier allocation preflight, classifier and selection aggregate-budget rejection, and global-arrangement aggregate-budget rejection.
 
-These are stage-scoped budgets with conservative charging, not yet one shared accounting object spanning the entire `CADGeneratorService` invocation. Rational shell assembly now enforces its own aggregate rational-bit, inter-shell pair and containment-ray budgets and preserves exact rational output. The remaining resource gap is cross-stage accounting: a single invocation-wide ledger must prevent the sum of arrangement, classification, selection and assembly work from independently consuming each stage's full ceiling. The Boolean pipeline therefore remains PARTIAL until that integration gate and the broader operation/degeneracy matrix are complete.
+PR #228 subsequently closes the cross-stage accounting gap with one `BooleanResourceLedger` per invocation, shared across arrangement, coverage oracle, selection, classification and shell assembly. Existing stage-local hard ceilings remain in force. This closes the invocation-wide accounting implementation gate, but does not expand supported topology or complete the broader operation/degeneracy matrix; the Boolean pipeline remains PARTIAL.
 
 
-## Rational multi-shell output — implementation candidate
+## Rational multi-shell output — implemented bounded slice
 
 A separate `RATIONAL_BOOLEAN_SOLID_V1` result contract now composes individually
 validated `RATIONAL_FACETED_SOLID_V1` shells into material components. Each
@@ -183,10 +183,10 @@ Regression coverage targets non-binary rational round-trip, disconnected outer
 components, cavity role/parentage/net volume, touching-shell rejection,
 invalid cavity containment, and service-level Boolean serialization.
 
-**Status: MERGED — PR #225**, merge SHA `520c8b24f74b7e66ced7872ef067e6dddf9b4f63`. Exact PR head `ceb32c9022d52eb7a54c8f183b7d4a72c1b80bf8` passed `python-tests`, `workflow-sanity`, and `chromium-e2e`. The bounded multi-shell output path is implemented and its PR-head checks are PASS. This does not certify branching, arbitrary tangencies, nested material islands, all degeneracies, or unrestricted exact Boolean geometry; post-merge CI and full kernel acceptance remain separate evidence gates.
+**Status: MERGED / INTEGRATED — PR #225**, merge SHA `520c8b24f74b7e66ced7872ef067e6dddf9b4f63`. Exact PR head `ceb32c9022d52eb7a54c8f183b7d4a72c1b80bf8` passed `python-tests`, `workflow-sanity`, and `chromium-e2e`. The bounded multi-shell output path is implemented. This does not certify branching, arbitrary tangencies, nested material islands, all degeneracies, or unrestricted exact Boolean geometry; full kernel acceptance remains separate.
 
 
-## Cross-stage invocation-wide resource ledger — implementation candidate
+## Cross-stage invocation-wide resource ledger — implemented
 
 The next increment introduces `BooleanResourceLedger` and passes one ledger through the automatic faceted Boolean invocation:
 
@@ -200,4 +200,4 @@ The ledger has per-dimension invocation ceilings and rejects invalid/boolean lim
 
 Regression tests target deterministic snapshots, non-mutating failed charges, boolean/unknown budget rejection, exhaustion specifically between arrangement and selection, and face-budget exhaustion before rational shell output.
 
-**Status: IMPLEMENTATION CANDIDATE — CI PENDING.** This is not PASS until exact PR-head checks and post-merge checks pass. Review remaining counter semantics against the full operation matrix; resource accounting does not expand geometric topology support or complete the Boolean Kernel.
+**Status: MERGED / INTEGRATED — PR #228**, merge SHA `86338231badc850a642e9aa347a3cbedb1e27e01`. Exact PR head `f1facac89ff7a41fba8abe8bfd2e5c336bacfbd2` passed `workflow-sanity`, `python-tests` and `chromium-e2e` (runs #42596807517 and #42596807493). No post-merge workflow run was returned for the exact merge SHA, so post-merge CI remains UNKNOWN. The shared ledger closes the cross-stage resource-accounting implementation gap; it does not expand geometric topology support or complete the Boolean Kernel.
