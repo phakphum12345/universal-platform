@@ -29,7 +29,7 @@
 | Workstream | Live maturity | Remaining acceptance boundary |
 |---|---|---|
 | Core architecture / governance | PARTIAL | Branch protection, identity/authorization, threat model, secure configuration, audit, migration/rollback and platform orchestration |
-| Runtime / Worker | PARTIAL | WP-09G-A through D integrated; WP-09G-E authenticated operator recovery and durable approval/audit remain open; general sandbox and OS resource enforcement are not established |
+| Runtime / Worker | PARTIAL | WP-09G-A through D integrated by PR #272; WP-09G-E recovery-service slice integrated by PR #277, but production identity-provider/API wiring and owner acceptance remain open; general sandbox and OS resource enforcement are not established |
 | CAD / Geometry / Generator | PARTIAL | General topology/degeneracies, curved geometry, recompute propagation, broader interoperability and independent adversarial references |
 | Mechanics / Kinematics | PARTIAL | General multi-loop/3D configuration solving, singularity/redundancy analysis, dynamics and contact |
 | Physics / Simulation | PARTIAL | Validated thermodynamics, fluids, electromagnetics, structural FEA, CFD, coupling, convergence and uncertainty |
