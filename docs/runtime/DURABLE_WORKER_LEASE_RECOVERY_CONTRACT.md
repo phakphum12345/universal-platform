@@ -42,18 +42,18 @@ The lifecycle remains IMPLEMENTED → VERIFIED → INTEGRATED → ACCEPTED. PR-h
 
 ---
 
-**Status:** Design contract / implementation not yet accepted  
+**Status:** PARTIAL IMPLEMENTATION — WP-09G-A through D integrated by PR #272; WP-09G-E recovery-service implementation slice integrated by PR #277. Production acceptance remains OPEN pending trusted host identity-provider/API wiring and owner acceptance.  
 **Scope:** Durable resource reservations used by supervised workers, process identity hand-off, restart reconciliation, and operator-controlled recovery  
 **Dependencies:** WP-09E-A bounded stdin, WP-09E-B one-shot WorkerIPCClient, WP-09F ModuleRuntime worker dispatch, Windows Job Object containment, POSIX process-group supervision  
 **Non-goal:** This contract does not claim a security sandbox or OS-enforced CPU, memory, filesystem, or network limits.
 
-## 1. Current baseline and gap
+## 1. Original in-memory baseline and current implementation boundary
 
-The current `ResourceAllocator` is an in-memory, process-local quota pool. It supports finite or non-expiring leases and an in-memory quarantine state. Its reservations are atomic only within one allocator instance; active leases and quarantine metadata disappear when the host process exits.
+The original/default `ResourceAllocator` remains an in-memory, process-local quota pool. It supports finite or non-expiring leases and an in-memory quarantine state. Its reservations are atomic only within one allocator instance; active leases and quarantine metadata disappear when the host process exits. WP-09G adds a separate host-injected `DurableResourceAllocator` through `ResourceAllocatorPort`; do not conflate the default in-memory allocator with the durable worker-lease path.
 
 `JsonlRecoveryEvidenceStore` is a separate append-only recovery-outcome store. It provides cross-process file locking, bounded JSONL records, a SHA-256 hash chain, file-type/symlink checks and `fsync`. It records recovery evidence; it is not a source of truth for live worker leases and cannot reconstruct allocator capacity or identify orphaned worker processes.
 
-WP-09G must close that gap without treating an evidence record as a live reservation or assuming that a missing host process means its worker process tree has exited.
+The integrated durable path addresses the worker-lease gap through a shared journal, cross-process admission, process identity binding/start gating and startup liveness reconciliation (PR #272). PR #277 adds a host-injected authenticated/audited force-release service. The remaining acceptance gaps are production identity-provider/API wiring, operational/owner acceptance, broader ResourceRegistry persistence, automatic worker restart/replay and OS isolation/resource enforcement. A recovery evidence record is never treated as a live reservation, and a missing host process alone does not prove that its worker process tree has exited.
 
 ## 2. Required safety invariants
 
