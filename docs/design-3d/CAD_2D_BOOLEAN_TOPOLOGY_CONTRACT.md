@@ -1,6 +1,6 @@
 # 2D Convex Profile Boolean Topology Contract
 
-**Status:** Convex polygon Boolean operations v1.0 implementation candidate (PR #61). This is a dependency-free planar geometry increment, not a general CAD kernel.
+**Status:** IMPLEMENTED / INTEGRATED — PR #61 merged 2026-11-06. This is a dependency-free planar geometry increment, not a general CAD kernel.
 
 ## 1. Inputs and coordinate model
 
