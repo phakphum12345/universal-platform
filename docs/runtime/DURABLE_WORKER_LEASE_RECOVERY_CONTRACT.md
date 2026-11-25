@@ -1,13 +1,13 @@
 # WP-09G — Durable Worker Lease and Crash-Recovery Contract
 
-## Live implementation reconciliation — 2026-11-23
+## Live implementation reconciliation — 2026-11-25
 
-- **Current Main baseline:** `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge).
-- **WP-09G-A through D:** integrated on `main` through the durable runtime chain and PR #272; implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.
-- **WP-09G-E implementation slice:** integrated by PR #277; it provides a host-injected `authenticate_and_authorize` port, short-lived operator authentication and process-liveness checks, identity-bound `ABSENT` evidence, durable `LEASE_FORCE_RELEASED` journal event and chain-hash audit reference.
+- **Current Main baseline:** `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge).
+- **WP-09G-A through D:** integrated on `main` through PR #272 (merge SHA `bb5d016a48bf8329136629dd0d7835e56fa0ece0`); implementation includes the shared append-only journal, durable resource allocator, process identity binding/start gate, liveness inspection and startup lease reconciliation.
+- **WP-09G-E implementation slice:** integrated by PR #277 (merge SHA `87c19a9752e43ea051dac0aa302fb85323d130ce`); it provides a host-injected `authenticate_and_authorize` port, freshness-bounded operator authentication and process-liveness evidence, identity-bound `ABSENT` proof, durable `LEASE_FORCE_RELEASED` journal event and chain-hash audit reference.
 - **WP-09G-E acceptance remains OPEN:** production host identity-provider and trusted authorization wiring, operator-facing API integration and owner acceptance are not established by the in-process port alone.
 - **Security boundary remains PARTIAL:** process supervision/Job Objects are not a general sandbox; privilege, filesystem/network isolation and OS CPU/RAM/I/O enforcement are not established.
-- **CI:** PR #286 post-merge workflows on exact Main SHA `84cc7fa...` are PASS for Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4). The first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN; this does not alter WP-09G acceptance.
+- **CI:** exact-SHA post-merge CI for the current Main baseline `24dbf385...` is **UNKNOWN** in this reconciliation. Do not reuse PR #286 CI as evidence for the newer Main SHA.
 
 ## Historical implementation reconciliation — 2026-11-22 (superseded)
 
