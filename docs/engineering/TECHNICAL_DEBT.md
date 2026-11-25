@@ -1,17 +1,18 @@
-# Technical Debt Register — 2026-11-20
+# Technical Debt Register — 2026-11-25
 
 **Repository:** `phakphum12345/universal-platform`  
-**Current main baseline:** `main` at `84cc7fa88161818f240619393dd1482e170fec2e` (PR #286 merge). Historical Development-branch findings below must be reconciled before reuse.  
+**Current main baseline:** `main` at `24dbf3851cb64e7827234675a832e5abf1876b38` (PR #291 merge). Historical Development-branch findings below are retained as historical evidence and must not be treated as current branch state.  
 **Related live audit:** [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md)  
 **Status:** OPEN — this register records verified gaps and evidence debt; it is not a claim that all possible debt has been discovered.
 
-## Live reconciliation — 2026-11-23
+## Live reconciliation — 2026-11-25
 
-- WP-15E authenticated read-only module/function catalogue is integrated by PR #286. Its tools endpoint truthfully returns UNKNOWN because a separate governed tool registry does not exist.
-- PR #286 exact-head CI passed Repository Quality, Engineering Core, CAD Generator Browser E2E and all four Cross-Shell jobs. Post-merge CI on exact Main SHA `84cc7fa...` is PASS across Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell (4/4); the initial Browser E2E attempt failed 1/9 and its cause remains UNKNOWN.
-- PR #280 remains open at head `1e28fd5...`; its branch is based on current Main (31 ahead / 0 behind), but its documentation content still reflects an older snapshot and overlaps PR #287, so reconcile content before merge.
-- Main branch protection was last observed disabled; required checks are not enforced by GitHub. Verify the live settings before closing GOV-001.
-- Current major debt remains: platform-wide Control Center WP-15F–J, WP-09G identity/security acceptance and OS isolation, cross-domain orchestration, general CAD/Mechanics/Physics/Hardware capability gaps, and full release acceptance.
+- Main is `24dbf3851cb64e7827234675a832e5abf1876b38` after PR #291. PR #280 and #287–#291 are merged; PR #258–#266 are also merged. Repository inventory at this audit: 273 merged PRs, 18 closed without merge, 0 open PRs.
+- PR #286 integrated the WP-15E authenticated read-only module/function catalogue. Its tools endpoint remains UNKNOWN because a separate governed tool registry does not exist.
+- PRs #258–#266 integrated the durable allocator, identity/process-binding, worker start-gate, liveness and startup-recovery slices. This does not close WP-09G-E: authenticated/audited operator recovery, end-to-end acceptance and OS isolation/resource enforcement remain open.
+- PR #288–#291 integrated shared-backend architecture, request correlation, Request ID schema and Laravel/Python source audit/documentation reconciliation.
+- Exact-SHA post-merge CI on current Main `24dbf3851cb64e7827234675a832e5abf1876b38` is UNKNOWN in this register; do not infer PASS from merged PR state. The last recorded branch-protection observation is disabled; re-check live settings before closing GOV-001.
+- Current major debt remains: WP-15F–J, WP-09G identity/security acceptance, cross-domain orchestration, general CAD/Mechanics/Physics/Hardware capability gaps, and full release acceptance.
 
 ## Severity and state
 
@@ -26,10 +27,13 @@
 | ID | Finding | Evidence | Required action | State |
 |---|---|---|---|---|
 | GOV-001 | Documentation describes `main` as protected, but GitHub reports both `main.protected=false` and `docs/phase-0-complete-requirements.protected=false`; required status-check enforcement is off and no repository rulesets exist | Live branch and ruleset API snapshot in the 2026-11-20 audit | Owner/admin must configure and verify branch protection or rulesets (required reviews, status checks, stale approval dismissal, restrictions appropriate to the workflow); update docs only after the live settings are verified | FAIL / OPEN |
-| GOV-002 | Product source is on a non-default development branch while `main` contains only the small blueprint/docs tree | `main` HEAD `96e7501...`; development HEAD `2eff621...`; tree counts 10 vs 450 | Define an explicit promotion/release policy, validate full release gates and obtain separate authorization before any promotion to `main`; the live compare currently reports development ahead by 878 commits and main behind by 0 | OPEN |
+| GOV-002 | Historical finding: product source was on a non-default development branch while `main` contained only the blueprint/docs tree | Historical `main` HEAD `96e7501...`; development HEAD `2eff621...`; tree counts 10 vs 450 (2026-11-20 snapshot) | Superseded as a current branch-state claim by subsequent Main integrations through PR #291. Retain this row only as historical audit evidence; do not reuse its old branch comparison as current state. | SUPERSEDED / HISTORICAL |
 | SEC-001 | Process supervision and Windows Job Objects are not a general security sandbox | Runtime contracts and source docstrings explicitly disclaim privilege, filesystem/network and OS resource isolation | Threat-model and implement least-privilege worker identity, filesystem/network controls and platform-specific enforcement before executing untrusted plugins/code | OPEN |
 
 ## P1 — Runtime durability and recovery
+
+> **Historical candidate-state note (superseded):** The RT-001–RT-005 rows below were written before PRs #258–#266 merged on 2026-11-20. Those PRs are now integrated. The historical exact-head evidence is retained, but their old “not integrated” states are not current. WP-09G acceptance remains partial because authenticated operator recovery, durable operational acceptance and OS enforcement are separate requirements.
+
 
 | ID | Finding | Evidence | Required action | State |
 |---|---|---|---|---|
