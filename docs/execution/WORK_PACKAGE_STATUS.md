@@ -57,7 +57,7 @@
 | PR #193 | Contract retained and advanced | Current faceted B-rep Boolean contract exists on main |
 | PRs #100–#114 | Historical runtime/documentation branches | Current runtime adapter/recovery/resource/health code is present on main; no direct cherry-pick without a unique diff |
 
-Historical work-package rows below are retained as a dated prior snapshot. See [Repository Audit 2026-11-20](docs/audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](docs/engineering/TECHNICAL_DEBT.md).
+Historical work-package rows below are retained as a dated prior snapshot. See [Repository Audit 2026-11-20](../audit/REPOSITORY_AUDIT_2026-11-20.md) and [Technical Debt Register](../engineering/TECHNICAL_DEBT.md).
 
 **Baseline integration branch:** `docs/phase-0-complete-requirements`  
 **Last verified integration baseline:** `c3d9800ebb46caff38bf18c13142e218ee2c6c63` (PR #240 merge)  
