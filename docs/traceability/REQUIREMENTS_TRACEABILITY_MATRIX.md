@@ -1,4 +1,4 @@
-> **LIVE STATUS — 2026-11-23:** Main `84cc7fa88161818f240619393dd1482e170fec2e` includes WP-15E authenticated read-only module/function catalogue (PR #286). Exact PR-head and post-merge CI passed Repository Quality, Engineering Core, CAD Browser E2E (same-SHA rerun) and Cross-Shell 4/4 on exact Main SHA `84cc7fa...`; the first Browser E2E attempt failed 1/9 and its cause remains UNKNOWN. PR #280 remains open; its branch is based on current Main, but its documentation content needs reconciliation. Repository maturity remains INCOMPLETE; implementation, verification, integration and owner acceptance are tracked separately.
+> **LIVE STATUS — 2026-11-25:** Main `24dbf3851cb64e7827234675a832e5abf1876b38` includes PR #291 source-audit/documentation reconciliation. PR #280 and PR #287–#291 are merged; PRs #258–#266 are also integrated. Exact-SHA post-merge CI on the current Main SHA is **UNKNOWN** pending workflow verification. Repository maturity remains INCOMPLETE; implementation, verification, integration and owner acceptance are tracked separately.
 
 # Requirements Traceability Matrix
 
@@ -26,7 +26,7 @@
 | R-016 | FeatureHistory suppression preserves source nodes and immutable revision history | FEATURE_HISTORY_SUPPRESSION_CONTRACT; FEATURE_HISTORY_REGENERATION_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS end-to-end by PRs #163/#165/#166; exact merge SHA `34148fc359076567eaa4b931304f61f536a41779`, 854 Python tests and 5 Chromium E2E tests PASS on PR head and post-merge |
 | R-017 | FeatureHistory Undo/Redo restores prior content without rewriting or deleting immutable revisions | FEATURE_HISTORY_UNDO_REDO_CONTRACT; CAD_GENERATOR_HTTP_API_CONTRACT | PASS — end-to-end bounded workflow merged by PRs #168–#171. PR #171 merge SHA `21bee045ea4d06aa07c7130f9123afaa64372638`: workflow-sanity PASS, python-tests PASS (865 tests), Chromium E2E PASS (6 tests) on exact PR head and post-merge SHA. |
 
-| UI-001 | Unified modern Control Center for overview, workspace, modules, tools, functions, workbenches, jobs, diagnostics, audit and settings | [WP-15 Modern Unified Control Center UI](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) | PLANNED — requirements/design only. Existing UI inventory, API/action mapping, accessibility, responsive behavior, secure settings and E2E acceptance are open. |
+| UI-001 | Unified modern Control Center for overview, workspace, modules, tools, functions, workbenches, jobs, diagnostics, audit and settings | [WP-15 Modern Unified Control Center UI](../ui/MODERN_UNIFIED_CONTROL_CENTER.md) | PARTIAL — WP-15C shell and bounded WP-15D/WP-15E foundations are integrated; workspace/API integration, governed tool registry, diagnostics, audit, settings, accessibility, responsive behavior and owner E2E acceptance remain open. |
 
 ## Engineering and 3D sub-requirements
 
