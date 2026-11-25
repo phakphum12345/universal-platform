@@ -97,7 +97,7 @@ The [Implementation Status](docs/implementation/IMPLEMENTATION_STATUS.md) and [E
 - [Deterministic Primitive Triangle Mesh Contract](docs/design-3d/TRIANGLE_MESH_GENERATION_CONTRACT.md) — implemented Box/Cylinder and straight/arc profile tessellation, including polygonal holes, with structural validation scope.
 - [Binary STL Interchange](docs/design-3d/STL_INTERCHANGE_CONTRACT.md) — implemented binary export and metadata sidecar; arbitrary import remains open.
 - [3MF Core Mesh Interchange](docs/engineering/3MF_CORE_MESH_INTERCHANGE_CONTRACT.md) — bounded single-mesh solid import/export; assembly/material/build-metadata fidelity remains open.
-- [Mesh Geometric Topology Analysis](docs/design-3d/MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) — implemented diagnostic layer; self-intersection remains open.
+- [Mesh Geometric Topology Analysis](docs/design-3d/MESH_GEOMETRIC_TOPOLOGY_ANALYSIS_CONTRACT.md) — implemented structural/topology diagnostics; its v1.0 self-intersection field remains UNKNOWN, with a separate analysis API documented below.
 - [Mesh Triangle Intersection](docs/design-3d/MESH_TRIANGLE_INTERSECTION_CONTRACT.md) — implemented separate exact-rational self-intersection analysis API (PR #80); topology schema v1.0 retains its UNKNOWN field for backward compatibility.
 - [3D Motion and Mechanism Reference Cases](docs/design-3d/3D_MOTION_AND_MECHANISM_REFERENCE_CASES.md) — deterministic mechanism fixtures.
 - [CAD to Manufacturing Pipeline](docs/design-3d/CAD_TO_MANUFACTURING_PIPELINE.md) — proposed manufacturing artifact workflow.
