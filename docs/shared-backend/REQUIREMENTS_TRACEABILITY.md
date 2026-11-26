@@ -8,9 +8,9 @@ Statuses are evidence-based. PASS is used only for the narrow behavior that was 
 | FR-001b Remaining Flutter Calendar clients | INTEGRATION/FLUTTER_INTEGRATION.md | Organization-admin gateway still requires reconciliation after its active PR is resolved | UNKNOWN |
 | FR-002 Flutter to remote Engineering API | INTEGRATION/FLUTTER_INTEGRATION.md; SECURITY.md | Python CAD API remains loopback-only; no approved remote Flutter transport exists or was enabled | SKIPPED |
 | FR-003 Health/readiness contract | API_CONTRACT.md | Laravel health/readiness and Python health endpoints exist, but no unified health contract or cross-service probe has been verified | UNKNOWN |
-| FR-004 Domain API schemas | API_CONTRACT.md | Shared request-ID JSON Schema exists; domain OpenAPI/schema coverage remains incomplete | UNKNOWN |
+| FR-004 Domain API schemas | API_CONTRACT.md | Shared request-ID and additive error-envelope JSON Schemas exist; full domain OpenAPI/schema coverage remains incomplete | PARTIAL |
 | FR-005a Request correlation | API_CONTRACT.md | Python PR #289 merge commit `10b471a1e8a977d5257a3ea62b170301dfea62d6`, schema PR #290 merge commit `2065b8a921dd5cdabbec007edf2af48f95d10761`, and Calendar PR #176 merge commit `65321c02374b59fc588d8917c3b3c4ddc8d51b0f`; Python, Laravel and Flutter regression checks passed | PASS |
-| FR-005b Shared error conventions | API_CONTRACT.md | No shared error schema yet; Laravel validation responses remain framework-specific | UNKNOWN |
+| FR-005b Shared error conventions | API_CONTRACT.md | Python error-envelope schema and regression tests cover 401 and 404 responses on the feature branch; Laravel validation format is intentionally unchanged pending a Calendar-side migration | PARTIAL |
 | FR-006 Domain authorization | SECURITY.md | Google ID-token and local Python bearer boundaries are present; full route-by-route authorization inventory remains | UNKNOWN |
 | FR-007 Data ownership/isolation | DATA_ARCHITECTURE.md | Laravel and Python persistence remain separate; full table-level ownership and isolation audit remains | UNKNOWN |
 | FR-008 Local deployment | OPERATIONS/LOCAL_DEPLOYMENT.md | No local deployment exercise was run in this workstream | SKIPPED |
