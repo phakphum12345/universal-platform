@@ -12,6 +12,7 @@ from universal_platform.engineering import (
     SQLiteCADAPIAuditLog,
     SQLiteFeatureArtifactCache,
     SQLiteFeatureHistoryStore,
+    SQLiteSettingsStore,
     SQLiteWorkspaceStore,
     create_cad_generator_http_server,
 )
@@ -74,10 +75,12 @@ def api(tmp_path):
     )
     audit = SQLiteCADAPIAuditLog(tmp_path / "api-audit.sqlite3")
     physics_bridge = create_builtin_physics_module_bridge()
+    settings_store = SQLiteSettingsStore(tmp_path / "settings.sqlite3")
     server = create_cad_generator_http_server(
         service, audit_log=audit, bearer_token=TOKEN,
         max_request_bytes=32_768,
         module_registry=physics_bridge.registry,
+        settings_store=settings_store,
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -1070,7 +1073,7 @@ def test_http_api_returns_structured_branch_merge_conflicts(api):
 
 def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
     playwright = pytest.importorskip("playwright.sync_api")
-    base, audit, _ = api
+    base, audit, server = api
 
     with playwright.sync_playwright() as browser_runtime:
         browser = browser_runtime.chromium.launch()
@@ -1088,6 +1091,27 @@ def test_control_center_browser_e2e_renders_authenticated_platform_status(api):
             assert page.locator('[data-component-id="module-runtime"] .component-status').inner_text() == "UNKNOWN"
             assert page.locator('[data-component-id="physical-device-io"] .component-status').inner_text() == "UNSUPPORTED"
             assert "must not be treated as READY" in page.locator("#platform-status-detail").inner_text()
+            assert page.locator('[data-component-id="settings"] .component-status').inner_text() == "READY"
+            page.get_by_text("READY · Revision 0", exact=True).wait_for(timeout=5000)
+            assert page.locator("#settings-theme").input_value() == "system"
+            assert page.locator("#settings-density").input_value() == "comfortable"
+            assert page.locator("#settings-reduced-motion").is_checked() is False
+
+            page.locator("#settings-theme").select_option("dark")
+            page.locator("#settings-density").select_option("compact")
+            page.locator("#settings-reduced-motion").check()
+            page.locator("#settings-save").click()
+            page.get_by_text("PASS · Saved revision 1", exact=True).wait_for(timeout=5000)
+            assert page.locator("#settings-detail").inner_text().startswith("Settings were read back successfully")
+            assert page.evaluate("document.documentElement.dataset.theme") == "dark"
+            assert page.evaluate("document.documentElement.dataset.density") == "compact"
+            assert page.evaluate("document.documentElement.dataset.reducedMotion") == "true"
+            assert server.settings_store is not None
+            assert server.settings_store.get().values == {
+                "appearance.theme": "dark",
+                "appearance.density": "compact",
+                "accessibility.reduced_motion": True,
+            }
         finally:
             browser.close()
     assert audit.verify()
