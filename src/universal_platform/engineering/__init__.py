@@ -617,10 +617,10 @@ __all__ += [
 ]
 
 from .settings_store import (
-    SQLiteSettingsStore,
     SettingsRecord,
     SettingsRevisionConflict,
     SettingsStoreIntegrityError,
+    SQLiteSettingsStore,
 )
 
 __all__ += [

@@ -22,8 +22,8 @@ from .cad_generator_service import CADGeneratorService
 from .feature_artifact_store import SQLiteFeatureArtifactCache
 from .feature_history_store import SQLiteFeatureHistoryStore
 from .physics_module_adapter import create_builtin_physics_module_bridge
-from .workspace_store import SQLiteWorkspaceStore
 from .settings_store import SQLiteSettingsStore
+from .workspace_store import SQLiteWorkspaceStore
 
 
 def resolve_data_directory(

@@ -12,8 +12,12 @@ from universal_platform.engineering.cad_generator_http_api import (
     create_cad_generator_http_server,
 )
 from universal_platform.engineering.cad_generator_service import CADGeneratorService
-from universal_platform.engineering.feature_artifact_store import SQLiteFeatureArtifactCache
-from universal_platform.engineering.feature_history_store import SQLiteFeatureHistoryStore
+from universal_platform.engineering.feature_artifact_store import (
+    SQLiteFeatureArtifactCache,
+)
+from universal_platform.engineering.feature_history_store import (
+    SQLiteFeatureHistoryStore,
+)
 from universal_platform.engineering.settings_store import SQLiteSettingsStore
 
 TOKEN = "settings-api-test-token-with-at-least-32-bytes"

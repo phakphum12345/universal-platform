@@ -32,9 +32,9 @@ from .feature_history_store import (
 )
 from .module_registry import ModuleRegistry
 from .settings_store import (
-    SQLiteSettingsStore,
     SettingsRevisionConflict,
     SettingsStoreIntegrityError,
+    SQLiteSettingsStore,
 )
 from .workspace_store import (
     SQLiteWorkspaceStore,

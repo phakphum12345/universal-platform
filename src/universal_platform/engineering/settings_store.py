@@ -15,7 +15,6 @@ from hashlib import sha256
 from pathlib import Path
 from threading import RLock
 
-
 _SCHEMA_VERSION = 1
 _SCOPE = "user"
 _DEFAULTS: dict[str, object] = {

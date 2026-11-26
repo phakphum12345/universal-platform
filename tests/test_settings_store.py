@@ -5,9 +5,9 @@ import sqlite3
 import pytest
 
 from universal_platform.engineering.settings_store import (
-    SQLiteSettingsStore,
     SettingsRevisionConflict,
     SettingsStoreIntegrityError,
+    SQLiteSettingsStore,
 )
 
 
