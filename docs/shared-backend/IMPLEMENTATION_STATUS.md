@@ -24,6 +24,7 @@ This is an API-boundary audit, not yet a complete audit of every module, route, 
 | Hybrid architecture proposal | PASS | `docs/shared-backend/ARCHITECTURE.md` |
 | Source reconciliation | UNKNOWN | Existing Laravel and Python API surfaces inspected; full inventory remains |
 | Shared request-correlation contract | PASS | Canonical JSON Schema, Python runtime validator and Calendar client/middleware behavior merged |
+| Shared error envelope | PARTIAL | Canonical JSON Schema and Python 401/404 regression coverage added on `feat/shared-api-error-envelope`; Laravel validation format is intentionally unchanged pending Calendar-side adoption |
 | Laravel request correlation | PASS | Existing middleware plus valid/invalid ID and auth-error regression tests in Calendar PR #176 |
 | Python request correlation | PASS | Universal Platform PR #289 merged; exact-head Python, E2E, repository-quality, documentation and cross-shell workflows passed |
 | Flutter request correlation | UNKNOWN | Shift-transaction client sends and captures IDs; organization-admin gateway remains to be reconciled after its active PR is resolved |
