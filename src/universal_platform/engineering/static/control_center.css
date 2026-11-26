@@ -181,3 +181,71 @@ input { width: 100%; min-height: 39px; padding: 9px 11px; border: 1px solid var(
 .catalog-item > .catalog-note { margin-top: 6px; }
 .catalog-empty { padding: 12px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 10px; line-height: 1.6; }
 @media (max-width: 680px) { .catalog-grid { grid-template-columns: 1fr; } }
+
+
+select {
+  width: 100%;
+  min-height: 39px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--page);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+select:disabled, input:disabled { opacity: .6; cursor: not-allowed; }
+.settings-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+}
+.settings-card > .service-detail { margin: 0; }
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.settings-field { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.settings-field label, .settings-toggle strong {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-raised);
+  cursor: pointer;
+}
+.settings-toggle input {
+  flex: 0 0 18px;
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent-strong);
+}
+.settings-toggle span { display: grid; gap: 5px; }
+.settings-toggle small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+:root[data-density="compact"] .section-block { margin-top: 20px; }
+:root[data-density="compact"] .settings-card,
+:root[data-density="compact"] .workspace-card,
+:root[data-density="compact"] .platform-status-card { padding: 14px; }
+:root[data-reduced-motion="true"] *,
+:root[data-reduced-motion="true"] *::before,
+:root[data-reduced-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  transition-duration: .01ms !important;
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+}
+@media (max-width: 680px) { .settings-grid { grid-template-columns: 1fr; } }

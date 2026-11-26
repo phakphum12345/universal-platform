@@ -21,6 +21,15 @@
   const workspaceSaveButton = byId("workspace-save");
   const workspaceReloadButton = byId("workspace-reload");
   const workspaceMoreButton = byId("workspace-load-more");
+  const settingsState = byId("settings-state");
+  const settingsDetail = byId("settings-detail");
+  const settingsTheme = byId("settings-theme");
+  const settingsDensity = byId("settings-density");
+  const settingsReducedMotion = byId("settings-reduced-motion");
+  const settingsSaveButton = byId("settings-save");
+  const settingsReloadButton = byId("settings-reload");
+  let settingsRevision = null;
+  let savingSettings = false;
   let activeToken = null;
   let selectedWorkspace = null;
   let workspaceOffset = 0;
@@ -66,6 +75,43 @@
     workspaceState.className = "status-pill " + kind;
     workspaceState.textContent = label;
     workspaceDetail.textContent = detail;
+  }
+
+  function setSettingsState(kind, label, detail) {
+    settingsState.className = "status-pill " + kind;
+    settingsState.textContent = label;
+    settingsDetail.textContent = detail;
+  }
+
+  function applyTheme(theme) {
+    if (theme === "light" || theme === "dark") {
+      document.documentElement.dataset.theme = theme;
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+    const light = theme === "light";
+    themeToggle.setAttribute("aria-pressed", String(light));
+    themeToggle.textContent = light ? "Use dark theme" : "Use light theme";
+  }
+
+  function applyDensity(density) {
+    if (density === "compact") document.documentElement.dataset.density = "compact";
+    else delete document.documentElement.dataset.density;
+  }
+
+  function applyReducedMotion(enabled) {
+    if (enabled) document.documentElement.dataset.reducedMotion = "true";
+    else delete document.documentElement.dataset.reducedMotion;
+  }
+
+  function markSettingsDirty() {
+    if (settingsRevision === null) return;
+    setSettingsState(
+      "unknown",
+      "PENDING · Unsaved changes",
+      "Your changes are only a draft until Save settings completes and a follow-up read confirms persistence."
+    );
+    settingsSaveButton.disabled = false;
   }
 
   function setCatalogueState(kind, label, detail) {
@@ -245,6 +291,99 @@
     }
   }
 
+  async function loadSettings(token = activeToken) {
+    if (!token) {
+      setSettingsState("unknown", "UNKNOWN · Authentication required", "Check the authenticated local service before loading settings.");
+      return;
+    }
+    setSettingsState("unknown", "PENDING · Loading", "Reading user preferences from local SQLite storage.");
+    try {
+      const { response, payload } = await requestJson("/v1/settings", "GET", token);
+      if (!response.ok) {
+        setSettingsState("failed", "FAIL · HTTP " + response.status, payload?.error?.message || "Settings could not be loaded.");
+        return;
+      }
+      const record = payload?.settings;
+      const values = record?.values;
+      if (!record || record.scope !== "user" || !Number.isInteger(record.revision) ||
+          !values || !["system", "light", "dark"].includes(values["appearance.theme"]) ||
+          !["comfortable", "compact"].includes(values["appearance.density"]) ||
+          typeof values["accessibility.reduced_motion"] !== "boolean") {
+        setSettingsState("unknown", "UNKNOWN · Invalid response", "The settings endpoint returned data outside the supported user-preference contract.");
+        return;
+      }
+      settingsRevision = record.revision;
+      settingsTheme.value = values["appearance.theme"];
+      settingsDensity.value = values["appearance.density"];
+      settingsReducedMotion.checked = values["accessibility.reduced_motion"];
+      settingsTheme.disabled = false;
+      settingsDensity.disabled = false;
+      settingsReducedMotion.disabled = false;
+      settingsSaveButton.disabled = false;
+      settingsReloadButton.hidden = true;
+      applyTheme(settingsTheme.value);
+      applyDensity(settingsDensity.value);
+      applyReducedMotion(settingsReducedMotion.checked);
+      setSettingsState("ready", "READY · Revision " + settingsRevision, "Saved user preferences were loaded from the authenticated local settings store.");
+    } catch (_error) {
+      setSettingsState("failed", "FAIL · Connection error", "The local settings API could not be reached or returned invalid JSON.");
+    }
+  }
+
+  async function saveSettings() {
+    if (!activeToken || settingsRevision === null || savingSettings) return;
+    savingSettings = true;
+    settingsSaveButton.disabled = true;
+    const expectedRevision = settingsRevision;
+    const values = {
+      "appearance.theme": settingsTheme.value,
+      "appearance.density": settingsDensity.value,
+      "accessibility.reduced_motion": settingsReducedMotion.checked
+    };
+    try {
+      const { response, payload } = await requestJson(
+        "/v1/settings",
+        "PUT",
+        activeToken,
+        { expected_revision: expectedRevision, values }
+      );
+      if (response.status === 409) {
+        setSettingsState("failed", "FAIL · Revision conflict", "Your draft is preserved. Another client saved a newer revision; use Reload latest to replace this draft explicitly.");
+        settingsReloadButton.hidden = false;
+        return;
+      }
+      if (!response.ok || !payload?.settings || !Number.isInteger(payload.settings.revision)) {
+        setSettingsState("failed", "FAIL · HTTP " + response.status, payload?.error?.message || "Settings save was not confirmed.");
+        return;
+      }
+      const savedRevision = payload.settings.revision;
+      const { response: verifyResponse, payload: verifyPayload } = await requestJson(
+        "/v1/settings", "GET", activeToken
+      );
+      const persisted = verifyPayload?.settings;
+      if (!verifyResponse.ok || !persisted || persisted.scope !== "user" ||
+          persisted.revision !== savedRevision ||
+          persisted.values?.["appearance.theme"] !== values["appearance.theme"] ||
+          persisted.values?.["appearance.density"] !== values["appearance.density"] ||
+          persisted.values?.["accessibility.reduced_motion"] !== values["accessibility.reduced_motion"]) {
+        setSettingsState("unknown", "UNKNOWN · Persistence verification failed", "The write response was received, but a follow-up read did not confirm the saved settings. Your draft has been retained.");
+        settingsReloadButton.hidden = false;
+        return;
+      }
+      settingsRevision = persisted.revision;
+      settingsReloadButton.hidden = true;
+      applyTheme(values["appearance.theme"]);
+      applyDensity(values["appearance.density"]);
+      applyReducedMotion(values["accessibility.reduced_motion"]);
+      setSettingsState("ready", "PASS · Saved revision " + settingsRevision, "Settings were read back successfully from local SQLite storage.");
+    } catch (_error) {
+      setSettingsState("failed", "FAIL · Save error", "Settings could not be saved or verified. Your draft remains on this page.");
+    } finally {
+      savingSettings = false;
+      settingsSaveButton.disabled = settingsRevision === null;
+    }
+  }
+
   function parseMetadata(id) {
     let metadata;
     try {
@@ -381,11 +520,33 @@
   });
 
   themeToggle.addEventListener("click", () => {
-    const light = document.documentElement.dataset.theme !== "light";
-    if (light) document.documentElement.dataset.theme = "light";
-    else delete document.documentElement.dataset.theme;
-    themeToggle.setAttribute("aria-pressed", String(light));
-    themeToggle.textContent = light ? "Use dark theme" : "Use light theme";
+    const nextTheme = settingsTheme.value === "light" ? "dark" : "light";
+    settingsTheme.value = nextTheme;
+    applyTheme(nextTheme);
+    markSettingsDirty();
+  });
+
+  settingsTheme.addEventListener("change", () => {
+    applyTheme(settingsTheme.value);
+    markSettingsDirty();
+  });
+  settingsDensity.addEventListener("change", () => {
+    applyDensity(settingsDensity.value);
+    markSettingsDirty();
+  });
+  settingsReducedMotion.addEventListener("change", () => {
+    applyReducedMotion(settingsReducedMotion.checked);
+    markSettingsDirty();
+  });
+  settingsSaveButton.addEventListener("click", saveSettings);
+  settingsReloadButton.addEventListener("click", async () => {
+    if (!activeToken) return;
+    settingsReloadButton.disabled = true;
+    try {
+      await loadSettings(activeToken);
+    } finally {
+      settingsReloadButton.disabled = false;
+    }
   });
 
   checkButton.addEventListener("click", async () => {
@@ -405,17 +566,24 @@
         setServiceState("failed", "FAIL · HTTP " + response.status, message);
         setWorkspaceState("failed", "FAIL · Authentication", "The service rejected the supplied token.");
         setCatalogueState("failed", "FAIL · Authentication", "The service rejected the supplied token.");
+        setSettingsState("failed", "FAIL · Authentication", "The service rejected the supplied token.");
         return;
       }
       if (payload.status === "READY" && payload.service === "cad-generator" && payload.api_version === "1.0") {
         setServiceState("ready", "PASS · CAD API READY", "Verified CAD Generator API v" + payload.api_version + ". This does not establish platform-wide health.");
-        await Promise.all([checkPlatformStatus(token), loadWorkspaces(token), loadCatalogue(token)]);
+        await Promise.all([
+          checkPlatformStatus(token),
+          loadWorkspaces(token),
+          loadCatalogue(token),
+          loadSettings(token)
+        ]);
       } else {
         setServiceState("unknown", "UNKNOWN · Unexpected response", "The endpoint responded, but its payload did not match the known CAD health contract.");
       }
     } catch (_error) {
       setServiceState("failed", "FAIL · Connection error", "The local CAD Generator API could not be reached. Confirm that its loopback service is running.");
       setWorkspaceState("failed", "FAIL · Connection error", "The workspace API could not be reached.");
+      setSettingsState("failed", "FAIL · Connection error", "The local settings API could not be reached.");
     } finally {
       checkButton.disabled = false;
     }
@@ -433,6 +601,19 @@
     workspaceMoreButton.hidden = true;
     workspaceOffset = 0;
     workspaceHasMore = false;
+    settingsRevision = null;
+    settingsTheme.value = "system";
+    settingsDensity.value = "comfortable";
+    settingsReducedMotion.checked = false;
+    settingsTheme.disabled = true;
+    settingsDensity.disabled = true;
+    settingsReducedMotion.disabled = true;
+    settingsSaveButton.disabled = true;
+    settingsReloadButton.hidden = true;
+    applyTheme("system");
+    applyDensity("comfortable");
+    applyReducedMotion(false);
+    setSettingsState("unknown", "UNKNOWN · Not loaded", "The token was cleared; saved preferences are no longer accessible.");
     setServiceState("unknown", "UNKNOWN · Not checked", "Local token cleared from this page's memory.");
     setPlatformState("unknown", "UNKNOWN · Not checked", "Platform status was cleared; run Check service to verify it again.");
     setWorkspaceState("unknown", "UNKNOWN · Not loaded", "The token was cleared; workspace data is no longer accessible.");

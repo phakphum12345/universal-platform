@@ -21,6 +21,7 @@
       <nav class="navigation" aria-label="Platform">
         <a class="nav-link active" href="#overview" aria-current="page"><span aria-hidden="true">⌂</span> Overview</a>
         <a class="nav-link" href="#workspaces-section"><span aria-hidden="true">▦</span> Workspaces <span class="nav-state">Local</span></a>
+        <a class="nav-link" href="#settings-section"><span aria-hidden="true">⚙</span> Settings <span class="nav-state">Local</span></a>
         <a class="nav-link" href="#catalog-section"><span aria-hidden="true">◇</span> Modules & tools <span class="nav-state">Catalogue</span></a>
         <a class="nav-link" href="#functions-section"><span aria-hidden="true">ƒ</span> Functions <span class="nav-state">Catalogue</span></a>
         <button class="nav-link unavailable" type="button" disabled aria-describedby="planned-note"><span aria-hidden="true">◷</span> Jobs & activity <span class="nav-state">Planned</span></button>
@@ -123,7 +124,43 @@
         </section>
 
 
-        <section class="section-block" id="catalog-section" aria-labelledby="catalog-heading">
+<section class="section-block" id="settings-section" aria-labelledby="settings-heading">
+          <div class="section-heading">
+            <div><p class="eyebrow">USER PREFERENCES</p><h2 id="settings-heading">Settings</h2></div>
+            <span id="settings-state" class="status-pill unknown" role="status" aria-live="polite">UNKNOWN · Not loaded</span>
+          </div>
+          <div class="settings-card">
+            <p id="settings-detail" class="service-detail" role="status" aria-live="polite">Check the authenticated local service above to load your saved preferences.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label for="settings-theme">Appearance theme</label>
+                <select id="settings-theme" disabled>
+                  <option value="system">System default</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+              <div class="settings-field">
+                <label for="settings-density">Interface density</label>
+                <select id="settings-density" disabled>
+                  <option value="comfortable">Comfortable</option>
+                  <option value="compact">Compact</option>
+                </select>
+              </div>
+              <label class="settings-toggle" for="settings-reduced-motion">
+                <input id="settings-reduced-motion" type="checkbox" disabled>
+                <span><strong>Reduce motion</strong><small>Minimize transitions and animations in this interface.</small></span>
+              </label>
+            </div>
+            <div class="button-row">
+              <button id="settings-save" class="primary-button" type="button" disabled>Save settings</button>
+              <button id="settings-reload" class="secondary-button" type="button" hidden>Reload latest</button>
+            </div>
+            <p class="field-note">Preferences are stored locally for the current user. The bearer token is never included in settings or saved by this page.</p>
+          </div>
+        </section>
+
+                <section class="section-block" id="catalog-section" aria-labelledby="catalog-heading">
           <div class="section-heading">
             <div><p class="eyebrow">REGISTERED CAPABILITIES</p><h2 id="catalog-heading">Modules & tools</h2></div>
             <span id="catalog-state" class="status-pill unknown" role="status" aria-live="polite">UNKNOWN · Not loaded</span>

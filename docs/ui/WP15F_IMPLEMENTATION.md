@@ -1,6 +1,6 @@
 # WP-15F — Unified Settings (first implementation slice)
 
-**Status:** PARTIAL — authenticated local user-preference API and durable SQLite storage are proposed in this PR. This is not the complete WP-15F settings system and does not establish owner acceptance.
+**Status:** PARTIAL — authenticated local user-preference API, durable SQLite storage and Control Center settings UI are implemented in this PR. This is not the complete WP-15F settings system and does not establish owner acceptance.
 
 ## Scope delivered by this slice
 
@@ -19,7 +19,7 @@
 - No multi-user identity or authorization model beyond the existing local bearer-token boundary.
 - No settings migration framework beyond SQLite user_version schema guard.
 - No explicit restore/rollback endpoint or UI in this slice; a later WP-15F increment must design and test history restoration.
-- No UI wiring or owner acceptance is claimed by this backend-only increment.
+- No owner acceptance is claimed by this increment.
 
 ## API contract
 
@@ -32,6 +32,6 @@ All routes inherit the existing loopback peer/Host/Origin checks, bearer authent
 ## Validation required
 
 - Store tests: defaults, type/range validation, scope rejection, persistence, stale writer rejection, audit integrity, secret rejection and newer-schema fail-closed behavior.
-- HTTP tests: authenticated read/write, request-ID agreement, stale revision conflict, unsupported methods/query parameters, and no secret-value reflection.
+- HTTP and browser tests: authenticated read/write, request-ID agreement, stale revision conflict, unsupported methods/query parameters, no secret-value reflection, Control Center preference loading, save and read-back verification.
 - Exact PR-head CI and post-merge integration CI remain separate gates.
 - WP-15F remains PARTIAL until settings UI, owner/scope governance, secret management, migration/rollback, accessibility and owner acceptance are implemented and verified.

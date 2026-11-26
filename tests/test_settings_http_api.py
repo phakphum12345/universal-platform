@@ -133,3 +133,13 @@ def test_settings_api_is_reported_ready_only_when_store_is_configured(settings_a
     assert "authenticated read" in components["settings"]["evidence"]
     assert payload["status"] == "PARTIAL"
     assert audit.verify()
+
+def test_settings_api_requires_existing_bearer_authentication(settings_api):
+    base, audit, _store = settings_api
+    request = Request(base + "/v1/settings")
+    with pytest.raises(HTTPError) as error:
+        urlopen(request, timeout=5)
+    assert error.value.code == 401
+    payload = json.loads(error.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "UNAUTHORIZED"
+    assert audit.verify()
