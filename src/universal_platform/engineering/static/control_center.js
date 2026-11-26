@@ -520,7 +520,7 @@
   });
 
   themeToggle.addEventListener("click", () => {
-    const nextTheme = settingsTheme.value === "light" ? "dark" : "light";
+    const nextTheme = settingsTheme.value === "light" ? "system" : "light";
     settingsTheme.value = nextTheme;
     applyTheme(nextTheme);
     markSettingsDirty();
