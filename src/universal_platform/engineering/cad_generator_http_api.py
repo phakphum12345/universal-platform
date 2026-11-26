@@ -31,6 +31,11 @@ from .feature_history_store import (
     FeatureHistoryStoreIntegrityError,
 )
 from .module_registry import ModuleRegistry
+from .settings_store import (
+    SQLiteSettingsStore,
+    SettingsRevisionConflict,
+    SettingsStoreIntegrityError,
+)
 from .workspace_store import (
     SQLiteWorkspaceStore,
     WorkspaceNotFoundError,
@@ -409,6 +414,18 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
             }
 
         if self.command == "GET" and path == "/v1/platform/status":
+            settings_component = {
+                "id": "settings",
+                "status": "UNKNOWN",
+                "reason": "No settings store is configured on this host.",
+            }
+            if self.server.settings_store is not None:
+                self.server.settings_store.get()
+                settings_component = {
+                    "id": "settings",
+                    "status": "READY",
+                    "evidence": "The configured durable user settings store completed an authenticated read.",
+                }
             workspace_component = {
                 "id": "workspaces",
                 "status": "UNKNOWN",
@@ -436,6 +453,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                         "reason": "ModuleRuntime is not wired into this CAD Generator server host.",
                     },
                     workspace_component,
+                    settings_component,
                     {
                         "id": "jobs",
                         "status": "UNKNOWN",
@@ -463,6 +481,26 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
                     "CAD Generator READY describes only this authenticated API host.",
                 ],
             }
+
+        if path == "/v1/settings":
+            store = self.server.settings_store
+            if store is None:
+                raise _HTTPError(503, "SETTINGS_STORE_UNAVAILABLE", "Settings storage is not configured on this host")
+            if parsed.query:
+                raise _HTTPError(400, "UNEXPECTED_QUERY", "Settings routes do not accept query parameters")
+            if self.command == "GET":
+                return 200, {"settings": store.get().to_dict()}
+            if self.command == "PUT":
+                body = self._read_json()
+                if set(body) != {"expected_revision", "values"}:
+                    raise _HTTPError(400, "INVALID_FIELDS", "Settings update requires exactly expected_revision and values")
+                if not isinstance(body["values"], dict):
+                    raise _HTTPError(400, "INVALID_SETTINGS", "values must be an object")
+                record = store.update(
+                    body["values"], expected_revision=body["expected_revision"]
+                )
+                return 200, {"settings": record.to_dict()}
+            raise _HTTPError(405, "METHOD_NOT_ALLOWED", "Use GET or PUT on settings")
 
         if path == "/v1/workspaces":
             store = self.server.workspace_store
@@ -877,7 +915,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         except FeatureHistoryNavigationUnavailable as exc:
             status, outcome = 409, exc.code
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except (FeatureHistoryRevisionConflict, WorkspaceRevisionConflict) as exc:
+        except (FeatureHistoryRevisionConflict, WorkspaceRevisionConflict, SettingsRevisionConflict) as exc:
             status, outcome = 409, "REVISION_CONFLICT"
             payload = {"error": {"code": outcome, "message": str(exc)}}
         except WorkspaceNotFoundError:
@@ -889,7 +927,7 @@ class _CADGeneratorRequestHandler(BaseHTTPRequestHandler):
         except (InvalidModelError, ValueError, TypeError) as exc:
             status, outcome = 400, "INVALID_REQUEST"
             payload = {"error": {"code": outcome, "message": str(exc)}}
-        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError, WorkspaceStoreIntegrityError):
+        except (FeatureHistoryStoreIntegrityError, FeatureArtifactCacheIntegrityError, WorkspaceStoreIntegrityError, SettingsStoreIntegrityError):
             status, outcome = 500, "STORAGE_INTEGRITY_ERROR"
             payload = {"error": {"code": outcome, "message": "Stored engineering data failed integrity validation"}}
         except Exception:  # noqa: BLE001
@@ -936,11 +974,13 @@ class CADGeneratorHTTPServer(HTTPServer):
         request_timeout_seconds: float,
         workspace_store: SQLiteWorkspaceStore | None = None,
         module_registry: ModuleRegistry | None = None,
+        settings_store: SQLiteSettingsStore | None = None,
     ):
         self.generator_service = generator_service
         self.audit_log = audit_log
         self.workspace_store = workspace_store
         self.module_registry = module_registry
+        self.settings_store = settings_store
         self.bearer_token = bearer_token
         self.max_request_bytes = max_request_bytes
         self.request_timeout_seconds = request_timeout_seconds
@@ -967,6 +1007,7 @@ def create_cad_generator_http_server(
     request_timeout_seconds: float = 5.0,
     workspace_store: SQLiteWorkspaceStore | None = None,
     module_registry: ModuleRegistry | None = None,
+    settings_store: SQLiteSettingsStore | None = None,
 ) -> CADGeneratorHTTPServer:
     """Create (but do not start) a loopback-only server; port 0 selects dynamically."""
     if not isinstance(generator_service, CADGeneratorService):
@@ -977,6 +1018,8 @@ def create_cad_generator_http_server(
         raise TypeError("workspace_store must be a SQLiteWorkspaceStore or None")
     if module_registry is not None and not isinstance(module_registry, ModuleRegistry):
         raise TypeError("module_registry must be a ModuleRegistry or None")
+    if settings_store is not None and not isinstance(settings_store, SQLiteSettingsStore):
+        raise TypeError("settings_store must be a SQLiteSettingsStore or None")
     if not isinstance(bearer_token, str) or len(bearer_token.encode("utf-8")) < 32:
         raise ValueError("bearer_token must contain at least 32 UTF-8 bytes")
     if host != "127.0.0.1":
@@ -990,7 +1033,7 @@ def create_cad_generator_http_server(
     return CADGeneratorHTTPServer(
         (host, port), generator_service, audit_log, bearer_token,
         max_request_bytes, float(request_timeout_seconds), workspace_store,
-        module_registry,
+        module_registry, settings_store,
     )
 
 

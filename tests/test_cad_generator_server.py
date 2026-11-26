@@ -49,8 +49,11 @@ def test_local_server_binds_loopback_with_dynamic_port_and_persistent_stores(tmp
         assert (data_path / "feature-artifacts.sqlite3").is_file()
         assert (data_path / "cad-api-audit.sqlite3").is_file()
         assert (data_path / "workspaces.sqlite3").is_file()
+        assert (data_path / "settings.sqlite3").is_file()
         assert server.workspace_store is not None
         assert server.workspace_store.list() == ()
+        assert server.settings_store is not None
+        assert server.settings_store.get().revision == 0
     finally:
         server.server_close()
 

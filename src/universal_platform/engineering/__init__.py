@@ -615,3 +615,17 @@ __all__ += [
     "WorkspaceRevisionConflict",
     "WorkspaceStoreIntegrityError",
 ]
+
+from .settings_store import (
+    SQLiteSettingsStore,
+    SettingsRecord,
+    SettingsRevisionConflict,
+    SettingsStoreIntegrityError,
+)
+
+__all__ += [
+    "SQLiteSettingsStore",
+    "SettingsRecord",
+    "SettingsRevisionConflict",
+    "SettingsStoreIntegrityError",
+]
